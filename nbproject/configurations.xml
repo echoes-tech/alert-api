@@ -4,14 +4,17 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>include/EchoesHome.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>include/resources/RestSrReception.h</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>src/EchoesHome.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -51,6 +54,8 @@
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
             <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>dbo</linkerLibLibItem>
+            <linkerLibLibItem>boost_system</linkerLibLibItem>
+            <linkerLibLibItem>boost_signals</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -69,7 +74,7 @@
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>../dbo/dist/SharedObject/GNU-Linux-x86</pElem>
+            <pElem>../dbo/dist/SharedObjectFcgid/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
           <linkerLibItems>
@@ -77,8 +82,9 @@
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
             <linkerLibLibItem>wtfcgi</linkerLibLibItem>
-            <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibLibItem>boost_system</linkerLibLibItem>
+            <linkerLibLibItem>dbo</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

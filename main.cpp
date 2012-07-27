@@ -1,15 +1,10 @@
 #include <Wt/WServer>
-#include <Wt/WResource>
-#include <Wt/Http/Request>
-#include <Wt/Http/Response>
-//#include <Wt/WEnvironment>
-//#include <Wt/WApplication>
+#include <resources/RestSrReception.h>
+//#include <EchoesHome.h>
+
+#include <tools/Session.h>
+
 //---------------------------------------------------------------------------
-
-#include <iostream>
-#include <fstream>
-#include <ctime>
-
 
 typedef std::vector<std::string> ParameterValues;
 typedef std::map<std::string, ParameterValues> ParameterMap;
@@ -23,31 +18,55 @@ class RestSrReception : public Wt::WResource
         }
 
     protected:
+        bool debug = false;
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            int i = 0;
             int nombre_aleatoire = 0;
             srand(time(NULL)); // initialisation de rand
             nombre_aleatoire = rand();
 
             std::ofstream file;
             std::string test;
-            test = "/var/www/wt/post" + boost::lexical_cast<std::string>(nombre_aleatoire);
+            if (debug)
+            {
+                test = "/home/tsa/dev/netsize/post" + boost::lexical_cast<std::string>(nombre_aleatoire);
+            }
+            else
+            {
+                test = "/var/www/wt/post" + boost::lexical_cast<std::string>(nombre_aleatoire);
+            }
             
             file.open (test.c_str());
 //            const Wt::WEnvironment& env = EchoesHome::instance()->environment();
             ParameterMap pValues = request.getParameterMap();
             std::map<std::string, ParameterValues>::iterator it;
-            for (it = pValues.begin(); it != pValues.end(); ++it)
-            {
-                response.out() << (*it).first << " : " << (*it).second[0] << "\n";
-                file << (*it).first << " : " << (*it).second[0] << "\n";
-//                Wt::Dbo::field(a, (*itStrings).second, formatColumnName(*this, (*itStrings).first));
-            } 
+//            response.out() << "Client address : " << request.clientAddress() << "\n";
+//            response.out() << "Content type : " << request.contentType() << "\n";
+//            response.out() << "Url scheme : " << request.urlScheme() << "\n";
+//            response.out() << "Query string : " << request.queryString() << "\n";
             
+            if (debug)
+            {
+                file << "Client address : " << request.clientAddress() << "\n";
+                file << "Content type : " << request.contentType() << "\n";
+                file << "Url scheme : " << request.urlScheme() << "\n";
+                file << "Query string : " << request.queryString() << "\n";
+                file << "X-Forwarded-For : " << request.headerValue("X-Forwarded-For") << "\n";
+                file << "buffer : \n";
+            }
+            
+            char c;
+            c = request.in().get();
+            while (request.in())
+            {
+                file << c;
+                c = request.in().get();
+            }            
+
+            response.out() << "status=0";
+                        
             file.close();
             
-//            response.out() << env.getCookieValue("test");
             
         }
 };
@@ -68,12 +87,16 @@ int main(int argc, char **argv)
         // On définit la configuration du serveur en lui passant les paramètres d'entrée et son fichier de configuration
         server.setServerConfiguration(argc, argv);
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
-//        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
+        
+//        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
+     
         server.addResource(&receiveSr, "/sr");
         
-//        Session::configureAuth();
+        Session::configureAuth();
         
+//        receiveSr.setInternalPath("/sr");
+      
         // démarrage du serveur en arrière plan
         if (server.start())
         {

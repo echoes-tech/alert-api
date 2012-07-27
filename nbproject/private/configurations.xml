@@ -26,8 +26,9 @@
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -c config.xml --docroot . --http-address 0.0.0.0 --http-port 8080</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -c config.xml --docroot . --http-address 0.0.0.0 --http-port 8080 --deploy-path=/</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -c config.xml --docroot . --http-address 0.0.0.0 --http-port 8080</runcommand>
+        <runcommand>"${OUTPUT_PATH}" -c config.xml --docroot . --http-address 0.0.0.0 --http-port 8080 --deploy-path=/</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

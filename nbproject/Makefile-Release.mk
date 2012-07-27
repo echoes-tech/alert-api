@@ -34,6 +34,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/src/EchoesHome.o \
 	${OBJECTDIR}/main.o
 
 
@@ -51,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../dbo/dist/SharedObject/GNU-Linux-x86 -lwt -lwtdbo -lwtdbopostgres -lwtfcgi -ldbo -lboost_filesystem
+LDLIBSOPTIONS=-L../dbo/dist/SharedObjectFcgid/GNU-Linux-x86 -lwt -lwtdbo -lwtdbopostgres -lwtfcgi -lboost_filesystem -lboost_system -ldbo
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -60,6 +61,11 @@ LDLIBSOPTIONS=-L../dbo/dist/SharedObject/GNU-Linux-x86 -lwt -lwtdbo -lwtdbopostg
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	distcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/src/EchoesHome.o: src/EchoesHome.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../dbo/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EchoesHome.o src/EchoesHome.cpp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
