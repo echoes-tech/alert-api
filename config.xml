@@ -235,14 +235,14 @@
 	   request parameters and body, generate the result, but
 	   excludes time spent in HTTP I/O.
 	  -->
-	<log-response-time>false</log-response-time>
+	<log-response-time>true</log-response-time>
 
 	<!-- Maximum HTTP request size (Kb)
 
            Maximum size of an incoming POST request. This value must be
            increased when the user is allowed to upload files.
          -->
-	<max-request-size>128</max-request-size>
+	<max-request-size>256</max-request-size>
 
 	<!-- Session id length (number of characters) -->
 	<session-id-length>16</session-id-length>
