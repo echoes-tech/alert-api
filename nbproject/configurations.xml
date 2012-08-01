@@ -45,7 +45,7 @@
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>../dbo/dist/SharedObject/GNU-Linux-x86</pElem>
+            <pElem>../dbo/dist/SharedObjectWthttpd/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
           <linkerLibItems>

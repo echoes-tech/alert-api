@@ -2,6 +2,7 @@
 #include <Wt/Http/Client>
 #include <Wt/WLogger>
 #include <Wt/Utils>
+#include <Wt/WEnvironment>
 #include <resources/RestSrReception.h>
 //#include <EchoesHome.h>
 
@@ -12,7 +13,26 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
+#include <unistd.h>
+
 //---------------------------------------------------------------------------
+
+class Utils 
+{
+    public:
+        template <class T>
+        static bool checkId(Wt::Dbo::ptr<T> ptr)
+        {
+            bool res = false;
+            if (ptr.id() != -1)
+            {
+                res = true;
+            }
+            return res;
+        };
+        
+};
+
 
 typedef std::vector<std::string> ParameterValues;
 typedef std::map<std::string, ParameterValues> ParameterMap;
@@ -34,15 +54,6 @@ class RestSrReception : public Wt::WResource
             Wt::log("notice") << "[SR] Url scheme : " << request.urlScheme();
             Wt::log("notice") << "[SR] Query string : " << request.queryString();
             Wt::log("notice") << "[SR] X-Forwarded-For : " << request.headerValue("X-Forwarded-For");
-            
-//            try
-//            {
-//                Wt::log("notice") << "[SR] coucou : " << request.getParameterValues("coucou")[0];
-//            }
-//            catch(std::exception const& e)
-//            {
-//                Wt::log("notice") << "[SR] no paramater";
-//            }
             
             /** string used to get the xml file sent in the request */
             std::string requestBodyString = "";
@@ -100,6 +111,36 @@ class RestSrReception : public Wt::WResource
             Wt::log("notice") << "[SR] " << "eventReason : " << eventReason;
             Wt::log("notice") << "[SR] " << "notificationDate : " << notificationDate;
             Wt::log("notice") << "[SR] " << "port : " << port;
+            Session session;
+                    
+            {
+                try
+                {
+                    Wt::Dbo::Transaction transaction(session);
+                    Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ACK_ID\" = ?").bind(messageId);
+                    if (Utils::checkId<AlertTracking>(at))
+                    {
+                        at.modify()->receiverSrv = gateway;
+
+                        AlertTrackingEvent *ate = new AlertTrackingEvent();
+                        ate->alertTracking = at;
+                        ate->eventValue = eventReason;
+                        //TODO : ate->eventDate !
+
+                        Wt::Dbo::ptr<AlertTrackingEvent> ptrAte = session.add(ate);
+                    }
+                    else
+                    {
+                        Wt::log("error") << "[SR] Alert tracking not found";
+                        //TODO error behavior
+                    }
+                }
+                catch(Wt::Dbo::Exception const& e)
+                {
+                    Wt::log("error") << e.what();
+                    //TODO : behaviour in error case
+                }
+            }
             
         }
 };
@@ -113,14 +154,33 @@ class SendSMS : public Wt::WResource
         }
 
     protected:
+        std::string alertId;
+        std::string alertTrackingId;
+        std::string number;
+        std::string messageText;
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-//            std::map<std::string,std::ParameterValues>::iterator itRequest;
-//            
-//            for(itRequest = request.getParameterMap().begin(); itRequest != request.getParameterMap().end(); ++itRequest)
-//            {
-//                
-//            }
+            this->alertId = "";
+            this->alertTrackingId = "";
+            
+            if (!request.getParameterValues("alertid").empty())
+            {
+                this->alertId = request.getParameterValues("alertid")[0];
+            }
+            if (!request.getParameterValues("alerttrackingid").empty())
+            {
+                this->alertTrackingId = request.getParameterValues("alerttrackingid")[0];
+            }
+            if (!request.getParameterValues("number").empty())
+            {
+                this->number = Wt::Utils::urlEncode(request.getParameterValues("number")[0]);
+            }
+            if (!request.getParameterValues("messageText").empty())
+            {
+                this->messageText = Wt::Utils::urlEncode(request.getParameterValues("messageText")[0]);
+            }
+            
+//            this->alertTrackingId = request.getParameterValues("alerttrackingid")[0];
             
             Wt::Http::Client *client = new Wt::Http::Client(this);
             
@@ -129,15 +189,15 @@ class SendSMS : public Wt::WResource
             //          curl_easy_setopt(curl, CURLOPT_URL, "https://Fr.netsizeonline.com:8443/Request.aspx");
             //          curl_easy_setopt(curl, CURLOPT_URL, "http://Fr.netsizeonline.com:8080/Request.aspx");
             //          curl_easy_setopt(curl, CURLOPT_URL, "https://sms.echoes-tech.com/netsize/sr");
-            //          curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:8080/sr");
-            
-            
+            //          curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:8080/sr");          
             
 
             std::string bodyText = "sEndpointName=NSGClientMT%5EEchoesteMO-test-0132892&sExtensionName="
-                            "AGSMSExt%5ENetsize&sLogin=echoesteMO-test-test&sPassword=lngA8ylp&sTarget=%2B33687693700&sMessage="
-                            "test_sr_xml&nNotification=7&Output=XMLLongTags";
+                            "AGSMSExt%5ENetsize&sLogin=echoesteMO-test-test&sPassword=lngA8ylp&sTarget=" + this->number + "&sMessage="
+                            + this->messageText + "&nNotification=7&Output=XMLLongTags";
             
+            
+            Wt::log("info") << bodyText;
             
             /** Message containing the http parameters and the body of the post request */
             Wt::Http::Message message;
@@ -149,9 +209,33 @@ class SendSMS : public Wt::WResource
 //            std::string apiAddress = "https://Fr.netsizeonline.com:8443/Request.aspx";
             std::string apiAddress = "http://127.0.0.1:8080/fake";
             
+            Session session;
             if (client->post(apiAddress,message)) 
             {
                 Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
+                try
+                        {
+                            Wt::Dbo::Transaction transaction(session);
+                            Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                            if (Utils::checkId<AlertTracking>(at))
+                            {
+                                //TODO : hostname cpp way
+                                char hostname[255];
+                                gethostname(hostname, 255);
+                                at.modify()->senderSrv = hostname;
+                                at.modify()->sendDate = Wt::WDateTime::currentDateTime();
+                            }
+                            else
+                            {
+                                Wt::log("error") << "[SMS] Alert tracking not found";
+                                //TODO error behavior
+                            }
+                        }
+                        catch(Wt::Dbo::Exception const& e)
+                        {
+                            Wt::log("error") << e.what();
+                            //TODO : behaviour in error case
+                        }
             }
             else
             {
@@ -174,8 +258,44 @@ class SendSMS : public Wt::WResource
                     
                     std::string resultCode = "";
                     resultCode = ptree.get<std::string>("NMGSMSMTResponse.Result.Code");
+                    std::string ackId = "";
+                    ackId = ptree.get<std::string>("NMGSMSMTResponse.Result.IdTicket");
                     
                     Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
+                    
+                    
+                    Session session;
+                    
+                    {
+                        try
+                        {
+                            Wt::Dbo::Transaction transaction(session);
+                            Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                            if (Utils::checkId<AlertTracking>(at))
+                            {
+                                //TODO : hostname cpp way
+                                char hostname[255];
+                                gethostname(hostname, 255);
+                                at.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+                                at.modify()->ackId = ackId;                              
+//                                AlertTrackingEvent *ate = new AlertTrackingEvent();
+//                                ate->alertTracking = at;
+//                                ate->eventValue = resultCode;
+//                                
+//                                Wt::Dbo::ptr<AlertTrackingEvent> ptrAte = session.add(ate);
+                            }
+                            else
+                            {
+                                Wt::log("error") << "[SMS] Alert tracking not found";
+                                //TODO error behavior
+                            }
+                        }
+                        catch(Wt::Dbo::Exception const& e)
+                        {
+                            Wt::log("error") << e.what();
+                            //TODO : behaviour in error case
+                        }
+                    }
                     
                     
                 } 
@@ -199,37 +319,19 @@ class TestSrAPI : public Wt::WResource
     protected:
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-//            std::map<std::string,std::ParameterValues>::iterator itRequest;
-//            
-//            for(itRequest = request.getParameterMap().begin(); itRequest != request.getParameterMap().end(); ++itRequest)
-//            {
-//                
-//            }
-            
+
             Wt::Http::Client *client = new Wt::Http::Client(this);
             
             client->done().connect(boost::bind(&TestSrAPI::handle, this, _1, _2));
             
             
             Wt::Http::Message message;
-//            std::string bodyText = Wt::Utils::urlEncode("coucou=pouet&toto=gni");
 
-            //exemple netsize
-            //            "sEndpointName=NSGClientMT%5EEchoesteMO-test-0132892&sExtensionName="
-            //                "AGSMSExt%5ENetsize&sLogin=echoesteMO-test-test&sPassword=lngA8ylp&sTarget=%2B33687693700&sMessage="
-            //                "test_sr_full_req&nNotification=7&Output=XMLLongTags"
             std::string bodyText = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><SR><GW>fr.netsizeonline.com</GW><P1>722069699</P1><P2></P2><P3>3</P3><P4>800</P4><P5>2012-07-27T14:06:44</P5><P6>echoesteMO-test-test</P6><PORT>38000</PORT></SR>";
-//            coucou%3dpouet%26toto%3dgni
-            
 
-            
-//            Wt::log("notice") << bodyLength;
+
             message.addBodyText(bodyText);
             message.setHeader("Content-Type", "text/plain");
-
-            
-//            Wt::log("notice") << "ctype : " << message.getHeader("Content-Type")->c_str();
-//            Wt::log("notice") << "clength : " << message.getHeader("Content-Length")->c_str();
             
             std::string apiAddress = "http://127.0.0.1:8080/sr";
             
@@ -255,7 +357,7 @@ class TestSrAPI : public Wt::WResource
                 } 
                 else 
                 {
-                    Wt::log("error") << "Http::Client error: " << err.message();
+                    Wt::log("error") << "Http::Client error: " << response.status();
                 }
             }
         }
@@ -276,7 +378,7 @@ class FakeNetsize : public Wt::WResource
             response.out() << "<?xml version=""1.0"" encoding=""UTF-8""?>"
                                 "<NMGSMSMTResponse>"
                                 "<Result>"
-                                "<Code>0</Code>"
+                                "<Code>800</Code>"
                                 "<Message>Success</Message>"
                                 "</Result>"
                                 "<TicketList>"
@@ -292,6 +394,7 @@ class FakeNetsize : public Wt::WResource
         }
 
 };
+
 
 /**
 Point d'entrée du programme.
