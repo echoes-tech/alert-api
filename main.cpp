@@ -124,8 +124,8 @@ class RestSrReception : public Wt::WResource
 
                         AlertTrackingEvent *ate = new AlertTrackingEvent();
                         ate->alertTracking = at;
-                        ate->eventValue = eventReason;
-                        //TODO : ate->eventDate !
+                        ate->value = eventReason;
+                        ate->date = Wt::WDateTime::currentDateTime();
 
                         Wt::Dbo::ptr<AlertTrackingEvent> ptrAte = session.add(ate);
                     }
@@ -259,7 +259,7 @@ class SendSMS : public Wt::WResource
                     std::string resultCode = "";
                     resultCode = ptree.get<std::string>("NMGSMSMTResponse.Result.Code");
                     std::string ackId = "";
-                    ackId = ptree.get<std::string>("NMGSMSMTResponse.Result.IdTicket");
+                    ackId = ptree.get<std::string>("NMGSMSMTResponse.TicketList.Ticket.IdTicket");
                     
                     Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
                     
@@ -327,7 +327,7 @@ class TestSrAPI : public Wt::WResource
             
             Wt::Http::Message message;
 
-            std::string bodyText = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><SR><GW>fr.netsizeonline.com</GW><P1>722069699</P1><P2></P2><P3>3</P3><P4>800</P4><P5>2012-07-27T14:06:44</P5><P6>echoesteMO-test-test</P6><PORT>38000</PORT></SR>";
+            std::string bodyText = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><SR><GW>fr.netsizeonline.com</GW><P1>722564613</P1><P2></P2><P3>3</P3><P4>800</P4><P5>2012-07-27T14:06:44</P5><P6>echoesteMO-test-test</P6><PORT>38000</PORT></SR>";
 
 
             message.addBodyText(bodyText);
@@ -391,6 +391,24 @@ class FakeNetsize : public Wt::WResource
                                 "</Ticket>"
                                 "</TicketList>"
                                 "</NMGSMSMTResponse>";
+            
+//            Session session;
+//            
+//            {
+//                Wt::Dbo::Transaction transaction(session);
+////                Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authInfo = session.find<AuthInfo::AuthIdentityType>().where("\"id\" = ?").bind(1);
+////
+////                Wt::log("info") << authInfo.get()->provider();
+//                
+//                Wt::Dbo::ptr<Alert> al = session.find<Alert>().where("\"ALE_ID\" = ?").bind(1);
+//                
+//                Wt::log("info") << al.get()->name;
+//                
+//                
+////                al.modify()->name = "reretest";
+//            }
+            
+            
         }
 
 };
