@@ -10,12 +10,16 @@
 #include <alert/Alert.h>
 #include <alert/AlertTracking.h>
 
+#include <user/User.h>
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <unistd.h>
 
 //---------------------------------------------------------------------------
+
+static Session session("hostaddr=127.0.0.1 port=5432 dbname=echoes user=echoes password=toto");
 
 class Utils 
 {
@@ -33,9 +37,103 @@ class Utils
         
 };
 
-
 typedef std::vector<std::string> ParameterValues;
 typedef std::map<std::string, ParameterValues> ParameterMap;
+
+class PublicApiResource : public Wt::WResource
+{
+    public:
+        virtual ~PublicApiResource()
+        {
+            beingDeleted();
+        }
+
+    protected:
+        std::string login;
+        Wt::WString password;
+        const Wt::Auth::AuthService *authService;
+        Wt::Auth::PasswordService *passService;
+        Wt::Auth::PasswordVerifier *verifier;
+        bool authentified;
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+        {
+            authentified = false;
+//            Session::configureAuth();
+            
+            this->authService = new Wt::Auth::AuthService();
+            
+            this->passService = new Wt::Auth::PasswordService(*this->authService);
+            
+            this->verifier = new Wt::Auth::PasswordVerifier();
+            this->verifier->addHashFunction(new Wt::Auth::BCryptHashFunction(7));
+
+            
+            passService->setAttemptThrottlingEnabled(true);
+            
+            passService->setVerifier(this->verifier);
+            
+            
+            
+            
+            if (!request.getParameterValues("login").empty())
+            {
+                this->login = request.getParameterValues("login")[0];
+            }
+            if (!request.getParameterValues("password").empty())
+            {
+                this->password = request.getParameterValues("password")[0];
+            }
+            
+            const Wt::WString pass = this->password;
+            const Wt::Auth::User *usr;
+            // new transaction
+            {
+                try
+                {
+                    Wt::Dbo::Transaction transaction(session);
+                    Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session.find<AuthInfo::AuthIdentityType>().where("\"identity\" = ?").bind(this->login);
+                    if (Utils::checkId<AuthInfo::AuthIdentityType>(authIdType))
+                    {
+                        
+                        const std::string userId = boost::lexical_cast<std::string>(authIdType.get()->authInfo().get()->user().id());
+                        usr = new Wt::Auth::User(userId, UserDatabase(session));
+                        
+                        Wt::Auth::PasswordHash *hash = new Wt::Auth::PasswordHash(authIdType.get()->authInfo().get()->passwordMethod(), 
+                                                                                 authIdType.get()->authInfo().get()->passwordSalt(),
+                                                                                 authIdType.get()->authInfo().get()->passwordHash());
+                        
+                        if (this->passService->verifier()->verify(pass,*hash))
+                        {
+                            usr->setAuthenticated(true);
+                            this->authentified = true;
+                            Wt::log("info") << usr->id() << " logged.";
+                        }
+                        else
+                        {
+                            usr->setAuthenticated(false);
+                            Wt::log("info") << usr->id() << " failure number : " << usr->failedLoginAttempts();
+                        }
+                    }
+                    else
+                    {
+                        Wt::log("error") << "[PUBLIC API] User not found";
+                        //TODO error behavior
+                    }
+                }
+                catch(Wt::Dbo::Exception const& e)
+                {
+                    Wt::log("error") << e.what();
+                    //TODO : behaviour in error case
+                }
+//                Wt::log("info") << myPasswordServiceResource.verifyPassword(*usr,pass);
+            }
+
+            
+       
+        }
+};
+
+
 
 class RestSrReception : public Wt::WResource
 {
@@ -111,8 +209,8 @@ class RestSrReception : public Wt::WResource
             Wt::log("notice") << "[SR] " << "eventReason : " << eventReason;
             Wt::log("notice") << "[SR] " << "notificationDate : " << notificationDate;
             Wt::log("notice") << "[SR] " << "port : " << port;
-            Session session;
-                    
+            
+            // new transaction
             {
                 try
                 {
@@ -206,36 +304,35 @@ class SendSMS : public Wt::WResource
 
             
             
-//            std::string apiAddress = "https://Fr.netsizeonline.com:8443/Request.aspx";
-            std::string apiAddress = "http://127.0.0.1:8080/fake";
+            std::string apiAddress = "https://Fr.netsizeonline.com:8443/Request.aspx";
+//            std::string apiAddress = "http://127.0.0.1:8080/fake";
             
-            Session session;
             if (client->post(apiAddress,message)) 
             {
                 Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
                 try
-                        {
-                            Wt::Dbo::Transaction transaction(session);
-                            Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-                            if (Utils::checkId<AlertTracking>(at))
-                            {
-                                //TODO : hostname cpp way
-                                char hostname[255];
-                                gethostname(hostname, 255);
-                                at.modify()->senderSrv = hostname;
-                                at.modify()->sendDate = Wt::WDateTime::currentDateTime();
-                            }
-                            else
-                            {
-                                Wt::log("error") << "[SMS] Alert tracking not found";
-                                //TODO error behavior
-                            }
-                        }
-                        catch(Wt::Dbo::Exception const& e)
-                        {
-                            Wt::log("error") << e.what();
-                            //TODO : behaviour in error case
-                        }
+                {
+                    Wt::Dbo::Transaction transaction(session);
+                    Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                    if (Utils::checkId<AlertTracking>(at))
+                    {
+                        //TODO : hostname cpp way
+                        char hostname[255];
+                        gethostname(hostname, 255);
+                        at.modify()->senderSrv = hostname;
+                        at.modify()->sendDate = Wt::WDateTime::currentDateTime();
+                    }
+                    else
+                    {
+                        Wt::log("error") << "[SMS] Alert tracking not found";
+                        //TODO error behavior
+                    }
+                }
+                catch(Wt::Dbo::Exception const& e)
+                {
+                    Wt::log("error") << e.what();
+                    //TODO : behaviour in error case
+                }
             }
             else
             {
@@ -262,42 +359,36 @@ class SendSMS : public Wt::WResource
                     ackId = ptree.get<std::string>("NMGSMSMTResponse.TicketList.Ticket.IdTicket");
                     
                     Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
+                    Wt::log("info") << "[SMS][ACK] response : " << response.body();
                     
-                    
-                    Session session;
-                    
+                    try
                     {
-                        try
+                        Wt::Dbo::Transaction transaction(session);
+                        Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                        if (Utils::checkId<AlertTracking>(at))
                         {
-                            Wt::Dbo::Transaction transaction(session);
-                            Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking>().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-                            if (Utils::checkId<AlertTracking>(at))
-                            {
-                                //TODO : hostname cpp way
-                                char hostname[255];
-                                gethostname(hostname, 255);
-                                at.modify()->receiveDate = Wt::WDateTime::currentDateTime();
-                                at.modify()->ackId = ackId;                              
+                            //TODO : hostname cpp way
+                            char hostname[255];
+                            gethostname(hostname, 255);
+                            at.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+                            at.modify()->ackId = ackId;                              
 //                                AlertTrackingEvent *ate = new AlertTrackingEvent();
 //                                ate->alertTracking = at;
 //                                ate->eventValue = resultCode;
 //                                
 //                                Wt::Dbo::ptr<AlertTrackingEvent> ptrAte = session.add(ate);
-                            }
-                            else
-                            {
-                                Wt::log("error") << "[SMS] Alert tracking not found";
-                                //TODO error behavior
-                            }
                         }
-                        catch(Wt::Dbo::Exception const& e)
+                        else
                         {
-                            Wt::log("error") << e.what();
-                            //TODO : behaviour in error case
+                            Wt::log("error") << "[SMS] Alert tracking not found";
+                            //TODO error behavior
                         }
                     }
-                    
-                    
+                    catch(Wt::Dbo::Exception const& e)
+                    {
+                        Wt::log("error") << e.what();
+                        //TODO : behaviour in error case
+                    }
                 } 
                 else 
                 {
@@ -364,7 +455,7 @@ class TestSrAPI : public Wt::WResource
 };
 
 
-class FakeNetsize : public Wt::WResource
+class FakeNetsize : public PublicApiResource
 {
     public:
         virtual ~FakeNetsize()
@@ -375,42 +466,16 @@ class FakeNetsize : public Wt::WResource
     protected:
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            response.out() << "<?xml version=""1.0"" encoding=""UTF-8""?>"
-                                "<NMGSMSMTResponse>"
-                                "<Result>"
-                                "<Code>800</Code>"
-                                "<Message>Success</Message>"
-                                "</Result>"
-                                "<TicketList>"
-                                "<Ticket>"
-                                "<StatusResultCode>0</StatusResultCode>"
-                                "<StatusResultMessage></StatusResultMessage>"
-                                "<Address>+33687693700</Address>"
-                                "<IdTicket>722564613</IdTicket>"
-                                "<MessageUID>10005001BY72F9</MessageUID>"
-                                "</Ticket>"
-                                "</TicketList>"
-                                "</NMGSMSMTResponse>";
-            
-//            Session session;
-//            
-//            {
-//                Wt::Dbo::Transaction transaction(session);
-////                Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authInfo = session.find<AuthInfo::AuthIdentityType>().where("\"id\" = ?").bind(1);
-////
-////                Wt::log("info") << authInfo.get()->provider();
-//                
-//                Wt::Dbo::ptr<Alert> al = session.find<Alert>().where("\"ALE_ID\" = ?").bind(1);
-//                
-//                Wt::log("info") << al.get()->name;
-//                
-//                
-////                al.modify()->name = "reretest";
-//            }
-            
-            
+            PublicApiResource::handleRequest(request, response);
+            if (this->authentified)
+            {
+                response.out() << "papuche";
+            }
+            else
+            {
+                response.out() << "pas papuche";
+            }
         }
-
 };
 
 
@@ -427,6 +492,7 @@ int main(int argc, char **argv)
         SendSMS         sendSMS;
         TestSrAPI       testAPI;
         FakeNetsize     fakeN;
+        PublicApiResource par;
         
         // On passe le premier paramètre d'entrée au serveur
         Wt::WServer server(argv[0]);
