@@ -69,7 +69,8 @@ protected:
                                                                                 authIdType.get()->authInfo().get()->passwordHash());
 
                     // verify
-                    if (session.passwordAuth().verifier()->verify(pass, *hash)) 
+                    if (session.passwordAuth().verifyPassword(user, pass)) 
+//                    if (session.passwordAuth().verifier()->verify(pass, *hash)) 
                     {
                         session.login().login(user);
                         user.setAuthenticated(true);
