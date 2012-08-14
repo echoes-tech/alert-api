@@ -86,8 +86,8 @@ class FakeNetsize : public PublicApiResource
 };
 
 
-//std::string Utils::connection = "hostaddr=172.16.3.101 port=5432 dbname=echoes user=echoes password=toto";
-std::string Utils::connection = "hostaddr=127.0.0.1 port=5432 dbname=echoes user=echoes password=toto";
+std::string Utils::connection = "hostaddr=172.16.3.101 port=5432 dbname=echoes user=echoes password=toto";
+//std::string Utils::connection = "hostaddr=127.0.0.1 port=5432 dbname=echoes user=echoes password=toto";
 
 /**
 Point d'entrée du programme.
