@@ -107,9 +107,16 @@ protected:
         //          curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:8080/sr");          
 
 
+        //compte test netsize
         std::string bodyText = "sEndpointName=NSGClientMT%5EEchoesteMO-test-0132892&sExtensionName="
                 "AGSMSExt%5ENetsize&sLogin=echoesteMO-test-test&sPassword=lngA8ylp&sTarget=" + this->number + "&sMessage="
                 + this->messageText + "&nNotification=7&Output=XMLLongTags";
+        
+        
+        //prod
+//        std::string bodyText = "sEndpointName=NSGClientMT%5EEchoesteCD%24-4120305&sExtensionName="
+//                "AGSMSExt%5ENetsize&sLogin=echoesteCD%24&sPassword=Ed1IvYX8&sTarget=" + this->number + "&sMessage="
+//                + this->messageText + "&nNotification=7&Output=XMLLongTags";
 
 
         Wt::log("info") << bodyText;

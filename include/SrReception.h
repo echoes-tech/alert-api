@@ -96,7 +96,7 @@ class SrReception : public Wt::WResource
                         at.modify()->receiverSrv = gateway;
                         at.modify()->ackGw = gateway;
                         at.modify()->ackPort = port;
-                        at.modify()->ackEvent = eventReason;
+//                        at.modify()->ackEvent = eventReason;
 
                         AlertTrackingEvent *ate = new AlertTrackingEvent();
                         ate->alertTracking = at;

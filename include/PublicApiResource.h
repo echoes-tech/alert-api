@@ -5,10 +5,12 @@
  * Created on 8 août 2012, 14:35
  */
 
-#include "includeFile.h"
+
 
 #ifndef PUBLICAPIRESOURCE_H
 #define	PUBLICAPIRESOURCE_H
+
+#include "includeFile.h"
 
 class PublicApiResource : public Wt::WResource {
 public:
@@ -20,9 +22,6 @@ public:
 protected:
     std::string login;
     Wt::WString password;
-//    const Wt::Auth::AuthService *authService;
-//    Wt::Auth::PasswordService *passService;
-//    Wt::Auth::PasswordVerifier *verifier;
     bool authentified;
 
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) {
@@ -30,6 +29,15 @@ protected:
         // Setting the session
         Session session(Utils::connection);
         Session::configureAuth();
+        
+        try 
+        {
+            session.createTables();
+            std::cerr << "Created database." << std::endl;
+        } catch (std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            std::cerr << "Using existing database";
+        }
         
         // default : not authentified
         this->authentified = false;
@@ -50,7 +58,7 @@ protected:
             try {
                 Wt::Dbo::Transaction transaction(session);
                 
-                // we need to find the pass method, pass salt and pass hash from the database to verify the input password
+                // check whether the user exists
                 Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
                 if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
                 {
@@ -62,25 +70,23 @@ protected:
                         Wt::log("info") << "[PUBLIC API] User invalid";
                         return;
                     }
-                    
-                    // set the password hash with the collected data
-                    Wt::Auth::PasswordHash *hash = new Wt::Auth::PasswordHash(authIdType.get()->authInfo().get()->passwordMethod(),
-                                                                                authIdType.get()->authInfo().get()->passwordSalt(),
-                                                                                authIdType.get()->authInfo().get()->passwordHash());
 
                     // verify
-                    if (session.passwordAuth().verifyPassword(user, pass)) 
-//                    if (session.passwordAuth().verifier()->verify(pass, *hash)) 
+                    switch (session.passwordAuth().verifyPassword(user, pass))
                     {
-                        session.login().login(user);
-                        user.setAuthenticated(true);
-                        this->authentified = true;
-                        Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
-                    } else 
-                    {
-                        user.setAuthenticated(false);
-                        //TODO : make something with the number of failed attempts
-                        Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
+                        case Wt::Auth::PasswordValid:
+                            session.login().login(user);
+                            this->authentified = true;
+                            Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
+                            break;
+                        case Wt::Auth::LoginThrottling:
+                            Wt::log("info") << "[PUBLIC API] too many attempts.";
+                            break;
+                        case Wt::Auth::PasswordInvalid:
+                            Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
+                            break;
+                        default:
+                            break;
                     }
                 } else 
                 {
