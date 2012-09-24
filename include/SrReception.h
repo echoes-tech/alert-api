@@ -8,6 +8,8 @@
 #ifndef SRRECEPTION_H
 #define	SRRECEPTION_H
 
+#include "includeFile.h"
+
 class SrReception : public Wt::WResource
 {
     public:
