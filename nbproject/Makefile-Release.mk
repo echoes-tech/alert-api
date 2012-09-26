@@ -15,8 +15,8 @@ NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
-CCC=g++
-CXX=g++
+CCC=distcc
+CXX=distcc
 FC=gfortran
 AS=as
 
@@ -52,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../dbo/dist/SharedObject/GNU-Linux-x86 -lwt -lwtdbo -lwtdbopostgres -lwtfcgi -ldbo -lboost_filesystem -lboost_signals -lboost_system
+LDLIBSOPTIONS=-L../dbo/dist/Release_SharedObject/GNU-Linux-x86 -lwt -lwtdbo -lwtdbopostgres -lwtfcgi -ldbo -lboost_filesystem -lboost_signals -lboost_system
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

@@ -32,7 +32,7 @@ protected:
             return;
         }
         
-        Wt::log("error") << "[SMS] User identified";
+        Wt::log("info") << "[SMS] User identified";
         
         Session session(Utils::connection);
 

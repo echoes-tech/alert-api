@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="80">
+<configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>include/AssetRessource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
@@ -47,17 +48,17 @@
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>../dbo/dist/SharedObject/GNU-Linux-x86</pElem>
+            <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
           <linkerLibItems>
+            <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
             <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>boost_system</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
-            <linkerLibLibItem>dbo</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -76,7 +77,7 @@
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>../dbo/dist/SharedObject/GNU-Linux-x86</pElem>
+            <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
           <linkerLibItems>

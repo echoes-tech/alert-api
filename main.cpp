@@ -98,6 +98,7 @@ int main(int argc, char **argv)
 {
     try
     {
+        AssetRessource  assetRessource;
         SrReception     receiveSr;
         SendSMS         sendSMS;
 //        TestSrAPI       testAPI;
@@ -109,7 +110,8 @@ int main(int argc, char **argv)
         server.setServerConfiguration(argc, argv);
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
-     
+
+        server.addResource(&assetRessource, "/asset");
         server.addResource(&receiveSr, "/sr");
         server.addResource(&sendSMS, "/send");
 //        server.addResource(&testAPI, "/test");
