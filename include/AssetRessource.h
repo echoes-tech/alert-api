@@ -45,13 +45,11 @@ class AssetRessource : public PublicApiResource
             // set Content-Type
             response.setMimeType("application/json; charset=utf-8");
 
-            // 
+            // url path after /asset
             std::string path = request.pathInfo();
 
             std::vector< std::string > splitPath;
             boost::split(splitPath, path, boost::is_any_of("/"), boost::token_compress_on);
-            
-            Wt::log("notice") << "Nb / " << splitPath.size();
 
             // Convert 2nd path element to int
             try
@@ -123,86 +121,7 @@ class AssetRessource : public PublicApiResource
                         return;
                     }
 
-                    if(distribName == "Debian" || distribName == "Ubuntu")
-                    {
-                        int release;
-                        std::string distribReleaseTmp = distribRelease.toUTF8();
-                        std::vector< std::string > splitRelease;
-
-                        pkgType = "deb";
-
-                        boost::split(splitRelease, distribReleaseTmp, boost::is_any_of("."), boost::token_compress_on);
-
-                        // Convert 1st release element to int
-                        try
-                        {
-                            release = boost::lexical_cast<int>(splitRelease[0]);
-                        }
-                        catch(boost::bad_lexical_cast &)
-                        {
-                            response.setStatus(422);
-                            response.out() << "{\"message\":\"Validation Failed\"}";
-                            return;
-                        }
-                        
-                        if(distribName == "Debian" && release < 7)
-                        {
-
-                            if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                            {
-                                pkgName = "ea-probe_0.1.0.alpha-2_squeeze_i386.deb";
-                            }
-                            else if(arch == "x86_64")
-                            {
-                                pkgName = "ea-probe_0.1.0.alpha-2_squeeze_am64.deb";
-                            }
-                            else
-                            {
-                                response.setStatus(501);
-                                response.out() << "{\"message\":\"Architecture not supported\"}";
-                            }
-                        }
-                        else
-                        {
-                            if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                            {
-                                pkgName = "ea-probe_0.1.0.alpha-2_i386.deb";
-                            }
-                            else if(arch == "x86_64")
-                            {
-                                pkgName = "ea-probe_0.1.0.alpha-2_am64.deb";
-                            }
-                            else
-                            {
-                                response.setStatus(501);
-                                response.out() << "{\"message\":\"Architecture not supported\"}";
-                            }
-                        }
-                    }
-                    else if(distribName == "CentOS")
-                    {
-                        pkgType = "rpm";
-                        
-                        if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                        {
-                            pkgName = "ea-probe-0.1.0.alpha-2.i386.rpm";
-                        }
-                        else if(arch == "x86_64")
-                        {
-                            pkgName = "ea-probe-0.1.0.alpha-2.x86_64.rpm";
-                        }
-                        else
-                        {
-                            response.setStatus(501);
-                            response.out() << "{\"message\":\"Architecture not supported\"}";
-                        }
-                    }
-                    else
-                    {
-                        response.setStatus(501);
-                        response.out() << "{\"message\":\"Distrib not supported\"}";
-                    }
-
+                    // persistance of asset data
                     try 
                     {
                         Wt::Dbo::Transaction transaction(session);
@@ -229,12 +148,100 @@ class AssetRessource : public PublicApiResource
                         return;
                     }
                     
+                    // distrib verification
+                    if(distribName == "Debian" || distribName == "Ubuntu")
+                    {
+                        int release;
+                        std::string distribReleaseTmp = distribRelease.toUTF8();
+                        std::vector< std::string > splitRelease;
+
+                        pkgType = "deb";
+
+                        boost::split(splitRelease, distribReleaseTmp, boost::is_any_of("."), boost::token_compress_on);
+
+                        // Convert 1st release element to int
+                        try
+                        {
+                            release = boost::lexical_cast<int>(splitRelease[0]);
+                        }
+                        catch(boost::bad_lexical_cast &)
+                        {
+                            response.setStatus(422);
+                            response.out() << "{\"message\":\"Validation Failed\"}";
+                            return;
+                        }
+                        
+                        
+                        if(distribName == "Debian" && release < 7)
+                        {
+
+                            if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                            {
+                                pkgName = "ea-probe_0.1.0.alpha-2_squeeze_i386.deb";
+                            }
+                            else if(arch == "x86_64")
+                            {
+                                pkgName = "ea-probe_0.1.0.alpha-2_squeeze_am64.deb";
+                            }
+                            else
+                            {
+                                response.setStatus(501);
+                                response.out() << "{\"message\":\"Architecture not supported\"}";
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                            {
+                                pkgName = "ea-probe_0.1.0.alpha-2_i386.deb";
+                            }
+                            else if(arch == "x86_64")
+                            {
+                                pkgName = "ea-probe_0.1.0.alpha-2_am64.deb";
+                            }
+                            else
+                            {
+                                response.setStatus(501);
+                                response.out() << "{\"message\":\"Architecture not supported\"}";
+                                return;
+                            }
+                        }
+                    }
+                    else if(distribName == "CentOS")
+                    {
+                        pkgType = "rpm";
+                        
+                        if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                        {
+                            pkgName = "ea-probe-0.1.0.alpha-2.i386.rpm";
+                        }
+                        else if(arch == "x86_64")
+                        {
+                            pkgName = "ea-probe-0.1.0.alpha-2.x86_64.rpm";
+                        }
+                        else
+                        {
+                            response.setStatus(501);
+                            response.out() << "{\"message\":\"Architecture not supported\"}";
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        response.setStatus(501);
+                        response.out() << "{\"message\":\"Distrib not supported\"}";
+                        return;
+                    }
+
+                    
                     response.out() << "{\n\
     \"id\" : " << this->probeId << ",\n\
     \"pakage_name\" : \"" << pkgName << "\",\n\
     \"pakage_type\" : \"" << pkgType << "\",\n\
     \"install_dir\" : \"/opt/echoes-alert/probe\"\n\
 }";
+                    return;
                 }
                 else if (request.method() == "GET")
                 {
@@ -255,6 +262,7 @@ class AssetRessource : public PublicApiResource
                                 response.setStatus(422);
                                 response.out() << "{\"message\":\"Validation Failed\"}";
                             }
+                            return;
                             break;
                         case 4:
                             if (splitPath[2] == "plugin")
@@ -290,10 +298,12 @@ class AssetRessource : public PublicApiResource
                                     response.out() << "{\"message\":\"Plugin not found.\"}";
                                 }                                 
                             }
+                            return;
                             break;
                         default:
                             response.setStatus(422);
                             response.out() << "{\"message\":\"Validation Failed\"}";
+                            return;
                             break;
                     }
                 }
@@ -301,7 +311,14 @@ class AssetRessource : public PublicApiResource
                 {
                     response.setStatus(405);
                     response.out() << "{\"message\":\"Only GET and POST method are allowed.\"}";
+                    return;
                 }
+            }
+            else
+            {
+                response.setStatus(422);
+                response.out() << "{\"message\":\"Validation Failed\"}";
+                return;
             }
         }
 };
