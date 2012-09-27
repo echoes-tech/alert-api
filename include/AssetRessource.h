@@ -25,13 +25,11 @@ class AssetRessource : public PublicApiResource
         }
 
     protected:
-        int assetId;
-        int probeId;
-        int pluginId;
+        int assetId, probeId, pluginId;
         
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            // Check auth
+            // Create Session and Check auth
             PublicApiResource::handleRequest(request, response);
 
             if (!this->authentified) {
@@ -39,8 +37,6 @@ class AssetRessource : public PublicApiResource
                 response.out() << "{\"message\":\"Authentification Failed\"}";
                 return;
             }
-
-            Session session(Utils::connection);
 
             // set Content-Type
             response.setMimeType("application/json; charset=utf-8");
@@ -67,8 +63,8 @@ class AssetRessource : public PublicApiResource
             {
                 try
                 {
-                    Wt::Dbo::Transaction transaction(session);
-                    Wt::Dbo::ptr<Asset> asset = session.find<Asset > ().where("\"AST_ID\" = ?").bind(this->assetId);
+                    Wt::Dbo::Transaction transaction(*session);
+                    Wt::Dbo::ptr<Asset> asset = session->find<Asset > ().where("\"AST_ID\" = ?").bind(this->assetId);
 
                     if (Utils::checkId<Asset> (asset))
                     {
@@ -124,8 +120,8 @@ class AssetRessource : public PublicApiResource
                     // persistance of asset data
                     try 
                     {
-                        Wt::Dbo::Transaction transaction(session);
-                        Wt::Dbo::ptr<Asset> asset = session.find<Asset > ().where("\"AST_ID\" = ?").bind(this->assetId);
+                        Wt::Dbo::Transaction transaction(*session);
+                        Wt::Dbo::ptr<Asset> asset = session->find<Asset > ().where("\"AST_ID\" = ?").bind(this->assetId);
                         if (Utils::checkId<Asset > (asset)) 
                         {
                             asset.modify()->distribName = distribName;
@@ -285,6 +281,7 @@ class AssetRessource : public PublicApiResource
                                     if (myfile.is_open())
                                     {
                                         response.out() << myfile.rdbuf();
+                                        myfile.close();
                                     }
                                     else
                                     {

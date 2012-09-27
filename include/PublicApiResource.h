@@ -14,7 +14,6 @@
 
 class PublicApiResource : public Wt::WResource {
 public:
-
     virtual ~PublicApiResource() {
         beingDeleted();
     }
@@ -23,16 +22,17 @@ protected:
     std::string login;
     Wt::WString password;
     bool authentified;
+    Session *session;
 
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) {
         Wt::log("info") << "[PUBLIC API] Identifying";
         // Setting the session
-        Session session(Utils::connection);
+        session = new Session(Utils::connection);
         Session::configureAuth();
         
         try 
         {
-            session.createTables();
+            session->createTables();
             std::cerr << "Created database." << std::endl;
         } catch (std::exception& e) {
             std::cerr << e.what() << std::endl;
@@ -56,14 +56,14 @@ protected:
         // transaction
         {
             try {
-                Wt::Dbo::Transaction transaction(session);
+                Wt::Dbo::Transaction transaction(*session);
                 
                 // check whether the user exists
-                Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
+                Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
                 if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
                 {
                     // find the user from his login
-                    Wt::Auth::User user = session.users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
+                    Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
                     
                     if (!user.isValid()) 
                     {
@@ -72,10 +72,10 @@ protected:
                     }
 
                     // verify
-                    switch (session.passwordAuth().verifyPassword(user, pass))
+                    switch (session->passwordAuth().verifyPassword(user, pass))
                     {
                         case Wt::Auth::PasswordValid:
-                            session.login().login(user);
+                            session->login().login(user);
                             this->authentified = true;
                             Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
                             break;

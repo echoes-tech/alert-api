@@ -5,6 +5,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/AssetRessource.h</itemPath>
+      <itemPath>include/ProbeRessource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>

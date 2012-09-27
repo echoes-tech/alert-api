@@ -33,6 +33,7 @@
 
 #include "PublicApiResource.h"
 #include "AssetRessource.h"
+#include "ProbeRessource.h"
 #include "SendSMS.h"
 #include "SrReception.h"
 

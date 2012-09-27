@@ -24,7 +24,7 @@ protected:
     std::string messageText;
 
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) {
-        // Check auth
+        // Create Session and Check auth
         PublicApiResource::handleRequest(request, response);
 
         if (!this->authentified) {
@@ -33,8 +33,6 @@ protected:
         }
         
         Wt::log("info") << "[SMS] User identified";
-        
-        Session session(Utils::connection);
 
         this->alertId = "";
         this->alertTrackingId = "";
@@ -75,8 +73,8 @@ protected:
 
         try 
         {
-            Wt::Dbo::Transaction transaction(session);
-            Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::ptr<AlertTracking> at = session->find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
             if (Utils::checkId<AlertTracking > (at)) 
             {
                 if (!at.get()->sendDate.isNull()) 
@@ -137,8 +135,8 @@ protected:
             Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
             try 
             {
-                Wt::Dbo::Transaction transaction(session);
-                Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::ptr<AlertTracking> at = session->find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
                 if (Utils::checkId<AlertTracking > (at)) 
                 {
                     //TODO : hostname cpp way

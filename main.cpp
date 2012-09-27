@@ -99,6 +99,7 @@ int main(int argc, char **argv)
     try
     {
         AssetRessource  assetRessource;
+        ProbeRessource  probeRessource;
         SrReception     receiveSr;
         SendSMS         sendSMS;
 //        TestSrAPI       testAPI;
@@ -112,6 +113,7 @@ int main(int argc, char **argv)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
 
         server.addResource(&assetRessource, "/asset");
+        server.addResource(&probeRessource, "/probe");
         server.addResource(&receiveSr, "/sr");
         server.addResource(&sendSMS, "/send");
 //        server.addResource(&testAPI, "/test");
