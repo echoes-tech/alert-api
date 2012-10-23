@@ -43,12 +43,14 @@
       <compileType>
         <ccTool>
           <incDir>
-            <pElem>../dbo/include</pElem>
             <pElem>include</pElem>
+            <pElem>../dbo/include</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
@@ -72,12 +74,14 @@
       <compileType>
         <ccTool>
           <incDir>
-            <pElem>../dbo/include</pElem>
             <pElem>include</pElem>
+            <pElem>../dbo/include</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
