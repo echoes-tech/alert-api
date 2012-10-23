@@ -60,7 +60,7 @@ LDLIBSOPTIONS=-L/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Release_Shar
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	distcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
