@@ -277,7 +277,7 @@ class AssetRessource : public PublicApiResource
 
                                 if (this->pluginId == 1)
                                 {
-                                    std::ifstream myfile ("../Probe/plugins/Linux-System.json");
+                                    std::ifstream myfile ("/var/www/wt/probe/plugins/Linux-System.json");
                                     if (myfile.is_open())
                                     {
                                         response.out() << myfile.rdbuf();

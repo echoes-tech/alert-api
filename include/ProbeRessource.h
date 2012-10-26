@@ -172,11 +172,11 @@ class ProbeRessource : public PublicApiResource
 
                             if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                             {
-                                probeFilePath = "../Probe/dist/Debian6_32bits_Release/GNU-Linux-x86/package/ea-probe_0.1.0.alpha-2_squeeze_i386.deb";
+                                probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_squeeze_i386.deb";
                             }
                             else if(arch == "x86_64")
                             {
-                                probeFilePath = "../Probe/dist/Debian6_64bits_Release/GNU-Linux-x86/package/ea-probe_0.1.0.alpha-2_squeeze_amd64.deb";
+                                probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_squeeze_amd64.deb";
                             }
                             else
                             {
@@ -189,11 +189,11 @@ class ProbeRessource : public PublicApiResource
                         {
                             if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                             {
-                                probeFilePath = "../Probe/dist/Deb_32bits_Release/GNU-Linux-x86/package/ea-probe_0.1.0.alpha-2_i386.deb";
+                                probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_i386.deb";
                             }
                             else if(arch == "x86_64")
                             {
-                                probeFilePath = "../Probe/dist/Deb_64bits_Release/GNU-Linux-x86/package/ea-probe_0.1.0.alpha-2_amd64.deb";
+                                probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_amd64.deb";
                             }
                             else
                             {
@@ -207,11 +207,11 @@ class ProbeRessource : public PublicApiResource
                     {
                         if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                         {
-                            probeFilePath = "../Probe/dist/RPM_32bits_Release/GNU-Linux-x86/package/ea-probe-0.1.0.alpha-2.i386.rpm";
+                            probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.i386.rpm";
                         }
                         else if(arch == "x86_64")
                         {
-                            probeFilePath = "../Probe/dist/RPM_64bits_Release/GNU-Linux-x86/package/ea-probe-0.1.0.alpha-2.x86_64.rpm";
+                            probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.x86_64.rpm";
                         }
                         else
                         {
