@@ -84,8 +84,8 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
         {
             string json, pkgName, pkgType;
             Wt::WString arch, distribName, distribRelease;
-
-            request.in() >> json;
+                       
+            json = request2string(request);
 
             try
             {
@@ -102,12 +102,14 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
             {
                 response.setStatus(400);
                 response.out() << "{\"message\":\"Problems parsing JSON\"}";
+                Wt::log("warning") << "[Asset Ressource] Problems parsing JSON:" << json;
                 return;
             }
             catch (Wt::Json::TypeException const& e)
             {
                 response.setStatus(400);
                 response.out() << "{\"message\":\"Problems parsing JSON\"}";
+                Wt::log("warning") << "[Asset Ressource] Problems parsing JSON:" << json;
                 return;
             }
 

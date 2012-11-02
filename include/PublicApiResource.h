@@ -102,6 +102,20 @@ class PublicApiResource : public Wt::WResource {
                 }
             }
         }
+
+        std::string request2string(Wt::Http::Request r) {
+            char c;
+            std::string s;
+
+            // Getting the input stream for the request char by char
+            c = r.in().get();
+            while (r.in())
+            {
+                s.append(1,c);
+                c = r.in().get();
+            }
+            return s;
+        }
 };
 
 
