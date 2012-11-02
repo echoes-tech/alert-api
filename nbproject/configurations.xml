@@ -19,6 +19,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>src/AssetRessource.cpp</itemPath>
+        <itemPath>src/ProbeRessource.cpp</itemPath>
+      </logicalFolder>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -33,6 +37,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>src</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
@@ -73,6 +80,9 @@
       </toolsSet>
       <compileType>
         <ccTool>
+          <developmentMode>6</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
@@ -84,7 +94,8 @@
             <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
-          <commandlineTool>gcc</commandlineTool>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
