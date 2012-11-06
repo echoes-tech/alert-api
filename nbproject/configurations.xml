@@ -5,6 +5,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/AssetRessource.h</itemPath>
+      <itemPath>include/Conf.h</itemPath>
       <itemPath>include/ProbeRessource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
@@ -15,12 +16,14 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>api.conf</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="src" displayName="src" projectFiles="true">
         <itemPath>src/AssetRessource.cpp</itemPath>
+        <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/ProbeRessource.cpp</itemPath>
       </logicalFolder>
       <itemPath>main.cpp</itemPath>

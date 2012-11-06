@@ -1,4 +1,19 @@
+/* 
+ * API Asset Ressource
+ * @author ECHOES Technologies (TSA)
+ * @date 08/08/2012
+ * 
+ * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
+ * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
+ * COMPANY AUTHORIZATION.
+ * 
+ * COPYRIGHT 2012 BY ECHOES TECHNOLGIES SAS
+ * 
+ */
+
 #include "includeFile.h"
+
+using namespace std;
 
 //class TestSrAPI : public Wt::WResource
 //{
@@ -85,9 +100,7 @@
 //        }
 //};
 
-//std::string Utils::connection = "hostaddr=92.243.5.246 port=5432 dbname=echoes user=echoes password=9Mw5#vvdC56Gzs#goD3M";
-std::string Utils::connection = "hostaddr=172.16.3.102 port=5432 dbname=echoes user=echoes password=toto";
-//std::string Utils::connection = "hostaddr=127.0.0.1 port=5432 dbname=echoes user=echoes password=toto";
+string Utils::connection;
 
 /**
 Point d'entrée du programme.
@@ -96,6 +109,14 @@ Point d'entrée du programme.
 */
 int main(int argc, char **argv)
 {
+    Conf *conf = new Conf();
+
+    Utils::connection = "hostaddr=" + conf->getDbHost() + 
+                     " port=" + boost::lexical_cast<string>(conf->getDbPort()) + 
+                     " dbname=" + conf->getDbName() +
+                     " user=" + conf->getDbUser() +
+                     " password=" + conf->getDbPassword();
+
     try
     {
         AssetRessource  assetRessource;
@@ -131,10 +152,12 @@ int main(int argc, char **argv)
     }
     catch (Wt::WServer::Exception& e)
     {
-        std::cerr << e.what() << std::endl;
+        cerr << e.what() << endl;
     }
-    catch (std::exception &e)
+    catch (exception &e)
     {
-        std::cerr << "exception: " << e.what() << std::endl;
+        cerr << "exception: " << e.what() << endl;
     }
+    
+    delete conf;
 }

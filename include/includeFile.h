@@ -31,6 +31,8 @@
 
 #include "Utils.h"
 
+#include "Conf.h"
+
 #include "PublicApiResource.h"
 #include "AssetRessource.h"
 #include "ProbeRessource.h"

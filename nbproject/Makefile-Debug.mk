@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/AssetRessource.o \
+	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/ProbeRessource.o
 
 
@@ -73,6 +74,11 @@ ${OBJECTDIR}/src/AssetRessource.o: src/AssetRessource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetRessource.o src/AssetRessource.cpp
+
+${OBJECTDIR}/src/Conf.o: src/Conf.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
 
 ${OBJECTDIR}/src/ProbeRessource.o: src/ProbeRessource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

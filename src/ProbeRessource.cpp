@@ -26,14 +26,14 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
 
+    // set Content-Type
+    response.setMimeType("application/json; charset=utf-8");
+
     if (!this->authentified) {
         response.setStatus(401);
         response.out() << "{\"message\":\"Authentification Failed\"}";
         return;
     }
-
-    // set Content-Type
-    response.setMimeType("application/json; charset=utf-8");
 
     // url path after /probe
     string path = request.pathInfo();
