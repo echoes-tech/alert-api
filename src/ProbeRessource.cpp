@@ -165,11 +165,11 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 
                     if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_squeeze_i386.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Debian_Squeeze_i386.deb";
                     }
                     else if(arch == "x86_64")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_squeeze_amd64.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Debian_Squeeze_amd64.deb";
                     }
                     else
                     {
@@ -182,11 +182,11 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                 {
                     if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_i386.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Ubuntu_12.04_i386.deb";
                     }
                     else if(arch == "x86_64")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_amd64.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Ubuntu_12.04_amd64.deb";
                     }
                     else
                     {
@@ -200,11 +200,11 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
             {
                 if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                 {
-                    probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.i386.rpm";
+                    probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.CentOS-6.i386.rpm";
                 }
                 else if(arch == "x86_64")
                 {
-                    probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.x86_64.rpm";
+                    probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.CentOS-6.x86_64.rpm";
                 }
                 else
                 {
