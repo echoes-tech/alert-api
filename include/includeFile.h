@@ -34,8 +34,12 @@
 #include "Conf.h"
 
 #include "PublicApiResource.h"
+
 #include "AssetRessource.h"
 #include "ProbeRessource.h"
+
+#include "itooki/ItookiSMSSender.h"
+
 #include "SendSMS.h"
 #include "SrReception.h"
 

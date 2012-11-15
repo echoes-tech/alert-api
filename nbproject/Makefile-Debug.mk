@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/AssetRessource.o \
 	${OBJECTDIR}/src/Conf.o \
@@ -59,11 +60,16 @@ LDLIBSOPTIONS=-L/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Debug_Shared
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	distcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	distcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -91,7 +97,7 @@ ${OBJECTDIR}/src/ProbeRessource.o: src/ProbeRessource.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/netsize
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api
 
 # Subprojects
 .clean-subprojects:

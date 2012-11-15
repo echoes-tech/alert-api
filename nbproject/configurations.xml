@@ -4,6 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
+        <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
+      </logicalFolder>
       <itemPath>include/AssetRessource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
       <itemPath>include/ProbeRessource.h</itemPath>
@@ -22,6 +25,9 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="src" displayName="src" projectFiles="true">
+        <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
+          <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
+        </logicalFolder>
         <itemPath>src/AssetRessource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/ProbeRessource.cpp</itemPath>
@@ -42,6 +48,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>src</Elem>
+    <Elem>include/itooki</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

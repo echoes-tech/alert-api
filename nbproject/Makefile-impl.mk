@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=netsize
+PROJECTNAME=api
 
 # Active Configuration
 DEFAULTCONF=Debug
