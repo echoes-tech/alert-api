@@ -124,6 +124,8 @@ int main(int argc, char **argv)
         SrReception     receiveSr;
         SendSMS         sendSMS;
         ItookiSMSSender itookiSMSSender;
+        ItookiAckReceiver itookiAckReceiver;
+        ItookiAswReceiver itookiAswReceiver;
 //        TestSrAPI       testAPI;
 //        FakeNetsize     fakeN;
         
@@ -139,6 +141,8 @@ int main(int argc, char **argv)
         server.addResource(&receiveSr, "/sr");
         server.addResource(&sendSMS, "/send");
         server.addResource(&itookiSMSSender, "/itooki/sms/sender");
+        server.addResource(&itookiAckReceiver, "/itooki/ack");
+        server.addResource(&itookiAswReceiver, "/itooki/asw");
 //        server.addResource(&testAPI, "/test");
 //        server.addResource(&fakeN, "/fake");
         

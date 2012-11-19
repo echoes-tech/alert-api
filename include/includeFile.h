@@ -39,6 +39,8 @@
 #include "ProbeRessource.h"
 
 #include "itooki/ItookiSMSSender.h"
+#include "ItookiAckReceiver.h"
+#include "ItookiAswReceiver.h"
 
 #include "SendSMS.h"
 #include "SrReception.h"

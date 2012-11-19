@@ -108,9 +108,9 @@ void ItookiSMSSender::handleRequest(const Wt::Http::Request &request, Wt::Http::
     Wt::Http::Client *client = new Wt::Http::Client(this);
     client->done().connect(boost::bind(&ItookiSMSSender::handle, this, _1, _2));
 
-    string apiAddress = "https://www.itooki-sms.com/http.php?email=florent.poinsaut@echoes-tech.com&pass=00SjmAui%itooki&numero=" + this->number
+    string apiAddress = "https://www.itooki.fr/http.php?email=contact@echoes-tech.com&pass=00SjmAuiitooki&numero=" + this->number
             + "&message=" + this->messageText
-            + "&test=o" // To test
+            + "&refaccus=o"
             ;
 
     Wt::log("info") << "[SMS] Trying to send request to API. Address : " << apiAddress;
@@ -157,25 +157,48 @@ void ItookiSMSSender::handle(boost::system::error_code err, const Wt::Http::Mess
             string resultCode = response.body();
 
             Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
-
-            try
+            vector< string > splitResult;
+            boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
+            
+            if (splitResult.size() != 2)
             {
-                Wt::Dbo::Transaction transaction(session);
-                Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-                if (Utils::checkId<AlertTracking > (at))
-                {
-                    at.modify()->receiveDate = Wt::WDateTime::currentDateTime();
-                }
-                else
-                {
-                    Wt::log("error") << "[SMS] Alert tracking not found";
-                    //TODO error behavior
-                }
+                Wt::log("error") << "[SMS] Unexpected answer from itooki.";
             }
-            catch (Wt::Dbo::Exception const& e)
+            
+            if (splitResult.size() == 0)
             {
-                Wt::log("error") << e.what();
-                //TODO : behaviour in error case
+                Wt::log("error") << "[SMS] Unexpected answer from itooki, no result code.";
+            }
+            
+            if (splitResult.size() == 2)
+            {
+                try
+                {
+                    Wt::Dbo::Transaction transaction(session);
+                    Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                    if (Utils::checkId<AlertTracking > (at))
+                    {
+                        at.modify()->ackId = splitResult[1];
+                        at.modify()->ackGw = "itooki.fr";
+                        at.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+                        
+                        AlertTrackingEvent *ate = new AlertTrackingEvent();
+                        ate->alertTracking = at;
+                        ate->date = Wt::WDateTime::currentDateTime();
+                        ate->value = splitResult[0];
+                        
+                    }
+                    else
+                    {
+                        Wt::log("error") << "[SMS] Alert tracking not found";
+                        //TODO error behavior
+                    }
+                }
+                catch (Wt::Dbo::Exception const& e)
+                {
+                    Wt::log("error") << e.what();
+                    //TODO : behaviour in error case
+                }
             }
         }
         else

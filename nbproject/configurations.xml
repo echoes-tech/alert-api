@@ -5,6 +5,8 @@
                    displayName="Header Files"
                    projectFiles="true">
       <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
+        <itemPath>include/ItookiAckReceiver.h</itemPath>
+        <itemPath>include/ItookiAswReceiver.h</itemPath>
         <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
       </logicalFolder>
       <itemPath>include/AssetRessource.h</itemPath>
