@@ -138,8 +138,8 @@ int main(int argc, char **argv)
 
         server.addResource(&assetRessource, "/asset");
         server.addResource(&probeRessource, "/probe");
-        server.addResource(&receiveSr, "/sr");
-        server.addResource(&sendSMS, "/send");
+        server.addResource(&receiveSr, "/netsize/sr");
+        server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiSMSSender, "/itooki/sms/sender");
         server.addResource(&itookiAckReceiver, "/itooki/ack");
         server.addResource(&itookiAswReceiver, "/itooki/asw");

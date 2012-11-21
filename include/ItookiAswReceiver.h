@@ -25,27 +25,8 @@ class ItookiAswReceiver : public Wt::WResource
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
             Session session(Utils::connection);
-            
-            Wt::log("notice") << "[SR] Client address : " << request.clientAddress();
-            Wt::log("notice") << "[SR] Content type : " << request.contentType();
-            Wt::log("notice") << "[SR] Content length : " << request.contentLength();
-            Wt::log("notice") << "[SR] Url scheme : " << request.urlScheme();
-            Wt::log("notice") << "[SR] Query string : " << request.queryString();
-            Wt::log("notice") << "[SR] X-Forwarded-For : " << request.headerValue("X-Forwarded-For");
-            
-            /** string used to get the xml file sent in the request */
-            std::string requestBodyString = "";
-                       
-            /** getting the input stream for the request char by char */
-            char c;
-            c = request.in().get();
-            while (request.in())
-            {
-                requestBodyString.append(1,c);
-                c = request.in().get();
-            }
-            
-            Wt::log("notice") << "[ACK ITOOKI] " << requestBodyString;
+
+            Wt::log("notice") << "[ASW] Query string : " << request.queryString();
             
             
             this->number = "";
@@ -76,7 +57,7 @@ class ItookiAswReceiver : public Wt::WResource
             }
             catch(Wt::Dbo::Exception const& e)
             {
-                Wt::log("error") << "[ACK ITOOKI]" << e.what();
+                Wt::log("error") << "[ASW ITOOKI]" << e.what();
                 //TODO : behaviour in error case
             }
             

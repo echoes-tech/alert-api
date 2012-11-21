@@ -26,26 +26,8 @@ class ItookiAckReceiver : public Wt::WResource
         {
             Session session(Utils::connection);
             
-            Wt::log("notice") << "[SR] Client address : " << request.clientAddress();
-            Wt::log("notice") << "[SR] Content type : " << request.contentType();
-            Wt::log("notice") << "[SR] Content length : " << request.contentLength();
-            Wt::log("notice") << "[SR] Url scheme : " << request.urlScheme();
-            Wt::log("notice") << "[SR] Query string : " << request.queryString();
-            Wt::log("notice") << "[SR] X-Forwarded-For : " << request.headerValue("X-Forwarded-For");
-            
-            /** string used to get the xml file sent in the request */
-            std::string requestBodyString = "";
-                       
-            /** getting the input stream for the request char by char */
-            char c;
-            c = request.in().get();
-            while (request.in())
-            {
-                requestBodyString.append(1,c);
-                c = request.in().get();
-            }
-            
-            Wt::log("notice") << "[ACK ITOOKI] " << requestBodyString;
+
+            Wt::log("notice") << "[ACK] Query string : " << request.queryString();
             
                     
             if (!request.getParameterValues("erreur").empty())
@@ -57,9 +39,9 @@ class ItookiAckReceiver : public Wt::WResource
                 Wt::log("error") << "[ACK ITOOKI]" << "no error code";
             }
             
-            if (!request.getParameterValues("refenvoi").empty()) 
+            if (!request.getParameterValues("msgid").empty()) 
             {
-                this->refSent = request.getParameterValues("refenvoi")[0];
+                this->refSent = request.getParameterValues("msgid")[0];
             }
             else
             {
