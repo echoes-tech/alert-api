@@ -273,10 +273,19 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 
                         if (this->pluginId == 1)
                         {
-                            ifstream myfile ("/var/www/wt/probe/plugins/Linux-System.json");
-                            if (myfile.is_open())
+                            // Open file
+                            ifstream myfile("/var/www/wt/probe/plugins/Linux-System.json");
+                            if (myfile)
                             {
-                                response.out() << myfile.rdbuf();
+                                // Container to concat int to string
+                                std::ostringstream o;
+                                // File to String
+                                string plugin((istreambuf_iterator<char>(myfile)), istreambuf_iterator<char>());
+                                // Concat Int to String
+                                o << "idAsset\": " << this->assetId;
+                                // Replace idAsset and send all plugin to response.out
+                                boost::replace_first_copy(ostream_iterator<char>(response.out()), plugin, "idAsset\": 0", o.str());
+                                // Close file
                                 myfile.close();
                             }
                             else
@@ -289,7 +298,7 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                         {
                             response.setStatus(404);
                             response.out() << "{\"message\":\"Plugin not found.\"}";
-                        }                                 
+                        }
                     }
                     return;
                     break;
