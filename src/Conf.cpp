@@ -11,7 +11,7 @@
  * 
  */
 
-#include "Conf.h"
+#include "includeFile.h"
 
 Conf::Conf()
 {
@@ -21,13 +21,22 @@ Conf::Conf()
     
     // Load the INI file into the property tree. If reading fails
     // (cannot open file, parse error), an exception is thrown.
-    boost::property_tree::read_ini("api.conf", pt);
+    try
+    {
+        boost::property_tree::read_ini("api.conf", pt);
+        dBhost = pt.get<std::string>("database.host");
+        dBport = pt.get<int>("database.port");
+        dBname = pt.get<std::string>("database.name");
+        dBuser = pt.get<std::string>("database.user");
+        dBpassword = pt.get<std::string>("database.password");
+        
+    }
+    catch (boost::property_tree::ini_parser_error e)
+    {
+        Wt::log("error") << "[CONF] " << e.what();
+    }
     
-    dBhost = pt.get<std::string>("database.host");
-    dBport = pt.get<int>("database.port");
-    dBname = pt.get<std::string>("database.name");
-    dBuser = pt.get<std::string>("database.user");
-    dBpassword = pt.get<std::string>("database.password");
+    
 }
 
 Conf::Conf(const Conf& orig) {
