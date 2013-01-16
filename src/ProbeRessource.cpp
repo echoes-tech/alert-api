@@ -139,37 +139,23 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
             ifstream probeFile;
             const char* probeFilePath;
 
+            int release = PublicApiResource::releaseSplit(response, distribRelease.toUTF8());
+            if (release < 0)
+                return;
+            
             // distrib verification
             if(distribName == "Debian" || distribName == "Ubuntu")
             {
-                int release;
-                string distribReleaseTmp = distribRelease.toUTF8();
-                vector< string > splitRelease;
-
-                boost::split(splitRelease, distribReleaseTmp, boost::is_any_of("."), boost::token_compress_on);
-
-                // Convert 1st release element to int
-                try
-                {
-                    release = boost::lexical_cast<int>(splitRelease[0]);
-                }
-                catch(boost::bad_lexical_cast &)
-                {
-                    response.setStatus(422);
-                    response.out() << "{\"message\":\"Validation Failed\"}";
-                    return;
-                }
-
                 if(distribName == "Debian" && release < 7)
                 {
 
                     if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Debian_Squeeze_i386.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Debian_Squeeze_i386.deb";
                     }
                     else if(arch == "x86_64")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Debian_Squeeze_amd64.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Debian_Squeeze_amd64.deb";
                     }
                     else
                     {
@@ -182,11 +168,11 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                 {
                     if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Ubuntu_12.04_i386.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Ubuntu_12.04_i386.deb";
                     }
                     else if(arch == "x86_64")
                     {
-                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-1_Ubuntu_12.04_amd64.deb";
+                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Ubuntu_12.04_amd64.deb";
                     }
                     else
                     {
@@ -198,19 +184,39 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
             }
             else if(distribName == "CentOS")
             {
-                if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                if(release < 6)
                 {
-                    probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.CentOS-6.i386.rpm";
-                }
-                else if(arch == "x86_64")
-                {
-                    probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-1.CentOS-6.x86_64.rpm";
+                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                    {
+                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-5.i386.rpm";
+                    }
+                    else if(arch == "x86_64")
+                    {
+                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-5.x86_64.rpm";
+                    }
+                    else
+                    {
+                        response.setStatus(501);
+                        response.out() << "{\"message\":\"Architecture not supported\"}";
+                        return;
+                    }
                 }
                 else
                 {
-                    response.setStatus(501);
-                    response.out() << "{\"message\":\"Architecture not supported\"}";
-                    return;
+                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                    {
+                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-6.i386.rpm";
+                    }
+                    else if(arch == "x86_64")
+                    {
+                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-6.x86_64.rpm";
+                    }
+                    else
+                    {
+                        response.setStatus(501);
+                        response.out() << "{\"message\":\"Architecture not supported\"}";
+                        return;
+                    }
                 }
             }
             else
