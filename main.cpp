@@ -12,6 +12,8 @@
  */
 
 #include "includeFile.h"
+#include <boost/thread/thread.hpp>
+#include <tools/SessionPool.h>
 
 using namespace std;
 
@@ -101,6 +103,10 @@ using namespace std;
 //};
 
 string Utils::connection;
+
+SessionPool* SessionPool::instance = 0;
+std::string SessionPool::credentials = "";
+boost::mutex SessionPool::mutex;
 
 /**
 Point d'entrée du programme.
