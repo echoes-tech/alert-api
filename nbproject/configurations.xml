@@ -61,6 +61,8 @@
       </toolsSet>
       <compileType>
         <ccTool>
+          <standard>8</standard>
+          <commandlineTool>DISTCC_FALLBACK=0 distcc</commandlineTool>
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
