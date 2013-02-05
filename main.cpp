@@ -12,6 +12,8 @@
  */
 
 #include "includeFile.h"
+#include <boost/thread/thread.hpp>
+#include <tools/SessionPool.h>
 
 using namespace std;
 
@@ -107,6 +109,11 @@ Point d'entrée du programme.
 @param argc : TBC
 @param argv : TBC
 */
+SessionPool* SessionPool::instance = 0;
+std::string SessionPool::credentials = "";
+boost::mutex SessionPool::mutex;
+
+
 int main(int argc, char **argv)
 {
     Conf *conf = new Conf();
