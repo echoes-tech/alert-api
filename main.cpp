@@ -104,6 +104,10 @@ using namespace std;
 
 string Utils::connection;
 
+SessionPool* SessionPool::instance = 0;
+std::string SessionPool::credentials = "";
+boost::mutex SessionPool::mutex;
+
 /**
 Point d'entrée du programme.
 @param argc : TBC

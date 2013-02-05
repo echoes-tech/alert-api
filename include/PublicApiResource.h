@@ -28,6 +28,29 @@ class PublicApiResource : public Wt::WResource {
         bool authentified;
         Session *session;
 
+
+        int releaseSplit(Wt::Http::Response &response, std::string distribRelease)
+        {
+            int release;
+            std::vector< std::string > splitRelease;
+
+            boost::split(splitRelease, distribRelease, boost::is_any_of("."), boost::token_compress_on);
+
+            // Convert 1st release element to int
+            try
+            {
+                release = boost::lexical_cast<int>(splitRelease[0]);
+            }
+            catch(boost::bad_lexical_cast &)
+            {
+                response.setStatus(422);
+                response.out() << "{\"message\":\"Validation Failed\"}";
+                return -1;
+            }
+
+            return release;
+        }
+        
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) {
             Wt::log("info") << "[PUBLIC API] Identifying";
             // Setting the session
@@ -94,7 +117,7 @@ class PublicApiResource : public Wt::WResource {
                         }
                     } else 
                     {
-                        Wt::log("error") << "[PUBLIC API] User not found";
+                        Wt::log("error") << "[PUBLIC API] User " << this->login << " not found";
                     }
                 } catch (Wt::Dbo::Exception const& e) 
                 {

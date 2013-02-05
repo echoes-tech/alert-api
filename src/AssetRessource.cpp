@@ -140,40 +140,23 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                 return;
             }
 
+            int release = PublicApiResource::releaseSplit(response, distribRelease.toUTF8());
+            if (release < 0)
+                return;
+
             // distrib verification
             if(distribName == "Debian" || distribName == "Ubuntu")
             {
-                int release;
-                string distribReleaseTmp = distribRelease.toUTF8();
-                vector< string > splitRelease;
-
-                pkgType = "deb";
-
-                boost::split(splitRelease, distribReleaseTmp, boost::is_any_of("."), boost::token_compress_on);
-
-                // Convert 1st release element to int
-                try
-                {
-                    release = boost::lexical_cast<int>(splitRelease[0]);
-                }
-                catch(boost::bad_lexical_cast &)
-                {
-                    response.setStatus(422);
-                    response.out() << "{\"message\":\"Validation Failed\"}";
-                    return;
-                }
-
-
                 if(distribName == "Debian" && release < 7)
                 {
 
                     if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                     {
-                        pkgName = "ea-probe_0.1.0.beta-1_Debian_Squeeze_i386.deb";
+                        pkgName = "ea-probe_0.1.0.beta-2_Debian_Squeeze_i386.deb";
                     }
                     else if(arch == "x86_64")
                     {
-                        pkgName = "ea-probe_0.1.0.beta-1_Debian_Squeeze_amd64.deb";
+                        pkgName = "ea-probe_0.1.0.beta-2_Debian_Squeeze_amd64.deb";
                     }
                     else
                     {
@@ -186,11 +169,11 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                 {
                     if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
                     {
-                        pkgName = "ea-probe_0.1.0.beta-1_Ubuntu_12.04_i386.deb";
+                        pkgName = "ea-probe_0.1.0.beta-2_Ubuntu_12.04_i386.deb";
                     }
                     else if(arch == "x86_64")
                     {
-                        pkgName = "ea-probe_0.1.0.beta-1_Ubuntu_12.04_amd64.deb";
+                        pkgName = "ea-probe_0.1.0.beta-2_Ubuntu_12.04_amd64.deb";
                     }
                     else
                     {
@@ -204,19 +187,39 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
             {
                 pkgType = "rpm";
 
-                if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                if(release < 6)
                 {
-                    pkgName = "ea-probe-0.1.0.beta-1.CentOS-6.i386.rpm";
-                }
-                else if(arch == "x86_64")
-                {
-                    pkgName = "ea-probe-0.1.0.beta-1.CentOS-6.x86_64.rpm";
+                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                    {
+                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-5.i386.rpm";
+                    }
+                    else if(arch == "x86_64")
+                    {
+                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-5.x86_64.rpm";
+                    }
+                    else
+                    {
+                        response.setStatus(501);
+                        response.out() << "{\"message\":\"Architecture not supported\"}";
+                        return;
+                    }
                 }
                 else
                 {
-                    response.setStatus(501);
-                    response.out() << "{\"message\":\"Architecture not supported\"}";
-                    return;
+                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
+                    {
+                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-6.i386.rpm";
+                    }
+                    else if(arch == "x86_64")
+                    {
+                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-6.x86_64.rpm";
+                    }
+                    else
+                    {
+                        response.setStatus(501);
+                        response.out() << "{\"message\":\"Architecture not supported\"}";
+                        return;
+                    }
                 }
             }
             else
@@ -273,10 +276,19 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 
                         if (this->pluginId == 1)
                         {
-                            ifstream myfile ("/var/www/wt/probe/plugins/Linux-System.json");
-                            if (myfile.is_open())
+                            // Open file
+                            ifstream myfile("/var/www/wt/probe/plugins/Linux-System.json");
+                            if (myfile)
                             {
-                                response.out() << myfile.rdbuf();
+                                // Container to concat int to string
+                                std::ostringstream o;
+                                // File to String
+                                string plugin((istreambuf_iterator<char>(myfile)), istreambuf_iterator<char>());
+                                // Concat Int to String
+                                o << "idAsset\": " << this->assetId;
+                                // Replace idAsset and send all plugin to response.out
+                                boost::replace_first_copy(ostream_iterator<char>(response.out()), plugin, "idAsset\": 0", o.str());
+                                // Close file
                                 myfile.close();
                             }
                             else
@@ -289,7 +301,7 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                         {
                             response.setStatus(404);
                             response.out() << "{\"message\":\"Plugin not found.\"}";
-                        }                                 
+                        }
                     }
                     return;
                     break;
