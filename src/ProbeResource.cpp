@@ -25,6 +25,31 @@ ProbeResource::~ProbeResource() {
     beingDeleted();
 }
 
+void ProbeResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+void ProbeResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+void ProbeResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+void ProbeResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+void ProbeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
 void ProbeResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth

@@ -61,7 +61,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>src</Elem>
-    <Elem>include/itooki</Elem>
+    <Elem>include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
