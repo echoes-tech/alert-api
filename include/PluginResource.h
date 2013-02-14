@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API PluginRessource
+ * HEADER OF API PluginResource
  * @author ECHOES Technologies (GDR)
  * @date 10/02/2013
  * 
@@ -12,16 +12,16 @@
  */
 
 
-#ifndef PLUGINRESSOURCE_H
-#define	PLUGINRESSOURCE_H
+#ifndef PLUGINRESOURCE_H
+#define	PLUGINRESOURCE_H
 
 #include "includeFile.h"
 
-class PluginRessource : public PublicApiResource
+class PluginResource : public PublicApiResource
 {
     public :
-        PluginRessource();
-        virtual ~PluginRessource();
+        PluginResource();
+        virtual ~PluginResource();
         
     protected :
         
@@ -31,5 +31,5 @@ class PluginRessource : public PublicApiResource
             
 };
 
-#endif	/* PLUGINRESSOURCE_H */
+#endif	/* PLUGINRESOURCE_H */
 

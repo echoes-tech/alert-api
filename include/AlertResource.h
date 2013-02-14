@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API AlertRessource
+ * HEADER OF API AlertResource
  * @author ECHOES Technologies (GDR)
  * @date 05/02/2013
  * 
@@ -11,16 +11,16 @@
  * 
  */
 
-#ifndef ALERTRESSOURCE_H
-#define	ALERTRESSOURCE_H
+#ifndef ALERTRESOURCE_H
+#define	ALERTRESOURCE_H
 
 #include "includeFile.h"
 
-class AlertRessource : public PublicApiResource
+class AlertResource : public PublicApiResource
 {
     public :
-        AlertRessource();
-        virtual ~AlertRessource();
+        AlertResource();
+        virtual ~AlertResource();
         
     protected :
         
@@ -44,5 +44,5 @@ class AlertRessource : public PublicApiResource
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             */
 };
-#endif	/* ALERTRESSOURCE_H */
+#endif	/* ALERTRESOURCE_H */
 

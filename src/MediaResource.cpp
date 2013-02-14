@@ -1,5 +1,5 @@
 /* 
- * API MediaRessource
+ * API MediaResource
  * @author ECHOES Technologies (GDR)
  * @date 11/02/2013
  * 
@@ -12,16 +12,16 @@
  */
 
 
-#include "MediaRessource.h"
+#include "MediaResource.h"
 
 
 using namespace std;
 
-MediaRessource::MediaRessource(){
+MediaResource::MediaResource(){
 }
 
 
-void MediaRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void MediaResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
      // Create Session and Check auth
    // PublicApiResource::handleRequest(request, response);
@@ -217,7 +217,7 @@ void MediaRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 }
 
 
-MediaRessource::~MediaRessource()
+MediaResource::~MediaResource()
 {
     beingDeleted();
 }

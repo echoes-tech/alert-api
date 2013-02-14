@@ -1,5 +1,5 @@
 /* 
- * API Asset Ressource
+ * API Asset Resource
  * @author ECHOES Technologies (FPO)
  * @date 02/11/2012
  * 
@@ -11,21 +11,21 @@
  * 
  */
 
-#include "AssetRessource.h"
+#include "AssetResource.h"
 
 using namespace std;
 
-AssetRessource::AssetRessource() {
+AssetResource::AssetResource() {
 }
 
-AssetRessource::AssetRessource(const AssetRessource& orig) {
+AssetResource::AssetResource(const AssetResource& orig) {
 }
 
-AssetRessource::~AssetRessource() {
+AssetResource::~AssetResource() {
     beingDeleted();
 }
 
-string AssetRessource::getAssetsList()
+string AssetResource::getAssetsList()
 {
     string res = "";
     unsigned long idx = 0;
@@ -65,7 +65,7 @@ string AssetRessource::getAssetsList()
     return res;
 }
 
-string AssetRessource::getAsset()
+string AssetResource::getAsset()
 {
     string res = "";
     
@@ -139,7 +139,7 @@ string AssetRessource::getAsset()
     return res;
 }
 
-string AssetRessource::getPluginsListForAsset()
+string AssetResource::getPluginsListForAsset()
 {
     string res = "";
     
@@ -178,7 +178,7 @@ string AssetRessource::getPluginsListForAsset()
     return res;
 }
 
-string AssetRessource::getProbesListForAsset()
+string AssetResource::getProbesListForAsset()
 {
     string res = "";
     
@@ -229,7 +229,7 @@ string AssetRessource::getProbesListForAsset()
     return res;
 }
 
-void AssetRessource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
 
@@ -276,7 +276,7 @@ void AssetRessource::processGetRequest(const Wt::Http::Request &request, Wt::Htt
     return;
 }
 
-string AssetRessource::postProbeForAsset(string sRequest)
+string AssetResource::postProbeForAsset(string sRequest)
 {
     string res = "";
     Wt::WString name;
@@ -384,7 +384,7 @@ string AssetRessource::postProbeForAsset(string sRequest)
     return res;
 }
 
-void AssetRessource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "", sRequest = "";
 
@@ -425,13 +425,13 @@ void AssetRessource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-void AssetRessource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
 
-string AssetRessource::patchAsset(string sRequest)
+string AssetResource::patchAsset(string sRequest)
 {
     string res = "";
     Wt::WString arch, distribName, distribRelease;
@@ -525,7 +525,7 @@ string AssetRessource::patchAsset(string sRequest)
     return res;
 }
 
-void AssetRessource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "", sRequest = "";
 
@@ -566,13 +566,13 @@ void AssetRessource::processPatchRequest(const Wt::Http::Request &request, Wt::H
     return;
 }
 
-void AssetRessource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
 
-void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);

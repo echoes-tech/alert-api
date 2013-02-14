@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API InformationRessource
+ * HEADER OF API InformationResource
  * @author ECHOES Technologies (GDR)
  * @date 13/02/2013
  * 
@@ -11,16 +11,16 @@
  * 
  */
 
-#ifndef INFORMATIONRESSOURCE_H
-#define	INFORMATIONRESSOURCE_H
+#ifndef INFORMATIONRESOURCE_H
+#define	INFORMATIONRESOURCE_H
 
 #include "includeFile.h"
 
-class InformationRessource : public PublicApiResource
+class InformationResource : public PublicApiResource
 {
     public :
-        InformationRessource();
-        virtual ~InformationRessource();
+        InformationResource();
+        virtual ~InformationResource();
         
     protected :
         
@@ -31,5 +31,5 @@ class InformationRessource : public PublicApiResource
 };
 
 
-#endif	/* INFORMATIONRESSOURCE_H */
+#endif	/* INFORMATIONRESOURCE_H */
 

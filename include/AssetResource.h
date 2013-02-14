@@ -1,5 +1,5 @@
 /* 
- * API Asset Ressource
+ * API Asset Resource
  * @author ECHOES Technologies (FPO)
  * @date 27/09/2012
  * 
@@ -11,17 +11,17 @@
  * 
  */
 
-#ifndef ASSETRESSOURCE_H
-#define	ASSETRESSOURCE_H
+#ifndef ASSETRESOURCE_H
+#define	ASSETRESOURCE_H
 
 #include "PublicApiResource.h"
 
-class AssetRessource : public PublicApiResource
+class AssetResource : public PublicApiResource
 {
     public:
-        AssetRessource();
-        AssetRessource(const AssetRessource& orig);
-        virtual ~AssetRessource();
+        AssetResource();
+        AssetResource(const AssetResource& orig);
+        virtual ~AssetResource();
 
     protected:
         int assetId, probeId, pluginId;
@@ -46,5 +46,5 @@ class AssetRessource : public PublicApiResource
 };
 
 
-#endif	/* ASSETRESSOURCE_H */
+#endif	/* ASSETRESOURCE_H */
 

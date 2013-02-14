@@ -1,5 +1,5 @@
 /* 
- * API PluginRessource
+ * API PluginResource
  * @author ECHOES Technologies (GDR)
  * @date 10/02/2013
  * 
@@ -12,16 +12,16 @@
  */
 
 
-#include "PluginRessource.h"
+#include "PluginResource.h"
 
 
 using namespace std;
 
-PluginRessource::PluginRessource(){
+PluginResource::PluginResource(){
 }
 
 
-void PluginRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
      // Create Session and Check auth
    // PublicApiResource::handleRequest(request, response);
@@ -169,7 +169,7 @@ void PluginRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::
 }
 
 
-PluginRessource::~PluginRessource()
+PluginResource::~PluginResource()
 {
     beingDeleted();
 }

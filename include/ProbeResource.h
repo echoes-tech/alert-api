@@ -1,5 +1,5 @@
 /* 
- * Header of API Probe Ressource
+ * Header of API Probe Resource
  * @author ECHOES Technologies (FPO)
  * @date 26/09/2012
  * 
@@ -11,17 +11,17 @@
  * 
  */
 
-#ifndef PROBERESSOURCE_H
-#define	PROBERESSOURCE_H
+#ifndef PROBERESOURCE_H
+#define	PROBERESOURCE_H
 
 #include "PublicApiResource.h"
 
-class ProbeRessource : public PublicApiResource
+class ProbeResource : public PublicApiResource
 {
     public:
-        ProbeRessource();
-        ProbeRessource(const ProbeRessource& orig);
-        virtual ~ProbeRessource();
+        ProbeResource();
+        ProbeResource(const ProbeResource& orig);
+        virtual ~ProbeResource();
 
     protected:
         int probeId, assetId;
@@ -40,5 +40,5 @@ class ProbeRessource : public PublicApiResource
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };
 
-#endif	/* PROBERESSOURCE_H */
+#endif	/* PROBERESOURCE_H */
 

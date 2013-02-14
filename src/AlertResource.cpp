@@ -1,5 +1,5 @@
 /* 
- * API AlertRessource
+ * API AlertResource
  * @author ECHOES Technologies (GDR)
  * @date 05/02/2013
  * 
@@ -16,17 +16,17 @@
 
 using namespace std;
 
-AlertRessource::AlertRessource(){
+AlertResource::AlertResource(){
 }
 
 
-/*void AssetRessource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+/*void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
 
-string AlertRessource::postAlert(string sRequest)
+string AlertResource::postAlert(string sRequest)
 {
     string res = "";
     Wt::WString alertName, alertValue, threadSleep, keyVal, astId, seaId, 
@@ -121,7 +121,7 @@ string AlertRessource::postAlert(string sRequest)
             std::string inString = "(";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> >::const_iterator i = avaPtrCollec.begin(); i != avaPtrCollec.end(); i++) 
             {
-                Wt::log("debug") << " [AlertRessource] " << " - " << " For ava list : " << (*i).id();
+                Wt::log("debug") << " [AlertResource] " << " - " << " For ava list : " << (*i).id();
                 inString += boost::lexical_cast<std::string,long long>((*i).id()) + ",";
                 i->flush();
             }
@@ -148,7 +148,7 @@ string AlertRessource::postAlert(string sRequest)
                 std::string inString2 = "(";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Alert> >::const_iterator i = alerts.begin(); i != alerts.end(); i++) 
                 {
-                    cerr << " [AlertRessource] " << " - " << " For ale list : " << (*i).id() << "\n";
+                    cerr << " [AlertResource] " << " - " << " For ale list : " << (*i).id() << "\n";
                     inString2 += boost::lexical_cast<std::string,long long>((*i).id()) + ",";
                     i->flush();
                 }
@@ -181,7 +181,7 @@ string AlertRessource::postAlert(string sRequest)
     }
     catch (Wt::Dbo::Exception e)
     {
-        Wt::log("error") << "[AlertRessource]" << e.what();
+        Wt::log("error") << "[AlertResource]" << e.what();
         response.setStatus(503);
         response.out() << "{\"message\":\"Service Unavailable\"}";
         return;
@@ -257,7 +257,7 @@ string AlertRessource::postAlert(string sRequest)
 }
 
 
-void AssetRessource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
 
@@ -281,7 +281,7 @@ void AssetRessource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
 
 
 
-void AssetRessource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
@@ -291,7 +291,7 @@ void AssetRessource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
 
 
 
-void AssetRessource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
@@ -300,7 +300,7 @@ void AssetRessource::processPatchRequest(const Wt::Http::Request &request, Wt::H
 
 
 
-string AlertRessource::DeleteAlert(string sRequest)
+string AlertResource::DeleteAlert(string sRequest)
 {
     try 
     {
@@ -342,7 +342,7 @@ string AlertRessource::DeleteAlert(string sRequest)
 }
 
 
-void AssetRessource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
   /*  string responseMsg = "", nextElement = "";
 
@@ -363,7 +363,7 @@ void AssetRessource::processDeleteRequest(const Wt::Http::Request &request, Wt::
 }
 
 
-void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
@@ -388,7 +388,7 @@ void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 
 
 
-void AlertRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
      // Create Session and Check auth
    // PublicApiResource::handleRequest(request, response);
@@ -566,7 +566,7 @@ void AlertRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                             std::string inString = "(";
                             for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> >::const_iterator i = avaPtrCollec.begin(); i != avaPtrCollec.end(); i++) 
                             {
-                                Wt::log("debug") << " [AlertRessource] " << " - " << " For ava list : " << (*i).id();
+                                Wt::log("debug") << " [AlertResource] " << " - " << " For ava list : " << (*i).id();
                                 inString += boost::lexical_cast<std::string,long long>((*i).id()) + ",";
                                 i->flush();
                             }
@@ -593,7 +593,7 @@ void AlertRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                                 std::string inString2 = "(";
                                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Alert> >::const_iterator i = alerts.begin(); i != alerts.end(); i++) 
                                 {
-                                    cerr << " [AlertRessource] " << " - " << " For ale list : " << (*i).id() << "\n";
+                                    cerr << " [AlertResource] " << " - " << " For ale list : " << (*i).id() << "\n";
                                     inString2 += boost::lexical_cast<std::string,long long>((*i).id()) + ",";
                                     i->flush();
                                 }
@@ -626,7 +626,7 @@ void AlertRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
                     }
                     catch (Wt::Dbo::Exception e)
                     {
-                        Wt::log("error") << "[AlertRessource]" << e.what();
+                        Wt::log("error") << "[AlertResource]" << e.what();
                         response.setStatus(503);
                         response.out() << "{\"message\":\"Service Unavailable\"}";
                         return;
@@ -724,7 +724,7 @@ void AlertRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 }
 
 
-AlertRessource::~AlertRessource()
+AlertResource::~AlertResource()
 {
     beingDeleted();
 }

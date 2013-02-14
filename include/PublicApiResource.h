@@ -1,5 +1,5 @@
 /* 
- * Header of API Ressource
+ * Header of API Resource
  * @author ECHOES Technologies (TSA)
  * @date 08/08/2012
  * 

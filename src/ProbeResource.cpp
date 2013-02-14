@@ -1,5 +1,5 @@
 /* 
- * API Probe Ressource
+ * API Probe Resource
  * @author ECHOES Technologies (FPO)
  * @date 02/11/2012
  * 
@@ -11,21 +11,21 @@
  * 
  */
 
-#include "ProbeRessource.h"
+#include "ProbeResource.h"
 
 using namespace std;
 
-ProbeRessource::ProbeRessource() {
+ProbeResource::ProbeResource() {
 }
 
-ProbeRessource::ProbeRessource(const ProbeRessource& orig) {
+ProbeResource::ProbeResource(const ProbeResource& orig) {
 }
 
-ProbeRessource::~ProbeRessource() {
+ProbeResource::~ProbeResource() {
     beingDeleted();
 }
 
-void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
@@ -236,27 +236,27 @@ void ProbeRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
 //    }
 }
 
-void ProbeRessource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeRessource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeRessource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeRessource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeRessource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }

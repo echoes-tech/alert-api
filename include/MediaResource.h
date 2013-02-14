@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API PluginRessource
+ * HEADER OF API PluginResource
  * @author ECHOES Technologies (GDR)
  * @date 11/02/2013
  * 
@@ -11,16 +11,16 @@
  * 
  */
 
-#ifndef MEDIARESSOURCE_H
-#define	MEDIARESSOURCE_H
+#ifndef MEDIARESOURCE_H
+#define	MEDIARESOURCE_H
 
 #include "includeFile.h"
 
-class MediaRessource : public PublicApiResource
+class MediaResource : public PublicApiResource
 {
     public :
-        MediaRessource();
-        virtual ~MediaRessource();
+        MediaResource();
+        virtual ~MediaResource();
         
     protected :
         
@@ -29,5 +29,5 @@ class MediaRessource : public PublicApiResource
             
 };
 
-#endif	/* MEDIARESSOURCE_H */
+#endif	/* MEDIARESOURCE_H */
 

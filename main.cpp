@@ -19,12 +19,12 @@
 
 #include "PublicApiResource.h"
 
-#include "AssetRessource.h"
-#include "ProbeRessource.h"
-#include "InformationRessource.h"
-#include "MediaRessource.h"
-#include "PluginRessource.h"
-#include "UserRessource.h"
+#include "AssetResource.h"
+#include "ProbeResource.h"
+#include "InformationResource.h"
+#include "MediaResource.h"
+#include "PluginResource.h"
+#include "UserResource.h"
 #include "AlertResource.h"
 
 #include "itooki/ItookiSMSSender.h"
@@ -59,13 +59,13 @@ int main(int argc, char **argv)
 
     try
     {
-        InformationRessource informationRessource;
-        MediaRessource  mediaRessource;
-        PluginRessource pluginRessource;
-        UserRessource   userRessource;
-        AlertRessource  alertRessource;
-        AssetRessource  assetRessource;
-        ProbeRessource  probeRessource;
+        InformationResource informationRessource;
+        MediaResource  mediaResource;
+        PluginResource pluginResource;
+        UserResource   userResource;
+        AlertResource  alertResource;
+        AssetResource  assetResource;
+        ProbeResource  probeResource;
         SrReception     receiveSr;
         SendSMS         sendSMS;
         ItookiSMSSender itookiSMSSender;
@@ -82,12 +82,12 @@ int main(int argc, char **argv)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
         server.addResource(&informationRessource, "/information");
-        server.addResource(&mediaRessource, "/media");
-        server.addResource(&pluginRessource, "/plugin");
-        server.addResource(&userRessource, "/user");
-        server.addResource(&alertRessource, "/alert");
-        server.addResource(&assetRessource, "/assets");
-        server.addResource(&probeRessource, "/probes");
+        server.addResource(&mediaResource, "/media");
+        server.addResource(&pluginResource, "/plugin");
+        server.addResource(&userResource, "/user");
+        server.addResource(&alertResource, "/alert");
+        server.addResource(&assetResource, "/assets");
+        server.addResource(&probeResource, "/probes");
         server.addResource(&receiveSr, "/netsize/sr");
         server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiSMSSender, "/itooki/sms/sender");

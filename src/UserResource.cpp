@@ -1,5 +1,5 @@
 /* 
- * API UserRessource
+ * API UserResource
  * @author ECHOES Technologies (GDR)
  * @date 05/02/2013
  * 
@@ -12,14 +12,14 @@
  */
 
 
-#include "UserRessource.h"
+#include "UserResource.h"
 
 using namespace std;
 
-UserRessource::UserRessource() {
+UserResource::UserResource() {
 }
 
-void UserRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) 
+void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) 
 {
     // Create Session and Check auth
     // PublicApiResource::handleRequest(request, response);
@@ -597,5 +597,5 @@ void UserRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
 
 }
 
-UserRessource::~UserRessource() {
+UserResource::~UserResource() {
 }

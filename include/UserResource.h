@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API UserRessource
+ * HEADER OF API UserResource
  * @author ECHOES Technologies (GDR)
  * @date 05/02/2013
  * 
@@ -11,16 +11,16 @@
  * 
  */
 
-#ifndef USERRESSOURCE_H
-#define	USERRESSOURCE_H
+#ifndef USERRESOURCE_H
+#define	USERRESOURCE_H
 
 #include "includeFile.h"
 
-class UserRessource : public PublicApiResource
+class UserResource : public PublicApiResource
 {
     public :
-        UserRessource();
-        virtual ~UserRessource();
+        UserResource();
+        virtual ~UserResource();
         
     protected :
         int userId, medId;
@@ -28,5 +28,5 @@ class UserRessource : public PublicApiResource
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);            
 };
 
-#endif	/* USERRESSOURCE_H */
+#endif	/* USERRESOURCE_H */
 

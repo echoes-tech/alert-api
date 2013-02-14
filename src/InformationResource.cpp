@@ -1,5 +1,5 @@
 /* 
- * API InformationRessource
+ * API InformationResource
  * @author ECHOES Technologies (GDR)
  * @date 11/02/2013
  * 
@@ -12,16 +12,16 @@
  */
 
 
-#include "InformationRessource.h"
+#include "InformationResource.h"
 
 
 using namespace std;
 
-InformationRessource::InformationRessource(){
+InformationResource::InformationResource(){
 }
 
 
-void InformationRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void InformationResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
      // Create Session and Check auth
    // PublicApiResource::handleRequest(request, response);
@@ -238,7 +238,7 @@ void InformationRessource::handleRequest(const Wt::Http::Request &request, Wt::H
 }
 
 
-InformationRessource::~InformationRessource()
+InformationResource::~InformationResource()
 {
     beingDeleted();
 }

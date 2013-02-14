@@ -35,13 +35,13 @@
 
 #include "PublicApiResource.h"
 
-#include "InformationRessource.h"
-#include "MediaRessource.h"
-#include "PluginRessource.h"
-#include "UserRessource.h"
+#include "InformationResource.h"
+#include "MediaResource.h"
+#include "PluginResource.h"
+#include "UserResource.h"
 #include "AlertResource.h"
-#include "AssetRessource.h"
-#include "ProbeRessource.h"
+#include "AssetResource.h"
+#include "ProbeResource.h"
 
 #include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
