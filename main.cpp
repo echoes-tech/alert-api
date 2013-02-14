@@ -28,10 +28,6 @@ Point d'entrée du programme.
 @param argc : TBC
 @param argv : TBC
 */
-SessionPool* SessionPool::instance = 0;
-std::string SessionPool::credentials = "";
-boost::mutex SessionPool::mutex;
-
 
 int main(int argc, char **argv)
 {
@@ -45,6 +41,11 @@ int main(int argc, char **argv)
 
     try
     {
+        InformationRessource informationRessource;
+        MediaRessource  mediaRessource;
+        PluginRessource pluginRessource;
+        UserRessource   userRessource;
+        AlertRessource  alertRessource;
         AssetRessource  assetRessource;
         ProbeRessource  probeRessource;
         SrReception     receiveSr;
@@ -61,7 +62,12 @@ int main(int argc, char **argv)
         server.setServerConfiguration(argc, argv);
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
-
+        
+        server.addResource(&informationRessource, "/information");
+        server.addResource(&mediaRessource, "/media");
+        server.addResource(&pluginRessource, "/plugin");
+        server.addResource(&userRessource, "/user");
+        server.addResource(&alertRessource, "/alert");
         server.addResource(&assetRessource, "/asset");
         server.addResource(&probeRessource, "/probe");
         server.addResource(&receiveSr, "/netsize/sr");

@@ -37,9 +37,14 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/AlertRessource.o \
+	${OBJECTDIR}/src/InformationRessource.o \
 	${OBJECTDIR}/src/AssetRessource.o \
 	${OBJECTDIR}/src/Conf.o \
-	${OBJECTDIR}/src/ProbeRessource.o
+	${OBJECTDIR}/src/MediaRessource.o \
+	${OBJECTDIR}/src/UserRessource.o \
+	${OBJECTDIR}/src/ProbeRessource.o \
+	${OBJECTDIR}/src/PluginRessource.o
 
 
 # C Compiler Flags
@@ -76,6 +81,16 @@ ${OBJECTDIR}/main.o: main.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
+${OBJECTDIR}/src/AlertRessource.o: src/AlertRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertRessource.o src/AlertRessource.cpp
+
+${OBJECTDIR}/src/InformationRessource.o: src/InformationRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationRessource.o src/InformationRessource.cpp
+
 ${OBJECTDIR}/src/AssetRessource.o: src/AssetRessource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -86,10 +101,25 @@ ${OBJECTDIR}/src/Conf.o: src/Conf.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
 
+${OBJECTDIR}/src/MediaRessource.o: src/MediaRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaRessource.o src/MediaRessource.cpp
+
+${OBJECTDIR}/src/UserRessource.o: src/UserRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserRessource.o src/UserRessource.cpp
+
 ${OBJECTDIR}/src/ProbeRessource.o: src/ProbeRessource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeRessource.o src/ProbeRessource.cpp
+
+${OBJECTDIR}/src/PluginRessource.o: src/PluginRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginRessource.o src/PluginRessource.cpp
 
 # Subprojects
 .build-subprojects:

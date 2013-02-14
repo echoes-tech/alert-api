@@ -35,6 +35,11 @@
 
 #include "PublicApiResource.h"
 
+#include "InformationRessource.h"
+#include "MediaRessource.h"
+#include "PluginRessource.h"
+#include "UserRessource.h"
+#include "AlertResource.h"
 #include "AssetRessource.h"
 #include "ProbeRessource.h"
 
