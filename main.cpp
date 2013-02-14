@@ -81,11 +81,11 @@ int main(int argc, char **argv)
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
-        server.addResource(&informationRessource, "/information");
-        server.addResource(&mediaResource, "/media");
-        server.addResource(&pluginResource, "/plugin");
-        server.addResource(&userResource, "/user");
-        server.addResource(&alertResource, "/alert");
+        server.addResource(&informationRessource, "/informations");
+        server.addResource(&mediaResource, "/medias");
+        server.addResource(&pluginResource, "/plugins");
+        server.addResource(&userResource, "/users");
+        server.addResource(&alertResource, "/alerts");
         server.addResource(&assetResource, "/assets");
         server.addResource(&probeResource, "/probes");
         server.addResource(&receiveSr, "/netsize/sr");

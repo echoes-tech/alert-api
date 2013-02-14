@@ -26,12 +26,11 @@ class AlertResource : public PublicApiResource
         
         int alertId;
         Wt::WString alertOption;
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        /*
                
+        std::string getAlertList();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        std::string postProbeForAsset(std::string sRequest);
+        std::string postAlert(std::string sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -39,10 +38,10 @@ class AlertResource : public PublicApiResource
 
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+        std::string deleteAlert(std::string sRequest);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-            */
 };
 #endif	/* ALERTRESOURCE_H */
 

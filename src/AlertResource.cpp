@@ -20,8 +20,132 @@ AlertResource::AlertResource(){
 }
 
 
-/*void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+string AlertResource::getAlertList()
 {
+    string res = "";
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        std::string queryString = "SELECT ale, acr, ava, mev, ams, inu FROM \"T_ALERT_ALE\" ale,"
+                " \"T_ALERT_VALUE_AVA\" ava,"
+                " \"T_ALERT_CRITERIA_ACR\" acr,"
+                " \"T_MEDIA_VALUE_MEV\" mev,"
+                " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams, "
+                " \"T_INFORMATION_UNIT_UNT\" inu "
+                " WHERE \"ALE_ID\" IN "
+                "("
+                "SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" WHERE \"AMS_MEV_MEV_ID\" IN "
+                "("
+                "SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  = "
+                + boost::lexical_cast<std::string > (this->session->user().id())
+                + ""
+
+                " )"
+                " AND \"AMS_ALE_ALE_ID\" IS NOT NULL"
+                ") "
+                " AND ale.\"ALE_AVA_AVA_ID\" = ava.\"AVA_ID\" "
+                " AND ale.\"ALE_DELETE\" IS NULL "
+                " AND ava.\"AVA_ACR_ACR_ID\" = acr.\"ACR_ID\" "
+                " AND ams.\"AMS_ALE_ALE_ID\" = ale.\"ALE_ID\" "
+                " AND mev.\"MEV_ID\" = ams.\"AMS_MEV_MEV_ID\" "
+                " AND inu.\"INU_ID\" = ava.\"INU_ID_INU_ID\" ";
+
+        Wt::Dbo::Query
+                <
+                boost::tuple
+                <
+                Wt::Dbo::ptr<Alert>,
+                Wt::Dbo::ptr<AlertCriteria>,
+                Wt::Dbo::ptr<AlertValue>,
+                Wt::Dbo::ptr<MediaValue>,
+                Wt::Dbo::ptr<AlertMediaSpecialization>,
+                Wt::Dbo::ptr<InformationUnit>
+                >
+                , Wt::Dbo::DynamicBinding
+                > resQuery = this->session->query
+                <
+                boost::tuple
+                <
+                Wt::Dbo::ptr<Alert>,
+                Wt::Dbo::ptr<AlertCriteria>,
+                Wt::Dbo::ptr<AlertValue>,
+                Wt::Dbo::ptr<MediaValue>,
+                Wt::Dbo::ptr<AlertMediaSpecialization>,
+                Wt::Dbo::ptr<InformationUnit>
+                >, Wt::Dbo::DynamicBinding
+                > (queryString);
+
+
+        Wt::Dbo::collection<boost::tuple<
+                Wt::Dbo::ptr<Alert>,
+                Wt::Dbo::ptr<AlertCriteria>,
+                Wt::Dbo::ptr<AlertValue>,
+                Wt::Dbo::ptr<MediaValue>,
+                Wt::Dbo::ptr<AlertMediaSpecialization>,
+                Wt::Dbo::ptr<InformationUnit> > > listTuples = resQuery.resultList();
+        if (listTuples.size() > 0) 
+        {
+
+            for (Wt::Dbo::collection<boost::tuple<
+                    Wt::Dbo::ptr<Alert>,
+                    Wt::Dbo::ptr<AlertCriteria>,
+                    Wt::Dbo::ptr<AlertValue>,
+                    Wt::Dbo::ptr<MediaValue>,
+                    Wt::Dbo::ptr<AlertMediaSpecialization>,
+                    Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
+            {
+
+
+
+                res += "{\n\"";
+                res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().id()) + "\",\n\"";
+                res +="  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().get()->name) + "\",\n\"";
+                res +="  \"criteria\" : \"" + boost::lexical_cast<std::string > (i->get < 1 > ().get()->name) + "\",\n\"";
+                res +="  \"threshold_value\" : \"" + boost::lexical_cast<std::string > (i->get < 2 > ().get()->value) + "\",\n\"";
+                res +="  \"unit\" : \"" + boost::lexical_cast<std::string > (i->get < 5 > ().get()->name) + "\",\n\"";
+                res +="  \"key_value\" : \"" + boost::lexical_cast<std::string > (i->get < 2 > ().get()->keyValue.get()) + "\",\n\"";
+                res +="  \"media\" : \"" + boost::lexical_cast<std::string > (i->get < 3 > ().get()->value) + "\",\n\"";
+                res +="  \"snoozeDuration\" : \"" + boost::lexical_cast<std::string > (i->get < 4 > ().get()->snoozeDuration) + "\",\n\"";
+                res +="}\n";
+
+            }
+            this->statusCode = 200; 
+        } 
+        else 
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"User not found\"}";
+            return res;
+        }
+        transaction.commit();
+    }                    
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
+void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    string responseMsg = "", nextElement = "" ;
+
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        responseMsg = getAlertList();
+    }
+    else
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
     return;
 }
 
@@ -30,7 +154,7 @@ string AlertResource::postAlert(string sRequest)
 {
     string res = "";
     Wt::WString alertName, alertValue, threadSleep, keyVal, astId, seaId, 
-                srcId, plgId, infValNum, inuId, acrId, amsId, snooze, mevId;
+                srcId, plgId, infValNum, inuId, acrId, snooze, mevId;
 
     try
     {
@@ -52,32 +176,30 @@ string AlertResource::postAlert(string sRequest)
         inuId = result.get("inu_id");
         //operateur
         acrId = result.get("acr_id");
-        //serveur
-        amsId = result.get("ams_id");
         //media
         mevId = result.get("mev_id");
     }
 
     catch (Wt::Json::ParseError const& e)
     {
-        response.setStatus(400);
-        response.out() << "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << json;
-        return;
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        response.setStatus(400);
-        response.out() << "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << json;
-        return;
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
     }    
     try
     {
         Wt::Dbo::Transaction transaction(*session);
 
         //info requête bonne?
-         Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>().where("\"SEA_ID\" = ?")
+        Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>().where("\"SEA_ID\" = ?")
                                                         .bind(seaId)
                                                         .where("\"SRC_ID\" = ?")
                                                         .bind(srcId)
@@ -96,9 +218,9 @@ string AlertResource::postAlert(string sRequest)
 
         if (!infoPtr || !critPtr || !assetPtr || !mevPtr)
         {
-             response.setStatus(404);
-             response.out() << "{\"message\":\"Not found\"}";
-             return; 
+             this->statusCode = 404;
+             res = "{\"message\":\"Not found\"}";
+             return res; 
         }
 
 
@@ -167,10 +289,10 @@ string AlertResource::postAlert(string sRequest)
                 if(alertMS.size() > 0)
                 {
 
-                response.setStatus(400);
-                response.out() << "{\"message\":\"Alert already exists\"}";
+                this->statusCode = 400;
+                res = "{\"message\":\"Alert already exists\"}";
 
-                return;
+                return res;
                 }
             }
 
@@ -182,9 +304,9 @@ string AlertResource::postAlert(string sRequest)
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << "[AlertResource]" << e.what();
-        response.setStatus(503);
-        response.out() << "{\"message\":\"Service Unavailable\"}";
-        return;
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
     }
 
     //Create new alert
@@ -242,29 +364,30 @@ string AlertResource::postAlert(string sRequest)
 
         transaction.commit();
 
-        response.setStatus(200);
-        response.out() << "{\"message\":\"Alert added\"}";
+        this->statusCode = 200;
+        res = "{\"message\":\"Alert added\"}";
 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        response.setStatus(503);
-        response.out() << "{\"message\":\"Service Unavailable\"}";
-        return;
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
     }
     
+    return res;
 }
 
 
-void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
+    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = postAlert();
+        responseMsg = postAlert(sRequest);
     }
     else
     {
@@ -274,14 +397,14 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
 
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
-    return;
+    return ;
 }
 
 
 
 
 
-void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
@@ -291,7 +414,7 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
 
 
 
-void AssetResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
@@ -300,8 +423,9 @@ void AssetResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
 
 
 
-string AlertResource::DeleteAlert(string sRequest)
+string AlertResource::deleteAlert(string sRequest)
 {
+    string res = "";
     try 
     {
 
@@ -328,42 +452,63 @@ string AlertResource::DeleteAlert(string sRequest)
         transaction.commit();
         std::cerr<<"after commit";
 
-        response.setStatus(200);
-        response.out() << "{\"message\":\"Alert deleted\"}";
+        this->statusCode = 200;
+        res = "{\"message\":\"Alert deleted\"}";
 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        response.setStatus(503);
-        response.out() << "{\"message\":\"Service Unavailable\"}";
-        return;
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
     }
+    return res;
 }
 
 
-void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-  /*  string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = deleteAlert();
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare("alerts"))
+            {
+                responseMsg = deleteAlert(sRequest);
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
     }
 
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
-    return;*//*
+    return;
 }
 
 
-void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
@@ -372,7 +517,6 @@ void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
 }
 
 
-*/
 
 
 
@@ -383,11 +527,7 @@ void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
 
 
 
-
-
-
-
-
+/*
 void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
      // Create Session and Check auth
@@ -402,7 +542,7 @@ void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
         return;
     }*/
   
-    
+/*    
   // URL path after /alert
     string path = request.pathInfo();
 
@@ -722,7 +862,7 @@ void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
         }      
     }   
 }
-
+*/
 
 AlertResource::~AlertResource()
 {

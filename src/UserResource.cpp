@@ -56,7 +56,7 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
         switch (splitPath.size()) 
         {
             case 3:
-                if (splitPath[2] == "alert") //liste les alertes d'un utlisateur
+               /* if (splitPath[2] == "alert") //liste les alertes d'un utlisateur
                 {
                     try 
                     {
@@ -172,7 +172,7 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
                         return;
                     }
                 } 
-                else if (splitPath[2] == "asset") // liste les assets disponible pour l'utilisateur
+                else*/ if (splitPath[2] == "asset") // liste les assets disponible pour l'utilisateur
                 {
                     try
                     {

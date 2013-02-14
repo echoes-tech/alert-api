@@ -37,8 +37,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/MediaResource.o \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
-	${OBJECTDIR}/src/PublicApiResource.o \
 	${OBJECTDIR}/src/UserResource.o \
+	${OBJECTDIR}/src/PublicApiResource.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
@@ -82,15 +82,15 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
 
-${OBJECTDIR}/src/PublicApiResource.o: src/PublicApiResource.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
-
 ${OBJECTDIR}/src/UserResource.o: src/UserResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
+
+${OBJECTDIR}/src/PublicApiResource.o: src/PublicApiResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
