@@ -8,7 +8,7 @@
 #ifndef SENDSMS_H
 #define	SENDSMS_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class SendSMS : public PublicApiResource {
 public:

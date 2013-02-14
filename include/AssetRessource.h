@@ -14,7 +14,7 @@
 #ifndef ASSETRESSOURCE_H
 #define	ASSETRESSOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class AssetRessource : public PublicApiResource
 {
@@ -26,6 +26,22 @@ class AssetRessource : public PublicApiResource
     protected:
         int assetId, probeId, pluginId;
         
+        std::string getAssetsList();
+        std::string getAsset();
+        std::string getPluginsListForAsset();
+        std::string getProbesListForAsset();
+        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        std::string postProbeForAsset(std::string sRequest);
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        std::string patchAsset(std::string sRequest);
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };
 

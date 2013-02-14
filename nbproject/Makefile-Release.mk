@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/PublicApiRessource.o \
 	${OBJECTDIR}/src/AssetRessource.o \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/ProbeRessource.o
@@ -75,6 +76,11 @@ ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/src/PublicApiRessource.o: src/PublicApiRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiRessource.o src/PublicApiRessource.cpp
 
 ${OBJECTDIR}/src/AssetRessource.o: src/AssetRessource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

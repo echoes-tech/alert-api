@@ -33,6 +33,7 @@
         <itemPath>src/AssetRessource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/ProbeRessource.cpp</itemPath>
+        <itemPath>src/PublicApiRessource.cpp</itemPath>
       </logicalFolder>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
@@ -49,8 +50,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../gui/src</Elem>
     <Elem>src</Elem>
-    <Elem>include/itooki</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
