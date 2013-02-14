@@ -46,9 +46,11 @@
 #include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
+//
+//#include "SendSMS.h"
+//#include "SrReception.h"
 
-#include "SendSMS.h"
-#include "SrReception.h"
+#include "PublicApiResource.h"
 
 typedef std::vector<std::string> ParameterValues;
 typedef std::map<std::string, ParameterValues> ParameterMap;

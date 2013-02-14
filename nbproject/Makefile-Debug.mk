@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/AlertRessource.o \
 	${OBJECTDIR}/src/InformationRessource.o \
+	${OBJECTDIR}/src/PublicApiRessource.o \
 	${OBJECTDIR}/src/AssetRessource.o \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/MediaRessource.o \
@@ -90,6 +91,11 @@ ${OBJECTDIR}/src/InformationRessource.o: src/InformationRessource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationRessource.o src/InformationRessource.cpp
+
+${OBJECTDIR}/src/PublicApiRessource.o: src/PublicApiRessource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiRessource.o src/PublicApiRessource.cpp
 
 ${OBJECTDIR}/src/AssetRessource.o: src/AssetRessource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

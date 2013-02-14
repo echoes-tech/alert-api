@@ -21,313 +21,562 @@ AssetRessource::AssetRessource() {
 AssetRessource::AssetRessource(const AssetRessource& orig) {
 }
 
+AssetRessource::~AssetRessource() {
+    beingDeleted();
+}
+
+string AssetRessource::getAssetsList()
+{
+    string res = "";
+    unsigned long idx = 0;
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->session->find<Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id());
+
+        res = "[\n";
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
+        {
+            res += "\t{\n";
+            res += "\t\t\"id\": " + boost::lexical_cast<string, long long>(i->id()) + ",\n";
+            res += "\t\t\"name\": \"" + i->get()->name.toUTF8() + "\"\n";
+            res += "\t}";
+            if (++idx < listAssets.size())
+            {
+                res += ",";
+            }
+            res += "\n";
+        }
+        res += "]";
+
+        transaction.commit();
+        this->statusCode = 200;
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\n\t\"message\":\"Service Unavailable\n\"}";
+    }
+    
+    return res;
+}
+
+string AssetRessource::getAsset()
+{
+    string res = "";
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id())
+                .bind(this->vPathElements[1]);
+
+        if (Utils::checkId<Asset>(asset)) 
+        {
+            res += "{\n";
+            res += "\t\"id\": " + boost::lexical_cast<string, long long>(asset.id()) + ",\n";
+            res += "\t\"name\": \"" + asset->name.toUTF8() + "\",\n";
+            Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->session->find<AssetArchitecture> ()
+                .where("\"ASA_ID\" = ?")
+                .bind(asset->assetArchitecture.id());
+            if (Utils::checkId<AssetArchitecture>(assetArchitecture)) 
+            {
+                res += "\t\"architecture\": \"" + assetArchitecture->name.toUTF8() + "\",\n";
+            }
+            else 
+            {
+                res += "\t\"architecture\": \"Unknown\",\n";
+            }
+            res += "\t\"distribution\": {\n";
+            Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->session->find<AssetDistribution> ()
+                .where("\"ASD_ID\" = ?")
+                .bind(asset->assetDistribution.id());
+            if (Utils::checkId<AssetDistribution>(assetDistribution)) 
+            {
+                res += "\t\t\"name\": \"" + assetDistribution->name.toUTF8() + "\",\n";
+            }
+            else 
+            {
+                res += "\t\t\"name\": \"Unknown\",\n";
+            }
+            Wt::Dbo::ptr<AssetRelease> assetRelease = this->session->find<AssetRelease> ()
+                .where("\"ASR_ID\" = ?")
+                .bind(asset->assetRelease.id());
+            if (Utils::checkId<AssetRelease>(assetRelease)) 
+            {
+                res += "\t\t\"release\": \"" + assetRelease->name.toUTF8() + "\"\n";
+            }
+            else 
+            {
+                res += "\t\t\"release\": \"Unknown\"\n";
+            }
+            res += "\t}\n";
+            res += "}";
+            
+            this->statusCode = 200;
+        } 
+        else 
+        {
+            res = "{\n\t\"message\":\"Asset not found\"\n}";
+            this->statusCode = 404;
+        }
+
+        transaction.commit();
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\n\t\"message\":\"Service Unavailable\"\n}";
+    }
+    
+    return res;
+}
+
+string AssetRessource::getPluginsListForAsset()
+{
+    string res = "";
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id())
+                .bind(this->vPathElements[1]);
+
+        if (Utils::checkId<Asset>(asset)) 
+        {
+            res = "[\n";
+            res += "\t{\n";
+            res += "\t\t\"id\": 1,\n";
+            res += "\t\t\"name\": \"Linux-System.json\"\n";
+            res += "\t}\n";
+            res += "]";
+        } 
+        else 
+        {
+            res = "{\n\t\"message\":\"Asset not found\"\n}";
+            this->statusCode = 404;
+        }
+
+        transaction.commit();
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\n\t\"message\":\"Service Unavailable\"\n}";
+    }
+    
+    return res;
+}
+
+string AssetRessource::getProbesListForAsset()
+{
+    string res = "";
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id())
+                .bind(this->vPathElements[1]);
+
+        if (Utils::checkId<Asset>(asset)) 
+        {
+            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
+                .where("\"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
+                .bind(asset->probe.id());
+            if (Utils::checkId<Probe>(probe)) 
+            {
+                res += "[\n";
+                res += "\t{\n";
+                res += "\t\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
+                res += "\t\t\"name\": \"" + probe->name.toUTF8() + "\"\n";
+                res += "\t}\n";
+                res += "]";
+                this->statusCode = 200;
+            }
+            else 
+            {
+                res = "{\n\t\"message\":\"Probe not found\"\n}";
+                this->statusCode = 404;
+            }
+        } 
+        else 
+        {
+            res = "{\n\t\"message\":\"Asset not found\"\n}";
+            this->statusCode = 404;
+        }
+
+        transaction.commit();
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\n\t\"message\":\"Service Unavailable\"\n}";
+    }
+    
+    return res;
+}
+
+void AssetRessource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    string responseMsg = "", nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        responseMsg = getAssetsList();
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare(""))
+            {
+                responseMsg = getAsset();
+            }
+            else if(!nextElement.compare("plugins"))
+            {
+                responseMsg = getPluginsListForAsset();
+            }
+            else if(!nextElement.compare("probes"))
+            {
+                responseMsg = getProbesListForAsset();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
+    return;
+}
+
+string AssetRessource::postProbeForAsset(string sRequest)
+{
+    string res = "";
+    Wt::WString name;
+    
+    try
+    {
+        Wt::Json::Object result;
+
+        Wt::Json::parse(sRequest, result);
+
+        name = result.get("name");
+    }
+    catch (Wt::Json::ParseError const& e)
+    {
+        Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+        this->statusCode = 400;
+        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+        this->statusCode = 400;
+        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+    }
+    
+    if(!res.compare(""))
+    {
+        try 
+        {
+            Wt::Dbo::Transaction transaction(*this->session);
+            
+            // Est-ce que l'asset existe ?
+            Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
+                    .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                    .bind(this->session->user()->currentOrganization.id())
+                    .bind(this->vPathElements[1]);
+            if (Utils::checkId<Asset>(asset))
+            {
+                res += "{\n";
+                // Est-ce que la probe existe pour cet asset ?
+                if (!Utils::checkId<Probe>(asset->probe))
+                {
+                    Probe *newProbe = new Probe();
+                    newProbe->name = "Probe_" + this->session->user()->lastName + "_" + asset->name;
+                    newProbe->organization = this->session->user()->currentOrganization;
+                    Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
+                            .where("\"PPP_ASA_ASA_ID\" = ? AND PPP_ASD_ASD_ID\" = ? AND PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                            .bind(asset->assetArchitecture.id())
+                            .bind(asset->assetDistribution.id())
+                            .bind(asset->assetRelease.id())
+//                            .orderBy("\"PPP_PROBE_VERSION DESC\"", "\"PPP_PACKAGE_VERSION DESC\"")
+                            .limit(1);
+                    if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
+                    {
+                        newProbe->probePackageParamater = probePackageParameter;
+                    }
+                    asset.modify()->probe = this->session->add<Probe>(newProbe);
+                    asset->probe.flush();
+                }
+                res += "\t\"id\": " + boost::lexical_cast<string, long long>(asset->probe.id()) + ",\n";
+                res += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
+
+                // Est-ce que les param pkg de cette probe existent ?
+                if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParamater))
+                {
+                    res += "\t\"version\": \"" + asset->probe->probePackageParamater->probeVersion.toUTF8() + "\",\n";
+                    res += "\t\"package\": {\n";
+                    // Est-ce que le pkg de cette probe existent ?
+                    if (Utils::checkId<ProbePackage>(asset->probe->probePackageParamater->probePackage))
+                    {
+                        res += "\t\t\"filename\": \"" + asset->probe->probePackageParamater->probePackage->filename.toUTF8() + "\",\n";
+                    }
+                    else
+                    {
+                        res += "\t\t\"filename\": \"Unknown\",\n";
+                    }
+                    res += "\t\t\"version\": \"" + asset->probe->probePackageParamater->packageVersion.toUTF8() + "\",\n";
+                    res += "\t}\n";
+
+                }
+                else
+                {
+                    res += "\t\"version\": \"Unknown\",\n";
+                    res += "\t\"package\": {\n";
+                    res += "\t\t\"filename\": \"Unknown\",\n";
+                    res += "\t\t\"version\": \"Unknown\",\n";
+                    res += "\t}\n";
+                }
+            } 
+            else 
+            {
+                this->statusCode = 404;
+                res = "{\n\t\"message\":\"Asset not found\"\n}";
+            }
+            transaction.commit();
+        } 
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << "[Asset Ressource] " << e.what();
+            this->statusCode = 503;
+            res = "{\n\t\"message\": \"Service Unavailable\"\n}";
+        }
+    }
+    
+    return res;
+}
+
+void AssetRessource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    string responseMsg = "", nextElement = "", sRequest = "";
+
+    sRequest = request2string(request);
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    else
+    {   
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare("probes"))
+            {
+                responseMsg = postProbeForAsset(sRequest);
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
+    return;
+}
+
+void AssetRessource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+
+string AssetRessource::patchAsset(string sRequest)
+{
+    string res = "";
+    Wt::WString arch, distribName, distribRelease;
+    
+    try
+    {
+        Wt::Json::Object result;
+
+        Wt::Json::parse(sRequest, result);
+
+        Wt::Json::Object distrib = result.get("distrib");
+        arch = result.get("arch");
+        distribName = distrib.get("name");
+        distribRelease = distrib.get("release");
+    }
+    catch (Wt::Json::ParseError const& e)
+    {
+        Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+        this->statusCode = 400;
+        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+        this->statusCode = 400;
+        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+    }
+
+    if(!res.compare(""))
+    {
+        try 
+        {
+            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
+                    .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                    .bind(this->session->user()->currentOrganization.id())
+                    .bind(this->vPathElements[1]);
+            if (Utils::checkId<Asset>(asset)) 
+            {
+                Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->session->find<AssetArchitecture>()
+                        .where("\"ASA_NAME\" = ?")
+                        .bind(arch);
+                if (!Utils::checkId<AssetArchitecture> (assetArchitecture)) 
+                {
+                    AssetArchitecture *newAssetArchitecture = new AssetArchitecture();
+                    newAssetArchitecture->name = arch;
+                    assetArchitecture = this->session->add<AssetArchitecture>(newAssetArchitecture);
+                    assetArchitecture.flush();
+                }
+                asset.modify()->assetArchitecture = assetArchitecture;
+                
+                Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->session->find<AssetDistribution>()
+                        .where("\"ASD_NAME\" = ?")
+                        .bind(distribName);
+                if (!Utils::checkId<AssetDistribution> (assetDistribution)) 
+                {
+                    AssetDistribution *newAssetDistribution = new AssetDistribution();
+                    newAssetDistribution->name = distribName;
+                    assetDistribution = this->session->add<AssetDistribution>(newAssetDistribution);
+                    assetDistribution.flush();
+                }
+                asset.modify()->assetDistribution = assetDistribution;
+                
+                Wt::Dbo::ptr<AssetRelease> assetRelease = this->session->find<AssetRelease>()
+                        .where("\"ASR_NAME\" = ?")
+                        .bind(distribRelease);
+                if (!Utils::checkId<AssetRelease> (assetRelease)) 
+                {
+                    AssetRelease *newAssetRelease = new AssetRelease();
+                    newAssetRelease->name = distribRelease;
+                    assetRelease = this->session->add<AssetRelease>(newAssetRelease);
+                    assetRelease.flush();
+                }
+                asset.modify()->assetRelease = assetRelease;
+            } 
+            else 
+            {
+                this->statusCode = 404;
+                res = "{\n\t\"message\":\"Asset not found\"\n}";
+            }
+            transaction.commit();
+        } 
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << "[Asset Ressource] " << e.what();
+            this->statusCode = 503;
+            res = "{\n\t\"message\": \"Service Unavailable\"\n}";
+        }
+    }
+    
+    return res;
+}
+
+void AssetRessource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    string responseMsg = "", nextElement = "", sRequest = "";
+
+    sRequest = request2string(request);
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    else
+    {   
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare(""))
+            {
+                responseMsg = patchAsset(sRequest);
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
+    return;
+}
+
+void AssetRessource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+
 void AssetRessource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
 
-    // set Content-Type
-    response.setMimeType("application/json; charset=utf-8");
-
-    if (!this->authentified) {
-        response.setStatus(401);
-        response.out() << "{\"message\":\"Authentification Failed\"}";
-        return;
-    }
-
-    // URL path after /asset
-    string path = request.pathInfo();
-
-    vector< string > splitPath;
-    boost::split(splitPath, path, boost::is_any_of("/"), boost::token_compress_on);
-
-    // Convert 2nd path element to int
-    try
-    {
-        this->assetId = boost::lexical_cast<int>(splitPath[1]);
-    }
-    catch(boost::bad_lexical_cast &)
-    {
-        response.setStatus(422);
-        response.out() << "{\"message\":\"Validation Failed\"}";
-        return;
-    }
-
-    if (this->assetId)
-    {
-        try
-        {
-            Wt::Dbo::Transaction transaction(*this->session);
-            Wt::Dbo::ptr<Asset> asset = this->session->find<Asset > ().where("\"AST_ID\" = ?").bind(this->assetId);
-
-            if (Utils::checkId<Asset> (asset))
-            {
-                this->probeId = asset.get()->probe.id();
-            }
-            else 
-            {
-                response.setStatus(404);
-                response.out() << "{\"message\":\"Asset not found\"}";
-                return;
-            }
-        } 
-        catch (Wt::Dbo::Exception const& e) 
-        {
-            Wt::log("error") << e.what();
-            response.setStatus(503);
-            response.out() << "{\"message\":\"Service Unavailable\"}";
-            return;
-        }
-
-        // GET or POST ?
-        if (request.method() == "POST")
-        {
-            string json, pkgName, pkgType;
-            Wt::WString arch, distribName, distribRelease;
-                       
-            json = request2string(request);
-
-            try
-            {
-                Wt::Json::Object result;
-
-                Wt::Json::parse(json, result);
-
-                Wt::Json::Object distrib = result.get("distrib");
-                arch = result.get("arch");
-                distribName = distrib.get("name");
-                distribRelease = distrib.get("release");
-            }
-            catch (Wt::Json::ParseError const& e)
-            {
-                response.setStatus(400);
-                response.out() << "{\"message\":\"Problems parsing JSON\"}";
-                Wt::log("warning") << "[Asset Ressource] Problems parsing JSON:" << json;
-                return;
-            }
-            catch (Wt::Json::TypeException const& e)
-            {
-                response.setStatus(400);
-                response.out() << "{\"message\":\"Problems parsing JSON\"}";
-                Wt::log("warning") << "[Asset Ressource] Problems parsing JSON:" << json;
-                return;
-            }
-
-            // persistance of asset data
-            try 
-            {
-                Wt::Dbo::Transaction transaction(*this->session);
-                Wt::Dbo::ptr<Asset> asset = this->session->find<Asset > ().where("\"AST_ID\" = ?").bind(this->assetId);
-                if (Utils::checkId<Asset > (asset)) 
-                {
-                    asset.modify()->distribName = distribName;
-                    asset.modify()->distribRelease = distribRelease;
-                    asset.modify()->architecture = arch;
-                } 
-                else 
-                {
-                    response.setStatus(404);
-                    response.out() << "{\"message\":\"Asset not found\"}";
-                    return;
-                }
-                transaction.commit();
-            } 
-            catch (Wt::Dbo::Exception const& e) 
-            {
-                Wt::log("error") << e.what();
-                response.setStatus(503);
-                response.out() << "{\"message\":\"Service Unavailable\"}";
-                return;
-            }
-
-            int release = PublicApiResource::releaseSplit(response, distribRelease.toUTF8());
-            if (release < 0)
-                return;
-
-            // distrib verification
-            if(distribName == "Debian" || distribName == "Ubuntu")
-            {
-                if(distribName == "Debian" && release < 7)
-                {
-
-                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                    {
-                        pkgName = "ea-probe_0.1.0.beta-2_Debian_Squeeze_i386.deb";
-                    }
-                    else if(arch == "x86_64")
-                    {
-                        pkgName = "ea-probe_0.1.0.beta-2_Debian_Squeeze_amd64.deb";
-                    }
-                    else
-                    {
-                        response.setStatus(501);
-                        response.out() << "{\"message\":\"Architecture not supported\"}";
-                        return;
-                    }
-                }
-                else
-                {
-                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                    {
-                        pkgName = "ea-probe_0.1.0.beta-2_Ubuntu_12.04_i386.deb";
-                    }
-                    else if(arch == "x86_64")
-                    {
-                        pkgName = "ea-probe_0.1.0.beta-2_Ubuntu_12.04_amd64.deb";
-                    }
-                    else
-                    {
-                        response.setStatus(501);
-                        response.out() << "{\"message\":\"Architecture not supported\"}";
-                        return;
-                    }
-                }
-            }
-            else if(distribName == "CentOS")
-            {
-                pkgType = "rpm";
-
-                if(release < 6)
-                {
-                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                    {
-                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-5.i386.rpm";
-                    }
-                    else if(arch == "x86_64")
-                    {
-                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-5.x86_64.rpm";
-                    }
-                    else
-                    {
-                        response.setStatus(501);
-                        response.out() << "{\"message\":\"Architecture not supported\"}";
-                        return;
-                    }
-                }
-                else
-                {
-                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-                    {
-                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-6.i386.rpm";
-                    }
-                    else if(arch == "x86_64")
-                    {
-                        pkgName = "ea-probe-0.1.0.beta-2.CentOS-6.x86_64.rpm";
-                    }
-                    else
-                    {
-                        response.setStatus(501);
-                        response.out() << "{\"message\":\"Architecture not supported\"}";
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                response.setStatus(501);
-                response.out() << "{\"message\":\"Distrib not supported\"}";
-                return;
-            }
-
-
-            response.out() << "{\n\
-    \"id\" : " << this->probeId << ",\n\
-    \"pakage_name\" : \"" << pkgName << "\",\n\
-    \"pakage_type\" : \"" << pkgType << "\",\n\
-    \"install_dir\" : \"/opt/echoes-alert/probe\"\n\
-}";
-            return;
-        }
-        else if (request.method() == "GET")
-        {
-            switch (splitPath.size())
-            {
-                case 3:
-                    if (splitPath[2] == "plugin")
-                    {
-                        response.out() << "[\n\
-    {\n\
-        \"id\" : 1,\n\
-        \"name\" : \"Linux-System.json\"\n\
-    }\n\
-]";
-                    }
-                    else
-                    {
-                        response.setStatus(422);
-                        response.out() << "{\"message\":\"Validation Failed\"}";
-                    }
-                    return;
-                    break;
-                case 4:
-                    if (splitPath[2] == "plugin")
-                    {
-                        // Convert 3rd path element to int
-                        try
-                        {
-                            this->pluginId = boost::lexical_cast<int>(splitPath[3]);
-                        }
-                        catch(boost::bad_lexical_cast &)
-                        {
-                            response.setStatus(422);
-                            response.out() << "{\"message\":\"Validation Failed\"}";
-                            return;
-                        }
-
-                        if (this->pluginId == 1)
-                        {
-                            // Open file
-                            ifstream myfile("/var/www/wt/probe/plugins/Linux-System.json");
-                            if (myfile)
-                            {
-                                // Container to concat int to string
-                                std::ostringstream o;
-                                // File to String
-                                string plugin((istreambuf_iterator<char>(myfile)), istreambuf_iterator<char>());
-                                // Concat Int to String
-                                o << "idAsset\": " << this->assetId;
-                                // Replace idAsset and send all plugin to response.out
-                                boost::replace_first_copy(ostream_iterator<char>(response.out()), plugin, "idAsset\": 0", o.str());
-                                // Close file
-                                myfile.close();
-                            }
-                            else
-                            {
-                                response.setStatus(503);
-                                response.out() << "{\"message\":\"Service Unavailable\"}";
-                            }
-                        }
-                        else
-                        {
-                            response.setStatus(404);
-                            response.out() << "{\"message\":\"Plugin not found.\"}";
-                        }
-                    }
-                    return;
-                    break;
-                default:
-                    response.setStatus(422);
-                    response.out() << "{\"message\":\"Validation Failed\"}";
-                    return;
-                    break;
-            }
-        }
-        else
-        {
-            response.setStatus(405);
-            response.out() << "{\"message\":\"Only GET and POST method are allowed.\"}";
-            return;
-        }
-    }
-    else
-    {
-        response.setStatus(422);
-        response.out() << "{\"message\":\"Validation Failed\"}";
-        return;
-    }
-}
-
-AssetRessource::~AssetRessource() {
-    beingDeleted();
+    return;
 }
 

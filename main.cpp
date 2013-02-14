@@ -11,9 +11,28 @@
  * 
  */
 
-#include "includeFile.h"
 #include <boost/thread/thread.hpp>
+#include <Wt/WServer>
 #include <tools/SessionPool.h>
+
+#include "Conf.h"
+
+#include "PublicApiResource.h"
+
+#include "AssetRessource.h"
+#include "ProbeRessource.h"
+#include "InformationRessource.h"
+#include "MediaRessource.h"
+#include "PluginRessource.h"
+#include "UserRessource.h"
+#include "AlertResource.h"
+
+#include "itooki/ItookiSMSSender.h"
+#include "ItookiAckReceiver.h"
+#include "ItookiAswReceiver.h"
+
+#include "SendSMS.h"
+#include "SrReception.h"
 
 using namespace std;
 
@@ -28,7 +47,6 @@ Point d'entrée du programme.
 @param argc : TBC
 @param argv : TBC
 */
-
 int main(int argc, char **argv)
 {
     Conf *conf = new Conf();
@@ -68,8 +86,8 @@ int main(int argc, char **argv)
         server.addResource(&pluginRessource, "/plugin");
         server.addResource(&userRessource, "/user");
         server.addResource(&alertRessource, "/alert");
-        server.addResource(&assetRessource, "/asset");
-        server.addResource(&probeRessource, "/probe");
+        server.addResource(&assetRessource, "/assets");
+        server.addResource(&probeRessource, "/probes");
         server.addResource(&receiveSr, "/netsize/sr");
         server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiSMSSender, "/itooki/sms/sender");

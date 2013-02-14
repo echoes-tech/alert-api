@@ -42,6 +42,7 @@
         <itemPath>src/MediaRessource.cpp</itemPath>
         <itemPath>src/PluginRessource.cpp</itemPath>
         <itemPath>src/ProbeRessource.cpp</itemPath>
+        <itemPath>src/PublicApiRessource.cpp</itemPath>
         <itemPath>src/UserRessource.cpp</itemPath>
       </logicalFolder>
       <itemPath>main.cpp</itemPath>

@@ -14,7 +14,7 @@
 #ifndef PROBERESSOURCE_H
 #define	PROBERESSOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class ProbeRessource : public PublicApiResource
 {
@@ -26,6 +26,16 @@ class ProbeRessource : public PublicApiResource
     protected:
         int probeId, assetId;
         Wt::WString arch, distribName, distribRelease;
+
+        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };
