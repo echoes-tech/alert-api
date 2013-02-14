@@ -32,18 +32,18 @@
 #include "Utils.h"
 
 #include "Conf.h"
-
-#include "PublicApiResource.h"
-
-#include "AssetRessource.h"
-#include "ProbeRessource.h"
-
+//
+//#include "AssetRessource.h"
+//#include "ProbeRessource.h"
+//
 #include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
+//
+//#include "SendSMS.h"
+//#include "SrReception.h"
 
-#include "SendSMS.h"
-#include "SrReception.h"
+#include "PublicApiResource.h"
 
 typedef std::vector<std::string> ParameterValues;
 typedef std::map<std::string, ParameterValues> ParameterMap;

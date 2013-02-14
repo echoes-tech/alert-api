@@ -14,7 +14,7 @@
 #ifndef ITOOKISMSSENDER_H
 #define	ITOOKISMSSENDER_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class ItookiSMSSender : public PublicApiResource
 {

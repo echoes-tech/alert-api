@@ -8,7 +8,7 @@
 #ifndef ACKRECEIVER_H
 #define	ACKRECEIVER_H
 
-#include "includeFile.h"
+#include <Wt/WResource>
 
 class ItookiAckReceiver : public Wt::WResource
 {

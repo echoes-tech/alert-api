@@ -8,7 +8,7 @@
 #ifndef SRRECEPTION_H
 #define	SRRECEPTION_H
 
-#include "includeFile.h"
+#include <Wt/WResource>
 
 class SrReception : public Wt::WResource
 {
