@@ -274,7 +274,7 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
                     }
                     
                 }
-                else if(splitPath[2] == "mediaType") // liste les type de media dispo pour l'utilisateur
+               /* else if(splitPath[2] == "mediaType") // liste les type de media dispo pour l'utilisateur
                 {
                     try
                     {
@@ -316,7 +316,7 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
                         response.out() << "{\"message\":\"Service Unavailable\"}";
                         return;
                     }
-                }
+                }*/
                 else if(splitPath[2] == "tracking_alert") // liste les alertes qui ont déjà eu lieu
                 {
                     try
@@ -449,7 +449,7 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
                 
                 
                 
-            case 4:
+           /* case 4:
                 if(splitPath[2] == "media") // liste les media de type mail ou sms de l'utilisateur
                 {
                     try 
@@ -500,7 +500,7 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
                     response.setStatus(422);
                     response.out() << "{\"message\":\"Validation Failed\"}";
                 }
-                break;
+                break;*/
                 
             default:
                 response.setStatus(422);

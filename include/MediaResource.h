@@ -24,9 +24,23 @@ class MediaResource : public PublicApiResource
         
     protected :
         
-        Wt::WString alertOption;
+        Wt::WString mediaId;
+      
+        std::string getMedia();
+        std::string getListValueForMedia();
+        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        std::string postMedia(std::string sRequest);
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        std::string deleteMedia(std::string sRequest);
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-            
 };
 
 #endif	/* MEDIARESOURCE_H */

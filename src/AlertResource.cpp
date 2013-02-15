@@ -19,7 +19,6 @@ using namespace std;
 AlertResource::AlertResource(){
 }
 
-
 string AlertResource::getAlertList()
 {
     string res = "";
