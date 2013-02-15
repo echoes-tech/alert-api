@@ -16,6 +16,7 @@
 
 #include "includeFile.h"
 
+
 class InformationResource : public PublicApiResource
 {
     public :
@@ -24,8 +25,19 @@ class InformationResource : public PublicApiResource
         
     protected :
         
-        int unitId;
-        Wt::WString alertOption;
+        std::string getKeyValueForInformation();
+        std::string getUnitForInformation();
+        std::string getCriteriaForInformation();
+        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             
 };

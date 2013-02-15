@@ -23,16 +23,6 @@ MediaResource::MediaResource(){
 string MediaResource::getListValueForMedia()
 {
     string res = "";
-   /* try 
-    {
-        this->mediaId = boost::lexical_cast<int>(splitPath[3]);
-    }    
-    catch (boost::bad_lexical_cast &) 
-    {
-        this->statusCode = 422;
-        res = "{\"message\":\"Validation Failed\"}";
-        return res;
-    }*/
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);

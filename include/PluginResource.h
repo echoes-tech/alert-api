@@ -25,8 +25,17 @@ class PluginResource : public PublicApiResource
         
     protected :
         
-        int plgId;
-        Wt::WString alertOption;
+        std::string getInformationListForPlugin();
+        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             
 };

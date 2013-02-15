@@ -14,12 +14,149 @@
 
 #include "PluginResource.h"
 
-
 using namespace std;
 
 PluginResource::PluginResource(){
 }
 
+string PluginResource::getInformationListForPlugin()
+{
+    string res = "";
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        std::string queryStr = " SELECT inf FROM \"T_INFORMATION_INF\" inf "
+                            "WHERE \"INF_DISPLAY\" = TRUE AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+                            " AND \"INF_DELETE\" IS NULL";
+
+        Wt::Dbo::Query<Wt::Dbo::ptr<Information2> > queryRes = session->query<Wt::Dbo::ptr<Information2> >(queryStr);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Information2> > information = queryRes.resultList();
+
+        if(information.size() > 0 )
+        {
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
+            {
+                res += "{\n\"";
+                res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
+                res += "  \"inf_name\" : \"" + boost::lexical_cast<std::string>((*i).get()->name) + "\"\n\"";
+                res += "}\n";
+            }
+            this->statusCode = 200;
+            transaction.commit();
+        }
+        else
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Information not found\"}";
+            return res;
+        }
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
+void PluginResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    string responseMsg = "", nextElement = "";
+    
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare("informations"))
+            {
+                responseMsg = getInformationListForPlugin();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
+    return;
+}
+
+
+void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    
+    return ;
+}
+
+
+void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+
+void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+
+
+void PluginResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    
+    return;
+}
+
+
+void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    // Create Session and Check auth
+    PublicApiResource::handleRequest(request, response);
+
+    return;
+}
+
+
+PluginResource::~PluginResource()
+{
+    beingDeleted();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 
 void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
@@ -35,7 +172,7 @@ void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
         return;
     }*/
   
-    
+  /*  
   // URL path after /alert
     string path = request.pathInfo();
 
@@ -59,49 +196,9 @@ void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
         {
             switch (splitPath.size()) 
             {
-                case 3:
-                    if (splitPath[2] == "information") // liste les info que l'on peut surveiller en fonction du plugin
-                    {
-                        try
-                        {
-                            Wt::Dbo::Transaction transaction(*this->session);
-                            std::string queryStr = " SELECT inf FROM \"T_INFORMATION_INF\" inf "
-                                                "WHERE \"INF_DISPLAY\" = TRUE AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->plgId) +
-                                                " AND \"INF_DELETE\" IS NULL";
-
-                            Wt::Dbo::Query<Wt::Dbo::ptr<Information2> > queryRes = session->query<Wt::Dbo::ptr<Information2> >(queryStr);
-
-                            Wt::Dbo::collection<Wt::Dbo::ptr<Information2> > information = queryRes.resultList();
-                            
-                            if(information.size() > 0 )
-                            {
-                                for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
-                                {
-                                    response.out() << "{\n\""
-                                                   << "  \"inf_name\" : \"" <<(*i).get()->name << "\"\n\""
-                                                   << "}\n";
-                                }
-                                response.setStatus(200);
-                                transaction.commit();
-                            }
-                            else
-                            {
-                                response.setStatus(404);
-                                response.out() << "{\"message\":\"Information not found\"}";
-                                return;
-                            }
-                        }
-                        catch (Wt::Dbo::Exception const& e) 
-                        {
-                            Wt::log("error") << e.what();
-                            response.setStatus(503);
-                            response.out() << "{\"message\":\"Service Unavailable\"}";
-                            return;
-                        }
-                    }
-                    
+                case 3:         
                     /// A bouger dans AssetRessource
-                    else if(splitPath[2] == "plugin") // liste les plugin d'un asset
+                    if(splitPath[2] == "plugin") // liste les plugin d'un asset
                     {
                         try
                         {
@@ -167,9 +264,4 @@ void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::R
         }
     }
 }
-
-
-PluginResource::~PluginResource()
-{
-    beingDeleted();
-}
+*/
