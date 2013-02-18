@@ -26,6 +26,7 @@
 #include "PluginResource.h"
 #include "UserResource.h"
 #include "AlertResource.h"
+#include "OrganizationResource.h"
 
 #include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
@@ -59,6 +60,7 @@ int main(int argc, char **argv)
 
     try
     {
+        OrganizationResource organizationRessource;
         InformationResource informationRessource;
         MediaResource  mediaResource;
         PluginResource pluginResource;
@@ -81,6 +83,7 @@ int main(int argc, char **argv)
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
+        server.addResource(&organizationRessource, "/organizations");
         server.addResource(&informationRessource, "/informations");
         server.addResource(&mediaResource, "/medias");
         server.addResource(&pluginResource, "/plugins");

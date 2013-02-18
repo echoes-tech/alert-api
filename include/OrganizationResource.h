@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API AlertResource
+ * HEADER OF API OrganizationResource
  * @author ECHOES Technologies (GDR)
- * @date 05/02/2013
+ * @date 18/02/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,38 +11,33 @@
  * 
  */
 
-#ifndef ALERTRESOURCE_H
-#define	ALERTRESOURCE_H
+#ifndef ORGANIZATIONRESOURCE_H
+#define	ORGANIZATIONRESOURCE_H
 
 #include "includeFile.h"
 
-class AlertResource : public PublicApiResource
+class OrganizationResource : public PublicApiResource
 {
     public :
-        AlertResource();
-        virtual ~AlertResource();
+        OrganizationResource();
+        virtual ~OrganizationResource();
         
     protected :
         
-        int alertId;
-        Wt::WString alertOption;
-               
-        std::string getTrackingAlertList();
-        std::string getAlertList();
+        std::string getUsersForOrganization();
+        std::string getQuotasSms();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        std::string postAlert(std::string sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
-
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        std::string deleteAlert(std::string sRequest);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
-#endif	/* ALERTRESOURCE_H */
+
+#endif	/* ORGANIZATIONRESOURCE_H */
 

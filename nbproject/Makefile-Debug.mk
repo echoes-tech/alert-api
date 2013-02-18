@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
 	${OBJECTDIR}/src/UserResource.o \
+	${OBJECTDIR}/src/OrganizationResource.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
@@ -91,6 +92,11 @@ ${OBJECTDIR}/src/UserResource.o: src/UserResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
+
+${OBJECTDIR}/src/OrganizationResource.o: src/OrganizationResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}

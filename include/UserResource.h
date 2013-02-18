@@ -23,9 +23,18 @@ class UserResource : public PublicApiResource
         virtual ~UserResource();
         
     protected :
-        int userId, medId;
-        Wt::WString aleName;
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);            
+
+        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
 #endif	/* USERRESOURCE_H */
