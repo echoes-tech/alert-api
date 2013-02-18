@@ -41,14 +41,18 @@ string OrganizationResource::getUsersForOrganization()
 
         if (user.size() > 0)
         {
+            res = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<User> >::const_iterator i = user.begin(); i != user.end(); i++) 
             {
+                res += "\t" + i->modify()->toJSON();
+                /* 
                 res += "{\n\"";
                 res += "  \"id\" : \"" + boost::lexical_cast<std::string > ((*i).id()) + "\",\n\"";
                 res += "  \"usr_firstname\" : \"" + boost::lexical_cast<std::string > ((*i).get()->firstName) + "\",\n\"";
                 res += "  \"usr_lastname\" : \"" + boost::lexical_cast<std::string > ((*i).get()->lastName) + "\"\n\"";
-                res += "}\n";
+                res += "}\n";*/
             }
+            res += "]";
             this->statusCode = 200;
         }
         else 
@@ -92,10 +96,11 @@ string OrganizationResource::getQuotasSms()
                                                                 .limit(1);
                 if (ptrOptionValue.get())
                 {
+                    res += ptrOptionValue.modify()->toJSON();
                     this->statusCode = 200;
-                    res = "{\n\"";
-                    res += "  \"value\" : \"" + boost::lexical_cast<string>(ptrOptionValue.get()->value) + "\"\n\"";
-                    res += "}\n";
+                   // res += "{\n\"";
+                   // res += "  \"value\" : \"" + boost::lexical_cast<string>(ptrOptionValue.get()->value) + "\"\n\"";
+                   // res += "}\n";
                 }
             }
         }

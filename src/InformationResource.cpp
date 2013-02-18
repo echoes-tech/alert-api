@@ -68,12 +68,16 @@ string InformationResource::getKeyValueForInformation()
 
         if(collPtrIva.size() > 0)
         {
+            res = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
             {
-                res += "{\n\"";
+              
+                res += "\t" + i->modify()->toJSON();
+                /*res += "{\n\"";
                 res += "  \"iva_value\" : \"" + boost::lexical_cast<std::string>(i->id()) + "\"\n\"";
-                res += "}\n";
+                res += "}\n";*/
             }
+            res = "]";
             this->statusCode = 200;
         }
         else
@@ -116,13 +120,16 @@ string InformationResource::getUnitForInformation()
         }
         else
         {
-            res = "{\n\"";
-            res += "  \"inu_name\" : \"" + boost::lexical_cast<std::string > (informationUnit.get()->name.toUTF8()) + "\"\n\"";
+            res = informationUnit.modify()->toJSON();
+            /*res = "{\n\"";
+            res += "  \"inu_name\" : \"" + boost::lexical_cast<std::string > (informationUnit.get()->name.toUTF8()) + "\"\n\"";*/
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
             {
+                res += i->modify()->toJSON();
+                /*
                 res += "\t{\n\"";
                 res += "  \t\"isu_name\" : \"" + boost::lexical_cast<std::string > (i->get()->name.toUTF8()) + "\"\n\"";
-                res += "\t}\n";
+                res += "\t}\n";*/
             }  
             res += "}\n";
             this->statusCode = 200;
@@ -148,13 +155,17 @@ string InformationResource::getCriteriaForInformation()
     {
         Wt::Dbo::Transaction transaction(*session);
         Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = session->find<AlertCriteria>();
+        res = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
+            res += "\t" + i->modify()->toJSON();
+            /*
             res += "{\n\"";
             res += "  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\"\n\"";
             res += "  \"name\" : \"" + boost::lexical_cast<std::string > (i->get()->name) + "\"\n\"";
-            res += "}\n";
+            res += "}\n";*/
         }
+        res += "]\n";
         this->statusCode = 200;
         transaction.commit();
     }

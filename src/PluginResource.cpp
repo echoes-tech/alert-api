@@ -35,13 +35,17 @@ string PluginResource::getInformationListForPlugin()
 
         if(information.size() > 0 )
         {
+            res = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
             {
+                res += "\t" + i->modify()->toJSON();
+                /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
                 res += "  \"inf_name\" : \"" + boost::lexical_cast<std::string>((*i).get()->name) + "\"\n\"";
-                res += "}\n";
+                res += "}\n";*/
             }
+            res = "]";
             this->statusCode = 200;
             transaction.commit();
         }

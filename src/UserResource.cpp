@@ -19,17 +19,153 @@ using namespace std;
 UserResource::UserResource() {
 }
 
+string UserResource::getInformationForUser()
+{
+    string res = "";
+    try
+    {        
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
+    
+        if(user)
+        {
+            res = user.modify()->toJSON();
+            this->statusCode = 200;
+        }
+        else
+        {
+            res = "{\"message\":\"User not found\"}";
+            this->statusCode = 404;
+        }
+    }
+    catch (Wt::Dbo::Exception e)
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
 
 void UserResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    string responseMsg = "", nextElement = "";
+    
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        responseMsg = getInformationForUser();
+    }
+    else
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
     return;
+}
+
+
+string UserResource::postActionForUser(string sRequest)
+{
+    string res = "";
+    Wt::WString uacId, tableObject, tableObjectId, actionAfter, actionBefore, actionRelative;
+
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+
+        uacId = result.get("uac_id");
+        tableObject = result.get("table_object");
+        tableObjectId = result.get("table_object_id");
+        actionAfter = result.get("action_after");
+        actionBefore = result.get("action_before");
+        actionRelative = result.get("action_relative");
+    }
+
+    catch (Wt::Json::ParseError const& e)
+    {
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+
+        Wt::Dbo::ptr<UserAction> ptrUserAction = session->find<UserAction>().where("\"UAC_ID\" = ?").bind(uacId);
+
+        UserHistoricalAction *userHistoricalAction = new UserHistoricalAction();
+        userHistoricalAction->tableObject = tableObject;
+        userHistoricalAction->tableObjectId = boost::lexical_cast<long long>(tableObjectId);
+
+        Wt::Dbo::ptr<UserHistoricalAction> ptrUserHistoricalAction = session->add<UserHistoricalAction>(userHistoricalAction);
+        ptrUserHistoricalAction.modify()->userAction = ptrUserAction;
+        ptrUserHistoricalAction.modify()->user = session->user();
+        ptrUserHistoricalAction.modify()->dateTime = Wt::WDateTime::currentDateTime();
+        ptrUserHistoricalAction.modify()->actionAfter = boost::lexical_cast<int>(actionAfter);
+        ptrUserHistoricalAction.modify()->actionBefore = boost::lexical_cast<int>(actionBefore);
+        ptrUserHistoricalAction.modify()->actionRelative = boost::lexical_cast<int>(actionRelative);
+
+        this->statusCode = 200;
+        res = "{\"message\":\"Action added\"}";
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception e)
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    catch(boost::bad_lexical_cast &)
+    {
+        this->statusCode = 400;
+        res = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    return res;
 }
 
 
 void UserResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    string responseMsg = "", nextElement = "", sRequest = "";
 
-    return ;
+    sRequest = request2string(request);
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    else
+    {   
+            if(!nextElement.compare("action"))
+            {
+                responseMsg = postActionForUser(sRequest);
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
+    return;
 }
 
 
@@ -59,12 +195,6 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
 
     return;
 }
-
-
-
-
-
-
 
 
 /*
@@ -121,95 +251,6 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
                     }
                     
                 }  
-
-   /* else if(request.method() == "POST")
-    {
-        switch (splitPath.size()) 
-        {
-            case 3:
-                if (splitPath[2] == "action") // ajoute chaque action qu'un utilisateur fait
-                {
-                    string json;
-                    Wt::WString uacId, tableObject, tableObjectId, actionAfter, actionBefore, actionRelative;
-
-                    json = request2string(request);
-                    try
-                    {
-                        
-                        Wt::Json::Object result;                   
-                        Wt::Json::parse(json, result);
-                        
-                        uacId = result.get("uac_id");
-                        tableObject = result.get("table_object");
-                        tableObjectId = result.get("table_object_id");
-                        actionAfter = result.get("action_after");
-                        actionBefore = result.get("action_before");
-                        actionRelative = result.get("action_relative");
-                        
-                    }
-                    
-                    catch (Wt::Json::ParseError const& e)
-                    {
-                        response.setStatus(400);
-                        response.out() << "{\"message\":\"Problems parsing JSON\"}";
-                        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << json;
-                        return;
-                    }
-                    catch (Wt::Json::TypeException const& e)
-                    {
-                        response.setStatus(400);
-                        response.out() << "{\"message\":\"Problems parsing JSON.\"}";
-                        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << json;
-                        return;
-                    }
-                    try
-                    {
-                        Wt::Dbo::Transaction transaction(*this->session);
-                        
-                        Wt::Dbo::ptr<UserAction> ptrUserAction = session->find<UserAction>().where("\"UAC_ID\" = ?").bind(uacId);
-
-                        UserHistoricalAction *userHistoricalAction = new UserHistoricalAction();
-                        userHistoricalAction->tableObject = tableObject;
-                        userHistoricalAction->tableObjectId = id;
-
-                        Wt::Dbo::ptr<UserHistoricalAction> ptrUserHistoricalAction = session->add<UserHistoricalAction>(userHistoricalAction);
-                        ptrUserHistoricalAction.modify()->userAction = ptrUserAction;
-                        ptrUserHistoricalAction.modify()->user = session->user();
-                        ptrUserHistoricalAction.modify()->dateTime = Wt::WDateTime::currentDateTime();
-                        ptrUserHistoricalAction.modify()->actionAfter = 0;
-                        ptrUserHistoricalAction.modify()->actionBefore = 0;
-                        ptrUserHistoricalAction.modify()->actionRelative = 0;
-
-                        transaction.commit();
-                    }
-                    catch (Wt::Dbo::Exception e)
-                    {
-                        Wt::log("error") << e.what();
-                        response.setStatus(503);
-                        response.out() << "{\"message\":\"Service Unavailable\"}";
-                        return;
-                    } 
-                }
-                else 
-                {
-                    response.setStatus(422);
-                    response.out() << "{\"message\":\"Validation Failed\"}";
-                }
-                break;
-            default:
-                response.setStatus(422);
-                response.out() << "{\"message\":\"Validation Failed\"}";
-                break;
-        }
-    }*/
-/*    else 
-    {
-        response.setStatus(405);
-        response.out() << "{\"message\":\"Only GET or POST method is allowed.\"}";
-        return;
-    }
-
-}
 */
 UserResource::~UserResource() {
         beingDeleted();

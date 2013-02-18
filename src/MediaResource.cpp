@@ -31,13 +31,17 @@ string MediaResource::getListValueForMedia()
                                                                 .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1]);
         if (medias.size() > 0)
         {
+            res = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
+                res += "\t" + i->modify()->toJSON();
+                /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
                 res += "  \"mev_value\" : \"" + boost::lexical_cast<std::string > ((*i).get()->value)+ "\"\n\"";
-                res += "}\n";
+                res += "}\n";*/
             }
+            res += "]";
             this->statusCode = 200;
         }
         else
@@ -78,13 +82,17 @@ string MediaResource::getMedia()
 
         if (media.size() > 0)
         {
+            res = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
             {
+                res += "\t" + i->modify()->toJSON();
+                /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
                 res += "  \"med_name\" : \"" + boost::lexical_cast<std::string > ((*i).get()->name) + "\"\n\"";
-                res += "}\n";
+                res += "}\n";*/
             }
+            res += "]";
             this->statusCode = 200;
         }
         else 

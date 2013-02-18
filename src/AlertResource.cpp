@@ -70,11 +70,15 @@ string AlertResource::getTrackingAlertList()
                  Wt::Dbo::ptr<MediaValue>,
                  Wt::Dbo::ptr<AlertTracking> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
+                res += i->get<0>().modify()->toJSON();
+                res += i->get<1>().modify()->toJSON();
+                res += i->get<2>().modify()->toJSON();
+                /*
                 res += "{\n\"";
                         //<< "  \"send_date\" : \"" << i->get<2>().get()->sendDate << "\",\n\""
                 res += "  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get<0>().get()->name) + "\",\n\"";
                 res += "  \"value\" : \"" + boost::lexical_cast<std::string > (i->get<1>().get()->value) + "\"\n\"" ;
-                res += "}\n";
+                res += "}\n";*/
             }
             this->statusCode = 200;
 
@@ -174,8 +178,13 @@ string AlertResource::getAlertList()
                     Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
 
-
-
+                res += i->get<0>().modify()->toJSON();
+                res += i->get<1>().modify()->toJSON();
+                res += i->get<2>().modify()->toJSON();
+                res += i->get<3>().modify()->toJSON();
+                res += i->get<4>().modify()->toJSON();
+                res += i->get<5>().modify()->toJSON();
+                /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().id()) + "\",\n\"";
                 res +="  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().get()->name) + "\",\n\"";
@@ -185,7 +194,7 @@ string AlertResource::getAlertList()
                 res +="  \"key_value\" : \"" + boost::lexical_cast<std::string > (i->get < 2 > ().get()->keyValue.get()) + "\",\n\"";
                 res +="  \"media\" : \"" + boost::lexical_cast<std::string > (i->get < 3 > ().get()->value) + "\",\n\"";
                 res +="  \"snoozeDuration\" : \"" + boost::lexical_cast<std::string > (i->get < 4 > ().get()->snoozeDuration) + "\",\n\"";
-                res +="}\n";
+                res +="}\n";*/
 
             }
             this->statusCode = 200; 
@@ -224,9 +233,9 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
             responseMsg =getTrackingAlertList() ;
         }
         else
-        {
+        { 
             this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";                
         }
     }
 
