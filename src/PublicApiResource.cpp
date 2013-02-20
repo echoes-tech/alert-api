@@ -39,13 +39,14 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(string method)
     {
         res = Wt::Http::Put;
     }
-    else if(!method.compare("PATCH"))
-    {
-        res = 4;
-    }
+//    else if(!method.compare("PATCH"))
+//    {
+//        res = 4;
+//    }
     else if(!method.compare("DELETE"))
     {
-        res = 5;
+//        res = Wt::Http::Delete;
+        res = 4;
     }
     else
     {
@@ -234,7 +235,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         response.out() << "{\n\t\"message\": \"Authentification Failed\"\n}";
         return;
     }
-
+    
     setPathElementsVector(request.pathInfo());
 
     switch(retrieveCurrentHttpMethod(request.method()))
@@ -248,10 +249,11 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         case Wt::Http::Put:
             processPutRequest(request, response);
             break;
-        case 4:
-            processPatchRequest(request, response);
-            break;
-        case 5:
+//        case 4:
+//            processPatchRequest(request, response);
+//            break;
+//        case Wt::Http::Delete:
+         case 4:
             processDeleteRequest(request, response);
             break;
         default:
