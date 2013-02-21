@@ -19,6 +19,71 @@ using namespace std;
 PluginResource::PluginResource(){
 }
 
+
+string PluginResource::getKeyValueForInformation()
+{
+    string res = "";
+    try
+    {
+        Wt::Dbo::Transaction transaction(*session);
+
+        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>().where("\"INF_NAME\" = ?").bind(this->vPathElements[1])
+                                    .limit(1);
+
+        if (!ptrInfoKey)
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Information not found\"}";
+            return res;
+        }
+
+        std::string queryString = 
+        "SELECT iva FROM \"T_INFORMATION_VALUE_IVA\" iva WHERE \"IVA_ID\" IN ( SELECT \"IVA_ID\" FROM"
+        "("
+        "SELECT DISTINCT ON (\"IVA_VALUE\") \"IVA_VALUE\", \"IVA_ID\" FROM"
+        "(" "SELECT iva.\"IVA_VALUE\", iva.\"IVA_ID\" FROM \"T_INFORMATION_VALUE_IVA\" iva"
+        " WHERE \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]) + 
+        " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) + 
+        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + 
+        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<std::string>(this->vPathElements[7]) + 
+        " AND \"INU_ID_INU_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[9]) + 
+        " ORDER BY \"IVA_ID\" DESC LIMIT 50) sr"
+        " ) sr_sr"
+        ")";
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> > collPtrIva = session->query<Wt::Dbo::ptr<InformationValue> >(queryString);
+
+        if(collPtrIva.size() > 0)
+        {
+            res = "[\n";
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
+            {
+              
+                res += i->modify()->toJSON();
+                /*res += "{\n\"";
+                res += "  \"iva_value\" : \"" + boost::lexical_cast<std::string>(i->id()) + "\"\n\"";
+                res += "}\n";*/
+            }
+            res = "]";
+            this->statusCode = 200;
+        }
+        else
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Information value not found\"}";
+            return res;
+        }
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
 string PluginResource::getInformationListForPlugin()
 {
     string res = "";
@@ -87,6 +152,55 @@ void PluginResource::processGetRequest(const Wt::Http::Request &request, Wt::Htt
             if(!nextElement.compare("informations"))
             {
                 responseMsg = getInformationListForPlugin();
+            }
+            else if (!nextElement.compare("sources"))
+            {
+                nextElement = getNextElementFromPath();
+                boost::lexical_cast<unsigned int>(nextElement);
+                nextElement = getNextElementFromPath();
+                if (!nextElement.compare("searches"))
+                {
+                    nextElement = getNextElementFromPath();
+                    boost::lexical_cast<unsigned int>(nextElement);
+                    nextElement = getNextElementFromPath();
+                    
+                    if (!nextElement.compare("inf_values"))
+                    {
+                        nextElement = getNextElementFromPath();
+                        boost::lexical_cast<unsigned int>(nextElement);
+                        nextElement = getNextElementFromPath();
+                        if (!nextElement.compare("units"))
+                        {
+                            nextElement = getNextElementFromPath();
+                            boost::lexical_cast<unsigned int>(nextElement);
+                            nextElement = getNextElementFromPath();
+                            if (!nextElement.compare("informations"))
+                            {
+                                responseMsg = getKeyValueForInformation();
+                            }
+                            else
+                            {
+                                this->statusCode = 400;
+                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                            }
+                        }
+                        else
+                        {
+                            this->statusCode = 400;
+                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                        }
+                    }
+                    else
+                    {
+                        this->statusCode = 400;
+                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                    }
+                }
+                else
+                {
+                    this->statusCode = 400;
+                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
             }
             else
             {

@@ -26,10 +26,10 @@ string UserResource::getInformationForUser()
     {        
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
-    
+      
         if(user)
         {
-            res = user.modify()->toJSON();
+            res += user.modify()->toJSON();
             this->statusCode = 200;
         }
         else
@@ -68,6 +68,58 @@ void UserResource::processGetRequest(const Wt::Http::Request &request, Wt::Http:
     return;
 }
 
+/*string UserResource::postRegistrationForUser(string sRequest)
+{
+    string res = "";
+    Wt::WString firstName, lastName, eMail, organizationType, token, pckId, optId, optValue;
+    
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+        
+        firstName = result.get("first_name");
+        lastName = result.get("last_name");
+        eMail = result.get("email");
+        organizationType = result.get("organization_type");
+        token = result.get("token");
+        pckId = result.get("pck_id");
+        optId = result.get("opt_id");
+        optValue = result.get("option_value");
+       
+    }
+    catch (Wt::Json::ParseError const& e)
+    {
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }
+    try
+    {
+        Wt::Auth::RegistrationModel *model_;
+        Wt::Auth::User user = model_->doRegister();
+        Session *session = static_cast<Session*>(dynamic_cast<UserDatabase*>(user.database())->find(user).get()->user().get()->session());
+    
+        dynamic_cast<UserDatabase*>(user.database())->find(user).get()->user().modify()->firstName = firstName;
+        dynamic_cast<UserDatabase*>(user.database())->find(user).get()->user().modify()->eMail = eMail;
+        dynamic_cast<UserDatabase*>(user.database())->find(user).get()->user().modify()->lastName = lastName;
+    }
+    catch (Wt::Dbo::Exception e)
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }   
+}*/
 
 string UserResource::postActionForUser(string sRequest)
 {

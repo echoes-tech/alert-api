@@ -34,7 +34,7 @@ string MediaResource::getListValueForMedia()
             res = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
-                res += "\t" + i->modify()->toJSON();
+                res += i->modify()->toJSON();
                 /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
@@ -321,8 +321,8 @@ string MediaResource::deleteMedia(string sRequest)
                          " AND \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(boost::lexical_cast<std::string > (this->session->user().id())));
 
         transaction.commit();
-        this->statusCode = 200;
-        res = "{\"message\":\"Media deleted\"}";
+        this->statusCode = 204;
+        res = ""; //{\"message\":\"Media deleted\"}";
     }
     catch (Wt::Dbo::Exception e)
     {

@@ -27,6 +27,7 @@ class UserResource : public PublicApiResource
         std::string getInformationForUser();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+       // std::string postRegistrationForUser(std::string sRequest);
         std::string postActionForUser(std::string sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

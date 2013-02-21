@@ -25,9 +25,6 @@ class InformationResource : public PublicApiResource
         
     protected :
         
-        std::string getKeyValueForInformation();
-        std::string getUnitForInformation();
-        std::string getCriteriaForInformation();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

@@ -19,6 +19,74 @@ using namespace std;
 AlertResource::AlertResource(){
 }
 
+string AlertResource::getMediasValuesForAlert()
+{
+    string res = "";
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        
+         std::string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
+                    " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
+                    "WHERE ams.\"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]) +
+                    " AND ams.\"AMS_MEV_MEV_ID\" = mev.\"MEV_ID\" "
+                    " AND mev.\"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->session->user().id());
+
+        Wt::Dbo::Query
+                <
+                boost::tuple
+                <
+                Wt::Dbo::ptr<MediaValue>,
+                Wt::Dbo::ptr<AlertMediaSpecialization>
+                >
+                , Wt::Dbo::DynamicBinding
+                > resQuery = this->session->query
+                <
+                boost::tuple
+                <
+                Wt::Dbo::ptr<MediaValue>,
+                Wt::Dbo::ptr<AlertMediaSpecialization>
+                >, Wt::Dbo::DynamicBinding
+                > (queryString);
+
+
+        Wt::Dbo::collection<boost::tuple<
+                Wt::Dbo::ptr<MediaValue>,
+                Wt::Dbo::ptr<AlertMediaSpecialization> > > listTuples = resQuery.resultList();
+        if (listTuples.size() > 0) 
+        {
+
+            res = "[\n";
+            for (Wt::Dbo::collection<boost::tuple<
+                    Wt::Dbo::ptr<MediaValue>,
+                    Wt::Dbo::ptr<AlertMediaSpecialization> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
+            {
+                res += "{\n";
+                res += "media_value :" + i->get<0>().modify()->toJSON();
+                res += "media_specialization :" + i->get<1>().modify()->toJSON();
+                res += "}\n";
+            }
+            res += "]";
+            this->statusCode = 200; 
+        } 
+        else 
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Alert not found\"}";
+            return res;
+        }
+        transaction.commit();
+    }                    
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
 string AlertResource::getTrackingAlertList()
 {
     string res;
@@ -103,17 +171,15 @@ string AlertResource::getTrackingAlertList()
 }
 
 
-string AlertResource::getAlertList()
+string AlertResource::getAlerts()
 {
     string res = "";
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        std::string queryString = "SELECT ale, acr, ava, mev, ams, inu FROM \"T_ALERT_ALE\" ale,"
+        std::string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
                 " \"T_ALERT_VALUE_AVA\" ava,"
                 " \"T_ALERT_CRITERIA_ACR\" acr,"
-                " \"T_MEDIA_VALUE_MEV\" mev,"
-                " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams, "
                 " \"T_INFORMATION_UNIT_UNT\" inu "
                 " WHERE \"ALE_ID\" IN "
                 "("
@@ -122,17 +188,16 @@ string AlertResource::getAlertList()
                 "SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  = "
                 + boost::lexical_cast<std::string > (this->session->user().id())
                 + ""
-
                 " )"
-                " AND \"AMS_ALE_ALE_ID\" IS NOT NULL"
                 ") "
                 " AND ale.\"ALE_AVA_AVA_ID\" = ava.\"AVA_ID\" "
                 " AND ale.\"ALE_DELETE\" IS NULL "
                 " AND ava.\"AVA_ACR_ACR_ID\" = acr.\"ACR_ID\" "
-                " AND ams.\"AMS_ALE_ALE_ID\" = ale.\"ALE_ID\" "
-                " AND mev.\"MEV_ID\" = ams.\"AMS_MEV_MEV_ID\" "
                 " AND inu.\"INU_ID\" = ava.\"INU_ID_INU_ID\" ";
-
+                " ORDER BY ale.\"ALE_ID\" ";
+                
+         
+        
         Wt::Dbo::Query
                 <
                 boost::tuple
@@ -140,8 +205,6 @@ string AlertResource::getAlertList()
                 Wt::Dbo::ptr<Alert>,
                 Wt::Dbo::ptr<AlertCriteria>,
                 Wt::Dbo::ptr<AlertValue>,
-                Wt::Dbo::ptr<MediaValue>,
-                Wt::Dbo::ptr<AlertMediaSpecialization>,
                 Wt::Dbo::ptr<InformationUnit>
                 >
                 , Wt::Dbo::DynamicBinding
@@ -152,8 +215,6 @@ string AlertResource::getAlertList()
                 Wt::Dbo::ptr<Alert>,
                 Wt::Dbo::ptr<AlertCriteria>,
                 Wt::Dbo::ptr<AlertValue>,
-                Wt::Dbo::ptr<MediaValue>,
-                Wt::Dbo::ptr<AlertMediaSpecialization>,
                 Wt::Dbo::ptr<InformationUnit>
                 >, Wt::Dbo::DynamicBinding
                 > (queryString);
@@ -163,29 +224,25 @@ string AlertResource::getAlertList()
                 Wt::Dbo::ptr<Alert>,
                 Wt::Dbo::ptr<AlertCriteria>,
                 Wt::Dbo::ptr<AlertValue>,
-                Wt::Dbo::ptr<MediaValue>,
-                Wt::Dbo::ptr<AlertMediaSpecialization>,
                 Wt::Dbo::ptr<InformationUnit> > > listTuples = resQuery.resultList();
         if (listTuples.size() > 0) 
         {
 
+            res = "[\n";
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<Alert>,
                     Wt::Dbo::ptr<AlertCriteria>,
                     Wt::Dbo::ptr<AlertValue>,
-                    Wt::Dbo::ptr<MediaValue>,
-                    Wt::Dbo::ptr<AlertMediaSpecialization>,
                     Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
-
-                res += i->get<0>().modify()->toJSON();
-                res += i->get<1>().modify()->toJSON();
-                res += i->get<2>().modify()->toJSON();
-                res += i->get<3>().modify()->toJSON();
-                res += i->get<4>().modify()->toJSON();
-                res += i->get<5>().modify()->toJSON();
-                /*
-                res += "{\n\"";
+                res += "{\n";
+                res +=  i->get<0>().modify()->toJSON();
+                res += "criteria :" + i->get<1>().modify()->toJSON();
+                res += "alert_value :" + i->get<2>().modify()->toJSON();
+                res += "information_unit :" + i->get<3>().modify()->toJSON();
+                res += "}\n";
+                
+                /*res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().id()) + "\",\n\"";
                 res +="  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().get()->name) + "\",\n\"";
                 res +="  \"criteria\" : \"" + boost::lexical_cast<std::string > (i->get < 1 > ().get()->name) + "\",\n\"";
@@ -197,6 +254,7 @@ string AlertResource::getAlertList()
                 res +="}\n";*/
 
             }
+            res += "]";
             this->statusCode = 200; 
         } 
         else 
@@ -224,7 +282,7 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = getAlertList();
+        responseMsg = getAlerts();
     }
     else
     {
@@ -234,11 +292,30 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
         }
         else
         { 
-            this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";                
+                try
+                {
+                boost::lexical_cast<unsigned int>(nextElement);
+
+                nextElement = getNextElementFromPath();
+
+                if(!nextElement.compare("medias_values"))
+                {
+                    responseMsg = getMediasValuesForAlert();
+                }
+                else
+                {
+                    this->statusCode = 400;
+                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+            }
+            catch(boost::bad_lexical_cast &)
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }             
         }
     }
-
+   
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
     return;
@@ -518,26 +595,26 @@ void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
 
 
 
-string AlertResource::deleteAlert(string sRequest)
+string AlertResource::deleteAlert()
 {
     string res = "";
     try 
     {
 
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->alertId)); 
+        Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
 
         std::string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
-                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->alertId) + "FOR UPDATE";
+                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
         std::string executeString1bis = " DELETE FROM \"TJ_AST_ALE\" " 
-                                        " WHERE \"TJ_AST_ALE\".\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->alertId);
+                                        " WHERE \"TJ_AST_ALE\".\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
         session->execute(executeString1);
         session->execute(executeString1bis);
 
         std::string executeString2 = "SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams " 
-                                     " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->alertId) + "FOR UPDATE";
+                                     " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
         std::string executeString2bis =  " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
-                                    " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->alertId);
+                                    " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
 
 
         session->execute(executeString2);
@@ -545,10 +622,10 @@ string AlertResource::deleteAlert(string sRequest)
 
         alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
         transaction.commit();
-        std::cerr<<"after commit";
+        std::cerr<<"after commit" << std::endl;
 
-        this->statusCode = 200;
-        res = "{\"message\":\"Alert deleted\"}";
+        this->statusCode = 204;
+        res = "";//"{\"message\":\"Alert deleted\"}";
 
     }
     catch (Wt::Dbo::Exception const& e) 
@@ -582,7 +659,7 @@ void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
             if(!nextElement.compare("alerts"))
             {
-                responseMsg = deleteAlert(sRequest);
+                responseMsg = deleteAlert();
             }
             else
             {
