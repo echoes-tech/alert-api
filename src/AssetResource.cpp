@@ -331,7 +331,7 @@ string AssetResource::postProbeForAsset(string sRequest)
                             .limit(1);
                     if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
                     {
-                        newProbe->probePackageParamater = probePackageParameter;
+                        newProbe->probePackageParameter = probePackageParameter;
                     }
                     asset.modify()->probe = this->session->add<Probe>(newProbe);
                     asset->probe.flush();
@@ -340,20 +340,20 @@ string AssetResource::postProbeForAsset(string sRequest)
                 res += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
 
                 // Est-ce que les param pkg de cette probe existent ?
-                if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParamater))
+                if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
                 {
-                    res += "\t\"version\": \"" + asset->probe->probePackageParamater->probeVersion.toUTF8() + "\",\n";
+                    res += "\t\"version\": \"" + asset->probe->probePackageParameter->probeVersion.toUTF8() + "\",\n";
                     res += "\t\"package\": {\n";
                     // Est-ce que le pkg de cette probe existent ?
-                    if (Utils::checkId<ProbePackage>(asset->probe->probePackageParamater->probePackage))
+                    if (Utils::checkId<ProbePackage>(asset->probe->probePackageParameter->probePackage))
                     {
-                        res += "\t\t\"filename\": \"" + asset->probe->probePackageParamater->probePackage->filename.toUTF8() + "\",\n";
+                        res += "\t\t\"filename\": \"" + asset->probe->probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
                     }
                     else
                     {
                         res += "\t\t\"filename\": \"Unknown\",\n";
                     }
-                    res += "\t\t\"version\": \"" + asset->probe->probePackageParamater->packageVersion.toUTF8() + "\",\n";
+                    res += "\t\t\"version\": \"" + asset->probe->probePackageParameter->packageVersion.toUTF8() + "\",\n";
                     res += "\t}\n";
 
                 }

@@ -22,6 +22,7 @@ AlertResource::AlertResource(){
 string AlertResource::getMediasValuesForAlert()
 {
     string res = "";
+    int idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -55,8 +56,10 @@ string AlertResource::getMediasValuesForAlert()
                 Wt::Dbo::ptr<AlertMediaSpecialization> > > listTuples = resQuery.resultList();
         if (listTuples.size() > 0) 
         {
-
+            if(listTuples.size() > 1)
+            {
             res = "[\n";
+            }
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<MediaValue>,
                     Wt::Dbo::ptr<AlertMediaSpecialization> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
@@ -65,8 +68,18 @@ string AlertResource::getMediasValuesForAlert()
                 res += "media_value :" + i->get<0>().modify()->toJSON();
                 res += "media_specialization :" + i->get<1>().modify()->toJSON();
                 res += "}\n";
+                 ++idx;
+                if(listTuples.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
+                
             }
+            if(listTuples.size() > 1)
+            {
             res += "]";
+            }
             this->statusCode = 200; 
         } 
         else 
@@ -89,7 +102,8 @@ string AlertResource::getMediasValuesForAlert()
 
 string AlertResource::getTrackingAlertList()
 {
-    string res;
+    string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -133,20 +147,38 @@ string AlertResource::getTrackingAlertList()
 
         if (listTuples.size() > 0)
         {
+            if(listTuples.size() > 1)
+            {
+            res += "[\n";
+            }
             for (Wt::Dbo::collection<boost::tuple<
                  Wt::Dbo::ptr<Alert>,
                  Wt::Dbo::ptr<MediaValue>,
                  Wt::Dbo::ptr<AlertTracking> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
-                res += i->get<0>().modify()->toJSON();
-                res += i->get<1>().modify()->toJSON();
-                res += i->get<2>().modify()->toJSON();
+                res += "{\n";
+                res +="\"alert\" :" + i->get<0>().modify()->toJSON();
+                res +="\"media_value\" :" + i->get<1>().modify()->toJSON();
+                res +="\"alert_tracking\" :" + i->get<2>().modify()->toJSON();
+                res += "}\n";
+                 ++idx;
+                if(listTuples.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
+              
+                
                 /*
                 res += "{\n\"";
                         //<< "  \"send_date\" : \"" << i->get<2>().get()->sendDate << "\",\n\""
                 res += "  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get<0>().get()->name) + "\",\n\"";
                 res += "  \"value\" : \"" + boost::lexical_cast<std::string > (i->get<1>().get()->value) + "\"\n\"" ;
                 res += "}\n";*/
+            }
+            if(listTuples.size() > 1)
+            {
+            res += "]\n";
             }
             this->statusCode = 200;
 
@@ -174,6 +206,7 @@ string AlertResource::getTrackingAlertList()
 string AlertResource::getAlerts()
 {
     string res = "";
+    int idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -227,8 +260,10 @@ string AlertResource::getAlerts()
                 Wt::Dbo::ptr<InformationUnit> > > listTuples = resQuery.resultList();
         if (listTuples.size() > 0) 
         {
-
+            if(listTuples.size() > 1)
+            {
             res = "[\n";
+            }
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<Alert>,
                     Wt::Dbo::ptr<AlertCriteria>,
@@ -237,10 +272,17 @@ string AlertResource::getAlerts()
             {
                 res += "{\n";
                 res +=  i->get<0>().modify()->toJSON();
-                res += "criteria :" + i->get<1>().modify()->toJSON();
-                res += "alert_value :" + i->get<2>().modify()->toJSON();
-                res += "information_unit :" + i->get<3>().modify()->toJSON();
+                res += "\"criteria\" :" + i->get<1>().modify()->toJSON();
+                res += "\"alert_value\" :" + i->get<2>().modify()->toJSON();
+                res += "\"information_unit\" :" + i->get<3>().modify()->toJSON();
                 res += "}\n";
+                
+                  ++idx;
+                if(listTuples.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
                 
                 /*res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().id()) + "\",\n\"";
@@ -254,7 +296,10 @@ string AlertResource::getAlerts()
                 res +="}\n";*/
 
             }
+            if(listTuples.size() > 1)
+            {
             res += "]";
+            }
             this->statusCode = 200; 
         } 
         else 
@@ -563,6 +608,29 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     }
     else
     {
+        //// SUPPRIMER
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
+                responseMsg = deleteAlert();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+        //// SUPPRIMER
+        
         this->statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
@@ -657,7 +725,7 @@ void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
             nextElement = getNextElementFromPath();
 
-            if(!nextElement.compare("alerts"))
+            if(!nextElement.compare(""))
             {
                 responseMsg = deleteAlert();
             }

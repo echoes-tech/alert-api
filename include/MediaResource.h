@@ -37,7 +37,7 @@ class MediaResource : public PublicApiResource
         
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        std::string deleteMedia(std::string sRequest);
+        std::string deleteMedia();
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

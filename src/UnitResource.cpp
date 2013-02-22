@@ -36,23 +36,68 @@ string UnitResource::getUnit()
         }
         else
         {
+            res = informationUnit.modify()->toJSON();
+            this->statusCode = 200;
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
+string UnitResource::getSubUnitsForUnit()
+{
+    string res = "";
+    int idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+      
+        Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
+                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
+        if (!informationUnit)
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Unit not found\"}";
+            return res;
+        }
+        else
+        {
              Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> > infoSubUnit = session->find<InformationSubUnit>()
                                                                              .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1]);
-
-            res = informationUnit.modify()->toJSON();
             if(infoSubUnit.size() > 0)
             {
-                res += "{\n\"";
-                //res += "  \"inu_name\" : \"" + boost::lexical_cast<std::string > (informationUnit.get()->name.toUTF8()) + "\"\n\"";
+                if(infoSubUnit.size() > 1)
+                {
+                res += "[\n";
+                }
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
                 {
                     res += i->modify()->toJSON();
-                    /*
-                    res += "\t{\n\"";
-                    res += "  \t\"isu_name\" : \"" + boost::lexical_cast<std::string > (i->get()->name.toUTF8()) + "\"\n\"";
-                    res += "\t}\n";*/
+                    ++idx;
+                    if(infoSubUnit.size()-idx > 0)
+                    {
+                        res.replace(res.size()-1, 1, "");
+                        res += ",\n";
+                    }
                 }  
-                res += "}\n";
+                if(infoSubUnit.size() > 1)
+                {
+                res += "]\n";
+                }
+            }
+            else 
+            {
+                this->statusCode = 404;
+                res = "{\"message\":\"Subunit not found\"}";
+                return res;
             }
             this->statusCode = 200;
         }
@@ -69,7 +114,6 @@ string UnitResource::getUnit()
     return res;
 }
 
-
 void UnitResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
@@ -83,6 +127,10 @@ void UnitResource::processGetRequest(const Wt::Http::Request &request, Wt::Http:
         if(!nextElement.compare(""))
         {
             responseMsg = getUnit();
+        }
+        else if(!nextElement.compare("subunits"))
+        {
+            responseMsg = getSubUnitsForUnit();
         }
         else
         {

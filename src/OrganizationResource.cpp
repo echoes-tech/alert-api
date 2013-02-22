@@ -22,6 +22,7 @@ OrganizationResource::OrganizationResource() {
 string OrganizationResource::getUsersForOrganization()
 {
     string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -41,10 +42,19 @@ string OrganizationResource::getUsersForOrganization()
 
         if (user.size() > 0)
         {
-            res = "[\n";
+            if (user.size() > 1)
+            {
+            res += "[\n";
+            }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<User> >::const_iterator i = user.begin(); i != user.end(); i++) 
             {
                 res += "\t" + i->modify()->toJSON();
+                +idx;
+                if(user.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
                 /* 
                 res += "{\n\"";
                 res += "  \"id\" : \"" + boost::lexical_cast<std::string > ((*i).id()) + "\",\n\"";
@@ -52,7 +62,10 @@ string OrganizationResource::getUsersForOrganization()
                 res += "  \"usr_lastname\" : \"" + boost::lexical_cast<std::string > ((*i).get()->lastName) + "\"\n\"";
                 res += "}\n";*/
             }
-            res += "]";
+            if (user.size() > 1)
+            {
+            res += "]\n";
+            }
             this->statusCode = 200;
         }
         else 

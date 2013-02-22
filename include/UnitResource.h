@@ -25,6 +25,7 @@ class UnitResource : public PublicApiResource
         
     protected :
 
+        std::string getSubUnitsForUnit();
         std::string getUnit();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

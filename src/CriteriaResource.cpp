@@ -22,6 +22,7 @@ CriteriaResource::CriteriaResource(){
 string CriteriaResource::getCriterias()
 {
     string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*session);
@@ -30,6 +31,12 @@ string CriteriaResource::getCriterias()
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
             res += "\t" + i->modify()->toJSON();
+            ++idx;
+            if(alertCriterias.size()-idx > 0)
+            {
+                res.replace(res.size()-1, 1, "");
+                res += ",\n";
+            }
             /*
             res += "{\n\"";
             res += "  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\"\n\"";

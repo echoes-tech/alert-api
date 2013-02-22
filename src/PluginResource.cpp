@@ -55,7 +55,7 @@ string PluginResource::getKeyValueForInformation()
 
         if(collPtrIva.size() > 0)
         {
-            res = "[\n";
+            res += "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
             {
               
@@ -64,7 +64,7 @@ string PluginResource::getKeyValueForInformation()
                 res += "  \"iva_value\" : \"" + boost::lexical_cast<std::string>(i->id()) + "\"\n\"";
                 res += "}\n";*/
             }
-            res = "]";
+            res += "]";
             this->statusCode = 200;
         }
         else
@@ -87,6 +87,7 @@ string PluginResource::getKeyValueForInformation()
 string PluginResource::getInformationListForPlugin()
 {
     string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -100,17 +101,29 @@ string PluginResource::getInformationListForPlugin()
 
         if(information.size() > 0 )
         {
-            res = "[\n";
+            if(information.size() > 1)
+            {
+                res += "[\n";
+            }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
             {
-                res += "\t" + i->modify()->toJSON();
+                res +=  i->modify()->toJSON();
+                idx++;
+                if(information.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
                 /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
                 res += "  \"inf_name\" : \"" + boost::lexical_cast<std::string>((*i).get()->name) + "\"\n\"";
                 res += "}\n";*/
             }
-            res = "]";
+            if(information.size() > 1)
+            {
+                res += "]\n";
+            }
             this->statusCode = 200;
             transaction.commit();
         }

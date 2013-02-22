@@ -23,6 +23,7 @@ MediaResource::MediaResource(){
 string MediaResource::getListValueForMedia()
 {
     string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -31,17 +32,29 @@ string MediaResource::getListValueForMedia()
                                                                 .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1]);
         if (medias.size() > 0)
         {
-            res = "[\n";
+            if(medias.size() > 1)
+            {
+                res = "[\n";
+            }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
                 res += i->modify()->toJSON();
+                 ++idx;
+                if(medias.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
                 /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
                 res += "  \"mev_value\" : \"" + boost::lexical_cast<std::string > ((*i).get()->value)+ "\"\n\"";
                 res += "}\n";*/
             }
-            res += "]";
+            if(medias.size() > 1)
+            {
+                res += "]";
+            }
             this->statusCode = 200;
         }
         else
@@ -66,6 +79,7 @@ string MediaResource::getListValueForMedia()
 string MediaResource::getMedia()
 {
     string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -82,17 +96,30 @@ string MediaResource::getMedia()
 
         if (media.size() > 0)
         {
-            res = "[\n";
+            if(media.size() > 1)
+            {
+            res += "[\n";
+            }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
             {
                 res += "\t" + i->modify()->toJSON();
+                ++idx;
+                if(media.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
                 /*
                 res += "{\n\"";
                 res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
                 res += "  \"med_name\" : \"" + boost::lexical_cast<std::string > ((*i).get()->name) + "\"\n\"";
                 res += "}\n";*/
             }
-            res += "]";
+            if(media.size() > 1)
+            {
+                res += "]";               
+            }
+
             this->statusCode = 200;
         }
         else 
@@ -230,8 +257,30 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     }
     else
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                //// SUPPRIMER
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
+                responseMsg = deleteMedia();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+        //// SUPPRIMER
+        //this->statusCode = 400;
+        //responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
     response.setStatus(this->statusCode);
@@ -251,11 +300,11 @@ void MediaResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-string MediaResource::deleteMedia(string sRequest)
+string MediaResource::deleteMedia()
 {
     string res = "";
 
-    Wt::WString medId, mevValue;
+   /* Wt::WString medId, mevValue;
 
     try
     {
@@ -278,7 +327,7 @@ string MediaResource::deleteMedia(string sRequest)
         res = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Media Ressource] Problems parsing JSON.:" << sRequest;
         return res;
-    }  
+    }  */
     try
     {
         Wt::Dbo::Transaction transaction2(*session);
@@ -287,8 +336,8 @@ string MediaResource::deleteMedia(string sRequest)
 
         std::string qryString = "DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                                 " WHERE \"AMS_ALE_ALE_ID\" IS NULL"
-                                " AND \"AMS_MEV_MEV_ID\" IN "
-                                " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->session->user().id())  + ")";
+                                " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]);
+                                //" (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->session->user().id())  + ")";
 
         session->execute(qryString);
 
@@ -305,9 +354,10 @@ string MediaResource::deleteMedia(string sRequest)
     {
         Wt::Dbo::Transaction transaction(*session);
 
-        Wt::Dbo::ptr<MediaValue> mediaValue = session->find<MediaValue>().where("\"MEV_MED_MED_ID\" = ?").bind(medId)
+        Wt::Dbo::ptr<MediaValue> mediaValue = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(vPathElements[1]);
+                                                        /*.where("\"MEV_MED_MED_ID\" = ?").bind(medId)
                                                           .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<std::string > (this->session->user().id()))
-                                                          .where("\"MEV_VALUE\" = ?").bind(mevValue);
+                                                          .where("\"MEV_VALUE\" = ?").bind(mevValue);*/
 
         if(!mediaValue)
         {
@@ -316,9 +366,10 @@ string MediaResource::deleteMedia(string sRequest)
             return res; 
         }
 
-        session->execute("DELETE FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_VALUE\" = \'" + boost::lexical_cast<std::string>(mevValue) + "\'"
+        session->execute("DELETE FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]));
+                /*"\"MEV_VALUE\" = \'" + boost::lexical_cast<std::string>(mevValue) + "\'"
                          " AND \"MEV_MED_MED_ID\" = " + boost::lexical_cast<std::string>(medId) +
-                         " AND \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(boost::lexical_cast<std::string > (this->session->user().id())));
+                         " AND \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(boost::lexical_cast<std::string > (this->session->user().id())));*/
 
         transaction.commit();
         this->statusCode = 204;
@@ -341,16 +392,28 @@ void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    
+    try
     {
-        responseMsg = deleteMedia(sRequest);
+        boost::lexical_cast<unsigned int>(nextElement);
+
+        nextElement = getNextElementFromPath();
+        if(!nextElement.compare(""))
+        {
+            responseMsg = deleteMedia();
+        }
+        else
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
     }
-    else
+    catch(boost::bad_lexical_cast &)
     {
         this->statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
-
+    
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
     return;
