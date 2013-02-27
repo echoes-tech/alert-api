@@ -24,8 +24,10 @@ class OrganizationResource : public PublicApiResource
         
     protected :
         
+        std::string getOrganization();
         std::string getUsersForOrganization();
         std::string getQuotasSms();
+        std::string getQuotasAsset();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

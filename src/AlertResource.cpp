@@ -226,7 +226,7 @@ string AlertResource::getAlerts()
                 " AND ale.\"ALE_AVA_AVA_ID\" = ava.\"AVA_ID\" "
                 " AND ale.\"ALE_DELETE\" IS NULL "
                 " AND ava.\"AVA_ACR_ACR_ID\" = acr.\"ACR_ID\" "
-                " AND inu.\"INU_ID\" = ava.\"INU_ID_INU_ID\" ";
+                " AND inu.\"INU_ID\" = ava.\"INU_ID_INU_ID\" "
                 " ORDER BY ale.\"ALE_ID\" ";
                 
          
@@ -271,7 +271,7 @@ string AlertResource::getAlerts()
                     Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
                 res += "{\n";
-                res +=  i->get<0>().modify()->toJSON();
+                res += "\"alert\" :" + i->get<0>().modify()->toJSON();
                 res += "\"criteria\" :" + i->get<1>().modify()->toJSON();
                 res += "\"alert_value\" :" + i->get<2>().modify()->toJSON();
                 res += "\"information_unit\" :" + i->get<3>().modify()->toJSON();
@@ -371,8 +371,10 @@ string AlertResource::postAlert(string sRequest)
 {
     string res = "";
     Wt::WString alertName, alertValue, threadSleep, keyVal, astId, seaId, 
-                srcId, plgId, infValNum, inuId, acrId, snooze, mevId;
-
+                srcId, plgId, infValNum, inuId, acrId;// snooze, mevId;
+    
+    std::vector<string> amsId;
+    
     try
     {
         Wt::Json::Object result;                   
@@ -381,8 +383,7 @@ string AlertResource::postAlert(string sRequest)
         alertName = result.get("name");
         alertValue = result.get("alert_value");
         threadSleep = result.get("thread_sleep");
-        keyVal = result.get("key_value");
-        snooze = result.get("ams_snooze");
+        keyVal = result.get("key_value");   
         //Id asset à verifer
         astId = result.get("ast_id");
         //information
@@ -394,7 +395,22 @@ string AlertResource::postAlert(string sRequest)
         //operateur
         acrId = result.get("acr_id");
         //media
-        mevId = result.get("mev_id");
+        
+        Wt::Json::Object medias = result.get("medias");
+        for (int idx = 0 ; idx < medias.size(); idx ++)
+        {
+            string parseAms = "ams" + boost::lexical_cast<std::string > (idx+1) ;
+            Wt::Json::Object ams = medias.get(parseAms);
+            amsId.push_back(ams.get("ams_id"));
+          //  snooze.push_back(med.get("ams_snooze"));
+        }
+ //std::vector<string> test = Wt::Json::Value::orIfNull(mevId1)const;
+ //cout << boost::lexical_cast<std::string > (&mevId1[0]);
+       
+
+
+        //mevId = result.get("mev_id");
+        //snooze = result.get("ams_snooze");
     }
 
     catch (Wt::Json::ParseError const& e)
@@ -431,17 +447,36 @@ string AlertResource::postAlert(string sRequest)
 
         Wt::Dbo::ptr<Asset> assetPtr = session->find<Asset>().where("\"AST_ID\" = ?").bind(astId);
 
-        Wt::Dbo::ptr<MediaValue> mevPtr = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(mevId);
-
-        if (!infoPtr || !critPtr || !assetPtr || !mevPtr)
+        for (int idx1=0 ; idx1<amsId.size(); idx1++)
         {
-             this->statusCode = 404;
-             res = "{\"message\":\"Not found\"}";
-             return res; 
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(amsId[idx1])
+                                                                                                     .where("\"AMS_ALE_ALE_ID\" IS NULL");
+
+            if (!infoPtr || !critPtr || !assetPtr || !amsPtr)
+            {
+                if(!infoPtr)
+                {
+                    cerr << "information not found" << endl;
+                }
+                if(!critPtr)
+                {
+                    cerr << "criteria not found" << endl;
+                }
+                if(!assetPtr)
+                {
+                    cerr << "asset not found" << endl;
+                }
+                if(!amsPtr)
+                {
+                    cerr << "alert_media_specialization not found or not available" << endl;
+                }
+                this->statusCode = 404;
+                res = "{\"message\":\"Not found\"}";
+                return res; 
+            }
         }
 
-
-
+/*
         //Alert already exist ?
         Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> > avaPtrCollec = session->find<AlertValue>()
                                                         .where("\"SEA_ID\" = ?")
@@ -496,7 +531,7 @@ string AlertResource::postAlert(string sRequest)
 
                 std::string queryStr2 = " SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams WHERE "
                                         " \"AMS_ALE_ALE_ID\" IN" + inString2 +
-                                        " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<std::string>(mevId);
+                                        " AND \"AMS_ID\" = " + boost::lexical_cast<std::string>(amsId[1]);
 
 
                 Wt::Dbo::Query<Wt::Dbo::ptr<AlertMediaSpecialization> > queryRes2 = session->query<Wt::Dbo::ptr<AlertMediaSpecialization> >(queryStr2);
@@ -513,7 +548,7 @@ string AlertResource::postAlert(string sRequest)
                 }
             }
 
-        }
+        }*/
 
         transaction.commit();
 
@@ -522,7 +557,7 @@ string AlertResource::postAlert(string sRequest)
     {
         Wt::log("error") << "[AlertResource]" << e.what();
         this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = "{\"message\":\"Service Unavailable.\"}";
         return res;
     }
 
@@ -550,7 +585,6 @@ string AlertResource::postAlert(string sRequest)
 
         Wt::Dbo::ptr<Asset> assetPtr = session->find<Asset>().where("\"AST_ID\" = ?").bind(astId);
 
-        Wt::Dbo::ptr<MediaValue> mevPtr = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(mevId);
 
         ava->information = infoPtr;
         ava->alertCriteria = critPtr;
@@ -566,19 +600,14 @@ string AlertResource::postAlert(string sRequest)
         alert->creaDate = Wt::WDateTime::currentDateTime();
         alert->threadSleep = boost::lexical_cast<int>(threadSleep);
 
-
         Wt::Dbo::ptr<Alert> alePtr = session->add<Alert>(alert);
-
         alePtr.modify()->assets.insert(assetPtr);
 
-
-
-
-        ams->snoozeDuration = boost::lexical_cast<int>(snooze);
-        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->add<AlertMediaSpecialization>(ams);
-        amsPtr.modify()->alert = alePtr;
-        amsPtr.modify()->mediaValue = mevPtr;
-
+        for (int idx2 = 0 ; idx2 < amsId.size(); idx2++)
+        {
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(amsId[idx2]);
+            amsPtr.modify()->alert = alePtr;
+        }
         transaction.commit();
 
         this->statusCode = 200;
@@ -608,7 +637,7 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     }
     else
     {
-        //// SUPPRIMER
+        //// SUPPRIMER     
         try
         {
             boost::lexical_cast<unsigned int>(nextElement);
@@ -631,8 +660,8 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
         }
         //// SUPPRIMER
         
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+       // this->statusCode = 400;
+       // responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
     response.setStatus(this->statusCode);

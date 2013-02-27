@@ -245,6 +245,68 @@ string MediaResource::postMedia(string sRequest)
     return res;
 }
 
+
+string MediaResource::postMediaSpecialization(string sRequest)
+{
+    string res = "";
+    Wt::WString snooze, mevId;
+      
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+        //descriptif
+        mevId = result.get("mev_id");
+        snooze = result.get("ams_snooze");
+    }
+
+    catch (Wt::Json::ParseError const& e)
+    {
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        this->statusCode = 400;
+        res = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }    
+    try
+    {
+        Wt::Dbo::Transaction transaction(*session);
+        
+        AlertMediaSpecialization *ams = new AlertMediaSpecialization();
+        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr;
+
+        Wt::Dbo::ptr<MediaValue> mevPtr = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(mevId);
+        if (mevPtr)
+        {
+        ams->snoozeDuration = boost::lexical_cast<int>(snooze);
+        ams->mediaValue = mevPtr;
+        ams->notifEndOfAlert = false;
+        amsPtr = session->add<AlertMediaSpecialization>(ams);
+        }
+        else 
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Media Value not found\"}";
+        }
+        res = amsPtr.modify()->toJSON();
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+    }
+    this->statusCode = 200;
+    return res;
+}
+
 void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "", sRequest = "";
@@ -254,6 +316,39 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     if(!nextElement.compare(""))
     {
         responseMsg = postMedia(sRequest);
+    }
+    else if (!nextElement.compare("specializations"))
+    {
+         nextElement = getNextElementFromPath();
+        if (!nextElement.compare(""))
+        {
+            responseMsg = postMediaSpecialization(sRequest);
+        }
+         /////////// a supprimer
+        else
+        {
+             try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
+                responseMsg = deleteMediaSpecialization();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+        }
+         /////////// a supprimer
     }
     else
     {
@@ -386,6 +481,41 @@ string MediaResource::deleteMedia()
     return res;
 }
 
+string MediaResource::deleteMediaSpecialization()
+{
+    string res = "";
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(vPathElements[2])
+                                                                                                  .where("\"AMS_ALE_ALE_ID\" IS NULL");
+        
+        if(!amsPtr)
+        {
+            this->statusCode = 409;
+            res = "{\"message\":\"media not found\"}";
+            return res; 
+        }
+        
+        std::string executeString =  " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
+                                    " WHERE \"AMS_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[2]) +
+                                    " AND \"AMS_ALE_ALE_ID\" IS NULL";
+        session->execute(executeString);
+        transaction.commit();
+
+        this->statusCode = 204;
+        res = "";
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
 void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "", sRequest = "";
@@ -393,25 +523,51 @@ void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     
-    try
+    if (!nextElement.compare("specializations"))
     {
-        boost::lexical_cast<unsigned int>(nextElement);
-
-        nextElement = getNextElementFromPath();
-        if(!nextElement.compare(""))
+        try
         {
-            responseMsg = deleteMedia();
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
+                responseMsg = deleteMediaSpecialization();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
         }
-        else
+        catch(boost::bad_lexical_cast &)
         {
             this->statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
-    catch(boost::bad_lexical_cast &)
+    else 
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
+                responseMsg = deleteMedia();
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
     }
     
     response.setStatus(this->statusCode);

@@ -27,7 +27,10 @@ string CriteriaResource::getCriterias()
     {
         Wt::Dbo::Transaction transaction(*session);
         Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = session->find<AlertCriteria>();
-        res = "[\n";
+        if(alertCriterias.size() > 1)
+        {
+            res = "[\n";
+        }
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
             res += "\t" + i->modify()->toJSON();
@@ -37,13 +40,11 @@ string CriteriaResource::getCriterias()
                 res.replace(res.size()-1, 1, "");
                 res += ",\n";
             }
-            /*
-            res += "{\n\"";
-            res += "  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\"\n\"";
-            res += "  \"name\" : \"" + boost::lexical_cast<std::string > (i->get()->name) + "\"\n\"";
-            res += "}\n";*/
         }
-        res += "]\n";
+        if(alertCriterias.size() > 1)
+        {
+            res += "]\n";
+        }
         this->statusCode = 200;
         transaction.commit();
     }

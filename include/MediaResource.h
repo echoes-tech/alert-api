@@ -30,6 +30,7 @@ class MediaResource : public PublicApiResource
         std::string getListValueForMedia();
         virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+        std::string postMediaSpecialization(std::string sRequest);
         std::string postMedia(std::string sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
@@ -37,6 +38,7 @@ class MediaResource : public PublicApiResource
         
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+        std::string deleteMediaSpecialization();
         std::string deleteMedia();
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

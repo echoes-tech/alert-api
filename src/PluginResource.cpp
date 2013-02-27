@@ -23,12 +23,17 @@ PluginResource::PluginResource(){
 string PluginResource::getKeyValueForInformation()
 {
     string res = "";
+    int idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*session);
 
-        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>().where("\"INF_NAME\" = ?").bind(this->vPathElements[1])
-                                    .limit(1);
+        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>().where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                             .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                                                                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                             .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                                                                             .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9])
+                                                                             .limit(1);
 
         if (!ptrInfoKey)
         {
@@ -55,16 +60,24 @@ string PluginResource::getKeyValueForInformation()
 
         if(collPtrIva.size() > 0)
         {
-            res += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
+            if(collPtrIva.size() > 1)
             {
-              
-                res += i->modify()->toJSON();
-                /*res += "{\n\"";
-                res += "  \"iva_value\" : \"" + boost::lexical_cast<std::string>(i->id()) + "\"\n\"";
-                res += "}\n";*/
+            res += "[\n";
             }
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
+            { 
+                res += i->modify()->toJSON();
+                 ++idx;
+                if(collPtrIva.size()-idx > 0)
+                {
+                    res.replace(res.size()-1, 1, "");
+                    res += ",\n";
+                }
+            }
+            if (collPtrIva.size() > 1)
+            {
             res += "]";
+            }
             this->statusCode = 200;
         }
         else
@@ -97,7 +110,7 @@ string PluginResource::getInformationListForPlugin()
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Information2> > queryRes = session->query<Wt::Dbo::ptr<Information2> >(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Information2> > information = queryRes.resultList();
+       Wt::Dbo::collection<Wt::Dbo::ptr<Information2> > information = queryRes.resultList();
 
         if(information.size() > 0 )
         {
@@ -114,11 +127,6 @@ string PluginResource::getInformationListForPlugin()
                     res.replace(res.size()-1, 1, "");
                     res += ",\n";
                 }
-                /*
-                res += "{\n\"";
-                res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
-                res += "  \"inf_name\" : \"" + boost::lexical_cast<std::string>((*i).get()->name) + "\"\n\"";
-                res += "}\n";*/
             }
             if(information.size() > 1)
             {

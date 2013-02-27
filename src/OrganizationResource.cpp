@@ -19,6 +19,37 @@ using namespace std;
 OrganizationResource::OrganizationResource() {
 }
 
+string OrganizationResource::getOrganization()
+{
+    string res = "";
+     Wt::Dbo::Transaction transaction(*this->session);
+     Wt::Dbo::ptr<Organization> organization = session->find<Organization>().where("\"ORG_ID\" = ?").bind(this->session->user().get()->currentOrganization.id());
+    try
+    {
+        if(organization)
+        {
+            res = organization.modify()->toJSON();
+            this->statusCode = 200;
+        }
+        else 
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"Organization not found\"}";
+            return res;
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
 string OrganizationResource::getUsersForOrganization()
 {
     string res = "";
@@ -55,12 +86,6 @@ string OrganizationResource::getUsersForOrganization()
                     res.replace(res.size()-1, 1, "");
                     res += ",\n";
                 }
-                /* 
-                res += "{\n\"";
-                res += "  \"id\" : \"" + boost::lexical_cast<std::string > ((*i).id()) + "\",\n\"";
-                res += "  \"usr_firstname\" : \"" + boost::lexical_cast<std::string > ((*i).get()->firstName) + "\",\n\"";
-                res += "  \"usr_lastname\" : \"" + boost::lexical_cast<std::string > ((*i).get()->lastName) + "\"\n\"";
-                res += "}\n";*/
             }
             if (user.size() > 1)
             {
@@ -84,6 +109,52 @@ string OrganizationResource::getUsersForOrganization()
         res = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
+    return res;
+}
+
+string OrganizationResource::getQuotasAsset()
+{
+      string res = "";
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
+
+        if (user)
+        {
+            Wt::Dbo::ptr<Organization> tempOrga = user->currentOrganization;
+            Wt::Dbo::ptr<PackOption> ptrPackOption = session->find<PackOption>()
+                    .where("\"POP_PCK_PCK_ID\" = ?").bind(tempOrga.get()->pack.id())
+                    .where("\"POP_OPT_OPT_ID\" = 1")
+                    .limit(1);
+            if (ptrPackOption.get())
+            {
+                Wt::Dbo::ptr<OptionValue> ptrOptionValue = session->find<OptionValue>().where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
+                                                                .where("\"ORG_ID_ORG_ID\" = ?").bind(tempOrga.id())
+                                                                .limit(1);
+                if (ptrOptionValue.get())
+                {
+                    res += ptrOptionValue.modify()->toJSON();
+                    this->statusCode = 200;
+                }
+            }
+        }
+        else
+        {
+            this->statusCode = 404;
+            res = "{\"message\":\"user not found\"}";
+            return res;
+        }
+               
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        this->statusCode = 503;
+        res = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    } 
     return res;
 }
 
@@ -111,9 +182,6 @@ string OrganizationResource::getQuotasSms()
                 {
                     res += ptrOptionValue.modify()->toJSON();
                     this->statusCode = 200;
-                   // res += "{\n\"";
-                   // res += "  \"value\" : \"" + boost::lexical_cast<string>(ptrOptionValue.get()->value) + "\"\n\"";
-                   // res += "}\n";
                 }
             }
         }
@@ -123,7 +191,7 @@ string OrganizationResource::getQuotasSms()
             res = "{\"message\":\"user not found\"}";
             return res;
         }
-
+               
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e) 
@@ -143,14 +211,17 @@ void OrganizationResource::processGetRequest(const Wt::Http::Request &request, W
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        responseMsg = getOrganization();
     }
     else
     {
-        if(!nextElement.compare("quotas"))
+        if(!nextElement.compare("quotas_sms"))
         {
             responseMsg = getQuotasSms();
+        }
+        else if(!nextElement.compare("quotas_assets"))
+        {
+            responseMsg = getQuotasAsset();
         }
         else if(!nextElement.compare("users"))
         {
