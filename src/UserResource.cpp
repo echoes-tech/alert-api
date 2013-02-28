@@ -128,15 +128,21 @@ string UserResource::postActionForUser(string sRequest)
 
     try
     {
+        int uacIdInt,  tableObjectIdInt, actionAfterInt, actionBeforeInt, actionRelativeInt;
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
 
-        uacId = result.get("uac_id");
+        uacIdInt = result.get("uac_id");
+        uacId = boost::lexical_cast<std::string>(uacIdInt);
         tableObject = result.get("table_object");
-        tableObjectId = result.get("table_object_id");
-        actionAfter = result.get("action_after");
-        actionBefore = result.get("action_before");
-        actionRelative = result.get("action_relative");
+        tableObjectIdInt = result.get("table_object_id");
+        tableObjectId = boost::lexical_cast<std::string>(tableObjectIdInt);
+        actionAfterInt = result.get("action_after");
+        actionAfter = boost::lexical_cast<std::string>(actionAfterInt);
+        actionBeforeInt = result.get("action_before");
+        actionBefore = boost::lexical_cast<std::string>(actionBeforeInt);
+        actionRelativeInt = result.get("action_relative");
+        actionRelative = boost::lexical_cast<std::string>(actionRelativeInt);
     }
 
     catch (Wt::Json::ParseError const& e)

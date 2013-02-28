@@ -183,15 +183,16 @@ void MediaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 string MediaResource::postMedia(string sRequest)
 {
     string res = "";
-    Wt::WString usrId, medId, mevValue;
-
+    Wt::WString medId, mevValue;
+    
     try
     {
+        int medIdInt;
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
 
-        //usrId = result.get("user_id");
-        medId = result.get("med_id");
+        medIdInt = result.get("med_id");
+        medId = boost::lexical_cast<std::string>(medIdInt);
         mevValue = result.get("mev_value");
     }
 
@@ -253,11 +254,14 @@ string MediaResource::postMediaSpecialization(string sRequest)
       
     try
     {
+        int mevIdInt, snoozeInt;
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
         //descriptif
-        mevId = result.get("mev_id");
-        snooze = result.get("ams_snooze");
+        mevIdInt = result.get("mev_id");
+        mevId = boost::lexical_cast<std::string>(mevIdInt);
+        snoozeInt = result.get("ams_snooze");
+        snooze = boost::lexical_cast<std::string>(snoozeInt);
     }
 
     catch (Wt::Json::ParseError const& e)
@@ -399,30 +403,7 @@ string MediaResource::deleteMedia()
 {
     string res = "";
 
-   /* Wt::WString medId, mevValue;
 
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-
-        medId = result.get("med_id");
-        mevValue = result.get("mev_value");
-    }
-    catch (Wt::Json::ParseError const& e)
-    {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Media Ressource] Problems parsing JSON:" << sRequest;
-        return res;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Media Ressource] Problems parsing JSON.:" << sRequest;
-        return res;
-    }  */
     try
     {
         Wt::Dbo::Transaction transaction2(*session);
@@ -431,8 +412,7 @@ string MediaResource::deleteMedia()
 
         std::string qryString = "DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                                 " WHERE \"AMS_ALE_ALE_ID\" IS NULL"
-                                " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]);
-                                //" (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->session->user().id())  + ")";
+                                " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]);  
 
         session->execute(qryString);
 
@@ -450,9 +430,6 @@ string MediaResource::deleteMedia()
         Wt::Dbo::Transaction transaction(*session);
 
         Wt::Dbo::ptr<MediaValue> mediaValue = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(vPathElements[1]);
-                                                        /*.where("\"MEV_MED_MED_ID\" = ?").bind(medId)
-                                                          .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<std::string > (this->session->user().id()))
-                                                          .where("\"MEV_VALUE\" = ?").bind(mevValue);*/
 
         if(!mediaValue)
         {
@@ -462,10 +439,7 @@ string MediaResource::deleteMedia()
         }
 
         session->execute("DELETE FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]));
-                /*"\"MEV_VALUE\" = \'" + boost::lexical_cast<std::string>(mevValue) + "\'"
-                         " AND \"MEV_MED_MED_ID\" = " + boost::lexical_cast<std::string>(medId) +
-                         " AND \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(boost::lexical_cast<std::string > (this->session->user().id())));*/
-
+                
         transaction.commit();
         this->statusCode = 204;
         res = ""; //{\"message\":\"Media deleted\"}";

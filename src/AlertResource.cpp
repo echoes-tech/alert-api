@@ -13,6 +13,10 @@
 
 
 #include "AlertResource.h"
+#include <Wt/Json/Array>
+#include <Wt/Json/Value>
+Wt::Json::Array Wt::Json::Array::Empty;
+
 
 using namespace std;
 
@@ -370,47 +374,51 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 string AlertResource::postAlert(string sRequest)
 {
     string res = "";
-    Wt::WString alertName, alertValue, threadSleep, keyVal, astId, seaId, 
-                srcId, plgId, infValNum, inuId, acrId;// snooze, mevId;
+    Wt::WString alertName,alertValue, threadSleep, keyVal, astId, seaId, 
+                srcId, plgId, infValNum, inuId, acrId;
+
+    int alertValueInt, threadSleepInt, astIdInt, seaIdInt, 
+                srcIdInt, plgIdInt, infValNumInt, inuIdInt, acrIdInt;
     
-    std::vector<string> amsId;
-    
+    Wt::Json::Array& amsId = Wt::Json::Array::Empty;
     try
     {
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
         //descriptif
         alertName = result.get("name");
-        alertValue = result.get("alert_value");
-        threadSleep = result.get("thread_sleep");
-        keyVal = result.get("key_value");   
-        //Id asset à verifer
-        astId = result.get("ast_id");
-        //information
-        seaId = result.get("sea_id");
-        srcId = result.get("src_id");
-        plgId = result.get("plg_id");
-        infValNum = result.get("inf_value_num");
-        inuId = result.get("inu_id");
-        //operateur
-        acrId = result.get("acr_id");
-        //media
+        alertValueInt = result.get("alert_value");
+        alertValue = boost::lexical_cast<std::string>(alertValueInt);
         
-        Wt::Json::Object medias = result.get("medias");
-        for (int idx = 0 ; idx < medias.size(); idx ++)
-        {
-            string parseAms = "ams" + boost::lexical_cast<std::string > (idx+1) ;
-            Wt::Json::Object ams = medias.get(parseAms);
-            amsId.push_back(ams.get("ams_id"));
-          //  snooze.push_back(med.get("ams_snooze"));
-        }
- //std::vector<string> test = Wt::Json::Value::orIfNull(mevId1)const;
- //cout << boost::lexical_cast<std::string > (&mevId1[0]);
-       
-
-
-        //mevId = result.get("mev_id");
-        //snooze = result.get("ams_snooze");
+        threadSleepInt = result.get("thread_sleep");
+        threadSleep = boost::lexical_cast<std::string>(threadSleepInt);
+        
+        keyVal = result.get("key_value");   
+        
+        //Id asset à verifer
+        astIdInt = result.get("ast_id");
+        astId = boost::lexical_cast<std::string>(astIdInt);
+        
+        //information
+        seaIdInt = result.get("sea_id");
+        seaId = boost::lexical_cast<std::string>(seaIdInt);
+        
+        srcIdInt = result.get("src_id");
+        srcId = boost::lexical_cast<std::string>(srcIdInt);
+        
+        plgIdInt = result.get("plg_id");
+        plgId = boost::lexical_cast<std::string>(plgIdInt);
+        
+        infValNumInt = result.get("inf_value_num");
+        infValNum = boost::lexical_cast<std::string>(infValNumInt);
+        
+        inuIdInt = result.get("inu_id");
+        inuId = boost::lexical_cast<std::string>(inuIdInt);
+        //operateur
+        acrIdInt = result.get("acr_id");
+        acrId = boost::lexical_cast<std::string>(acrIdInt);
+        //media
+        amsId = result.get("ams_id");
     }
 
     catch (Wt::Json::ParseError const& e)
@@ -426,7 +434,12 @@ string AlertResource::postAlert(string sRequest)
         res = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
-    }    
+    }   
+    catch(boost::bad_lexical_cast &)
+    {
+        this->statusCode = 400;
+        res = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
     try
     {
         Wt::Dbo::Transaction transaction(*session);
@@ -447,9 +460,10 @@ string AlertResource::postAlert(string sRequest)
 
         Wt::Dbo::ptr<Asset> assetPtr = session->find<Asset>().where("\"AST_ID\" = ?").bind(astId);
 
-        for (int idx1=0 ; idx1<amsId.size(); idx1++)
+        for (Wt::Json::Array::const_iterator idx1 = amsId.begin() ; idx1 < amsId.end(); idx1++)
         {
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(amsId[idx1])
+            Wt::WString tmp1 = (*idx1).toString();
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp1)
                                                                                                      .where("\"AMS_ALE_ALE_ID\" IS NULL");
 
             if (!infoPtr || !critPtr || !assetPtr || !amsPtr)
@@ -603,9 +617,10 @@ string AlertResource::postAlert(string sRequest)
         Wt::Dbo::ptr<Alert> alePtr = session->add<Alert>(alert);
         alePtr.modify()->assets.insert(assetPtr);
 
-        for (int idx2 = 0 ; idx2 < amsId.size(); idx2++)
+        for (Wt::Json::Array::const_iterator idx2 = amsId.begin() ; idx2 < amsId.end(); idx2++)
         {
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(amsId[idx2]);
+            Wt::WString tmp = (*idx2).toString();
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp);
             amsPtr.modify()->alert = alePtr;
         }
         transaction.commit();
@@ -669,28 +684,15 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     return ;
 }
 
-
-
-
-
 void AlertResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-
-
-
-
-
 void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
-
-
-
-
 
 string AlertResource::deleteAlert()
 {
@@ -734,7 +736,6 @@ string AlertResource::deleteAlert()
     }
     return res;
 }
-
 
 void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
