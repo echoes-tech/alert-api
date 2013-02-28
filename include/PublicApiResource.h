@@ -48,18 +48,16 @@ class PublicApiResource : public Wt::WResource {
         std::vector<std::string> vPathElements;
         unsigned short indexPathElement, statusCode;
 
-        unsigned short retrieveCurrentHttpMethod(std::string method);
-        int releaseSplit(Wt::Http::Response &response, std::string distribRelease);
-        unsigned int getIdFromRequest(const Wt::Http::Request &request);
-        void setPathElementsVector(std::string path);
+        unsigned short retrieveCurrentHttpMethod(const std::string &method);
+
+        void setPathElementsVector(const std::string &path);
         std::string getNextElementFromPath();
 
-        std::string request2string(Wt::Http::Request r);
+        std::string request2string(const Wt::Http::Request &request);
 
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processGetRequest(Wt::Http::Response &response);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
