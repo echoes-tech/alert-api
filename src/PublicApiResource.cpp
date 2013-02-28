@@ -24,7 +24,7 @@ PublicApiResource::~PublicApiResource() {
     beingDeleted();
 }
 
-unsigned short PublicApiResource::retrieveCurrentHttpMethod(string method)
+unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method)
 {
     unsigned short res;
     if(!method.compare("GET"))
@@ -39,10 +39,6 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(string method)
     {
         res = Wt::Http::Put;
     }
-//    else if(!method.compare("PATCH"))
-//    {
-//        res = 4;
-//    }
     else if(!method.compare("DELETE"))
     {
 //        res = Wt::Http::Delete;
@@ -56,50 +52,11 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(string method)
     return res;
 }
 
-int PublicApiResource::releaseSplit(Wt::Http::Response &response, string distribRelease)
-{
-    int release;
-    vector< string > splitRelease;
-
-    boost::split(splitRelease, distribRelease, boost::is_any_of("."), boost::token_compress_on);
-
-    // Convert 1st release element to int
-    try
-    {
-        release = boost::lexical_cast<int>(splitRelease[0]);
-    }
-    catch(boost::bad_lexical_cast &)
-    {
-        response.setStatus(422);
-        response.out() << "{\"message\":\"Validation Failed\"}";
-        return -1;
-    }
-
-    return release;
-}
-
-unsigned int PublicApiResource::getIdFromRequest(const Wt::Http::Request &request)
-{
-    // URL path after /resources
-    string path = request.pathInfo();
-
-    vector< string > splitPath;
-    boost::split(splitPath, path, boost::is_any_of("/"), boost::token_compress_on);
-
-    // Convert 2nd path element to int
-    try
-    {
-        return boost::lexical_cast<int>(splitPath[1]);
-    }
-    catch(boost::bad_lexical_cast &)
-    {
-        return 0;
-    }
-}
-
-void PublicApiResource::setPathElementsVector(std::string path)
+void PublicApiResource::setPathElementsVector(const string &path)
 {
     boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+
+    return;
 }
 
 string PublicApiResource::getNextElementFromPath()
@@ -114,21 +71,22 @@ string PublicApiResource::getNextElementFromPath()
     return res;
 }
 
-string PublicApiResource::request2string(Wt::Http::Request r) {
+string PublicApiResource::request2string(const Wt::Http::Request &request)
+{
     char c;
-    std::string s;
+    string s;
 
     // Getting the input stream for the request char by char
-    c = r.in().get();
-    while (r.in())
+    c = request.in().get();
+    while (request.in())
     {
         s.append(1,c);
-        c = r.in().get();
+        c = request.in().get();
     }
     return s;
 }
 
-void PublicApiResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PublicApiResource::processGetRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -143,17 +101,13 @@ void PublicApiResource::processPutRequest(const Wt::Http::Request &request, Wt::
     return;
 }
 
-void PublicApiResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    return;
-}
-
 void PublicApiResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) {
+void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
     Wt::log("info") << "[PUBLIC API] Identifying";
     // Setting the session
     session = new Session(Utils::connection);
@@ -232,7 +186,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     if (!this->authentified) {
         response.setStatus(401);
-        response.out() << "{\n\t\"message\": \"Authentification Failed\"\n}";
+        response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
         return;
     }
     
@@ -241,7 +195,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     switch(retrieveCurrentHttpMethod(request.method()))
     {
         case Wt::Http::Get:
-            processGetRequest(request, response);
+            processGetRequest(response);
             break;
         case Wt::Http::Post:
             processPostRequest(request, response);
@@ -249,16 +203,12 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         case Wt::Http::Put:
             processPutRequest(request, response);
             break;
-//        case 4:
-//            processPatchRequest(request, response);
-//            break;
-//        case Wt::Http::Delete:
-         case 4:
+        case 4:
             processDeleteRequest(request, response);
             break;
         default:
             response.setStatus(405);
-            response.out() << "{\n\t\"message\": \"Only GET, POST, PUT, PATCH and DELETE methods are allowed.\n\"}";
+            response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
             return;
             break;
     }
