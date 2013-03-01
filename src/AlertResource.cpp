@@ -17,15 +17,12 @@
 #include <Wt/Json/Value>
 Wt::Json::Array Wt::Json::Array::Empty;
 
-
-using namespace std;
-
 AlertResource::AlertResource(){
 }
 
-string AlertResource::getMediasValuesForAlert()
+std::string AlertResource::getMediasValuesForAlert()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try 
     {
@@ -68,6 +65,8 @@ string AlertResource::getMediasValuesForAlert()
                     Wt::Dbo::ptr<MediaValue>,
                     Wt::Dbo::ptr<AlertMediaSpecialization> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
+                i->get<0>().modify()->setId(i->get<0>().id());
+                i->get<1>().modify()->setId(i->get<1>().id());
                 res += "{\n";
                 res += "media_value :" + i->get<0>().modify()->toJSON();
                 res += "media_specialization :" + i->get<1>().modify()->toJSON();
@@ -104,9 +103,9 @@ string AlertResource::getMediasValuesForAlert()
     return res;
 }
 
-string AlertResource::getTrackingAlertList()
+std::string AlertResource::getTrackingAlertList()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -160,6 +159,10 @@ string AlertResource::getTrackingAlertList()
                  Wt::Dbo::ptr<MediaValue>,
                  Wt::Dbo::ptr<AlertTracking> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
+                i->get<0>().modify()->setId(i->get<0>().id());
+                i->get<1>().modify()->setId(i->get<1>().id());
+                i->get<2>().modify()->setId(i->get<2>().id());
+                
                 res += "{\n";
                 res +="\"alert\" :" + i->get<0>().modify()->toJSON();
                 res +="\"media_value\" :" + i->get<1>().modify()->toJSON();
@@ -207,9 +210,9 @@ string AlertResource::getTrackingAlertList()
 }
 
 
-string AlertResource::getAlerts()
+std::string AlertResource::getAlerts()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try 
     {
@@ -274,6 +277,10 @@ string AlertResource::getAlerts()
                     Wt::Dbo::ptr<AlertValue>,
                     Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
+                i->get<0>().modify()->setId(i->get<0>().id());
+                i->get<1>().modify()->setId(i->get<1>().id());
+                i->get<2>().modify()->setId(i->get<2>().id());
+                i->get<3>().modify()->setId(i->get<3>().id());
                 res += "{\n";
                 res += "\"alert\" :" + i->get<0>().modify()->toJSON();
                 res += "\"criteria\" :" + i->get<1>().modify()->toJSON();
@@ -326,7 +333,7 @@ string AlertResource::getAlerts()
 
 void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "" ;
+    std::string responseMsg = "", nextElement = "" ;
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -371,9 +378,9 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 }
 
 
-string AlertResource::postAlert(string sRequest)
+std::string AlertResource::postAlert(std::string sRequest)
 {
-    string res = "";
+    std::string res = "";
     Wt::WString alertName,alertValue, threadSleep, keyVal, astId, seaId, 
                 srcId, plgId, infValNum, inuId, acrId;
 
@@ -470,19 +477,19 @@ string AlertResource::postAlert(string sRequest)
             {
                 if(!infoPtr)
                 {
-                    cerr << "information not found" << endl;
+                    std::cerr << "information not found" << std::endl;
                 }
                 if(!critPtr)
                 {
-                    cerr << "criteria not found" << endl;
+                    std::cerr << "criteria not found" << std::endl;
                 }
                 if(!assetPtr)
                 {
-                    cerr << "asset not found" << endl;
+                    std::cerr << "asset not found" << std::endl;
                 }
                 if(!amsPtr)
                 {
-                    cerr << "alert_media_specialization not found or not available" << endl;
+                    std::cerr << "alert_media_specialization not found or not available" << std::endl;
                 }
                 this->statusCode = 404;
                 res = "{\"message\":\"Not found\"}";
@@ -642,7 +649,7 @@ string AlertResource::postAlert(string sRequest)
 
 void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    std::string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
@@ -694,9 +701,9 @@ void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-string AlertResource::deleteAlert()
+std::string AlertResource::deleteAlert()
 {
-    string res = "";
+    std::string res = "";
     try 
     {
 
@@ -739,7 +746,7 @@ string AlertResource::deleteAlert()
 
 void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    std::string responseMsg = "", nextElement = "", sRequest = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

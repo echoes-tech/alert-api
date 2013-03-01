@@ -14,15 +14,13 @@
 
 #include "PluginResource.h"
 
-using namespace std;
-
 PluginResource::PluginResource(){
 }
 
 
-string PluginResource::getKeyValueForInformation()
+std::string PluginResource::getKeyValueForInformation()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -66,6 +64,7 @@ string PluginResource::getKeyValueForInformation()
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
             { 
+                i->modify()->setId(i->id());
                 res += i->modify()->toJSON();
                  ++idx;
                 if(collPtrIva.size()-idx > 0)
@@ -97,9 +96,9 @@ string PluginResource::getKeyValueForInformation()
     return res;
 }
 
-string PluginResource::getInformationListForPlugin()
+std::string PluginResource::getInformationListForPlugin()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -154,7 +153,7 @@ string PluginResource::getInformationListForPlugin()
 
 void PluginResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

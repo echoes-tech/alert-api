@@ -14,14 +14,12 @@
 
 #include "CriteriaResource.h"
 
-using namespace std;
-
 CriteriaResource::CriteriaResource(){
 }
 
-string CriteriaResource::getCriterias()
+std::string CriteriaResource::getCriterias()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -33,6 +31,7 @@ string CriteriaResource::getCriterias()
         }
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
+            i->modify()->setId(i->id());
             res += "\t" + i->modify()->toJSON();
             ++idx;
             if(alertCriterias.size()-idx > 0)
@@ -60,7 +59,7 @@ string CriteriaResource::getCriterias()
 
 void CriteriaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
 

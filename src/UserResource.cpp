@@ -14,14 +14,13 @@
 
 #include "UserResource.h"
 
-using namespace std;
 
 UserResource::UserResource() {
 }
 
-string UserResource::getInformationForUser()
+std::string UserResource::getInformationForUser()
 {
-    string res = "";
+    std::string res = "";
     try
     {        
         Wt::Dbo::Transaction transaction(*this->session);
@@ -29,6 +28,7 @@ string UserResource::getInformationForUser()
       
         if(user)
         {
+            user.modify()->setId(user.id());
             res += user.modify()->toJSON();
             this->statusCode = 200;
         }
@@ -50,7 +50,7 @@ string UserResource::getInformationForUser()
 
 void UserResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -121,9 +121,9 @@ void UserResource::processGetRequest(const Wt::Http::Request &request, Wt::Http:
     }   
 }*/
 
-string UserResource::postActionForUser(string sRequest)
+std::string UserResource::postActionForUser(std::string sRequest)
 {
-    string res = "";
+    std::string res = "";
     Wt::WString uacId, tableObject, tableObjectId, actionAfter, actionBefore, actionRelative;
 
     try
@@ -199,7 +199,7 @@ string UserResource::postActionForUser(string sRequest)
 
 void UserResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    std::string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();

@@ -14,14 +14,12 @@
 
 #include "OrganizationResource.h"
 
-using namespace std;
-
 OrganizationResource::OrganizationResource() {
 }
 
-string OrganizationResource::getOrganization()
+std::string OrganizationResource::getOrganization()
 {
-    string res = "";
+    std::string res = "";
      Wt::Dbo::Transaction transaction(*this->session);
      Wt::Dbo::ptr<Organization> organization = session->find<Organization>().where("\"ORG_ID\" = ?").bind(this->session->user().get()->currentOrganization.id());
     try
@@ -50,9 +48,9 @@ string OrganizationResource::getOrganization()
     return res;
 }
 
-string OrganizationResource::getUsersForOrganization()
+std::string OrganizationResource::getUsersForOrganization()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -79,6 +77,7 @@ string OrganizationResource::getUsersForOrganization()
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<User> >::const_iterator i = user.begin(); i != user.end(); i++) 
             {
+                i->modify()->setId(i->id());
                 res += "\t" + i->modify()->toJSON();
                 +idx;
                 if(user.size()-idx > 0)
@@ -112,9 +111,9 @@ string OrganizationResource::getUsersForOrganization()
     return res;
 }
 
-string OrganizationResource::getQuotasAsset()
+std::string OrganizationResource::getQuotasAsset()
 {
-      string res = "";
+      std::string res = "";
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -158,9 +157,9 @@ string OrganizationResource::getQuotasAsset()
     return res;
 }
 
-string OrganizationResource::getQuotasSms()
+std::string OrganizationResource::getQuotasSms()
 {
-    string res = "";
+    std::string res = "";
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -206,7 +205,7 @@ string OrganizationResource::getQuotasSms()
 
 void OrganizationResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

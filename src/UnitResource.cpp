@@ -14,14 +14,12 @@
 
 #include "UnitResource.h"
 
-using namespace std;
-
 UnitResource::UnitResource(){
 }
 
-string UnitResource::getUnit()
+std::string UnitResource::getUnit()
 {
-    string res = "";
+    std::string res = "";
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -36,6 +34,7 @@ string UnitResource::getUnit()
         }
         else
         {
+            informationUnit.modify()->setId(informationUnit.id());
             res = informationUnit.modify()->toJSON();
             this->statusCode = 200;
         }
@@ -52,9 +51,9 @@ string UnitResource::getUnit()
     return res;
 }
 
-string UnitResource::getSubUnitsForUnit()
+std::string UnitResource::getSubUnitsForUnit()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -80,6 +79,7 @@ string UnitResource::getSubUnitsForUnit()
                 }
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
                 {
+                    i->modify()->setId(i->id());
                     res += i->modify()->toJSON();
                     ++idx;
                     if(infoSubUnit.size()-idx > 0)
@@ -116,7 +116,7 @@ string UnitResource::getSubUnitsForUnit()
 
 void UnitResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    std::string responseMsg = "", nextElement = "";
     
     try
     {

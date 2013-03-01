@@ -14,15 +14,12 @@
 
 #include "MediaResource.h"
 
-
-using namespace std;
-
 MediaResource::MediaResource(){
 }
 
-string MediaResource::getListValueForMedia()
+std::string MediaResource::getListValueForMedia()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -38,6 +35,7 @@ string MediaResource::getListValueForMedia()
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
+                i->modify()->setId(i->id());                
                 res += i->modify()->toJSON();
                  ++idx;
                 if(medias.size()-idx > 0)
@@ -76,9 +74,9 @@ string MediaResource::getListValueForMedia()
     return res;
 }
 
-string MediaResource::getMedia()
+std::string MediaResource::getMedia()
 {
-    string res = "";
+    std::string res = "";
     int idx = 0;
     try
     {
@@ -102,6 +100,7 @@ string MediaResource::getMedia()
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
             {
+                i->modify()->setId(i->id());
                 res += "\t" + i->modify()->toJSON();
                 ++idx;
                 if(media.size()-idx > 0)
@@ -143,7 +142,7 @@ string MediaResource::getMedia()
 
 void MediaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -180,9 +179,9 @@ void MediaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
     return;
 }
 
-string MediaResource::postMedia(string sRequest)
+std::string MediaResource::postMedia(std::string sRequest)
 {
-    string res = "";
+    std::string res = "";
     Wt::WString medId, mevValue;
     
     try
@@ -247,9 +246,9 @@ string MediaResource::postMedia(string sRequest)
 }
 
 
-string MediaResource::postMediaSpecialization(string sRequest)
+std::string MediaResource::postMediaSpecialization(std::string sRequest)
 {
-    string res = "";
+    std::string res = "";
     Wt::WString snooze, mevId;
       
     try
@@ -298,8 +297,10 @@ string MediaResource::postMediaSpecialization(string sRequest)
             this->statusCode = 404;
             res = "{\"message\":\"Media Value not found\"}";
         }
-        res = amsPtr.modify()->toJSON();
         transaction.commit();
+        amsPtr.modify()->setId(amsPtr.id());
+        res = amsPtr.modify()->toJSON();
+        
     }
     catch (Wt::Dbo::Exception const& e) 
     {
@@ -313,7 +314,7 @@ string MediaResource::postMediaSpecialization(string sRequest)
 
 void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    std::string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
@@ -399,9 +400,9 @@ void MediaResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-string MediaResource::deleteMedia()
+std::string MediaResource::deleteMedia()
 {
-    string res = "";
+    std::string res = "";
 
 
     try
@@ -455,9 +456,9 @@ string MediaResource::deleteMedia()
     return res;
 }
 
-string MediaResource::deleteMediaSpecialization()
+std::string MediaResource::deleteMediaSpecialization()
 {
-    string res = "";
+    std::string res = "";
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -492,7 +493,7 @@ string MediaResource::deleteMediaSpecialization()
 
 void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    std::string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
