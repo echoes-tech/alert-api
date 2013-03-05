@@ -14,7 +14,7 @@
 #ifndef ORGANIZATIONRESOURCE_H
 #define	ORGANIZATIONRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class OrganizationResource : public PublicApiResource
 {
@@ -24,11 +24,11 @@ class OrganizationResource : public PublicApiResource
         
     protected :
         
-        std::string getOrganization();
-        std::string getUsersForOrganization();
-        std::string getQuotasSms();
-        std::string getQuotasAsset();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getOrganization(std::string &responseMsg) const;
+        unsigned short getUsersForOrganization(std::string &responseMsg) const;
+        unsigned short getQuotasSms(std::string &responseMsg) const;
+        unsigned short getQuotasAsset(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

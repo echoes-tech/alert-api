@@ -20,9 +20,9 @@ Wt::Json::Array Wt::Json::Array::Empty;
 AlertResource::AlertResource(){
 }
 
-std::string AlertResource::getMediasValuesForAlert()
+unsigned short AlertResource::getMediasValuesForAlert(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try 
     {
@@ -59,7 +59,7 @@ std::string AlertResource::getMediasValuesForAlert()
         {
             if(listTuples.size() > 1)
             {
-            res = "[\n";
+            responseMsg = "[\n";
             }
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<MediaValue>,
@@ -67,28 +67,29 @@ std::string AlertResource::getMediasValuesForAlert()
             {
                 i->get<0>().modify()->setId(i->get<0>().id());
                 i->get<1>().modify()->setId(i->get<1>().id());
-                res += "{\n";
-                res += "media_value :" + i->get<0>().modify()->toJSON();
-                res += "media_specialization :" + i->get<1>().modify()->toJSON();
-                res += "}\n";
+                responseMsg += "{\n";
+                responseMsg += "media_value :" + i->get<0>().modify()->toJSON();
+                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
+                responseMsg += "media_specialization :" + i->get<1>().modify()->toJSON();
+                responseMsg += "}\n";
                  ++idx;
                 if(listTuples.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
                 
             }
             if(listTuples.size() > 1)
             {
-            res += "]";
+            responseMsg += "]";
             }
-            this->statusCode = 200; 
+            res = 200; 
         } 
         else 
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Alert not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Alert not found\"}";
             return res;
         }
         transaction.commit();
@@ -96,16 +97,16 @@ std::string AlertResource::getMediasValuesForAlert()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-std::string AlertResource::getTrackingAlertList()
+unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -152,7 +153,7 @@ std::string AlertResource::getTrackingAlertList()
         {
             if(listTuples.size() > 1)
             {
-            res += "[\n";
+            responseMsg += "[\n";
             }
             for (Wt::Dbo::collection<boost::tuple<
                  Wt::Dbo::ptr<Alert>,
@@ -163,37 +164,31 @@ std::string AlertResource::getTrackingAlertList()
                 i->get<1>().modify()->setId(i->get<1>().id());
                 i->get<2>().modify()->setId(i->get<2>().id());
                 
-                res += "{\n";
-                res +="\"alert\" :" + i->get<0>().modify()->toJSON();
-                res +="\"media_value\" :" + i->get<1>().modify()->toJSON();
-                res +="\"alert_tracking\" :" + i->get<2>().modify()->toJSON();
-                res += "}\n";
+                responseMsg += "{\n";
+                responseMsg +="\"alert\" :" + i->get<0>().modify()->toJSON();
+                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
+                responseMsg +="\"media_value\" :" + i->get<1>().modify()->toJSON();
+                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
+                responseMsg +="\"alert_tracking\" :" + i->get<2>().modify()->toJSON();
+                responseMsg += "}\n";
                  ++idx;
                 if(listTuples.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
-              
-                
-                /*
-                res += "{\n\"";
-                        //<< "  \"send_date\" : \"" << i->get<2>().get()->sendDate << "\",\n\""
-                res += "  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get<0>().get()->name) + "\",\n\"";
-                res += "  \"value\" : \"" + boost::lexical_cast<std::string > (i->get<1>().get()->value) + "\"\n\"" ;
-                res += "}\n";*/
             }
             if(listTuples.size() > 1)
             {
-            res += "]\n";
+            responseMsg += "]\n";
             }
-            this->statusCode = 200;
+            res = 200;
 
         }
         else
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Tracking alert not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Tracking alert not found\"}";
             return res;
         }
 
@@ -202,17 +197,17 @@ std::string AlertResource::getTrackingAlertList()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
 
-std::string AlertResource::getAlerts()
+unsigned short AlertResource::getAlerts(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try 
     {
@@ -269,7 +264,7 @@ std::string AlertResource::getAlerts()
         {
             if(listTuples.size() > 1)
             {
-            res = "[\n";
+            responseMsg = "[\n";
             }
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<Alert>,
@@ -281,42 +276,34 @@ std::string AlertResource::getAlerts()
                 i->get<1>().modify()->setId(i->get<1>().id());
                 i->get<2>().modify()->setId(i->get<2>().id());
                 i->get<3>().modify()->setId(i->get<3>().id());
-                res += "{\n";
-                res += "\"alert\" :" + i->get<0>().modify()->toJSON();
-                res += "\"criteria\" :" + i->get<1>().modify()->toJSON();
-                res += "\"alert_value\" :" + i->get<2>().modify()->toJSON();
-                res += "\"information_unit\" :" + i->get<3>().modify()->toJSON();
-                res += "}\n";
+                responseMsg += "{\n";
+                responseMsg += "\"alert\" :" + i->get<0>().modify()->toJSON();
+                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
+                responseMsg += "\"criteria\" :" + i->get<1>().modify()->toJSON();
+                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
+                responseMsg += "\"alert_value\" :" + i->get<2>().modify()->toJSON();
+                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
+                responseMsg += "\"information_unit\" :" + i->get<3>().modify()->toJSON();
+                responseMsg += "}\n";
                 
                   ++idx;
                 if(listTuples.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
-                
-                /*res += "{\n\"";
-                res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().id()) + "\",\n\"";
-                res +="  \"alert_name\" : \"" + boost::lexical_cast<std::string > (i->get < 0 > ().get()->name) + "\",\n\"";
-                res +="  \"criteria\" : \"" + boost::lexical_cast<std::string > (i->get < 1 > ().get()->name) + "\",\n\"";
-                res +="  \"threshold_value\" : \"" + boost::lexical_cast<std::string > (i->get < 2 > ().get()->value) + "\",\n\"";
-                res +="  \"unit\" : \"" + boost::lexical_cast<std::string > (i->get < 5 > ().get()->name) + "\",\n\"";
-                res +="  \"key_value\" : \"" + boost::lexical_cast<std::string > (i->get < 2 > ().get()->keyValue.get()) + "\",\n\"";
-                res +="  \"media\" : \"" + boost::lexical_cast<std::string > (i->get < 3 > ().get()->value) + "\",\n\"";
-                res +="  \"snoozeDuration\" : \"" + boost::lexical_cast<std::string > (i->get < 4 > ().get()->snoozeDuration) + "\",\n\"";
-                res +="}\n";*/
 
             }
             if(listTuples.size() > 1)
             {
-            res += "]";
+            responseMsg += "]";
             }
-            this->statusCode = 200; 
+            res = 200; 
         } 
         else 
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"User not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"User not found\"}";
             return res;
         }
         transaction.commit();
@@ -324,27 +311,27 @@ std::string AlertResource::getAlerts()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "" ;
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = getAlerts();
+        this->statusCode = getAlerts(responseMsg);
     }
     else
     {
         if(!nextElement.compare("tracking"))
         {
-            responseMsg =getTrackingAlertList() ;
+            this->statusCode = getTrackingAlertList(responseMsg) ;
         }
         else
         { 
@@ -356,7 +343,7 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 
                 if(!nextElement.compare("medias_values"))
                 {
-                    responseMsg = getMediasValuesForAlert();
+                    this->statusCode = getMediasValuesForAlert(responseMsg);
                 }
                 else
                 {
@@ -378,18 +365,18 @@ void AlertResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 }
 
 
-std::string AlertResource::postAlert(std::string sRequest)
+unsigned short AlertResource::postAlert(std::string &responseMsg, const std::string &sRequest)
 {
-    std::string res = "";
+    unsigned short res = 500;
     Wt::WString alertName,alertValue, threadSleep, keyVal, astId, seaId, 
                 srcId, plgId, infValNum, inuId, acrId;
 
-    int alertValueInt, threadSleepInt, astIdInt, seaIdInt, 
-                srcIdInt, plgIdInt, infValNumInt, inuIdInt, acrIdInt;
-    
     Wt::Json::Array& amsId = Wt::Json::Array::Empty;
     try
     {
+        int alertValueInt, threadSleepInt, astIdInt, seaIdInt, 
+        srcIdInt, plgIdInt, infValNumInt, inuIdInt, acrIdInt;
+        
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
         //descriptif
@@ -430,22 +417,23 @@ std::string AlertResource::postAlert(std::string sRequest)
 
     catch (Wt::Json::ParseError const& e)
     {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON\"}";
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON.\"}";
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
     }   
     catch(boost::bad_lexical_cast &)
     {
-        this->statusCode = 400;
-        res = "{\n\t\"message\":\"Bad Request\"\n}";
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
     }
     try
     {
@@ -491,8 +479,8 @@ std::string AlertResource::postAlert(std::string sRequest)
                 {
                     std::cerr << "alert_media_specialization not found or not available" << std::endl;
                 }
-                this->statusCode = 404;
-                res = "{\"message\":\"Not found\"}";
+                res = 404;
+                responseMsg = "{\"message\":\"Not found\"}";
                 return res; 
             }
         }
@@ -570,15 +558,15 @@ std::string AlertResource::postAlert(std::string sRequest)
             }
 
         }*/
-
+  
         transaction.commit();
 
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << "[AlertResource]" << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable.\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable.\"}";
         return res;
     }
 
@@ -630,17 +618,19 @@ std::string AlertResource::postAlert(std::string sRequest)
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp);
             amsPtr.modify()->alert = alePtr;
         }
+        alePtr.flush();
+        alePtr.modify()->setId(alePtr.id());
+        responseMsg = alePtr.modify()->toJSON();
         transaction.commit();
 
-        this->statusCode = 200;
-        res = "{\"message\":\"Alert added\"}";
+        res = 200;
 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
     return res;
@@ -655,7 +645,7 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = postAlert(sRequest);
+        this->statusCode = postAlert(responseMsg, sRequest);
     }
     else
     {
@@ -667,7 +657,7 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                responseMsg = deleteAlert();
+                this->statusCode = deleteAlert(responseMsg);
             }
             else
             {
@@ -701,9 +691,9 @@ void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-std::string AlertResource::deleteAlert()
+unsigned short AlertResource::deleteAlert(std::string &responseMsg)
 {
-    std::string res = "";
+    unsigned short res = 500;
     try 
     {
 
@@ -730,15 +720,15 @@ std::string AlertResource::deleteAlert()
         transaction.commit();
         std::cerr<<"after commit" << std::endl;
 
-        this->statusCode = 204;
-        res = "";//"{\"message\":\"Alert deleted\"}";
+        res = 204;
+        responseMsg = "";
 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
@@ -764,7 +754,7 @@ void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
             if(!nextElement.compare(""))
             {
-                responseMsg = deleteAlert();
+                this->statusCode = deleteAlert(responseMsg);
             }
             else
             {

@@ -15,7 +15,7 @@
 #ifndef UNITRESOURCE_H
 #define	UNITRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class UnitResource : public PublicApiResource
 {
@@ -25,9 +25,9 @@ class UnitResource : public PublicApiResource
         
     protected :
 
-        std::string getSubUnitsForUnit();
-        std::string getUnit();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getSubUnitsForUnit(std::string &responseMsg) const;
+        unsigned short getUnit(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

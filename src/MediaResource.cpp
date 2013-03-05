@@ -17,9 +17,9 @@
 MediaResource::MediaResource(){
 }
 
-std::string MediaResource::getListValueForMedia()
+unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -31,34 +31,29 @@ std::string MediaResource::getListValueForMedia()
         {
             if(medias.size() > 1)
             {
-                res = "[\n";
+                responseMsg = "[\n";
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
                 i->modify()->setId(i->id());                
-                res += i->modify()->toJSON();
+                responseMsg += i->modify()->toJSON();
                  ++idx;
                 if(medias.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
-                /*
-                res += "{\n\"";
-                res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
-                res += "  \"mev_value\" : \"" + boost::lexical_cast<std::string > ((*i).get()->value)+ "\"\n\"";
-                res += "}\n";*/
             }
             if(medias.size() > 1)
             {
-                res += "]";
+                responseMsg += "]";
             }
-            this->statusCode = 200;
+            res = 200;
         }
         else
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Media not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Media not found\"}";
             return res;
         }
 
@@ -67,16 +62,16 @@ std::string MediaResource::getListValueForMedia()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-std::string MediaResource::getMedia()
+unsigned short MediaResource::getMedia(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -96,35 +91,30 @@ std::string MediaResource::getMedia()
         {
             if(media.size() > 1)
             {
-            res += "[\n";
+            responseMsg += "[\n";
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
             {
                 i->modify()->setId(i->id());
-                res += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->modify()->toJSON();
                 ++idx;
                 if(media.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
-                /*
-                res += "{\n\"";
-                res +="  \"id\" : \"" + boost::lexical_cast<std::string > (i->id()) + "\",\n\"";
-                res += "  \"med_name\" : \"" + boost::lexical_cast<std::string > ((*i).get()->name) + "\"\n\"";
-                res += "}\n";*/
             }
             if(media.size() > 1)
             {
-                res += "]";               
+                responseMsg += "]";               
             }
 
-            this->statusCode = 200;
+            res = 200;
         }
         else 
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Media not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Media not found\"}";
             return res;
         }
 
@@ -133,21 +123,21 @@ std::string MediaResource::getMedia()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-void MediaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void MediaResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = getMedia();
+        this->statusCode = getMedia(responseMsg);
     }
     else
     {
@@ -159,7 +149,7 @@ void MediaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 
             if(!nextElement.compare(""))
             {
-                responseMsg = getListValueForMedia();
+                this->statusCode = getListValueForMedia(responseMsg);
             }
             else
             {
@@ -179,9 +169,9 @@ void MediaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
     return;
 }
 
-std::string MediaResource::postMedia(std::string sRequest)
+unsigned short MediaResource::postMedia(std::string &responseMsg, const std::string &sRequest)
 {
-    std::string res = "";
+    unsigned short res = 500;
     Wt::WString medId, mevValue;
     
     try
@@ -197,15 +187,15 @@ std::string MediaResource::postMedia(std::string sRequest)
 
     catch (Wt::Json::ParseError const& e)
     {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON\"}";
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON.\"}";
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
     }  
@@ -217,8 +207,8 @@ std::string MediaResource::postMedia(std::string sRequest)
 
         if(!ptrUser || !media)
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Not found\"}";
             return res; 
         }
 
@@ -227,18 +217,20 @@ std::string MediaResource::postMedia(std::string sRequest)
         mev->media = media;
         mev->value = mevValue;
         Wt::Dbo::ptr<MediaValue> ptrMev = session->add<MediaValue>(mev);
-
+        ptrMev.flush();
+        ptrMev.modify()->setId(ptrMev.id());
+        responseMsg = ptrMev.modify()->toJSON();        
+        
         transaction.commit();
 
-        this->statusCode = 200;
-        res = "{\"message\":\"Media added\"}";
+        res = 200;
 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     
@@ -246,9 +238,9 @@ std::string MediaResource::postMedia(std::string sRequest)
 }
 
 
-std::string MediaResource::postMediaSpecialization(std::string sRequest)
+unsigned short MediaResource::postMediaSpecialization(std::string &responseMsg, const std::string &sRequest)
 {
-    std::string res = "";
+    unsigned short res = 500;
     Wt::WString snooze, mevId;
       
     try
@@ -265,15 +257,15 @@ std::string MediaResource::postMediaSpecialization(std::string sRequest)
 
     catch (Wt::Json::ParseError const& e)
     {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON\"}";
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        this->statusCode = 400;
-        res = "{\"message\":\"Problems parsing JSON.\"}";
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
     }    
@@ -294,21 +286,23 @@ std::string MediaResource::postMediaSpecialization(std::string sRequest)
         }
         else 
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Media Value not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Media Value not found\"}";
+            return res;
         }
         transaction.commit();
         amsPtr.modify()->setId(amsPtr.id());
-        res = amsPtr.modify()->toJSON();
+        responseMsg = amsPtr.modify()->toJSON();
+        res = 200;
         
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
-    this->statusCode = 200;
+    
     return res;
 }
 
@@ -320,14 +314,14 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = postMedia(sRequest);
+        this->statusCode = postMedia(responseMsg, sRequest);
     }
     else if (!nextElement.compare("specializations"))
     {
          nextElement = getNextElementFromPath();
         if (!nextElement.compare(""))
         {
-            responseMsg = postMediaSpecialization(sRequest);
+            this->statusCode = postMediaSpecialization(responseMsg, sRequest);
         }
          /////////// a supprimer
         else
@@ -339,7 +333,7 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                responseMsg = deleteMediaSpecialization();
+                this->statusCode = deleteMediaSpecialization(responseMsg);
             }
             else
             {
@@ -365,7 +359,7 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                responseMsg = deleteMedia();
+                this->statusCode = deleteMedia(responseMsg);
             }
             else
             {
@@ -400,9 +394,9 @@ void MediaResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-std::string MediaResource::deleteMedia()
+unsigned short MediaResource::deleteMedia(std::string &responseMsg)
 {
-    std::string res = "";
+    unsigned short res = 500;
 
 
     try
@@ -422,8 +416,8 @@ std::string MediaResource::deleteMedia()
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     try
@@ -434,31 +428,31 @@ std::string MediaResource::deleteMedia()
 
         if(!mediaValue)
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Media not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Media not found\"}";
             return res; 
         }
 
         session->execute("DELETE FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]));
                 
         transaction.commit();
-        this->statusCode = 204;
-        res = ""; //{\"message\":\"Media deleted\"}";
+        res = 204;
+        responseMsg = "";
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        this->statusCode = 409;
-        res = "{\"message\":\"Conflict, an alert use this media\"}";
+        res = 409;
+        responseMsg = "{\"message\":\"Conflict, an alert use this media\"}";
         return res;
     }
 
     return res;
 }
 
-std::string MediaResource::deleteMediaSpecialization()
+unsigned short MediaResource::deleteMediaSpecialization(std::string &responseMsg)
 {
-    std::string res = "";
+    unsigned short res = 500;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -467,8 +461,8 @@ std::string MediaResource::deleteMediaSpecialization()
         
         if(!amsPtr)
         {
-            this->statusCode = 409;
-            res = "{\"message\":\"media not found\"}";
+            res = 409;
+            responseMsg = "{\"message\":\"media not found\"}";
             return res; 
         }
         
@@ -478,14 +472,14 @@ std::string MediaResource::deleteMediaSpecialization()
         session->execute(executeString);
         transaction.commit();
 
-        this->statusCode = 204;
-        res = "";
+        res = 204;
+        responseMsg = "";
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
@@ -507,7 +501,7 @@ void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                responseMsg = deleteMediaSpecialization();
+                responseMsg = deleteMediaSpecialization(responseMsg);
             }
             else
             {
@@ -530,7 +524,7 @@ void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                responseMsg = deleteMedia();
+                responseMsg = deleteMedia(responseMsg);
             }
             else
             {

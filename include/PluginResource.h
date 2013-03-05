@@ -15,7 +15,7 @@
 #ifndef PLUGINRESOURCE_H
 #define	PLUGINRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class PluginResource : public PublicApiResource
 {
@@ -25,9 +25,9 @@ class PluginResource : public PublicApiResource
         
     protected :
         
-        std::string getKeyValueForInformation();
-        std::string getInformationListForPlugin();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getKeyValueForInformation(std::string &responseMsg) const;
+        unsigned short getInformationListForPlugin(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

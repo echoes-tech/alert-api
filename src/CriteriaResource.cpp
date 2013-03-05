@@ -17,9 +17,9 @@
 CriteriaResource::CriteriaResource(){
 }
 
-std::string CriteriaResource::getCriterias()
+unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -27,37 +27,37 @@ std::string CriteriaResource::getCriterias()
         Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = session->find<AlertCriteria>();
         if(alertCriterias.size() > 1)
         {
-            res = "[\n";
+            responseMsg = "[\n";
         }
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
             i->modify()->setId(i->id());
-            res += "\t" + i->modify()->toJSON();
+            responseMsg += "\t" + i->modify()->toJSON();
             ++idx;
             if(alertCriterias.size()-idx > 0)
             {
-                res.replace(res.size()-1, 1, "");
-                res += ",\n";
+                responseMsg.replace(responseMsg.size()-1, 1, "");
+                responseMsg += ",\n";
             }
         }
         if(alertCriterias.size() > 1)
         {
-            res += "]\n";
+            responseMsg += "]\n";
         }
-        this->statusCode = 200;
+        res = 200;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-void CriteriaResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriteriaResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
     
@@ -65,7 +65,7 @@ void CriteriaResource::processGetRequest(const Wt::Http::Request &request, Wt::H
 
     if(!nextElement.compare(""))
     {
-        responseMsg = getCriterias();
+        this->statusCode = getCriterias(responseMsg);
     }
     else
     {

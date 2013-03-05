@@ -14,7 +14,7 @@
 #ifndef MEDIARESOURCE_H
 #define	MEDIARESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class MediaResource : public PublicApiResource
 {
@@ -26,20 +26,20 @@ class MediaResource : public PublicApiResource
         
         Wt::WString mediaId;
       
-        std::string getMedia();
-        std::string getListValueForMedia();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getMedia(std::string &responseMsg) const;
+        unsigned short getListValueForMedia(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
-        std::string postMediaSpecialization(std::string sRequest);
-        std::string postMedia(std::string sRequest);
+        unsigned short postMediaSpecialization(std::string &responseMsg, const std::string &sRequest);
+        unsigned short postMedia(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        std::string deleteMediaSpecialization();
-        std::string deleteMedia();
+        unsigned short deleteMediaSpecialization(std::string &responseMsg);
+        unsigned short deleteMedia(std::string &responseMsg);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

@@ -14,7 +14,7 @@
 #ifndef CRITERIARESOURCE_H
 #define	CRITERIARESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class CriteriaResource : public PublicApiResource
 {
@@ -24,8 +24,8 @@ class CriteriaResource : public PublicApiResource
         
     protected :
 
-        std::string getCriterias();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getCriterias(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 

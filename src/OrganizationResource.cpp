@@ -13,26 +13,27 @@
 
 
 #include "OrganizationResource.h"
+#include "PublicApiResource.h"
 
 OrganizationResource::OrganizationResource() {
 }
 
-std::string OrganizationResource::getOrganization()
+unsigned short OrganizationResource::getOrganization(std::string &responseMsg) const
 {
-    std::string res = "";
+     unsigned short res = 500;
      Wt::Dbo::Transaction transaction(*this->session);
      Wt::Dbo::ptr<Organization> organization = session->find<Organization>().where("\"ORG_ID\" = ?").bind(this->session->user().get()->currentOrganization.id());
     try
     {
         if(organization)
         {
-            res = organization.modify()->toJSON();
-            this->statusCode = 200;
+            responseMsg = organization.modify()->toJSON();
+            res = 200;
         }
         else 
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Organization not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Organization not found\"}";
             return res;
         }
 
@@ -41,16 +42,16 @@ std::string OrganizationResource::getOrganization()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-std::string OrganizationResource::getUsersForOrganization()
+unsigned short OrganizationResource::getUsersForOrganization(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -73,29 +74,29 @@ std::string OrganizationResource::getUsersForOrganization()
         {
             if (user.size() > 1)
             {
-            res += "[\n";
+            responseMsg += "[\n";
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<User> >::const_iterator i = user.begin(); i != user.end(); i++) 
             {
                 i->modify()->setId(i->id());
-                res += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->modify()->toJSON();
                 +idx;
                 if(user.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
             }
             if (user.size() > 1)
             {
-            res += "]\n";
+            responseMsg += "]\n";
             }
-            this->statusCode = 200;
+            res = 200;
         }
         else 
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"User not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"User not found\"}";
             return res;
         }
 
@@ -104,16 +105,16 @@ std::string OrganizationResource::getUsersForOrganization()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-std::string OrganizationResource::getQuotasAsset()
+unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) const
 {
-      std::string res = "";
+    unsigned short res = 500;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -133,15 +134,15 @@ std::string OrganizationResource::getQuotasAsset()
                                                                 .limit(1);
                 if (ptrOptionValue.get())
                 {
-                    res += ptrOptionValue.modify()->toJSON();
-                    this->statusCode = 200;
+                    responseMsg += ptrOptionValue.modify()->toJSON();
+                    res = 200;
                 }
             }
         }
         else
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"user not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"user not found\"}";
             return res;
         }
                
@@ -150,16 +151,16 @@ std::string OrganizationResource::getQuotasAsset()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     } 
     return res;
 }
 
-std::string OrganizationResource::getQuotasSms()
+unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -179,15 +180,15 @@ std::string OrganizationResource::getQuotasSms()
                                                                 .limit(1);
                 if (ptrOptionValue.get())
                 {
-                    res += ptrOptionValue.modify()->toJSON();
-                    this->statusCode = 200;
+                    responseMsg += ptrOptionValue.modify()->toJSON();
+                    res = 200;
                 }
             }
         }
         else
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"user not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"user not found\"}";
             return res;
         }
                
@@ -196,35 +197,35 @@ std::string OrganizationResource::getQuotasSms()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     } 
     return res;
 }
 
-void OrganizationResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void OrganizationResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = getOrganization();
+        this->statusCode = getOrganization(responseMsg);
     }
     else
     {
         if(!nextElement.compare("quotas_sms"))
         {
-            responseMsg = getQuotasSms();
+            this->statusCode = getQuotasSms(responseMsg);
         }
         else if(!nextElement.compare("quotas_assets"))
         {
-            responseMsg = getQuotasAsset();
+            this->statusCode = getQuotasAsset(responseMsg);
         }
         else if(!nextElement.compare("users"))
         {
-            responseMsg = getUsersForOrganization();
+            this->statusCode = getUsersForOrganization(responseMsg);
         }
         else
         {

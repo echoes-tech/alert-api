@@ -17,9 +17,9 @@
 UnitResource::UnitResource(){
 }
 
-std::string UnitResource::getUnit()
+unsigned short UnitResource::getUnit(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -28,15 +28,15 @@ std::string UnitResource::getUnit()
                                                           .where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
         if (!informationUnit)
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Unit not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Unit not found\"}";
             return res;
         }
         else
         {
             informationUnit.modify()->setId(informationUnit.id());
-            res = informationUnit.modify()->toJSON();
-            this->statusCode = 200;
+            responseMsg = informationUnit.modify()->toJSON();
+            res = 200;
         }
 
         transaction.commit();
@@ -44,16 +44,16 @@ std::string UnitResource::getUnit()
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-std::string UnitResource::getSubUnitsForUnit()
+unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -63,8 +63,8 @@ std::string UnitResource::getSubUnitsForUnit()
                                                           .where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
         if (!informationUnit)
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Unit not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Unit not found\"}";
             return res;
         }
         else
@@ -75,46 +75,45 @@ std::string UnitResource::getSubUnitsForUnit()
             {
                 if(infoSubUnit.size() > 1)
                 {
-                res += "[\n";
+                responseMsg += "[\n";
                 }
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
                 {
                     i->modify()->setId(i->id());
-                    res += i->modify()->toJSON();
+                    responseMsg += i->modify()->toJSON();
                     ++idx;
                     if(infoSubUnit.size()-idx > 0)
                     {
-                        res.replace(res.size()-1, 1, "");
-                        res += ",\n";
+                        responseMsg.replace(responseMsg.size()-1, 1, "");
+                        responseMsg += ",\n";
                     }
                 }  
                 if(infoSubUnit.size() > 1)
                 {
-                res += "]\n";
+                responseMsg += "]\n";
                 }
+                res = 200;
             }
             else 
             {
-                this->statusCode = 404;
-                res = "{\"message\":\"Subunit not found\"}";
+                res = 404;
+                responseMsg = "{\"message\":\"Subunit not found\"}";
                 return res;
             }
-            this->statusCode = 200;
         }
-
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-void UnitResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UnitResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
     
@@ -126,11 +125,11 @@ void UnitResource::processGetRequest(const Wt::Http::Request &request, Wt::Http:
         nextElement = getNextElementFromPath();
         if(!nextElement.compare(""))
         {
-            responseMsg = getUnit();
+            this->statusCode = getUnit(responseMsg);
         }
         else if(!nextElement.compare("subunits"))
         {
-            responseMsg = getSubUnitsForUnit();
+            this->statusCode = getSubUnitsForUnit(responseMsg);
         }
         else
         {

@@ -14,7 +14,7 @@
 #ifndef USERRESOURCE_H
 #define	USERRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class UserResource : public PublicApiResource
 {
@@ -24,11 +24,10 @@ class UserResource : public PublicApiResource
         
     protected :
 
-        std::string getInformationForUser();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getInformationForUser(std::string &response) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
-       // std::string postRegistrationForUser(std::string sRequest);
-        std::string postActionForUser(std::string sRequest);
+        unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

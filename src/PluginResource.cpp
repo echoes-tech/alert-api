@@ -18,9 +18,9 @@ PluginResource::PluginResource(){
 }
 
 
-std::string PluginResource::getKeyValueForInformation()
+unsigned short PluginResource::getKeyValueForInformation(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -35,8 +35,8 @@ std::string PluginResource::getKeyValueForInformation()
 
         if (!ptrInfoKey)
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Information not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Information not found\"}";
             return res;
         }
 
@@ -60,45 +60,45 @@ std::string PluginResource::getKeyValueForInformation()
         {
             if(collPtrIva.size() > 1)
             {
-            res += "[\n";
+            responseMsg += "[\n";
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
             { 
                 i->modify()->setId(i->id());
-                res += i->modify()->toJSON();
+                responseMsg += i->modify()->toJSON();
                  ++idx;
                 if(collPtrIva.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
             }
             if (collPtrIva.size() > 1)
             {
-            res += "]";
+            responseMsg += "]";
             }
-            this->statusCode = 200;
+            res = 200;
         }
         else
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Information value not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Information value not found\"}";
             return res;
         }
     }
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-std::string PluginResource::getInformationListForPlugin()
+unsigned short PluginResource::getInformationListForPlugin(std::string &responseMsg) const
 {
-    std::string res = "";
+    unsigned short res = 500;
     int idx = 0;
     try
     {
@@ -115,43 +115,43 @@ std::string PluginResource::getInformationListForPlugin()
         {
             if(information.size() > 1)
             {
-                res += "[\n";
+                responseMsg += "[\n";
             }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
             {
-                res +=  i->modify()->toJSON();
+                responseMsg +=  i->modify()->toJSON();
                 idx++;
                 if(information.size()-idx > 0)
                 {
-                    res.replace(res.size()-1, 1, "");
-                    res += ",\n";
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
                 }
             }
             if(information.size() > 1)
             {
-                res += "]\n";
+                responseMsg += "]\n";
             }
-            this->statusCode = 200;
+            res = 200;
             transaction.commit();
         }
         else
         {
-            this->statusCode = 404;
-            res = "{\"message\":\"Information not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Information not found\"}";
             return res;
         }
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\"message\":\"Service Unavailable\"}";
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     return res;
 }
 
-void PluginResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PluginResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
     
@@ -171,7 +171,7 @@ void PluginResource::processGetRequest(const Wt::Http::Request &request, Wt::Htt
 
             if(!nextElement.compare("informations"))
             {
-                responseMsg = getInformationListForPlugin();
+                this->statusCode = getInformationListForPlugin(responseMsg);
             }
             else if (!nextElement.compare("sources"))
             {
@@ -196,7 +196,7 @@ void PluginResource::processGetRequest(const Wt::Http::Request &request, Wt::Htt
                             nextElement = getNextElementFromPath();
                             if (!nextElement.compare("informations"))
                             {
-                                responseMsg = getKeyValueForInformation();
+                                this->statusCode = getKeyValueForInformation(responseMsg);
                             }
                             else
                             {
