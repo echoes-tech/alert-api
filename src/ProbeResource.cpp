@@ -25,219 +25,167 @@ ProbeResource::~ProbeResource() {
     beingDeleted();
 }
 
-void ProbeResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+unsigned short ProbeResource::getProbesList(string &responseMsg) const
 {
-    // Create Session and Check auth
-    PublicApiResource::handleRequest(request, response);
+    unsigned short res = 500;
+    unsigned long idx = 0;
     
-//    this->probeId = PublicApiResource::getIdFromRequest(request);
-//
-//    if (this->probeId > 0)
-//    {
-//        // Check probe existence and authorization
-//        try
-//        {
-//            Wt::Dbo::Transaction transaction(*this->session);
-//            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe > ().where("\"PRB_ID\" = ?").bind(this->probeId);
-//
-//            if (Utils::checkId<Probe> (probe))
-//            {
-//                if(this->session->user().get()->currentOrganization.id() != probe.get()->organization.id())
-//                {
-//                    response.setStatus(403);
-//                    response.out() << "{\"message\":\"Not allowed to manage this probe\"}";
-//                    return;
-//                }
-//            }
-//            else 
-//            {
-//                response.setStatus(404);
-//                response.out() << "{\"message\":\"Probe not found\"}";
-//                return;
-//            }
-//        }
-//        catch (Wt::Dbo::Exception const& e) 
-//        {
-//            Wt::log("error") << e.what();
-//            response.setStatus(503);
-//            response.out() << "{\"message\":\"Service Unavailable\"}";
-//            return;
-//        }
-//
-//        // Check asset existence and retrieve info
-//        try
-//        {
-//            Wt::Dbo::Transaction transaction(*this->session);
-//            Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ().where("\"AST_PRB_PRB_ID\" = ?").bind(this->probeId).where("\"AST_IS_HOST\" = ?").bind(true);
-//
-//            if (Utils::checkId<Asset> (asset))
-//            {
-//                if (asset.get()->distribName)
-//                {
-//                    this->distribName = asset.get()->distribName.get();
-//                }
-//                else
-//                {
-//                    this->distribName = "";
-//                }
-//                if (asset.get()->distribRelease)
-//                {
-//                    this->distribRelease = asset.get()->distribRelease.get();
-//                }
-//                else
-//                {
-//                    this->distribRelease = "";
-//                }
-//                if (asset.get()->architecture)
-//                {
-//                    this->arch = asset.get()->architecture.get();
-//                }
-//                else
-//                {
-//                    this->arch = "";
-//                }
-//            }
-//            else 
-//            {
-//                response.setStatus(404);
-//                response.out() << "{\"message\":\"No asset found for this probe\"}";
-//                return;
-//            }
-//        }
-//        catch (Wt::Dbo::Exception const& e) 
-//        {
-//            Wt::log("error") << e.what();
-//            response.setStatus(503);
-//            response.out() << "{\"message\":\"Service Unavailable\"}";
-//            return;
-//        }
-//
-//        // GET ?
-//        if (request.method() == "GET")
-//        {
-//            ifstream probeFile;
-//            const char* probeFilePath;
-//
-//            int release = PublicApiResource::releaseSplit(response, distribRelease.toUTF8());
-//            if (release < 0)
-//                return;
-//            
-//            // distrib verification
-//            if(distribName == "Debian" || distribName == "Ubuntu")
-//            {
-//                if(distribName == "Debian" && release < 7)
-//                {
-//
-//                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Debian_Squeeze_i386.deb";
-//                    }
-//                    else if(arch == "x86_64")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Debian_Squeeze_amd64.deb";
-//                    }
-//                    else
-//                    {
-//                        response.setStatus(501);
-//                        response.out() << "{\"message\":\"Architecture not supported\"}";
-//                        return;
-//                    }
-//                }
-//                else
-//                {
-//                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Ubuntu_12.04_i386.deb";
-//                    }
-//                    else if(arch == "x86_64")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe_0.1.0.beta-2_Ubuntu_12.04_amd64.deb";
-//                    }
-//                    else
-//                    {
-//                        response.setStatus(501);
-//                        response.out() << "{\"message\":\"Architecture not supported\"}";
-//                        return;
-//                    }
-//                }
-//            }
-//            else if(distribName == "CentOS")
-//            {
-//                if(release < 6)
-//                {
-//                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-5.i386.rpm";
-//                    }
-//                    else if(arch == "x86_64")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-5.x86_64.rpm";
-//                    }
-//                    else
-//                    {
-//                        response.setStatus(501);
-//                        response.out() << "{\"message\":\"Architecture not supported\"}";
-//                        return;
-//                    }
-//                }
-//                else
-//                {
-//                    if(arch == "i386" || arch == "i486" || arch == "i586" || arch == "i686" || arch == "i786" || arch == "i886" || arch == "i986")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-6.i386.rpm";
-//                    }
-//                    else if(arch == "x86_64")
-//                    {
-//                        probeFilePath = "/var/www/wt/probe/ea-probe-0.1.0.beta-2.CentOS-6.x86_64.rpm";
-//                    }
-//                    else
-//                    {
-//                        response.setStatus(501);
-//                        response.out() << "{\"message\":\"Architecture not supported\"}";
-//                        return;
-//                    }
-//                }
-//            }
-//            else
-//            {
-//                response.setStatus(501);
-//                response.out() << "{\"message\":\"Distrib not supported\"}";
-//                return;
-//            }
-//
-//            probeFile.open(probeFilePath);
-//            if (probeFile.is_open())
-//            {
-//                response.setMimeType("application/octet-stream");
-//                response.setStatus(202);
-//                response.out() << probeFile.rdbuf();
-//                probeFile.close();
-//            }
-//            else
-//            {
-//                response.setStatus(503);
-//                response.out() << "{\"message\":\"Service Unavailable\"}";
-//            }
-//
-//        }
-//        else
-//        {
-//            response.setStatus(405);
-//            response.out() << "{\"message\":\"Only GET method are allowed.\"}";
-//            return;
-//        }
-//
-//    }
-//    else
-//    {
-//        response.setStatus(422);
-//        response.out() << "{\"message\":\"Validation Failed\"}";
-//        return;
-//    }
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->session->find<Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id());
+
+        responseMsg = "[\n";
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
+        {
+            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
+                .where("\"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
+                .bind(i->get()->probe.id());
+            if (Utils::checkId<Probe>(probe))
+            {
+                responseMsg += "\t{\n";
+                responseMsg += "\t\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
+                responseMsg += "\t\t\"name\": \"" + probe->name.toUTF8() + "\"\n";
+                responseMsg += "\t}";
+                if (idx < listAssets.size())
+                {
+                    responseMsg += ",";
+                }
+                responseMsg += "\n";
+            }
+            ++idx;
+        }
+        responseMsg += "]";
+
+        transaction.commit();
+        res = 200;
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\n\t\"message\":\"Service Unavailable\n\"}";
+    }
+    
+    return res;
 }
 
-void ProbeResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+unsigned short ProbeResource::getProbe(string &responseMsg) const
 {
+    unsigned short res = 500;
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<Probe> probe = this->session->find<Probe>()
+                .where("\"PRB_ORG_ORG_ID\" = ? AND \"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id())
+                .bind(this->vPathElements[1]);
+
+        if (Utils::checkId<Probe>(probe)) 
+        {
+            responseMsg += "{\n";
+            responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
+            responseMsg += "\t\"name\": \"" + probe->name.toUTF8() + "\",\n";
+
+            // Est-ce que les param pkg de cette probe existent ?
+            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
+                    .where("\"PPP_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                    .bind(probe->probePackageParameter.id());
+            if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
+            {
+                responseMsg += "\t\"version\": \"" + probePackageParameter->probeVersion.toUTF8() + "\",\n";
+                responseMsg += "\t\"package\": {\n";
+
+                // Est-ce que le pkg de cette probe existent ?
+                Wt::Dbo::ptr<ProbePackage> probePackage = this->session->find<ProbePackage>()
+                        .where("\"PPA_ID\" = ? AND \"PPA_DELETE\" IS NULL")
+                        .bind(probePackageParameter->probePackage.id());
+                if (Utils::checkId<ProbePackage>(probePackage))
+                {
+                    ifstream ifs("/var/www/wt/probe" + probePackageParameter->probePackage->filename.toUTF8());
+                    string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+                    responseMsg += "\t\t\"filename\": \"" + probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
+                    responseMsg += "\t\t\"content\": \"" + Wt::Utils::base64Encode(content) + "\",\n";
+                }
+                else
+                {
+                    responseMsg += "\t\t\"filename\": \"Unknown\",\n";
+                    responseMsg += "\t\t\"content\": \"\",\n";
+                }
+                responseMsg += "\t\t\"version\": \"" + probePackageParameter->packageVersion.toUTF8() + "\"\n";
+                responseMsg += "\t}\n";
+
+            }
+            else
+            {
+                responseMsg += "\t\"version\": \"Unknown\",\n";
+                responseMsg += "\t\"package\": {\n";
+                responseMsg += "\t\t\"filename\": \"Unknown\",\n";
+                responseMsg += "\t\t\"content\": \"\",\n";
+                responseMsg += "\t\t\"version\": \"Unknown\"\n";
+                responseMsg += "\t}\n";
+            }
+            responseMsg += "}";
+
+            res = 200;
+        } 
+        else 
+        {
+            responseMsg = "{\n\t\"message\":\"Probe not found\"\n}";
+            res = 404;
+        }
+
+        transaction.commit();
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\n\t\"message\":\"Service Unavailable\"\n}";
+    }
+    
+    return res;
+}
+
+void ProbeResource::processGetRequest(Wt::Http::Response &response)
+{
+    string responseMsg = "", nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = getProbesList(responseMsg);
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare(""))
+            {
+                this->statusCode = getProbe(responseMsg);
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
     return;
 }
 
@@ -251,13 +199,15 @@ void ProbeResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
     return;
 }
 
-void ProbeResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    PublicApiResource::handleRequest(request, response);
+
     return;
 }
 

@@ -1,4 +1,4 @@
-/* 
+ /* 
  * API Asset Resource
  * @author ECHOES Technologies (FPO)
  * @date 02/11/2012
@@ -25,9 +25,9 @@ AssetResource::~AssetResource() {
     beingDeleted();
 }
 
-string AssetResource::getAssetsList()
+unsigned short AssetResource::getAssetsList(string &responseMsg) const
 {
-    string res = "";
+    unsigned short res = 500;
     unsigned long idx = 0;
     
     try 
@@ -37,94 +37,95 @@ string AssetResource::getAssetsList()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
                 .bind(this->session->user()->currentOrganization.id());
 
-        res = "[\n";
+        responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
         {
-            res += "\t{\n";
-            res += "\t\t\"id\": " + boost::lexical_cast<string, long long>(i->id()) + ",\n";
-            res += "\t\t\"name\": \"" + i->get()->name.toUTF8() + "\"\n";
-            res += "\t}";
+            responseMsg += "\t{\n";
+            responseMsg += "\t\t\"id\": " + boost::lexical_cast<string, long long>(i->id()) + ",\n";
+            responseMsg += "\t\t\"name\": \"" + i->get()->name.toUTF8() + "\"\n";
+            responseMsg += "\t}";
             if (++idx < listAssets.size())
             {
-                res += ",";
+                responseMsg += ",";
             }
-            res += "\n";
+            responseMsg += "\n";
         }
-        res += "]";
+        responseMsg += "]";
 
         transaction.commit();
-        this->statusCode = 200;
+        res = 200;
     } 
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\n\t\"message\":\"Service Unavailable\n\"}";
+        res = 503;
+        responseMsg = "{\n\t\"message\":\"Service Unavailable\n\"}";
     }
     
     return res;
 }
 
-string AssetResource::getAsset()
+unsigned short AssetResource::getAsset(string &responseMsg) const
 {
-    string res = "";
+    unsigned short res = 500;
     
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
                 .bind(this->session->user()->currentOrganization.id())
                 .bind(this->vPathElements[1]);
+        
 
         if (Utils::checkId<Asset>(asset)) 
         {
-            res += "{\n";
-            res += "\t\"id\": " + boost::lexical_cast<string, long long>(asset.id()) + ",\n";
-            res += "\t\"name\": \"" + asset->name.toUTF8() + "\",\n";
+            responseMsg += "{\n";
+            responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(asset.id()) + ",\n";
+            responseMsg += "\t\"name\": \"" + asset->name.toUTF8() + "\",\n";
             Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->session->find<AssetArchitecture> ()
-                .where("\"ASA_ID\" = ?")
+                .where("\"ASA_ID\" = ? AND \"ASA_DELETE\" IS NULL")
                 .bind(asset->assetArchitecture.id());
             if (Utils::checkId<AssetArchitecture>(assetArchitecture)) 
             {
-                res += "\t\"architecture\": \"" + assetArchitecture->name.toUTF8() + "\",\n";
+                responseMsg += "\t\"architecture\": \"" + assetArchitecture->name.toUTF8() + "\",\n";
             }
             else 
             {
-                res += "\t\"architecture\": \"Unknown\",\n";
+                responseMsg += "\t\"architecture\": \"Unknown\",\n";
             }
-            res += "\t\"distribution\": {\n";
+            responseMsg += "\t\"distribution\": {\n";
             Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->session->find<AssetDistribution> ()
-                .where("\"ASD_ID\" = ?")
+                .where("\"ASD_ID\" = ? AND \"ASD_DELETE\" IS NULL")
                 .bind(asset->assetDistribution.id());
             if (Utils::checkId<AssetDistribution>(assetDistribution)) 
             {
-                res += "\t\t\"name\": \"" + assetDistribution->name.toUTF8() + "\",\n";
+                responseMsg += "\t\t\"name\": \"" + assetDistribution->name.toUTF8() + "\",\n";
             }
             else 
             {
-                res += "\t\t\"name\": \"Unknown\",\n";
+                responseMsg += "\t\t\"name\": \"Unknown\",\n";
             }
             Wt::Dbo::ptr<AssetRelease> assetRelease = this->session->find<AssetRelease> ()
-                .where("\"ASR_ID\" = ?")
+                .where("\"ASR_ID\" = ? AND \"ASR_DELETE\" IS NULL")
                 .bind(asset->assetRelease.id());
             if (Utils::checkId<AssetRelease>(assetRelease)) 
             {
-                res += "\t\t\"release\": \"" + assetRelease->name.toUTF8() + "\"\n";
+                responseMsg += "\t\t\"release\": \"" + assetRelease->name.toUTF8() + "\"\n";
             }
             else 
             {
-                res += "\t\t\"release\": \"Unknown\"\n";
+                responseMsg += "\t\t\"release\": \"Unknown\"\n";
             }
-            res += "\t}\n";
-            res += "}";
-            
-            this->statusCode = 200;
+            responseMsg += "\t}\n";
+            responseMsg += "}";
+
+            res = 200;
         } 
         else 
         {
-            res = "{\n\t\"message\":\"Asset not found\"\n}";
-            this->statusCode = 404;
+            responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
+            res = 404;
         }
 
         transaction.commit();
@@ -132,16 +133,16 @@ string AssetResource::getAsset()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\n\t\"message\":\"Service Unavailable\"\n}";
+        res = 503;
+        responseMsg = "{\n\t\"message\":\"Service Unavailable\"\n}";
     }
     
     return res;
 }
 
-string AssetResource::getPluginsListForAsset()
+unsigned short AssetResource::getPluginsListForAsset(string &responseMsg) const
 {
-    string res = "";
+    unsigned short res = 500;
     
     try 
     {
@@ -153,17 +154,17 @@ string AssetResource::getPluginsListForAsset()
 
         if (Utils::checkId<Asset>(asset)) 
         {
-            res = "[\n";
-            res += "\t{\n";
-            res += "\t\t\"id\": 1,\n";
-            res += "\t\t\"name\": \"Linux-System.json\"\n";
-            res += "\t}\n";
-            res += "]";
+            responseMsg = "[\n";
+            responseMsg += "\t{\n";
+            responseMsg += "\t\t\"id\": 1,\n";
+            responseMsg += "\t\t\"name\": \"Linux-System.json\"\n";
+            responseMsg += "\t}\n";
+            responseMsg += "]";
         } 
         else 
         {
-            res = "{\n\t\"message\":\"Asset not found\"\n}";
-            this->statusCode = 404;
+            responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
+            res = 404;
         }
 
         transaction.commit();
@@ -171,17 +172,17 @@ string AssetResource::getPluginsListForAsset()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\n\t\"message\":\"Service Unavailable\"\n}";
+        res = 503;
+        responseMsg = "{\n\t\"message\":\"Service Unavailable\"\n}";
     }
     
     return res;
 }
 
-string AssetResource::getProbesListForAsset()
+unsigned short AssetResource::getProbesListForAsset(string &responseMsg) const
 {
-    string res = "";
-    
+    unsigned short res = 500;
+
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -197,24 +198,25 @@ string AssetResource::getProbesListForAsset()
                 .bind(asset->probe.id());
             if (Utils::checkId<Probe>(probe)) 
             {
-                res += "[\n";
-                res += "\t{\n";
-                res += "\t\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
-                res += "\t\t\"name\": \"" + probe->name.toUTF8() + "\"\n";
-                res += "\t}\n";
-                res += "]";
-                this->statusCode = 200;
+                responseMsg += "[\n";
+                responseMsg += "\t{\n";
+                responseMsg += "\t\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
+                responseMsg += "\t\t\"name\": \"" + probe->name.toUTF8() + "\"\n";
+                responseMsg += "\t}\n";
+                responseMsg += "]";
+
+                res = 200;
             }
             else 
             {
-                res = "{\n\t\"message\":\"Probe not found\"\n}";
-                this->statusCode = 404;
+                responseMsg = "{\n\t\"message\":\"Probe not found\"\n}";
+                res = 404;
             }
         } 
         else 
         {
-            res = "{\n\t\"message\":\"Asset not found\"\n}";
-            this->statusCode = 404;
+            responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
+            res = 404;
         }
 
         transaction.commit();
@@ -222,21 +224,21 @@ string AssetResource::getProbesListForAsset()
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        this->statusCode = 503;
-        res = "{\n\t\"message\":\"Service Unavailable\"\n}";
+        res = 503;
+        responseMsg = "{\n\t\"message\":\"Service Unavailable\"\n}";
     }
     
     return res;
 }
 
-void AssetResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        responseMsg = getAssetsList();
+        this->statusCode = getAssetsList(responseMsg);
     }
     else
     {
@@ -248,15 +250,15 @@ void AssetResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
 
             if(!nextElement.compare(""))
             {
-                responseMsg = getAsset();
+                this->statusCode = getAsset(responseMsg);
             }
             else if(!nextElement.compare("plugins"))
             {
-                responseMsg = getPluginsListForAsset();
+                this->statusCode = getPluginsListForAsset(responseMsg);
             }
             else if(!nextElement.compare("probes"))
             {
-                responseMsg = getProbesListForAsset();
+                this->statusCode = getProbesListForAsset(responseMsg);
             }
             else
             {
@@ -276,9 +278,9 @@ void AssetResource::processGetRequest(const Wt::Http::Request &request, Wt::Http
     return;
 }
 
-string AssetResource::postProbeForAsset(string sRequest)
+unsigned short AssetResource::postProbeForAsset(string &responseMsg, const string &sRequest)
 {
-    string res = "";
+    unsigned short res = 500;
     Wt::WString name;
     
     try
@@ -292,17 +294,17 @@ string AssetResource::postProbeForAsset(string sRequest)
     catch (Wt::Json::ParseError const& e)
     {
         Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
-        this->statusCode = 400;
-        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        res = 400;
+        responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
     }
     catch (Wt::Json::TypeException const& e)
     {
         Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
-        this->statusCode = 400;
-        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        res = 400;
+        responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
     }
     
-    if(!res.compare(""))
+    if(!responseMsg.compare(""))
     {
         try 
         {
@@ -315,9 +317,12 @@ string AssetResource::postProbeForAsset(string sRequest)
                     .bind(this->vPathElements[1]);
             if (Utils::checkId<Asset>(asset))
             {
-                res += "{\n";
+                responseMsg += "{\n";
                 // Est-ce que la probe existe pour cet asset ?
-                if (!Utils::checkId<Probe>(asset->probe))
+                Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
+                    .where("\"PRB_ORG_ORG_ID\" = ? AND \"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
+                    .bind(asset->probe);
+                if (!Utils::checkId<Probe>(probe))
                 {
                     Probe *newProbe = new Probe();
                     newProbe->name = "Probe_" + this->session->user()->lastName + "_" + asset->name;
@@ -327,7 +332,7 @@ string AssetResource::postProbeForAsset(string sRequest)
                             .bind(asset->assetArchitecture.id())
                             .bind(asset->assetDistribution.id())
                             .bind(asset->assetRelease.id())
-//                            .orderBy("\"PPP_PROBE_VERSION DESC\"", "\"PPP_PACKAGE_VERSION DESC\"")
+                            .orderBy("\"PPP_PROBE_VERSION DESC\", \"PPP_PACKAGE_VERSION DESC\"")
                             .limit(1);
                     if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
                     {
@@ -336,48 +341,48 @@ string AssetResource::postProbeForAsset(string sRequest)
                     asset.modify()->probe = this->session->add<Probe>(newProbe);
                     asset->probe.flush();
                 }
-                res += "\t\"id\": " + boost::lexical_cast<string, long long>(asset->probe.id()) + ",\n";
-                res += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
+                responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(asset->probe.id()) + ",\n";
+                responseMsg += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
 
                 // Est-ce que les param pkg de cette probe existent ?
                 if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
                 {
-                    res += "\t\"version\": \"" + asset->probe->probePackageParameter->probeVersion.toUTF8() + "\",\n";
-                    res += "\t\"package\": {\n";
+                    responseMsg += "\t\"version\": \"" + asset->probe->probePackageParameter->probeVersion.toUTF8() + "\",\n";
+                    responseMsg += "\t\"package\": {\n";
                     // Est-ce que le pkg de cette probe existent ?
                     if (Utils::checkId<ProbePackage>(asset->probe->probePackageParameter->probePackage))
                     {
-                        res += "\t\t\"filename\": \"" + asset->probe->probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
+                        responseMsg += "\t\t\"filename\": \"" + asset->probe->probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
                     }
                     else
                     {
-                        res += "\t\t\"filename\": \"Unknown\",\n";
+                        responseMsg += "\t\t\"filename\": \"Unknown\",\n";
                     }
-                    res += "\t\t\"version\": \"" + asset->probe->probePackageParameter->packageVersion.toUTF8() + "\",\n";
-                    res += "\t}\n";
+                    responseMsg += "\t\t\"version\": \"" + asset->probe->probePackageParameter->packageVersion.toUTF8() + "\",\n";
+                    responseMsg += "\t}\n";
 
                 }
                 else
                 {
-                    res += "\t\"version\": \"Unknown\",\n";
-                    res += "\t\"package\": {\n";
-                    res += "\t\t\"filename\": \"Unknown\",\n";
-                    res += "\t\t\"version\": \"Unknown\",\n";
-                    res += "\t}\n";
+                    responseMsg += "\t\"version\": \"Unknown\",\n";
+                    responseMsg += "\t\"package\": {\n";
+                    responseMsg += "\t\t\"filename\": \"Unknown\",\n";
+                    responseMsg += "\t\t\"version\": \"Unknown\",\n";
+                    responseMsg += "\t}\n";
                 }
             } 
             else 
             {
-                this->statusCode = 404;
-                res = "{\n\t\"message\":\"Asset not found\"\n}";
+                res = 404;
+                responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
             }
             transaction.commit();
         } 
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << "[Asset Ressource] " << e.what();
-            this->statusCode = 503;
-            res = "{\n\t\"message\": \"Service Unavailable\"\n}";
+            res = 503;
+            responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
         }
     }
     
@@ -405,7 +410,7 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
 
             if(!nextElement.compare("probes"))
             {
-                responseMsg = postProbeForAsset(sRequest);
+                this->statusCode = postProbeForAsset(responseMsg, sRequest);
             }
             else
             {
@@ -425,15 +430,9 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     return;
 }
 
-void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+unsigned short AssetResource::putAsset(string &responseMsg, const string &sRequest)
 {
-    return;
-}
-
-
-string AssetResource::patchAsset(string sRequest)
-{
-    string res = "";
+    unsigned short res = 500;
     Wt::WString arch, distribName, distribRelease;
     
     try
@@ -450,17 +449,17 @@ string AssetResource::patchAsset(string sRequest)
     catch (Wt::Json::ParseError const& e)
     {
         Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
-        this->statusCode = 400;
-        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        res = 400;
+        responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
     }
     catch (Wt::Json::TypeException const& e)
     {
         Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
-        this->statusCode = 400;
-        res = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        res = 400;
+        responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
     }
 
-    if(!res.compare(""))
+    if(!responseMsg.compare(""))
     {
         try 
         {
@@ -509,23 +508,23 @@ string AssetResource::patchAsset(string sRequest)
             } 
             else 
             {
-                this->statusCode = 404;
-                res = "{\n\t\"message\":\"Asset not found\"\n}";
+                res = 404;
+                responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
             }
             transaction.commit();
         } 
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << "[Asset Ressource] " << e.what();
-            this->statusCode = 503;
-            res = "{\n\t\"message\": \"Service Unavailable\"\n}";
+            res = 503;
+            responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
         }
     }
     
     return res;
 }
 
-void AssetResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "", sRequest = "";
 
@@ -546,7 +545,7 @@ void AssetResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
 
             if(!nextElement.compare(""))
             {
-                responseMsg = patchAsset(sRequest);
+                this->statusCode = putAsset(responseMsg, sRequest);
             }
             else
             {
@@ -574,7 +573,6 @@ void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
 void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
 
     return;

@@ -67,7 +67,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>src</Elem>
-    <Elem>include/itooki</Elem>
+    <Elem>include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -94,12 +94,12 @@
           <commandlineTool>distcc</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>dbo</linkerLibLibItem>
-            <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
             <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>boost_system</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
+            <linkerLibLibItem>wt</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

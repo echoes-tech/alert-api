@@ -42,7 +42,7 @@ using namespace std;
 string Utils::connection;
 
 SessionPool* SessionPool::instance = 0;
-std::string SessionPool::credentials = "";
+string SessionPool::credentials = "";
 boost::mutex SessionPool::mutex;
 
 /**

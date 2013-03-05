@@ -24,21 +24,17 @@ class AssetResource : public PublicApiResource
         virtual ~AssetResource();
 
     protected:
-        int assetId, probeId, pluginId;
-        
-        std::string getAssetsList();
-        std::string getAsset();
-        std::string getPluginsListForAsset();
-        std::string getProbesListForAsset();
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short getAssetsList(std::string &responseMsg) const;
+        unsigned short getAsset(std::string &responseMsg) const;
+        unsigned short getPluginsListForAsset(std::string &responseMsg) const;
+        unsigned short getProbesListForAsset(std::string  &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
 
-        std::string postProbeForAsset(std::string sRequest);
+        unsigned short postProbeForAsset(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
-        std::string patchAsset(std::string sRequest);
-        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        unsigned short putAsset(std::string &responseMsg, const std::string &sRequest);
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
