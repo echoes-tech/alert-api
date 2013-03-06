@@ -111,7 +111,7 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/include</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-develop/workspace/include</pElem>
           </incDir>
           <commandLine>-std=c++0x</commandLine>
         </ccTool>
