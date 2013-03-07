@@ -78,6 +78,8 @@
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
           </incDir>
+          <commandLine>-pedantic</commandLine>
+          <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
           <linkerAddLib>

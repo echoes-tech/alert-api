@@ -105,7 +105,7 @@ unsigned short ProbeResource::getProbe(string &responseMsg) const
                         .bind(probePackageParameter->probePackage.id());
                 if (Utils::checkId<ProbePackage>(probePackage))
                 {
-                    ifstream ifs("/var/www/wt/probe" + probePackageParameter->probePackage->filename.toUTF8());
+                    ifstream ifs("/var/www/wt/probe/" + probePackageParameter->probePackage->filename.toUTF8());
                     string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
                     responseMsg += "\t\t\"filename\": \"" + probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
                     responseMsg += "\t\t\"content\": \"" + Wt::Utils::base64Encode(content) + "\",\n";

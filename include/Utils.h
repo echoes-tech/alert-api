@@ -23,7 +23,7 @@ class Utils
                 res = true;
             }
             return res;
-        };
+        }
         
         static std::string connection;
 };
