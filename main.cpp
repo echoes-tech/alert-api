@@ -83,11 +83,11 @@ int main(int argc, char **argv)
         
         server.addResource(&informationRessource, "/information");
         server.addResource(&mediaResource, "/media");
-        server.addResource(&pluginResource, "/plugin");
         server.addResource(&userResource, "/user");
         server.addResource(&alertResource, "/alert");
         server.addResource(&assetResource, "/assets");
         server.addResource(&probeResource, "/probes");
+        server.addResource(&pluginResource, "/plugins");
         server.addResource(&receiveSr, "/netsize/sr");
         server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiSMSSender, "/itooki/sms/sender");

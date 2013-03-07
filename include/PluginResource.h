@@ -15,18 +15,29 @@
 #ifndef PLUGINRESOURCE_H
 #define	PLUGINRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class PluginResource : public PublicApiResource
 {
     public :
         PluginResource();
+        PluginResource(const PluginResource& orig);
         virtual ~PluginResource();
         
     protected :
         
-        int plgId;
-        Wt::WString alertOption;
+        unsigned short getPlugin(std::string &responseMsg) const;
+        unsigned short getInformationListForPlugin(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
+
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             
 };
