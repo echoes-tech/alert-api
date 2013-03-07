@@ -340,7 +340,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                     // Est-ce que le pkg de cette probe existent ?
                     if (Utils::checkId<ProbePackage>(asset->probe->probePackageParameter->probePackage))
                     {
-                        ifstream ifs("/var/www/wt/probe" + asset->probe->probePackageParameter->probePackage->filename.toUTF8());
+                        ifstream ifs("/var/www/wt/probe/" + asset->probe->probePackageParameter->probePackage->filename.toUTF8());
                         string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
                         responseMsg += "\t\t\"filename\": \"" + asset->probe->probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
                         responseMsg += "\t\t\"content\": \"" + Wt::Utils::base64Encode(content) + "\",\n";
