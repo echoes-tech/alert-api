@@ -17,6 +17,54 @@
 UnitResource::UnitResource(){
 }
 
+unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
+{
+    unsigned short res = 500;
+    int idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+      
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = session->find<InformationUnitType>();
+                                                         
+        if (unitTypePtr.size() > 0)
+        {
+            
+            responseMsg = "[\n";
+            
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType> >::const_iterator i = unitTypePtr.begin(); i != unitTypePtr.end(); ++i)
+            {
+                i->modify()->setId(i->id());                
+                responseMsg += i->modify()->toJSON();
+                 ++idx;
+                if(unitTypePtr.size()-idx > 0)
+                {
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg = "]\n";
+            res = 200;
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"UnitType not found\"}";
+            return res;
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
 unsigned short UnitResource::getUnit(std::string &responseMsg) const
 {
     unsigned short res = 500;
@@ -73,10 +121,7 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
                                                                              .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1]);
             if(infoSubUnit.size() > 0)
             {
-                if(infoSubUnit.size() > 1)
-                {
-                responseMsg += "[\n";
-                }
+                responseMsg = "[\n";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
                 {
                     i->modify()->setId(i->id());
@@ -88,10 +133,7 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
                         responseMsg += ",\n";
                     }
                 }  
-                if(infoSubUnit.size() > 1)
-                {
-                responseMsg += "]\n";
-                }
+                responseMsg = "]\n";
                 res = 200;
             }
             else 
@@ -116,40 +158,130 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
 void UnitResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
+    nextElement = getNextElementFromPath();
     
-    try
+    if(!nextElement.compare("types"))
     {
-        nextElement = getNextElementFromPath();
-        boost::lexical_cast<unsigned int>(nextElement);
+        this->statusCode = getTypeOfUnit(responseMsg);
+    }
+    else
+    {
+        try
+        {
+            
+            boost::lexical_cast<unsigned int>(nextElement);
 
-        nextElement = getNextElementFromPath();
-        if(!nextElement.compare(""))
-        {
-            this->statusCode = getUnit(responseMsg);
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
+                this->statusCode = getUnit(responseMsg);
+            }
+            else if(!nextElement.compare("subunits"))
+            {
+                this->statusCode = getSubUnitsForUnit(responseMsg);
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
         }
-        else if(!nextElement.compare("subunits"))
-        {
-            this->statusCode = getSubUnitsForUnit(responseMsg);
-        }
-        else
+        catch(boost::bad_lexical_cast &)
         {
             this->statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
+        }      
     }
-    catch(boost::bad_lexical_cast &)
-    {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-    }                 
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
     return;
 }
 
+unsigned short UnitResource::postUnit(std::string& responseMsg, const std::string& sRequest)
+{
+    unsigned short res = 500;
+    Wt::WString name;
+    int typeId;
+      
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+        //descriptif
+        name = result.get("inu_name");
+        typeId = result.get("iut_id");
+    }
+
+    catch (Wt::Json::ParseError const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }    
+    try
+    {
+        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::ptr<InformationUnitType> unitTypePtr = session->find<InformationUnitType>().where("\"IUT_ID\" = ?").bind(typeId);
+        Wt::Dbo::ptr<InformationUnit> unitPtr;
+        
+        if(unitTypePtr)
+        {        
+            InformationUnit *informationUnit = new InformationUnit;
+            informationUnit->name = name;
+            informationUnit->unitType = unitTypePtr;
+            unitPtr = session->add<InformationUnit>(informationUnit);
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"UnitType not found\"}";
+            return res;
+        }
+        
+        unitPtr.flush();
+        unitPtr.modify()->setId(unitPtr.id());
+        responseMsg = unitPtr.modify()->toJSON();
+        transaction.commit();
+        
+        res = 200;
+        
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    
+    return res;
+}
 
 void UnitResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {   
+    std::string responseMsg = "", nextElement = "", sRequest = "";
+
+    sRequest = request2string(request);
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = postUnit(responseMsg, sRequest);
+    }
+    else
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
     return ;
 }
 

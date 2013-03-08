@@ -19,7 +19,7 @@ using namespace std;
 InformationResource::InformationResource(){
 }
 
-void InformationResource::processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void InformationResource::processGetRequest(Wt::Http::Response &response)
 {
     return;
 }

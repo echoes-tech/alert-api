@@ -9,6 +9,7 @@
         <itemPath>include/ItookiAswReceiver.h</itemPath>
         <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
       </logicalFolder>
+      <itemPath>include/AddonResource.h</itemPath>
       <itemPath>include/AlertResource.h</itemPath>
       <itemPath>include/AssetResource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
@@ -38,6 +39,7 @@
         <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
         </logicalFolder>
+        <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
         <itemPath>src/AssetResource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>

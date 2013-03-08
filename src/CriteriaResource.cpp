@@ -25,10 +25,7 @@ unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*session);
         Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = session->find<AlertCriteria>();
-        if(alertCriterias.size() > 1)
-        {
-            responseMsg = "[\n";
-        }
+        responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
             i->modify()->setId(i->id());
@@ -40,10 +37,7 @@ unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
                 responseMsg += ",\n";
             }
         }
-        if(alertCriterias.size() > 1)
-        {
-            responseMsg += "]\n";
-        }
+        responseMsg = "]\n";
         res = 200;
         transaction.commit();
     }

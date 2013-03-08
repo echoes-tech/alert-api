@@ -25,10 +25,12 @@ class UnitResource : public PublicApiResource
         
     protected :
 
+        unsigned short getTypeOfUnit(std::string &responseMsg) const;
         unsigned short getSubUnitsForUnit(std::string &responseMsg) const;
         unsigned short getUnit(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
+        unsigned short postUnit(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

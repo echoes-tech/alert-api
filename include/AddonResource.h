@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API InformationResource
+ * HEADER OF API AddonResource
  * @author ECHOES Technologies (GDR)
- * @date 13/02/2013
+ * @date 06/03/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,34 +11,36 @@
  * 
  */
 
-#ifndef INFORMATIONRESOURCE_H
-#define	INFORMATIONRESOURCE_H
+#ifndef ADDONRESOURCE_H
+#define	ADDONRESOURCE_H
 
 #include "includeFile.h"
 
-
-class InformationResource : public PublicApiResource
+class AddonResource : public PublicApiResource
 {
     public :
-        InformationResource();
-        virtual ~InformationResource();
+        AddonResource();
+        virtual ~AddonResource();
         
     protected :
         
+        unsigned short getParameterForAddon(std::string &responseMsg) const;    
+        unsigned short getAddonList(std::string &responseMsg) const;       
         virtual void processGetRequest(Wt::Http::Response &response);
 
+        unsigned short postAddon(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+        unsigned short deleteAddon(std::string &responseMsg);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             
 };
 
-
-#endif	/* INFORMATIONRESOURCE_H */
+#endif	/* ADDONRESOURCE_H */
 

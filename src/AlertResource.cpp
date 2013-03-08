@@ -15,7 +15,6 @@
 #include "AlertResource.h"
 #include <Wt/Json/Array>
 #include <Wt/Json/Value>
-Wt::Json::Array Wt::Json::Array::Empty;
 
 AlertResource::AlertResource(){
 }
@@ -335,8 +334,8 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
         }
         else
         { 
-                try
-                {
+            try
+            {
                 boost::lexical_cast<unsigned int>(nextElement);
 
                 nextElement = getNextElementFromPath();

@@ -29,10 +29,7 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
                                                                 .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1]);
         if (medias.size() > 0)
         {
-            if(medias.size() > 1)
-            {
-                responseMsg = "[\n";
-            }
+            responseMsg = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
                 i->modify()->setId(i->id());                
@@ -44,10 +41,7 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
                     responseMsg += ",\n";
                 }
             }
-            if(medias.size() > 1)
-            {
-                responseMsg += "]";
-            }
+            responseMsg = "]\n";
             res = 200;
         }
         else
@@ -89,10 +83,7 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
 
         if (media.size() > 0)
         {
-            if(media.size() > 1)
-            {
             responseMsg += "[\n";
-            }
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
             {
                 i->modify()->setId(i->id());
@@ -104,10 +95,7 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
                     responseMsg += ",\n";
                 }
             }
-            if(media.size() > 1)
-            {
-                responseMsg += "]";               
-            }
+            responseMsg += "]\n";               
 
             res = 200;
         }

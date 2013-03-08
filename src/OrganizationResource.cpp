@@ -72,10 +72,7 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
 
         if (user.size() > 0)
         {
-            if (user.size() > 1)
-            {
-            responseMsg += "[\n";
-            }
+            responseMsg = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<User> >::const_iterator i = user.begin(); i != user.end(); i++) 
             {
                 i->modify()->setId(i->id());
@@ -87,10 +84,7 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
                     responseMsg += ",\n";
                 }
             }
-            if (user.size() > 1)
-            {
-            responseMsg += "]\n";
-            }
+            responseMsg = "]\n";
             res = 200;
         }
         else 
