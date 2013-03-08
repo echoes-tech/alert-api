@@ -323,10 +323,8 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                         .bind(asset->assetRelease.id())
                         .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
                         .limit(1);
-                if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
-                {
-                    asset->probe.modify()->probePackageParameter = probePackageParameter;
-                }
+
+                asset->probe.modify()->probePackageParameter = probePackageParameter;
 
                 asset->probe.flush();
                 
