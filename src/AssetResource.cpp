@@ -323,7 +323,25 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                         .bind(asset->assetRelease.id())
                         .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
                         .limit(1);
-
+                
+                
+                if (!Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
+                {
+                    std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.',asset->assetRelease->name.toUTF8().length()) - 1) + "*";
+                    Wt::Dbo::ptr<AssetRelease> ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
+                    probePackageParameter = this->session->find<ProbePackageParameter>()
+                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                        .bind(asset->assetArchitecture.id())
+                        .bind(asset->assetDistribution.id())
+                        .bind(ptrAssetRelease.id())
+                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                        .limit(1);
+                }
+                
+                
+                
+                
+                
                 asset->probe.modify()->probePackageParameter = probePackageParameter;
 
                 asset->probe.flush();
