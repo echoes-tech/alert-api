@@ -327,7 +327,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                 
                 bool releaseChecked = false;
                 Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
-                if (!Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
+                if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
                 {
                     std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
                     ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
@@ -344,7 +344,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                 
                 bool architectureChecked = false;
                 Wt::Dbo::ptr<AssetArchitecture> ptrAssetArchitecture;
-                if (!Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
+                if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
                 {
                     if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
                     {
@@ -364,7 +364,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                 
                 if (releaseChecked
                     && architectureChecked
-                    && !Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter)
+                    && !Utils::checkId<ProbePackageParameter>(probePackageParameter)
                    )
                 {
                     probePackageParameter = this->session->find<ProbePackageParameter>()
