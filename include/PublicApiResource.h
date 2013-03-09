@@ -20,6 +20,8 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <Wt/Http/Client>
 #include <Wt/Http/Request>
 #include <Wt/Http/Response>

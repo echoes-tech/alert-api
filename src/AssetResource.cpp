@@ -325,10 +325,12 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                         .limit(1);
                 
                 
+                bool releaseChecked = false;
+                Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
                 if (!Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
                 {
                     std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.',asset->assetRelease->name.toUTF8().length()) - 1) + "*";
-                    Wt::Dbo::ptr<AssetRelease> ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
+                    ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
                     probePackageParameter = this->session->find<ProbePackageParameter>()
                         .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
                         .bind(asset->assetArchitecture.id())
@@ -336,10 +338,43 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                         .bind(ptrAssetRelease.id())
                         .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
                         .limit(1);
+                    releaseChecked = true;
                 }
                 
                 
+                bool architectureChecked = false;
+                Wt::Dbo::ptr<AssetArchitecture> ptrAssetArchitecture;
+                if (!Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
+                {
+                    if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
+                    {
+                        std::string wildcardArchitecture = "i*86";
+                        ptrAssetArchitecture = this->session->find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
+                        probePackageParameter = this->session->find<ProbePackageParameter>()
+                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                        .bind(ptrAssetArchitecture.id())
+                        .bind(asset->assetDistribution.id())
+                        .bind(asset->assetRelease.id())
+                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                        .limit(1);
+                        architectureChecked = true;
+                    }
+                }
                 
+                
+                if (releaseChecked
+                    && architectureChecked
+                    && !Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter)
+                   )
+                {
+                    probePackageParameter = this->session->find<ProbePackageParameter>()
+                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                        .bind(ptrAssetArchitecture.id())
+                        .bind(asset->assetDistribution.id())
+                        .bind(ptrAssetRelease.id())
+                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                        .limit(1);
+                }
                 
                 
                 asset->probe.modify()->probePackageParameter = probePackageParameter;
