@@ -329,7 +329,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                 Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
                 if (!Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
                 {
-                    std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.',asset->assetRelease->name.toUTF8().length()) - 1) + "*";
+                    std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
                     ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
                     probePackageParameter = this->session->find<ProbePackageParameter>()
                         .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
