@@ -10,11 +10,7 @@
 # on enlève tout ce qui est lié à la compilation (on ne laisse que les sources)
 /bin/
 /obj/
-/dbo/nbproject/private/
-/build/Debug/
-/dist/Debug/
-/build/Release/
-/dist/Release/
+/nbproject/private/
 .dep.inc
 
 /build/*

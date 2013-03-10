@@ -11,101 +11,35 @@
  * 
  */
 
-#include "includeFile.h"
 #include <boost/thread/thread.hpp>
+#include <Wt/WServer>
 #include <tools/SessionPool.h>
 
-using namespace std;
+#include "Conf.h"
 
-//class TestSrAPI : public Wt::WResource
-//{
-//    public:
-//        virtual ~TestSrAPI()
-//        {
-//            beingDeleted();
-//        }
-//
-//    protected:
-//        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-//        {
-//            Session session(Utils::connection);
-//
-//            Wt::Http::Client *client = new Wt::Http::Client(this);
-//            
-//            client->done().connect(boost::bind(&TestSrAPI::handle, this, _1, _2));
-//            
-//            
-//            Wt::Http::Message message;
-//
-//            std::string bodyText = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><SR><GW>fr.netsizeonline.com</GW><P1>722564613</P1><P2></P2><P3>3</P3><P4>800</P4><P5>2012-07-27T14:06:44</P5><P6>echoesteMO-test-test</P6><PORT>38000</PORT></SR>";
-//
-//
-//            message.addBodyText(bodyText);
-//            message.setHeader("Content-Type", "text/plain");
-//            
-//            std::string apiAddress = "http://127.0.0.1:8080/sr";
-//            
-//            if (client->post(apiAddress,message)) 
-//            {
-//                Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
-//            }
-//            else
-//            {
-//                 Wt::log("error") << "[SMS] Failed to send message to API. Address : " << apiAddress;
-//            }
-//        }
-//        
-//        void handle(boost::system::error_code err, const Wt::Http::Message& response)
-//        {
-//            if (!err) 
-//            {
-//                if (response.status() == 200) 
-//                {
-//                    std::cout << "REPONSE : " << response.body().c_str();
-//                } 
-//                else 
-//                {
-//                    Wt::log("error") << "Http::Client error: " << response.status();
-//                }
-//            }
-//        }
-//};
-//
-//
-//class FakeNetsize : public PublicApiResource
-//{
-//    public:
-//        virtual ~FakeNetsize()
-//        {
-//            beingDeleted();
-//        }
-//
-//    protected:
-//        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-//        {
-//            response.out() << "<?xml version=""1.0"" encoding=""UTF-8""?>"
-//                                "<NMGSMSMTResponse>"
-//                                "<Result>"
-//                                "<Code>800</Code>"
-//                                "<Message>Success</Message>"
-//                                "</Result>"
-//                                "<TicketList>"
-//                                "<Ticket>"
-//                                "<StatusResultCode>0</StatusResultCode>"
-//                                "<StatusResultMessage></StatusResultMessage>"
-//                                "<Address>+33687693700</Address>"
-//                                "<IdTicket>722564613</IdTicket>"
-//                                "<MessageUID>10005001BY72F9</MessageUID>"
-//                                "</Ticket>"
-//                                "</TicketList>"
-//                                "</NMGSMSMTResponse>";
-//        }
-//};
+#include "PublicApiResource.h"
+
+#include "AssetResource.h"
+#include "ProbeResource.h"
+#include "InformationResource.h"
+#include "MediaResource.h"
+#include "PluginResource.h"
+#include "UserResource.h"
+#include "AlertResource.h"
+
+#include "itooki/ItookiSMSSender.h"
+#include "ItookiAckReceiver.h"
+#include "ItookiAswReceiver.h"
+
+#include "SendSMS.h"
+#include "SrReception.h"
+
+using namespace std;
 
 string Utils::connection;
 
 SessionPool* SessionPool::instance = 0;
-std::string SessionPool::credentials = "";
+string SessionPool::credentials = "";
 boost::mutex SessionPool::mutex;
 
 /**
@@ -125,8 +59,13 @@ int main(int argc, char **argv)
 
     try
     {
-        AssetRessource  assetRessource;
-        ProbeRessource  probeRessource;
+        InformationResource informationRessource;
+        MediaResource  mediaResource;
+        PluginResource pluginResource;
+        UserResource   userResource;
+        AlertResource  alertResource;
+        AssetResource  assetResource;
+        ProbeResource  probeResource;
         SrReception     receiveSr;
         SendSMS         sendSMS;
         ItookiSMSSender itookiSMSSender;
@@ -141,9 +80,14 @@ int main(int argc, char **argv)
         server.setServerConfiguration(argc, argv);
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
-
-        server.addResource(&assetRessource, "/asset");
-        server.addResource(&probeRessource, "/probe");
+        
+        server.addResource(&informationRessource, "/information");
+        server.addResource(&mediaResource, "/media");
+        server.addResource(&userResource, "/user");
+        server.addResource(&alertResource, "/alert");
+        server.addResource(&assetResource, "/assets");
+        server.addResource(&probeResource, "/probes");
+        server.addResource(&pluginResource, "/plugins");
         server.addResource(&receiveSr, "/netsize/sr");
         server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiSMSSender, "/itooki/sms/sender");

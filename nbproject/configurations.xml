@@ -9,12 +9,17 @@
         <itemPath>include/ItookiAswReceiver.h</itemPath>
         <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
       </logicalFolder>
-      <itemPath>include/AssetRessource.h</itemPath>
+      <itemPath>include/AlertResource.h</itemPath>
+      <itemPath>include/AssetResource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
-      <itemPath>include/ProbeRessource.h</itemPath>
+      <itemPath>include/InformationResource.h</itemPath>
+      <itemPath>include/MediaResource.h</itemPath>
+      <itemPath>include/PluginResource.h</itemPath>
+      <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
+      <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
       <itemPath>include/includeFile.h</itemPath>
     </logicalFolder>
@@ -30,9 +35,15 @@
         <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
         </logicalFolder>
-        <itemPath>src/AssetRessource.cpp</itemPath>
+        <itemPath>src/AlertResource.cpp</itemPath>
+        <itemPath>src/AssetResource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
-        <itemPath>src/ProbeRessource.cpp</itemPath>
+        <itemPath>src/InformationResource.cpp</itemPath>
+        <itemPath>src/MediaResource.cpp</itemPath>
+        <itemPath>src/PluginResource.cpp</itemPath>
+        <itemPath>src/ProbeResource.cpp</itemPath>
+        <itemPath>src/PublicApiResource.cpp</itemPath>
+        <itemPath>src/UserResource.cpp</itemPath>
       </logicalFolder>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
@@ -50,7 +61,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>src</Elem>
-    <Elem>include/itooki</Elem>
+    <Elem>include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -66,23 +77,23 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/include</pElem>
           </incDir>
+          <commandLine>-pedantic</commandLine>
+          <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>dbo</linkerLibLibItem>
-            <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
             <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>boost_system</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
+            <linkerLibLibItem>wt</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

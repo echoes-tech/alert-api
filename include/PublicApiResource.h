@@ -1,5 +1,5 @@
 /* 
- * Header of API Ressource
+ * Header of API Resource
  * @author ECHOES Technologies (TSA)
  * @date 08/08/2012
  * 
@@ -14,131 +14,55 @@
 #ifndef PUBLICAPIRESOURCE_H
 #define	PUBLICAPIRESOURCE_H
 
-#include "includeFile.h"
+#include <unistd.h>
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <boost/algorithm/string/predicate.hpp>
+
+#include <Wt/Http/Client>
+#include <Wt/Http/Request>
+#include <Wt/Http/Response>
+#include <Wt/WResource>
+#include <Wt/WLogger>
+#include <Wt/Utils>
+#include <Wt/WEnvironment>
+#include <Wt/Json/Object>
+#include <Wt/Json/Parser>
+
+#include <tools/Session.h>
+#include <tools/MainIncludeFile.h>
+
+#include "Utils.h"
 
 class PublicApiResource : public Wt::WResource {
     public:
-    virtual ~PublicApiResource() {
-        beingDeleted();
-    }
+        PublicApiResource();
+        virtual ~PublicApiResource();
 
     protected:
         std::string login;
         Wt::WString password;
         bool authentified;
         Session *session;
+        std::vector<std::string> vPathElements;
+        unsigned short indexPathElement, statusCode;
 
+        unsigned short retrieveCurrentHttpMethod(const std::string &method);
 
-        int releaseSplit(Wt::Http::Response &response, std::string distribRelease)
-        {
-            int release;
-            std::vector< std::string > splitRelease;
+        void setPathElementsVector(const std::string &path);
+        std::string getNextElementFromPath();
 
-            boost::split(splitRelease, distribRelease, boost::is_any_of("."), boost::token_compress_on);
+        std::string request2string(const Wt::Http::Request &request);
 
-            // Convert 1st release element to int
-            try
-            {
-                release = boost::lexical_cast<int>(splitRelease[0]);
-            }
-            catch(boost::bad_lexical_cast &)
-            {
-                response.setStatus(422);
-                response.out() << "{\"message\":\"Validation Failed\"}";
-                return -1;
-            }
-
-            return release;
-        }
+        virtual void processGetRequest(Wt::Http::Response &response);
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response) {
-            Wt::log("info") << "[PUBLIC API] Identifying";
-            // Setting the session
-            session = new Session(Utils::connection);
-            Session::configureAuth();
-
-            try 
-            {
-                session->createTables();
-                std::cerr << "Created database." << std::endl;
-            } catch (std::exception& e) {
-                std::cerr << e.what() << std::endl;
-                std::cerr << "Using existing database";
-            }
-
-            // default : not authentified
-            this->authentified = false;
-
-            this->login = "";
-            this->password = "";
-            if (!request.getParameterValues("login").empty()) {
-                this->login = request.getParameterValues("login")[0];
-            }
-            if (!request.getParameterValues("password").empty()) {
-                this->password = request.getParameterValues("password")[0];
-            }
-
-            const Wt::WString pass = this->password;
-
-            // transaction
-            {
-                try {
-                    Wt::Dbo::Transaction transaction(*session);
-
-                    // check whether the user exists
-                    Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
-                    if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
-                    {
-                        // find the user from his login
-                        Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
-
-                        if (!user.isValid()) 
-                        {
-                            Wt::log("info") << "[PUBLIC API] User invalid";
-                            return;
-                        }
-
-                        // verify
-                        switch (session->passwordAuth().verifyPassword(user, pass))
-                        {
-                            case Wt::Auth::PasswordValid:
-                                session->login().login(user);
-                                this->authentified = true;
-                                Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
-                                break;
-                            case Wt::Auth::LoginThrottling:
-                                Wt::log("info") << "[PUBLIC API] too many attempts.";
-                                break;
-                            case Wt::Auth::PasswordInvalid:
-                                Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
-                                break;
-                            default:
-                                break;
-                        }
-                    } else 
-                    {
-                        Wt::log("error") << "[PUBLIC API] User " << this->login << " not found";
-                    }
-                } catch (Wt::Dbo::Exception const& e) 
-                {
-                    Wt::log("error") << "[PUBLIC API] " << e.what();
-                }
-            }
-        }
-
-        std::string request2string(Wt::Http::Request r) {
-            char c;
-            std::string s;
-
-            // Getting the input stream for the request char by char
-            c = r.in().get();
-            while (r.in())
-            {
-                s.append(1,c);
-                c = r.in().get();
-            }
-            return s;
-        }
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };
 
 
