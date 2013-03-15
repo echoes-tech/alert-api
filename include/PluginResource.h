@@ -25,10 +25,12 @@ class PluginResource : public PublicApiResource
         
     protected :
         
+
+        unsigned short getParameterValueForSearch(std::string &responseMsg) const;
+        unsigned short getParameterValueForSource(std::string &responseMsg) const;
         unsigned short getInformationForSeaSrcAndPlg(std::string &responseMsg) const;
         unsigned short getSearchForSourceAndPlugin(std::string &responseMsg) const;
         unsigned short getSourceForPlugin(std::string &responseMsg) const;
-        unsigned short getKeyValueForInformation(std::string &responseMsg) const;
         unsigned short getInformationListForPlugin(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
@@ -40,6 +42,9 @@ class PluginResource : public PublicApiResource
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
+        unsigned short patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
+        unsigned short patchSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
+        unsigned short patchParametersSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         unsigned short deleteInformationForSeaSrcAndPlg(std::string &responseMsg);

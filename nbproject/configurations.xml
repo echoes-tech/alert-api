@@ -20,6 +20,7 @@
       <itemPath>include/PluginResource.h</itemPath>
       <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
+      <itemPath>include/SearchTypeResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
       <itemPath>include/UnitResource.h</itemPath>
@@ -50,6 +51,7 @@
         <itemPath>src/PluginResource.cpp</itemPath>
         <itemPath>src/ProbeResource.cpp</itemPath>
         <itemPath>src/PublicApiResource.cpp</itemPath>
+        <itemPath>src/SearchTypeResource.cpp</itemPath>
         <itemPath>src/UnitResource.cpp</itemPath>
         <itemPath>src/UserResource.cpp</itemPath>
       </logicalFolder>

@@ -24,6 +24,7 @@ class AddonResource : public PublicApiResource
         
     protected :
         
+        unsigned short getSearchTypeForAddon(std::string &responseMsg) const;    
         unsigned short getParameterForAddon(std::string &responseMsg) const;    
         unsigned short getAddonList(std::string &responseMsg) const;       
         virtual void processGetRequest(Wt::Http::Response &response);

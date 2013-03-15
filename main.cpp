@@ -19,6 +19,7 @@
 
 #include "PublicApiResource.h"
 
+#include "SearchTypeResource.h"
 #include "AddonResource.h"
 #include "CriteriaResource.h"
 #include "UnitResource.h"
@@ -63,6 +64,7 @@ int main(int argc, char **argv)
 
     try
     {
+        SearchTypeResource searchTypeResource;
         AddonResource addonResource;
         CriteriaResource criteriaResource;
         UnitResource unitResource;
@@ -89,6 +91,7 @@ int main(int argc, char **argv)
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
+        server.addResource(&searchTypeResource, "/search_types");
         server.addResource(&addonResource, "/addons");
         server.addResource(&criteriaResource, "/criterias");
         server.addResource(&unitResource, "/units");

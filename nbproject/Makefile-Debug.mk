@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/OrganizationResource.o \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/AddonResource.o \
+	${OBJECTDIR}/src/SearchTypeResource.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
 	${OBJECTDIR}/src/AssetResource.o \
@@ -110,6 +111,11 @@ ${OBJECTDIR}/src/AddonResource.o: src/AddonResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource.o src/AddonResource.cpp
+
+${OBJECTDIR}/src/SearchTypeResource.o: src/SearchTypeResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
 
 ${OBJECTDIR}/src/ProbeResource.o: src/ProbeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

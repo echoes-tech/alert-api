@@ -14,79 +14,10 @@
 
 #include "PluginResource.h"
 
+#include <Wt/Json/Array>
+#include <Wt/Json/Value>
+
 PluginResource::PluginResource(){
-}
-
-unsigned short PluginResource::getKeyValueForInformation(std::string &responseMsg) const
-{
-    unsigned short res = 500;
-    int idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*session);
-
-        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>().where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                                                                             .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
-                                                                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                                                                             .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
-                                                                             .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9])
-                                                                             .limit(1);
-
-        if (!ptrInfoKey)
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Information not found\"}";
-            return res;
-        }
-
-        std::string queryString = 
-        "SELECT iva FROM \"T_INFORMATION_VALUE_IVA\" iva WHERE \"IVA_ID\" IN ( SELECT \"IVA_ID\" FROM"
-        "("
-        "SELECT DISTINCT ON (\"IVA_VALUE\") \"IVA_VALUE\", \"IVA_ID\" FROM"
-        "(" "SELECT iva.\"IVA_VALUE\", iva.\"IVA_ID\" FROM \"T_INFORMATION_VALUE_IVA\" iva"
-        " WHERE \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]) + 
-        " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) + 
-        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + 
-        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<std::string>(this->vPathElements[7]) + 
-        " AND \"INU_ID_INU_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[9]) + 
-        " ORDER BY \"IVA_ID\" DESC LIMIT 50) sr"
-        " ) sr_sr"
-        ")";
-
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> > collPtrIva = session->query<Wt::Dbo::ptr<InformationValue> >(queryString);
-
-        if(collPtrIva.size() > 0)
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
-            { 
-                i->modify()->setId(i->id());
-                responseMsg += i->modify()->toJSON();
-                 ++idx;
-                if(collPtrIva.size()-idx > 0)
-                {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg = "]\n";
-            res = 200;
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Information value not found\"}";
-            return res;
-        }
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
-    }
-    return res;
 }
 
 unsigned short PluginResource::getInformationListForPlugin(std::string &responseMsg) const
@@ -117,7 +48,7 @@ unsigned short PluginResource::getInformationListForPlugin(std::string &response
                     responseMsg += ",\n";
                 }
             }
-            responseMsg = "]\n";
+            responseMsg += "]\n";
             res = 200;
             transaction.commit();
         }
@@ -169,6 +100,51 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(std::string& response
         {
             res = 404;
             responseMsg = "{\"message\":\"Search not found\"}";
+            return res;
+        }
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
+unsigned short PluginResource::getParameterValueForSearch(std::string &responseMsg) const
+{
+    unsigned short res = 500;
+    int idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = session->find<SearchParameterValue>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                                                                      .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                                                                      .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+        if (seaParamCollec.size() > 0)
+        {
+            responseMsg += "[\n";
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue> >::const_iterator i = seaParamCollec.begin(); i != seaParamCollec.end(); i++) 
+            {
+                responseMsg += "\t" + i->modify()->toJSON();
+                ++idx;
+                if(seaParamCollec.size()-idx > 0)
+                {
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg += "]\n";               
+
+            res = 200;
+        }
+        else 
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Parameter not found\"}";
             return res;
         }
         transaction.commit();
@@ -273,6 +249,51 @@ unsigned short PluginResource::getSourceForPlugin(std::string& responseMsg) cons
     return res;
 }
 
+unsigned short PluginResource::getParameterValueForSource(std::string& responseMsg) const
+{
+    unsigned short res = 500;
+    int idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue>> srcParamCollec = session->find<SourceParameterValue>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                                                                      .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+
+        if (srcParamCollec.size() > 0)
+        {
+            responseMsg += "[\n";
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue> >::const_iterator i = srcParamCollec.begin(); i != srcParamCollec.end(); i++) 
+            {
+                responseMsg += "\t" + i->modify()->toJSON();
+                ++idx;
+                if(srcParamCollec.size()-idx > 0)
+                {
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg += "]\n";               
+
+            res = 200;
+        }
+        else 
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Parameter not found\"}";
+            return res;
+        }
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
 void PluginResource::processGetRequest(Wt::Http::Response &response)
 {
     std::string responseMsg = "", nextElement = "";
@@ -294,7 +315,7 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
             if(!nextElement.compare("informations"))
             {
                 nextElement = getNextElementFromPath();
-                if(!nextElement.compare("informations"))
+                if(!nextElement.compare(""))
                 {
                     this->statusCode = getInformationListForPlugin(responseMsg);
                 }
@@ -315,7 +336,11 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
                 {
                     boost::lexical_cast<unsigned int>(nextElement);
                     nextElement = getNextElementFromPath();
-                    if (!nextElement.compare("searches"))
+                    if (!nextElement.compare("parameters"))
+                    {
+                        this->statusCode = getParameterValueForSource(responseMsg);
+                    }
+                    else if (!nextElement.compare("searches"))
                     {
                         nextElement = getNextElementFromPath();
                         if(!nextElement.compare(""))
@@ -326,7 +351,11 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
                         {
                             boost::lexical_cast<unsigned int>(nextElement);
                             nextElement = getNextElementFromPath();
-                            if(!nextElement.compare("informations"))
+                            if(!nextElement.compare("parameters"))
+                            {
+                                this->statusCode = getParameterValueForSearch(responseMsg);
+                            }
+                            else if(!nextElement.compare("informations"))
                             {
                                 nextElement = getNextElementFromPath();
                                 if(!nextElement.compare(""))
@@ -339,32 +368,6 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
                                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                                 }
                                 
-                            }
-                            else if (!nextElement.compare("inf_values"))
-                            {
-                                nextElement = getNextElementFromPath();
-                                boost::lexical_cast<unsigned int>(nextElement);
-                                nextElement = getNextElementFromPath();
-                                if (!nextElement.compare("units"))
-                                {
-                                    nextElement = getNextElementFromPath();
-                                    boost::lexical_cast<unsigned int>(nextElement);
-                                    nextElement = getNextElementFromPath();
-                                    if (!nextElement.compare("informations"))
-                                    {
-                                        this->statusCode = getKeyValueForInformation(responseMsg);
-                                    }
-                                    else
-                                    {
-                                        this->statusCode = 400;
-                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                                    }
-                                }
-                                else
-                                {
-                                    this->statusCode = 400;
-                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                                }
                             }
                             else
                             {
@@ -455,8 +458,7 @@ unsigned short PluginResource::postPlugin(std::string& responseMsg, const std::s
 unsigned short PluginResource::postSourceForPlugin(std::string& responseMsg, const std::string& sRequest)
 {
     unsigned short res = 500;
-    Wt::WString addonId = ""; // plgId = "";
-    long long srcId;
+    Wt::WString addonId = "";
     
     try
     {
@@ -467,13 +469,24 @@ unsigned short PluginResource::postSourceForPlugin(std::string& responseMsg, con
 
         addonIdInt = result.get("addon_id");
         addonId = boost::lexical_cast<std::string>(addonIdInt);
-//        plgIdInt = result.get("plg_id");
-//        plgId = boost::lexical_cast<std::string>(plgIdInt);
-        srcId = result.get("src_id");
+
         
         try
         {
             Wt::Dbo::Transaction transaction(*session);
+            
+            // creer l'id de la source
+            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
+            long long srcId = 1;
+            if(srcCollec.size()> 0)
+            {
+                std::string queryStr = "SELECT MAX(\"SRC_ID\") FROM \"T_SOURCE_SRC\" src "
+                                   " WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]);
+
+                Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
+                srcId = queryResult + 1;
+            }
+
             //creation de la source
             Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
             Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(addonId);
@@ -534,99 +547,160 @@ unsigned short PluginResource::postSourceForPlugin(std::string& responseMsg, con
 unsigned short PluginResource::postSearchForSourceAndPlugin(std::string& responseMsg, const std::string& sRequest)
 {
     unsigned short res = 500;
-    Wt::WString seaPeriod;// unitId;
-    long long seaId, styId;
+    Wt::WString seaPeriod;
+    long long styId;
     bool seaIsStatic;
     int posKeyValue, nbValue;
-        
+    Wt::Json::Array& units = Wt::Json::Array::Empty;
+    
     try
     {
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
-       // int unitIdInt;
-        
-        //information
-//        unitIdInt = result.get("unit_id");
-//        unitId = boost::lexical_cast<std::string>(unitIdInt);
 
         //search
         seaPeriod = result.get("sea_period");
         styId = result.get("sty_id");
-        seaId = result.get("sea_id");
         seaIsStatic = result.get("sea_is_static");
         posKeyValue = result.get("pos_key_value");
         nbValue = result.get("nb_value");
-        
-        try
+        units = result.get("units");
+        if(units.size() <= nbValue)
         {
-            Wt::Dbo::Transaction transaction(*session);
-            
-            //creation de la search
-            Wt::Dbo::ptr<Source> srcPtr = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                                                                 .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-            if(srcPtr)
+            try
             {
-                Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(styId);
-                if(seaTypPtr)
+                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::ptr<Search> seaPtr;
+                //verif si le search type va avec l'addon 
+                
+                std::string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
+                                       " WHERE \"STY_ID\" IN"
+                                        "("
+                                            "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
+                                            "WHERE \"T_ADDON_ADO_ADO_ID\" = " 
+                                            "("
+                                                "SELECT \"SRC_ADO_ADO_ID\" FROM \"T_SOURCE_SRC\" "
+                                                "WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+                                                "AND \"SRC_ID\" =  " + boost::lexical_cast<std::string>(this->vPathElements[3]) + 
+                                            ")"
+                                        ")"
+                                        "AND \"STY_ID\" = " + boost::lexical_cast<std::string>(styId);
+                
+     
+                //std::cerr << queryStr << std::endl;
+                Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
+
+                Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
+
+                if(seaTypePtr.size() == 0)
                 {
-                    Search *search = new Search;
-                    search->pk.id = seaId;
-                    search->pk.source = srcPtr;
-                    search->searchType = seaTypPtr;
-                    search->period = seaPeriod;
-                    search->nbValue = nbValue;
-                    search->pos_key_value = posKeyValue;
-                    search->searchIsStatic = seaIsStatic;
-                    Wt::Dbo::ptr<Search> seaPtr = session->add<Search>(search);
-                    seaPtr.flush();
+                        res = 404;
+                        responseMsg = "{\"message\":\"Search Type not found.\"}";
+                        return res;
+                }
+                // creer l'id de la search
+                Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+                long long seaId = 1;
+                if (seaCollec.size() > 0)
+                {
+                    std::string queryStr = "SELECT MAX(\"SEA_ID\") FROM \"T_SEARCH_SEA\" sea "
+                                           " WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]) +
+                                           " AND \"SRC_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[3]) ;
 
+                    Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
+                    seaId = queryResult + 1;    
+                }
 
-                    Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr.get()->searchParameters;
-                    //creations des parametres
-                    for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                //creation de la search
+                Wt::Dbo::ptr<Source> srcPtr = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+                if(srcPtr)
+                {
+                    Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(styId);
+                    if(seaTypPtr)
                     {
-                        SearchParameterValue *searchParameterValue = new SearchParameterValue;
+                        Search *search = new Search;
+                        search->pk.id = seaId;
+                        search->pk.source = srcPtr;
+                        search->searchType = seaTypPtr;
+                        search->period = seaPeriod;
+                        search->nbValue = nbValue;
+                        search->pos_key_value = posKeyValue;
+                        search->searchIsStatic = seaIsStatic;
+                        seaPtr = session->add<Search>(search);
+                        seaPtr.flush();
 
-                        //recuperation des "search_parameters" dans le JSON
-                        Wt::WString tmp = result.get(boost::lexical_cast<std::string>((*i).get()->name));
 
-                        searchParameterValue->value = tmp;
-                        searchParameterValue->name = (*i).get()->name;
-                        searchParameterValue->searchParameterValueId.searchParameter = *i;
-                        searchParameterValue->searchParameterValueId.search = seaPtr;
-                        session->add<SearchParameterValue>(searchParameterValue);
+                        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr.get()->searchParameters;
+                        //creations des parametres
+                        for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                        {
+                            SearchParameterValue *searchParameterValue = new SearchParameterValue;
+
+                            //recuperation des "search_parameters" dans le JSON
+                            Wt::WString tmp = result.get(boost::lexical_cast<std::string>((*i).get()->name));
+
+                            searchParameterValue->value = tmp;
+                            searchParameterValue->name = (*i).get()->name;
+                            searchParameterValue->searchParameterValueId.searchParameter = *i;
+                            searchParameterValue->searchParameterValueId.search = seaPtr;
+                            session->add<SearchParameterValue>(searchParameterValue);
+                        }
+
+                        //liée aux valeurs recherchées une unité
+                        for (Wt::Json::Array::const_iterator idx1 = units.begin() ; idx1 < units.end(); idx1++)
+                        {
+                            Wt::Json::Object tmp = (*idx1);
+                            int valNumUnit = tmp.get("val_num");
+                            int unitId = tmp.get("unit_id");
+                            Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
+                            if (informationUnitPtr && valNumUnit <= nbValue)
+                            {
+                                SearchUnit *searchUnit = new SearchUnit;
+                                searchUnit->pk.infValueNum = valNumUnit;
+                                searchUnit->pk.search = seaPtr;
+                                searchUnit->informationUnit = informationUnitPtr;
+                                session->add<SearchUnit>(searchUnit);
+                            }
+                            else
+                            {
+                                std::cerr << "info non trouvée ou valNum non autorisée" << std::endl;
+                                res = 400;
+                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+                                return res;
+                            }
+                        }
                     }
-
-//                    Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
-//
-//                    SearchUnit *searchUnit = new SearchUnit;
-//                    searchUnit->pk.infValueNum = posKeyValue;
-//                    searchUnit->pk.search = seaPtr;
-//                    searchUnit->informationUnit = informationUnitPtr;
-//                    session->add<SearchUnit>(searchUnit);
+                    else
+                    {
+                        res = 404;
+                        responseMsg = "{\"message\":\"Search Type not found\"}";
+                        return res;
+                    }
                 }
                 else
                 {
                     res = 404;
-                    responseMsg = "{\"message\":\"Search Type not found\"}";
+                    responseMsg = "{\"message\":\"Source not found\"}";
                     return res;
                 }
+                responseMsg = seaPtr.modify()->toJSON();
+                transaction.commit();
             }
-            else
+            catch (Wt::Dbo::Exception const& e) 
             {
-                res = 404;
-                responseMsg = "{\"message\":\"Source not found\"}";
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
                 return res;
             }
-
-            transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        else
         {
-            Wt::log("error") << e.what();
-            res = 503;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
-            return res;
+             std::cerr << "unité sur val_num non declarée" << std::endl;
+             this->statusCode = 400;
+             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";  
         }
     }
     catch (Wt::Json::ParseError const& e)
@@ -649,7 +723,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(std::string& respons
 unsigned short PluginResource::postInformationForSeaSrcAndPlg(std::string& responseMsg, const std::string& sRequest)
 {
     unsigned short res = 500;
-    Wt::WString infName, unitId, infCalculate;
+    Wt::WString infName, /*unitId,*/ infCalculate;
     bool infDisplay;
     int valueNum;
          
@@ -657,11 +731,11 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(std::string& respo
     {
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
-        int unitIdInt;
+        //int unitIdInt;
         
         //information
-        unitIdInt = result.get("unit_id");
-        unitId = boost::lexical_cast<std::string>(unitIdInt);
+        //unitIdInt = result.get("unit_id");
+        //unitId = boost::lexical_cast<std::string>(unitIdInt);
         infName = result.get("inf_name");
         infDisplay = result.get("inf_display");
         infCalculate = result.get("inf_calculate");
@@ -680,19 +754,23 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(std::string& respo
             {
                 //Relier une unité à l'info
                 // unit exist?
-                Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
-                if(informationUnitPtr)
+                Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>().where("\"INF_VALUE_NUM\" = ?").bind(valueNum)
+                                                                                 .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                                 .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                                 .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+                if(seaUnitPtr)
                 {
+                    /*
                     SearchUnit *searchUnit = new SearchUnit;
                     searchUnit->pk.infValueNum = valueNum;
                     searchUnit->pk.search = seaPtr;
                     searchUnit->informationUnit = informationUnitPtr;
                     session->add<SearchUnit>(searchUnit);
-
+*/
                     //creation info
                     Information2 *information = new Information2;
                     information->pk.search = seaPtr;
-                    information->pk.unit = informationUnitPtr;
+                    information->pk.unit = seaUnitPtr.get()->informationUnit;
                     information->pk.subSearchNumber = valueNum;
                     information->name = infName;
                     information->display = infDisplay;
@@ -745,70 +823,197 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(std::string& respo
 void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     
- std::string responseMsg = "", nextElement = "", sRequest = "";
+// std::string responseMsg = "", nextElement = "", sRequest = "";
+//
+//    nextElement = getNextElementFromPath();
+//    if(!nextElement.compare(""))
+//    {
+//        this->statusCode = 400;
+//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+//    }
+//    else
+//    {
+//        try
+//        {
+//            boost::lexical_cast<unsigned int>(nextElement);
+//            nextElement = getNextElementFromPath();
+//            if(!nextElement.compare(""))
+//            {
+//                this->statusCode = deletePlugin(responseMsg);
+//            }
+//            else if(!nextElement.compare("sources"))
+//            {
+//                nextElement = getNextElementFromPath();
+//                boost::lexical_cast<unsigned int>(nextElement);
+//
+//                nextElement = getNextElementFromPath();
+//                if(!nextElement.compare(""))
+//                {
+//                    this->statusCode = deleteSourceForPlugin(responseMsg);
+//                }
+//                else if(!nextElement.compare("searches"))
+//                {
+//                    
+//                    nextElement = getNextElementFromPath();
+//                    boost::lexical_cast<unsigned int>(nextElement);
+//
+//                    nextElement = getNextElementFromPath();
+//
+//                    if(!nextElement.compare(""))
+//                    {
+//                        this->statusCode = deleteSearchForSourceAndPlugin(responseMsg);
+//                    }
+//                    else if (!nextElement.compare("inf_values"))
+//                    {
+//                        nextElement = getNextElementFromPath();
+//                        boost::lexical_cast<unsigned int>(nextElement);
+//                        nextElement = getNextElementFromPath();
+//                        if (!nextElement.compare("units"))
+//                        {
+//                            nextElement = getNextElementFromPath();
+//                            boost::lexical_cast<unsigned int>(nextElement);
+//                            nextElement = getNextElementFromPath();
+//                            if (!nextElement.compare("informations"))
+//                            {
+//                                this->statusCode = deleteInformationForSeaSrcAndPlg(responseMsg);
+//                            }
+//                            else
+//                            {
+//                                this->statusCode = 400;
+//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//                            }
+//                        }
+//                        else
+//                        {
+//                            this->statusCode = 400;
+//                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//                        }
+//                    }
+//                    else
+//                    {
+//                        this->statusCode = 400;
+//                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//                    }
+//                }
+//                else
+//                {
+//                    this->statusCode = 400;
+//                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//                }
+//            }
+//            else
+//            {
+//                this->statusCode = 400;
+//                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//            }
+//        }
+//        catch(boost::bad_lexical_cast &)
+//        {
+//            this->statusCode = 400;
+//            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//        }
+//    }
+//
+//    response.setStatus(this->statusCode);
+//    response.out() << responseMsg;
+//    return;
 
+
+    std::string responseMsg = "", nextElement = "", sRequest = "";
+
+    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+        this->statusCode = postPlugin(responseMsg, sRequest);
     }
     else
-    {
+    {       
         try
         {
             boost::lexical_cast<unsigned int>(nextElement);
-            nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = deletePlugin(responseMsg);
-            }
-            else if(!nextElement.compare("sources"))
-            {
-                nextElement = getNextElementFromPath();
-                boost::lexical_cast<unsigned int>(nextElement);
 
+            nextElement = getNextElementFromPath();
+
+            if(!nextElement.compare("sources"))
+            {
                 nextElement = getNextElementFromPath();
-                if(!nextElement.compare(""))
+                if (!nextElement.compare(""))
                 {
-                    this->statusCode = deleteSourceForPlugin(responseMsg);
+                    this->statusCode = postSourceForPlugin(responseMsg, sRequest);
                 }
-                else if(!nextElement.compare("searches"))
+                else
                 {
-                    
-                    nextElement = getNextElementFromPath();
                     boost::lexical_cast<unsigned int>(nextElement);
 
                     nextElement = getNextElementFromPath();
-
+ ///////////////////////////////////////
                     if(!nextElement.compare(""))
                     {
-                        this->statusCode = deleteSearchForSourceAndPlugin(responseMsg);
+                        this->statusCode = patchParametersSourceForPlugin(responseMsg, sRequest);
                     }
-                    else if (!nextElement.compare("inf_values"))
+ ///////////////////////////////////////                    
+                    else if(!nextElement.compare("searches"))
                     {
                         nextElement = getNextElementFromPath();
-                        boost::lexical_cast<unsigned int>(nextElement);
-                        nextElement = getNextElementFromPath();
-                        if (!nextElement.compare("units"))
+                        if (!nextElement.compare(""))
                         {
-                            nextElement = getNextElementFromPath();
+                            this->statusCode = postSearchForSourceAndPlugin(responseMsg, sRequest);
+                        }
+                        else
+                        {
                             boost::lexical_cast<unsigned int>(nextElement);
                             nextElement = getNextElementFromPath();
-                            if (!nextElement.compare("informations"))
+ ///////////////////////////////////////
+                            if(!nextElement.compare(""))
                             {
-                                this->statusCode = deleteInformationForSeaSrcAndPlg(responseMsg);
+                                this->statusCode = patchSearchForSourceAndPlugin(responseMsg, sRequest);
+                            }
+                            else if (!nextElement.compare("inf_values"))
+                            {
+                                nextElement = getNextElementFromPath();
+                                boost::lexical_cast<unsigned int>(nextElement);
+                                nextElement = getNextElementFromPath();
+                                if (!nextElement.compare("units"))
+                                {
+                                    nextElement = getNextElementFromPath();
+                                    boost::lexical_cast<unsigned int>(nextElement);
+                                    nextElement = getNextElementFromPath();
+                                    if (!nextElement.compare("informations"))
+                                    {
+                                        this->statusCode = patchInformationForSeaSrcAndPlg(responseMsg, sRequest);
+                                    }
+                                    else
+                                    {
+                                        this->statusCode = 400;
+                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                    }
+                                }
+                                else
+                                {
+                                    this->statusCode = 400;
+                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                }
+                            }
+ ///////////////////////////////////////       
+                            else if(!nextElement.compare("informations"))
+                            {
+                                nextElement = getNextElementFromPath();
+                                if (!nextElement.compare(""))
+                                {
+                                    this->statusCode = postInformationForSeaSrcAndPlg(responseMsg, sRequest);
+                                }
+                                else
+                                {
+                                    this->statusCode = 400;
+                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                }
                             }
                             else
                             {
                                 this->statusCode = 400;
                                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                             }
-                        }
-                        else
-                        {
-                            this->statusCode = 400;
-                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                         }
                     }
                     else
@@ -817,10 +1022,370 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
                         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                     }
                 }
+            }
+            else
+            {  
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }             
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
+    return ;
+}
+
+
+void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+    return;
+}
+
+unsigned short PluginResource::patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest)
+{
+     unsigned short res = 500;
+    Wt::WString infName, infCalculate;
+    bool infDisplay;
+    int valueNum;
+         
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+        
+        //information
+        infName = result.get("inf_name");
+        infDisplay = result.get("inf_display");
+        infCalculate = result.get("inf_calculate");
+        
+        try
+        {
+            Wt::Dbo::Transaction transaction(*session);
+            
+            // Information exist?
+            Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                             .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                             .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                                                                             .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                                                                             .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
+            if(infPtr)
+            {
+                //Relier une unité à l'info
+                // unit exist?
+                Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>().where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                                                                                 .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                                 .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                                 .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+                if(seaUnitPtr)
+                {
+
+                    //creation info
+                    infPtr.modify()->name = infName;
+                    infPtr.modify()->display = infDisplay;
+                    infPtr.modify()->calculate = infCalculate;
+                    responseMsg = infPtr.modify()->toJSON();
+                }
                 else
+                {
+                    res = 404;
+                    responseMsg = "{\"message\":\"Unit not found\"}";
+                    return res;
+                }
+            }
+            else
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Information not found\"}";
+                return res;
+            }
+            res = 200;
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            return res;
+        }
+    }
+    catch (Wt::Json::ParseError const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }   
+    return res; 
+}
+
+unsigned short PluginResource::patchSearchForSourceAndPlugin(std::string& responseMsg, const std::string& sRequest)
+{
+    unsigned short res = 500;
+    Wt::WString seaPeriod;
+    long long styId;
+    bool seaIsStatic;
+    int posKeyValue, nbValue;
+//    Wt::Json::Array& units = Wt::Json::Array::Empty;
+    
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+
+        //search
+        seaPeriod = result.get("sea_period");
+//        styId = result.get("sty_id");
+        seaIsStatic = result.get("sea_is_static");
+        posKeyValue = result.get("pos_key_value");
+//        nbValue = result.get("nb_value");
+//        units = result.get("units");
+//        if(units.size() <= nbValue)
+//        {
+            try
+            {
+                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::ptr<Search> seaPtr;
+
+                //modification de la search si elle exist
+                seaPtr = session->find<Search>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+                if(seaPtr)
+                {
+                    Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(seaPtr.get()->searchType.id());
+                    if(seaTypPtr)
+                    {
+                        
+                        seaPtr.modify()->period = seaPeriod;
+//                        seaPtr.modify()->nbValue = nbValue;
+                        seaPtr.modify()->pos_key_value = posKeyValue;
+                        seaPtr.modify()->searchIsStatic = seaIsStatic;
+
+                        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr.get()->searchParameters;
+                        //modification des parametres
+                        for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                        {
+                            Wt::Dbo::ptr<SearchParameterValue> searchParameterValuePtr = session->find<SearchParameterValue>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                                                                              .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                                                                              .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                                                                                                                              .where("\"SEP_ID_SEP_ID\" = ?").bind((*i).id());
+
+                            //recuperation des "search_parameters" dans le JSON
+                            Wt::WString tmp = result.get(boost::lexical_cast<std::string>((*i).get()->name));
+
+                            searchParameterValuePtr.modify()->value = tmp;
+                        }
+
+//                        //on supprime les unité pour les remplacer avec les modifs
+//                        std::string executeString1 = "DELETE FROM \"T_SEARCH_UNIT_SEU\" "
+//                                             "WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+//                                                " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) +
+//                                                " AND \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]);
+//                        session->execute(executeString1);
+//                        //liée aux valeurs recherchées une unité
+//                        for (Wt::Json::Array::const_iterator idx1 = units.begin() ; idx1 < units.end(); idx1++)
+//                        {
+//                            Wt::Json::Object tmp = (*idx1);
+//                            int valNumUnit = tmp.get("val_num");
+//                            int unitId = tmp.get("unit_id");
+//                            Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
+//                            if (informationUnitPtr && valNumUnit <= nbValue)
+//                            {
+//                                SearchUnit *searchUnit = new SearchUnit;
+//                                searchUnit->pk.infValueNum = valNumUnit;
+//                                searchUnit->pk.search = seaPtr;
+//                                searchUnit->informationUnit = informationUnitPtr;
+//                                session->add<SearchUnit>(searchUnit);
+//                            }
+//                            else
+//                            {
+//                                std::cerr << "info non trouvée ou valNum non autorisée" << std::endl;
+//                                res = 400;
+//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+//                                return res;
+//                            }
+//                        }
+                    }
+                    else
+                    {
+                        res = 404;
+                        responseMsg = "{\"message\":\"Search Type not found\"}";
+                        return res;
+                    }
+                }
+                else
+                {
+                    res = 404;
+                    responseMsg = "{\"message\":\"Search not found\"}";
+                    return res;
+                }
+                responseMsg = seaPtr.modify()->toJSON();
+                transaction.commit();
+            }
+            catch (Wt::Dbo::Exception const& e) 
+            {
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
+                return res;
+            }
+//        }
+//        else
+//        {
+//             std::cerr << "unité sur val_num non declarée" << std::endl;
+//             this->statusCode = 400;
+//             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";  
+//        }
+    }
+    catch (Wt::Json::ParseError const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }   
+    return res;
+}
+
+unsigned short PluginResource::patchParametersSourceForPlugin(std::string &responseMsg, const std::string &sRequest)
+{
+    unsigned short res = 500;
+    Wt::Json::Array& parameters = Wt::Json::Array::Empty;
+    
+    try
+    {
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+        parameters = result.get("parameters");
+        try
+        {
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::ptr<Source> srcPtr = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                 .where("\"SRC_ID\" = ?").bind(this->vPathElements[2]);
+
+            if(srcPtr)
+            {
+                //modification des parametres
+                Wt::Dbo::ptr<SourceParameterValue> srcParamValPtr;
+                for (Wt::Json::Array::const_iterator idx1 = parameters.begin() ; idx1 < parameters.end(); idx1++)
+                {
+                    Wt::Json::Object tmp = (*idx1);
+                    int srpIdParam = tmp.get("srp_id");
+                    Wt::WString valueParam = tmp.get("value");
+
+
+                    srcParamValPtr = session->find<SourceParameterValue>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                          .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                                                          .where("\"SRP_ID_SRP_ID\" = ?").bind(srpIdParam);
+                    if (srcParamValPtr)
+                    {
+                        srcParamValPtr.modify()->value = valueParam;
+                    }
+                    else
+                    {
+                        res = 404;
+                        responseMsg = "{\"message\":\"Parameter not found\"}";
+                        return res;
+                    }
+                    responseMsg += srcParamValPtr.modify()->toJSON();
+                }
+            }
+            else
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Source not found\"}";
+                return res;
+            }
+            res = 200;
+            
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            return res;
+        }
+    }
+    catch (Wt::Json::ParseError const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }   
+
+    return res;
+}
+
+void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+{
+   std::string responseMsg = "", nextElement = "", sRequest = "";
+    
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned int>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (!nextElement.compare("sources"))
+            {
+                nextElement = getNextElementFromPath();
+                if(!nextElement.compare(""))
                 {
                     this->statusCode = 400;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+                else
+                {
+                    boost::lexical_cast<unsigned int>(nextElement);
+                    nextElement = getNextElementFromPath();
+                    if (!nextElement.compare("parameters"))
+                    {
+                        this->statusCode = patchParametersSourceForPlugin(responseMsg, sRequest);
+                    }
+                    else
+                    {
+                        this->statusCode = 400;
+                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                    }
                 }
             }
             else
@@ -838,104 +1403,6 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
 
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
-    return;
-
-
-//    std::string responseMsg = "", nextElement = "", sRequest = "";
-//
-//    sRequest = request2string(request);
-//    nextElement = getNextElementFromPath();
-//    if(!nextElement.compare(""))
-//    {
-//        this->statusCode = postPlugin(responseMsg, sRequest);
-//    }
-//    else
-//    {       
-//        try
-//        {
-//            boost::lexical_cast<unsigned int>(nextElement);
-//
-//            nextElement = getNextElementFromPath();
-//
-//            if(!nextElement.compare("sources"))
-//            {
-//                nextElement = getNextElementFromPath();
-//                if (!nextElement.compare(""))
-//                {
-//                    this->statusCode = postSourceForPlugin(responseMsg, sRequest);
-//                }
-//                else
-//                {
-//                    boost::lexical_cast<unsigned int>(nextElement);
-//
-//                    nextElement = getNextElementFromPath();
-//
-//                    if(!nextElement.compare("searches"))
-//                    {
-//                        nextElement = getNextElementFromPath();
-//                        if (!nextElement.compare(""))
-//                        {
-//                            this->statusCode = postSearchForSourceAndPlugin(responseMsg, sRequest);
-//                        }
-//                        else
-//                        {
-//                            boost::lexical_cast<unsigned int>(nextElement);
-//                            nextElement = getNextElementFromPath();
-//
-//                            if(!nextElement.compare("informations"))
-//                            {
-//                                nextElement = getNextElementFromPath();
-//                                if (!nextElement.compare(""))
-//                                {
-//                                    this->statusCode = postInformationForSeaSrcAndPlg(responseMsg, sRequest);
-//                                }
-//                                else
-//                                {
-//                                    this->statusCode = 400;
-//                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                }
-//                            }
-//                            else
-//                            {
-//                                this->statusCode = 400;
-//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                            }
-//                        }
-//                    }
-//                    else
-//                    {
-//                        this->statusCode = 400;
-//                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                    }
-//                }
-//            }
-//            else
-//            {  
-//                this->statusCode = 400;
-//                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//            }
-//        }
-//        catch(boost::bad_lexical_cast &)
-//        {
-//            this->statusCode = 400;
-//            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//        }             
-//    }
-//
-//    response.setStatus(this->statusCode);
-//    response.out() << responseMsg;
-//    return ;
-}
-
-
-void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    return;
-}
-
-
-void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
     return;
 }
 
@@ -972,15 +1439,15 @@ unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(std::string& res
                                                 " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<std::string>(this->vPathElements[7]) +
                                                 " AND \"INU_ID_INU_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[9]);
                 
-                //supprime search unit
+                /*//supprime search unit
                 std::string executeString2 = "DELETE FROM \"T_SEARCH_UNIT_SEU\" "
                                              "WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
                                                 " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) +
                                                 " AND \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]) +
                                                 " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<std::string>(this->vPathElements[7]);
-                                                                
+                  */                                              
                 session->execute(executeString1);
-                session->execute(executeString2);
+                //session->execute(executeString2);
             }
             else
             {
@@ -1044,8 +1511,15 @@ unsigned short PluginResource::deleteSearchForSourceAndPlugin(std::string& respo
                                              "WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
                                                 " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) +
                                                 " AND \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]);
+                
+                std::string executeString3 = "DELETE FROM \"T_SEARCH_UNIT_SEU\" "
+                                             "WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+                                                " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) +
+                                                " AND \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]);
                 session->execute(executeString1);
+                session->execute(executeString3);
                 session->execute(executeString2);
+                
             }
             else
             {

@@ -140,6 +140,79 @@ unsigned short AssetResource::getAsset(string &responseMsg) const
     return res;
 }
 
+
+unsigned short AssetResource::getKeyValueForInformation(std::string &responseMsg) const
+{
+    unsigned short res = 500;
+    int idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*session);
+
+        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>().where("\"SRC_ID\" = ?").bind(this->vPathElements[5])
+                                                                             .where("\"SEA_ID\" = ?").bind(this->vPathElements[7])
+                                                                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[3])
+                                                                             .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[9])
+                                                                             .limit(1);
+
+        if (!ptrInfoKey)
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Information not found\"}";
+            return res;
+        }
+
+        std::string queryString = 
+        "SELECT iva FROM \"T_INFORMATION_VALUE_IVA\" iva WHERE \"IVA_ID\" IN ( SELECT \"IVA_ID\" FROM"
+        "("
+        "SELECT DISTINCT ON (\"IVA_VALUE\") \"IVA_VALUE\", \"IVA_ID\" FROM"
+        "(" "SELECT iva.\"IVA_VALUE\", iva.\"IVA_ID\" FROM \"T_INFORMATION_VALUE_IVA\" iva"
+        " WHERE \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[7]) + 
+        " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]) + 
+        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) + 
+        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<std::string>(this->vPathElements[9]) + 
+        " AND \"IVA_AST_AST_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+        " ORDER BY \"IVA_ID\" DESC LIMIT 50) sr"
+        " ) sr_sr"
+        ")";
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> > collPtrIva = session->query<Wt::Dbo::ptr<InformationValue> >(queryString);
+
+        if(collPtrIva.size() > 0)
+        {
+            responseMsg = "[\n";
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
+            { 
+                i->modify()->setId(i->id());
+                responseMsg += i->modify()->toJSON();
+                 ++idx;
+                if(collPtrIva.size()-idx > 0)
+                {
+                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg += "]\n";
+            res = 200;
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Information value not found\"}";
+            return res;
+        }
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        return res;
+    }
+    return res;
+}
+
+
 unsigned short AssetResource::getPluginsListForAsset(string &responseMsg) const
 {
     unsigned short res = 500;
@@ -247,14 +320,58 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned int>(nextElement);
 
             nextElement = getNextElementFromPath();
-
             if(!nextElement.compare(""))
             {
                 this->statusCode = getAsset(responseMsg);
             }
             else if(!nextElement.compare("plugins"))
             {
-                this->statusCode = getPluginsListForAsset(responseMsg);
+                nextElement = getNextElementFromPath();
+                if(!nextElement.compare(""))
+                {
+                    this->statusCode = getPluginsListForAsset(responseMsg);
+                }
+                else
+                {
+                    boost::lexical_cast<unsigned int>(nextElement);
+
+                    nextElement = getNextElementFromPath();
+                    if (!nextElement.compare("sources"))
+                    {
+                        nextElement = getNextElementFromPath();
+                      
+                        boost::lexical_cast<unsigned int>(nextElement);
+                        nextElement = getNextElementFromPath();
+                        if (!nextElement.compare("searches"))
+                        {
+                            nextElement = getNextElementFromPath();
+                           
+                            boost::lexical_cast<unsigned int>(nextElement);
+                            nextElement = getNextElementFromPath();
+                            if (!nextElement.compare("inf_values"))
+                            {
+                                nextElement = getNextElementFromPath();
+                                boost::lexical_cast<unsigned int>(nextElement);
+                                nextElement = getNextElementFromPath();
+
+                                if (!nextElement.compare("informations"))
+                                {
+                                    this->statusCode = getKeyValueForInformation(responseMsg);
+                                }
+                                else
+                                {
+                                    this->statusCode = 400;
+                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                }
+                            }
+                            else
+                            {
+                                this->statusCode = 400;
+                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                            }
+                        }   
+                    }
+                }
             }
             else if(!nextElement.compare("probes"))
             {
