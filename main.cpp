@@ -19,6 +19,10 @@
 
 #include "PublicApiResource.h"
 
+#include "SearchTypeResource.h"
+#include "AddonResource.h"
+#include "CriteriaResource.h"
+#include "UnitResource.h"
 #include "AssetResource.h"
 #include "ProbeResource.h"
 #include "InformationResource.h"
@@ -26,6 +30,7 @@
 #include "PluginResource.h"
 #include "UserResource.h"
 #include "AlertResource.h"
+#include "OrganizationResource.h"
 
 #include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
@@ -59,6 +64,11 @@ int main(int argc, char **argv)
 
     try
     {
+        SearchTypeResource searchTypeResource;
+        AddonResource addonResource;
+        CriteriaResource criteriaResource;
+        UnitResource unitResource;
+        OrganizationResource organizationRessource;
         InformationResource informationRessource;
         MediaResource  mediaResource;
         PluginResource pluginResource;
@@ -81,10 +91,16 @@ int main(int argc, char **argv)
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
-        server.addResource(&informationRessource, "/information");
-        server.addResource(&mediaResource, "/media");
-        server.addResource(&userResource, "/user");
-        server.addResource(&alertResource, "/alert");
+        server.addResource(&searchTypeResource, "/search_types");
+        server.addResource(&addonResource, "/addons");
+        server.addResource(&criteriaResource, "/criterias");
+        server.addResource(&unitResource, "/units");
+        server.addResource(&organizationRessource, "/organizations");
+        server.addResource(&informationRessource, "/informations");
+        server.addResource(&mediaResource, "/medias");
+        server.addResource(&pluginResource, "/plugins");
+        server.addResource(&userResource, "/users");
+        server.addResource(&alertResource, "/alerts");
         server.addResource(&assetResource, "/assets");
         server.addResource(&probeResource, "/probes");
         server.addResource(&pluginResource, "/plugins");

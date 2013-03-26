@@ -24,6 +24,7 @@ class AssetResource : public PublicApiResource
         virtual ~AssetResource();
 
     protected:
+        unsigned short getKeyValueForInformation(std::string &responseMsg) const;
         unsigned short getAssetsList(std::string &responseMsg) const;
         unsigned short getAsset(std::string &responseMsg) const;
         unsigned short getPluginsListForAsset(std::string &responseMsg) const;

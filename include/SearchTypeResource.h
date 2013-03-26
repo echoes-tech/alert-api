@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API InformationResource
+ * HEADER OF API SearchTypeResource
  * @author ECHOES Technologies (GDR)
- * @date 13/02/2013
+ * @date 14/03/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,28 +11,33 @@
  * 
  */
 
-#ifndef INFORMATIONRESOURCE_H
-#define	INFORMATIONRESOURCE_H
+
+#ifndef SEARCHTYPERESOURCE_H
+#define	SEARCHTYPERESOURCE_H
 
 #include "includeFile.h"
 
 
-class InformationResource : public PublicApiResource
+class SearchTypeResource : public PublicApiResource
 {
     public :
-        InformationResource();
-        virtual ~InformationResource();
+        SearchTypeResource();
+        virtual ~SearchTypeResource();
         
     protected :
-        
+       
+        unsigned short getSearchTypeList(std::string &responseMsg) const; 
+        unsigned short getParameterForSearchType(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
+        unsigned short postSearchType(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+        unsigned short deleteSearchType(std::string &responseMsg);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -40,5 +45,5 @@ class InformationResource : public PublicApiResource
 };
 
 
-#endif	/* INFORMATIONRESOURCE_H */
+#endif	/* SEARCHTYPERESOURCE_H */
 

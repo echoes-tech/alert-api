@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API InformationResource
+ * HEADER OF API OrganizationResource
  * @author ECHOES Technologies (GDR)
- * @date 13/02/2013
+ * @date 18/02/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,20 +11,23 @@
  * 
  */
 
-#ifndef INFORMATIONRESOURCE_H
-#define	INFORMATIONRESOURCE_H
+#ifndef ORGANIZATIONRESOURCE_H
+#define	ORGANIZATIONRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
-
-class InformationResource : public PublicApiResource
+class OrganizationResource : public PublicApiResource
 {
     public :
-        InformationResource();
-        virtual ~InformationResource();
+        OrganizationResource();
+        virtual ~OrganizationResource();
         
     protected :
         
+        unsigned short getOrganization(std::string &responseMsg) const;
+        unsigned short getUsersForOrganization(std::string &responseMsg) const;
+        unsigned short getQuotasSms(std::string &responseMsg) const;
+        unsigned short getQuotasAsset(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -35,10 +38,8 @@ class InformationResource : public PublicApiResource
 
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-            
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
-
-#endif	/* INFORMATIONRESOURCE_H */
+#endif	/* ORGANIZATIONRESOURCE_H */
 

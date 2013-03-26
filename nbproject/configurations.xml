@@ -9,16 +9,21 @@
         <itemPath>include/ItookiAswReceiver.h</itemPath>
         <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
       </logicalFolder>
+      <itemPath>include/AddonResource.h</itemPath>
       <itemPath>include/AlertResource.h</itemPath>
       <itemPath>include/AssetResource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
+      <itemPath>include/CriteriaResource.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
+      <itemPath>include/OrganizationResource.h</itemPath>
       <itemPath>include/PluginResource.h</itemPath>
       <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
+      <itemPath>include/SearchTypeResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
+      <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
       <itemPath>include/includeFile.h</itemPath>
@@ -35,14 +40,19 @@
         <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
         </logicalFolder>
+        <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
         <itemPath>src/AssetResource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
+        <itemPath>src/CriteriaResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
+        <itemPath>src/OrganizationResource.cpp</itemPath>
         <itemPath>src/PluginResource.cpp</itemPath>
         <itemPath>src/ProbeResource.cpp</itemPath>
         <itemPath>src/PublicApiResource.cpp</itemPath>
+        <itemPath>src/SearchTypeResource.cpp</itemPath>
+        <itemPath>src/UnitResource.cpp</itemPath>
         <itemPath>src/UserResource.cpp</itemPath>
       </logicalFolder>
       <itemPath>main.cpp</itemPath>

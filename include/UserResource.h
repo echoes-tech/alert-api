@@ -14,7 +14,7 @@
 #ifndef USERRESOURCE_H
 #define	USERRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class UserResource : public PublicApiResource
 {
@@ -23,9 +23,20 @@ class UserResource : public PublicApiResource
         virtual ~UserResource();
         
     protected :
-        int userId, medId;
-        Wt::WString aleName;
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);            
+
+        unsigned short getInformationForUser(std::string &response) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
+
+        unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
 #endif	/* USERRESOURCE_H */

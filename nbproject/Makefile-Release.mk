@@ -39,12 +39,17 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
 	${OBJECTDIR}/src/UserResource.o \
+	${OBJECTDIR}/src/OrganizationResource.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/AddonResource.o \
+	${OBJECTDIR}/src/SearchTypeResource.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
 	${OBJECTDIR}/src/AssetResource.o \
+	${OBJECTDIR}/src/UnitResource.o \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/AlertResource.o \
+	${OBJECTDIR}/src/CriteriaResource.o \
 	${OBJECTDIR}/src/InformationResource.o
 
 
@@ -92,10 +97,25 @@ ${OBJECTDIR}/src/UserResource.o: src/UserResource.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-develop/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
 
+${OBJECTDIR}/src/OrganizationResource.o: src/OrganizationResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
+
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-develop/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/src/AddonResource.o: src/AddonResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource.o src/AddonResource.cpp
+
+${OBJECTDIR}/src/SearchTypeResource.o: src/SearchTypeResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
 
 ${OBJECTDIR}/src/ProbeResource.o: src/ProbeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -112,6 +132,11 @@ ${OBJECTDIR}/src/AssetResource.o: src/AssetResource.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-develop/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource.o src/AssetResource.cpp
 
+${OBJECTDIR}/src/UnitResource.o: src/UnitResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource.o src/UnitResource.cpp
+
 ${OBJECTDIR}/src/Conf.o: src/Conf.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -121,6 +146,11 @@ ${OBJECTDIR}/src/AlertResource.o: src/AlertResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-develop/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource.o src/AlertResource.cpp
+
+${OBJECTDIR}/src/CriteriaResource.o: src/CriteriaResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo/workspace/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriteriaResource.o src/CriteriaResource.cpp
 
 ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

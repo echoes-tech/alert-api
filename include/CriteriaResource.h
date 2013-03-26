@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API InformationResource
+ * HEADER OF API CriteriaResource
  * @author ECHOES Technologies (GDR)
- * @date 13/02/2013
+ * @date 21/02/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,20 +11,20 @@
  * 
  */
 
-#ifndef INFORMATIONRESOURCE_H
-#define	INFORMATIONRESOURCE_H
+#ifndef CRITERIARESOURCE_H
+#define	CRITERIARESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
-
-class InformationResource : public PublicApiResource
+class CriteriaResource : public PublicApiResource
 {
     public :
-        InformationResource();
-        virtual ~InformationResource();
+        CriteriaResource();
+        virtual ~CriteriaResource();
         
     protected :
-        
+
+        unsigned short getCriterias(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -35,10 +35,8 @@ class InformationResource : public PublicApiResource
 
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-            
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
-
-#endif	/* INFORMATIONRESOURCE_H */
+#endif	/* CRITERIARESOURCE_H */
 

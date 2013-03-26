@@ -14,7 +14,7 @@
 #ifndef ALERTRESOURCE_H
 #define	ALERTRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class AlertResource : public PublicApiResource
 {
@@ -23,15 +23,13 @@ class AlertResource : public PublicApiResource
         virtual ~AlertResource();
         
     protected :
-        
-        int alertId;
-        Wt::WString alertOption;
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        /*
-               
-        virtual void processGetRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-        std::string postProbeForAsset(std::string sRequest);
+        unsigned short getMediasValuesForAlert(std::string &responseMsg) const;       
+        unsigned short getTrackingAlertList(std::string &responseMsg) const;
+        unsigned short getAlerts(std::string &responseMsg) const;
+        virtual void processGetRequest(Wt::Http::Response &response);
+
+        unsigned short postAlert(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -39,10 +37,10 @@ class AlertResource : public PublicApiResource
 
         virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
+        unsigned short deleteAlert(std::string &responseMsg);
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-            */
 };
 #endif	/* ALERTRESOURCE_H */
 
