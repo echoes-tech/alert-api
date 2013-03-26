@@ -98,7 +98,6 @@ int main(int argc, char **argv)
         server.addResource(&organizationRessource, "/organizations");
         server.addResource(&informationRessource, "/informations");
         server.addResource(&mediaResource, "/medias");
-        server.addResource(&pluginResource, "/plugins");
         server.addResource(&userResource, "/users");
         server.addResource(&alertResource, "/alerts");
         server.addResource(&assetResource, "/assets");

@@ -13,8 +13,9 @@
 
 #include "PluginResource.h"
 
-#include <Wt/Json/Array>
-#include <Wt/Json/Value>
+
+
+using namespace std;
 
 PluginResource::PluginResource(){
 }
@@ -143,67 +144,67 @@ unsigned short PluginResource::getPluginJSON(std::string& responseMsg) const
     return res;  
 }
 
-unsigned short PluginResource::getPlugin(std::string& responseMsg) const
-{
-    unsigned short res = 500;
-    int idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*this->session);
-
-        //Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> > plgPtr = session->find<Plugin>();
-        // on liste les plugins rattachés à des assets détenu par l'organization
-        std::string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
-                                "WHERE \"PLG_ID\" IN "
-                                "("
-                                   "SELECT \"T_PLUGIN_PLG_PLG_ID\" FROM \"TJ_AST_PLG\" "
-                                   "wHERE \"T_ASSET_AST_AST_ID\" IN "
-                                        "("
-                                        "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<std::string>(session->user().get()->currentOrganization.id()) +
-                                        " AND \"AST_DELETE\" IS NULL "
-                                        ")"
-                                ")";
-        
-         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = session->query<Wt::Dbo::ptr<Plugin> >(queryStr);
-
-         Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> > plgPtr = queryRes.resultList();
-
-        
-        if(plgPtr.size() > 0 )
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> >::const_iterator i = plgPtr.begin(); i != plgPtr.end(); i++) 
-            {
-                i->modify()->setId(i->id());
-                responseMsg +=  i->modify()->toJSON();
-                idx++;
-                if(plgPtr.size()-idx > 0)
-                {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "]\n";
-            res = 200;
-            transaction.commit();
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Plugin not found\"}";
-            return res;
-        }
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
-    }
-    return res;  
-}
+//unsigned short PluginResource::getPlugin(std::string& responseMsg) const
+//{
+//    unsigned short res = 500;
+//    int idx = 0;
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(*this->session);
+//
+//        //Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> > plgPtr = session->find<Plugin>();
+//        // on liste les plugins rattachés à des assets détenu par l'organization
+//        std::string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
+//                                "WHERE \"PLG_ID\" IN "
+//                                "("
+//                                   "SELECT \"T_PLUGIN_PLG_PLG_ID\" FROM \"TJ_AST_PLG\" "
+//                                   "wHERE \"T_ASSET_AST_AST_ID\" IN "
+//                                        "("
+//                                        "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
+//                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<std::string>(session->user().get()->currentOrganization.id()) +
+//                                        " AND \"AST_DELETE\" IS NULL "
+//                                        ")"
+//                                ")";
+//        
+//         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = session->query<Wt::Dbo::ptr<Plugin> >(queryStr);
+//
+//         Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> > plgPtr = queryRes.resultList();
+//
+//        
+//        if(plgPtr.size() > 0 )
+//        {
+//            responseMsg = "[\n";
+//            for (Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> >::const_iterator i = plgPtr.begin(); i != plgPtr.end(); i++) 
+//            {
+//                i->modify()->setId(i->id());
+//                responseMsg +=  i->modify()->toJSON();
+//                idx++;
+//                if(plgPtr.size()-idx > 0)
+//                {
+//                    responseMsg.replace(responseMsg.size()-1, 1, "");
+//                    responseMsg += ",\n";
+//                }
+//            }
+//            responseMsg += "]\n";
+//            res = 200;
+//            transaction.commit();
+//        }
+//        else
+//        {
+//            res = 404;
+//            responseMsg = "{\"message\":\"Plugin not found\"}";
+//            return res;
+//        }
+//    }
+//    catch (Wt::Dbo::Exception const& e) 
+//    {
+//        Wt::log("error") << e.what();
+//        res = 503;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//        return res;
+//    }
+//    return res;  
+//}
 
 unsigned short PluginResource::getInformationListForPlugin(std::string &responseMsg) const
 {
@@ -1989,180 +1990,16 @@ unsigned short PluginResource::getPlugin(string &responseMsg) const
     return res;
 }
 
-unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) const
-{
-    unsigned short res = 500;
-    int idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*this->session);
-        string queryStr = " SELECT inf FROM \"T_INFORMATION_INF\" inf "
-                            "WHERE \"INF_DISPLAY\" = TRUE AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) +
-                            " AND \"INF_DELETE\" IS NULL";
-
-        Wt::Dbo::Query<Wt::Dbo::ptr<Information2> > queryRes = session->query<Wt::Dbo::ptr<Information2> >(queryStr);
-
-       Wt::Dbo::collection<Wt::Dbo::ptr<Information2> > information = queryRes.resultList();
-
-        if(information.size() > 0 )
-        {
-            if(information.size() > 1)
-            {
-                responseMsg += "[\n";
-            }
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
-            {
-                responseMsg +=  i->modify()->toJSON();
-                idx++;
-                if(information.size()-idx > 0)
-                {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
-                    responseMsg += ",\n";
-                }
-            }
-            if(information.size() > 1)
-            {
-                responseMsg += "]\n";
-            }
-            res = 200;
-            transaction.commit();
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Information not found\"}";
-            return res;
-        }
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
-    }
-    return res;
-}
-
-void PluginResource::processGetRequest(Wt::Http::Response &response)
-{
-    string responseMsg = "", nextElement = "";
-    
-    nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
-    {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-    }
-    else
-    {
-        try
-        {
-            boost::lexical_cast<unsigned int>(nextElement);
-
-            nextElement = getNextElementFromPath();
-
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = getPlugin(responseMsg);
-            }
-            else if(!nextElement.compare("informations"))
-            {
-                this->statusCode = getInformationListForPlugin(responseMsg);
-            }
-            else if (!nextElement.compare("sources"))
-            {
-                nextElement = getNextElementFromPath();
-                boost::lexical_cast<unsigned int>(nextElement);
-                nextElement = getNextElementFromPath();
-                if (!nextElement.compare("searches"))
-                {
-                    nextElement = getNextElementFromPath();
-                    boost::lexical_cast<unsigned int>(nextElement);
-                    nextElement = getNextElementFromPath();
-                    
-                    if (!nextElement.compare("inf_values"))
-                    {
-                        nextElement = getNextElementFromPath();
-                        boost::lexical_cast<unsigned int>(nextElement);
-                        nextElement = getNextElementFromPath();
-                        if (!nextElement.compare("units"))
-                        {
-                            nextElement = getNextElementFromPath();
-                            boost::lexical_cast<unsigned int>(nextElement);
-                            nextElement = getNextElementFromPath();
-                            if (!nextElement.compare("informations"))
-                            {
-//                                this->statusCode = getKeyValueForInformation(responseMsg);
-                            }
-                            else
-                            {
-                                this->statusCode = 400;
-                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                            }
-                        }
-                        else
-                        {
-                            this->statusCode = 400;
-                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                        }
-                    }
-                    else
-                    {
-                        this->statusCode = 400;
-                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                    }
-                }
-                else
-                {
-                    this->statusCode = 400;
-                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                }
-            }
-            else
-            {
-                this->statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
-    }
-
-    response.setStatus(this->statusCode);
-    response.out() << responseMsg;
-    return;
-}
-
-
-void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    
-    return ;
-}
-
-
-void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    return;
-}
-
-
-void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    return;
-}
 
 
 
-void PluginResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    
-    return;
-}
+
+
+
+
+
+
+
 
 
 void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
