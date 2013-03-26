@@ -28,7 +28,7 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
     {
         Wt::Dbo::Transaction transaction(*this->session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = session->find<SearchType>();
+        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = session->find<SearchType>().orderBy("\"STY_ID\"");
         
         if(seaTypePtr.size() != 0)
         {
@@ -80,7 +80,7 @@ unsigned short SearchTypeResource::getParameterForSearchType(std::string &respon
                 "("
                 "SELECT \"T_SEARCH_PARAMETER_SEP_SEP_ID\" FROM \"TJ_STY_SEP\" WHERE \"T_SEARCH_TYPE_STY_STY_ID\" ="
                 + boost::lexical_cast<std::string > (this->vPathElements[1])
-                + " )";
+                + " ) ORDER BY \"SEP_ID\"";
        
         Wt::Dbo::Query<Wt::Dbo::ptr<SearchParameter> > queryRes = session->query<Wt::Dbo::ptr<SearchParameter> >(queryStr);
 
@@ -312,7 +312,7 @@ void SearchTypeResource::processPostRequest(const Wt::Http::Request &request, Wt
             this->statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
-            //////////////////////////////////////
+        //////////////////////////////////////
 //        this->statusCode = 400;
 //        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
@@ -381,7 +381,7 @@ unsigned short SearchTypeResource::deleteSearchType(std::string &responseMsg)
         else
         {
             res = 404;
-            responseMsg = "{\"message\":\"Search type not foubd\"}";
+            responseMsg = "{\"message\":\"Search type not found\"}";
             return res;
         }
         res = 204;

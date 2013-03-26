@@ -25,7 +25,8 @@ class PluginResource : public PublicApiResource
         
     protected :
         
-
+        unsigned short getPluginJSON(std::string &responseMsg) const;
+        unsigned short getPlugin(std::string &responseMsg) const;
         unsigned short getParameterValueForSearch(std::string &responseMsg) const;
         unsigned short getParameterValueForSource(std::string &responseMsg) const;
         unsigned short getInformationForSeaSrcAndPlg(std::string &responseMsg) const;

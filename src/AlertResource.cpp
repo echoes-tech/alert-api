@@ -698,6 +698,7 @@ unsigned short AlertResource::deleteAlert(std::string &responseMsg)
 
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
+        Wt::Dbo::ptr<AlertValue> avaPtr = session->find<AlertValue>().where("\"AVA_ID\" = ?").bind(alertPtr.get()->alertValue.id());
 
         std::string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
                                     " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
@@ -715,6 +716,7 @@ unsigned short AlertResource::deleteAlert(std::string &responseMsg)
         session->execute(executeString2);
         session->execute(executeString2bis);
 
+        avaPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
         alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
         transaction.commit();
         std::cerr<<"after commit" << std::endl;
