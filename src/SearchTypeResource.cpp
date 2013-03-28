@@ -392,8 +392,9 @@ unsigned short SearchTypeResource::deleteSearchType(std::string &responseMsg)
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
+
+    return res;
 }
 
 void SearchTypeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)

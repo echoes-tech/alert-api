@@ -400,155 +400,152 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 {
     unsigned short res = 500;
 
-    if(!responseMsg.compare(""))
+    try 
     {
-        try 
+        Wt::Dbo::Transaction transaction(*this->session);
+
+        // Est-ce que l'asset existe ?
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id())
+                .bind(this->vPathElements[1]);
+        if (Utils::checkId<Asset>(asset))
         {
-            Wt::Dbo::Transaction transaction(*this->session);
-            
-            // Est-ce que l'asset existe ?
-            Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
-                    .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                    .bind(this->session->user()->currentOrganization.id())
-                    .bind(this->vPathElements[1]);
-            if (Utils::checkId<Asset>(asset))
+            Wt::WString probeName = "Probe_" + this->session->user()->lastName + "_" + asset->name;
+
+            responseMsg += "{\n";
+            // Est-ce que la probe existe pour cet asset ?
+            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
+                .where("\"PRB_ORG_ORG_ID\" = ? AND \"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
+                .bind(this->session->user()->currentOrganization.id())
+                .bind(asset->probe);
+            if (!Utils::checkId<Probe>(probe))
             {
-                Wt::WString probeName = "Probe_" + this->session->user()->lastName + "_" + asset->name;
-                
-                responseMsg += "{\n";
-                // Est-ce que la probe existe pour cet asset ?
-                Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
-                    .where("\"PRB_ORG_ORG_ID\" = ? AND \"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
-                    .bind(this->session->user()->currentOrganization.id())
-                    .bind(asset->probe);
-                if (!Utils::checkId<Probe>(probe))
+                Probe *newProbe = new Probe();
+                newProbe->name = probeName;
+                newProbe->organization = this->session->user()->currentOrganization;
+                asset.modify()->probe = this->session->add<Probe>(newProbe);
+            }
+            else
+            {
+                asset->probe.modify()->name = probeName;
+            }
+
+            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
+                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                    .bind(asset->assetArchitecture.id())
+                    .bind(asset->assetDistribution.id())
+                    .bind(asset->assetRelease.id())
+                    .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                    .limit(1);
+
+
+            bool releaseChecked = false;
+            Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
+            if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
+            {
+                std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
+                ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
+                probePackageParameter = this->session->find<ProbePackageParameter>()
+                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                    .bind(asset->assetArchitecture.id())
+                    .bind(asset->assetDistribution.id())
+                    .bind(ptrAssetRelease.id())
+                    .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                    .limit(1);
+                releaseChecked = true;
+            }
+
+
+            bool architectureChecked = false;
+            Wt::Dbo::ptr<AssetArchitecture> ptrAssetArchitecture;
+            if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
+            {
+                if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
                 {
-                    Probe *newProbe = new Probe();
-                    newProbe->name = probeName;
-                    newProbe->organization = this->session->user()->currentOrganization;
-                    asset.modify()->probe = this->session->add<Probe>(newProbe);
+                    std::string wildcardArchitecture = "i*86";
+                    ptrAssetArchitecture = this->session->find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
+                    probePackageParameter = this->session->find<ProbePackageParameter>()
+                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                    .bind(ptrAssetArchitecture.id())
+                    .bind(asset->assetDistribution.id())
+                    .bind(asset->assetRelease.id())
+                    .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                    .limit(1);
+                    architectureChecked = true;
+                }
+            }
+
+
+            if (releaseChecked
+                && architectureChecked
+                && !Utils::checkId<ProbePackageParameter>(probePackageParameter)
+               )
+            {
+                probePackageParameter = this->session->find<ProbePackageParameter>()
+                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
+                    .bind(ptrAssetArchitecture.id())
+                    .bind(asset->assetDistribution.id())
+                    .bind(ptrAssetRelease.id())
+                    .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                    .limit(1);
+            }
+
+
+            asset->probe.modify()->probePackageParameter = probePackageParameter;
+
+            asset->probe.flush();
+
+            responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(asset->probe.id()) + ",\n";
+            responseMsg += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
+
+            // Est-ce que les param pkg de cette probe existent ?
+            if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
+            {
+                responseMsg += "\t\"version\": \"" + asset->probe->probePackageParameter->probeVersion.toUTF8() + "\",\n";
+                responseMsg += "\t\"package\": {\n";
+                // Est-ce que le pkg de cette probe existent ?
+                if (Utils::checkId<ProbePackage>(asset->probe->probePackageParameter->probePackage))
+                {
+                    ifstream ifs("/var/www/wt/probe/" + asset->probe->probePackageParameter->probePackage->filename.toUTF8());
+                    string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+                    responseMsg += "\t\t\"filename\": \"" + asset->probe->probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
+                    responseMsg += "\t\t\"content\": \"" + Wt::Utils::base64Encode(content) + "\",\n";
                 }
                 else
                 {
-                    asset->probe.modify()->name = probeName;
-                }
-
-                Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
-                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                        .bind(asset->assetArchitecture.id())
-                        .bind(asset->assetDistribution.id())
-                        .bind(asset->assetRelease.id())
-                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
-                        .limit(1);
-                
-                
-                bool releaseChecked = false;
-                Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
-                if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
-                {
-                    std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
-                    ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
-                    probePackageParameter = this->session->find<ProbePackageParameter>()
-                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                        .bind(asset->assetArchitecture.id())
-                        .bind(asset->assetDistribution.id())
-                        .bind(ptrAssetRelease.id())
-                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
-                        .limit(1);
-                    releaseChecked = true;
-                }
-                
-                
-                bool architectureChecked = false;
-                Wt::Dbo::ptr<AssetArchitecture> ptrAssetArchitecture;
-                if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
-                {
-                    if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
-                    {
-                        std::string wildcardArchitecture = "i*86";
-                        ptrAssetArchitecture = this->session->find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
-                        probePackageParameter = this->session->find<ProbePackageParameter>()
-                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                        .bind(ptrAssetArchitecture.id())
-                        .bind(asset->assetDistribution.id())
-                        .bind(asset->assetRelease.id())
-                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
-                        .limit(1);
-                        architectureChecked = true;
-                    }
-                }
-                
-                
-                if (releaseChecked
-                    && architectureChecked
-                    && !Utils::checkId<ProbePackageParameter>(probePackageParameter)
-                   )
-                {
-                    probePackageParameter = this->session->find<ProbePackageParameter>()
-                        .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                        .bind(ptrAssetArchitecture.id())
-                        .bind(asset->assetDistribution.id())
-                        .bind(ptrAssetRelease.id())
-                        .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
-                        .limit(1);
-                }
-                
-                
-                asset->probe.modify()->probePackageParameter = probePackageParameter;
-
-                asset->probe.flush();
-                
-                responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(asset->probe.id()) + ",\n";
-                responseMsg += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
-
-                // Est-ce que les param pkg de cette probe existent ?
-                if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
-                {
-                    responseMsg += "\t\"version\": \"" + asset->probe->probePackageParameter->probeVersion.toUTF8() + "\",\n";
-                    responseMsg += "\t\"package\": {\n";
-                    // Est-ce que le pkg de cette probe existent ?
-                    if (Utils::checkId<ProbePackage>(asset->probe->probePackageParameter->probePackage))
-                    {
-                        ifstream ifs("/var/www/wt/probe/" + asset->probe->probePackageParameter->probePackage->filename.toUTF8());
-                        string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
-                        responseMsg += "\t\t\"filename\": \"" + asset->probe->probePackageParameter->probePackage->filename.toUTF8() + "\",\n";
-                        responseMsg += "\t\t\"content\": \"" + Wt::Utils::base64Encode(content) + "\",\n";
-                    }
-                    else
-                    {
-                        responseMsg += "\t\t\"filename\": \"Unknown\",\n";
-                        responseMsg += "\t\t\"content\": \"\",\n";
-                    }
-                    responseMsg += "\t\t\"version\": \"" + asset->probe->probePackageParameter->packageVersion.toUTF8() + "\"\n";
-                    responseMsg += "\t}\n";
-
-                }
-                else
-                {
-                    responseMsg += "\t\"version\": \"Unknown\",\n";
-                    responseMsg += "\t\"package\": {\n";
                     responseMsg += "\t\t\"filename\": \"Unknown\",\n";
                     responseMsg += "\t\t\"content\": \"\",\n";
-                    responseMsg += "\t\t\"version\": \"Unknown\"\n";
-                    responseMsg += "\t}\n";
                 }
-                responseMsg += "}\n";
+                responseMsg += "\t\t\"version\": \"" + asset->probe->probePackageParameter->packageVersion.toUTF8() + "\"\n";
+                responseMsg += "\t}\n";
 
-                res = 200;
-            } 
-            else 
-            {
-                res = 404;
-                responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
             }
-            transaction.commit();
+            else
+            {
+                responseMsg += "\t\"version\": \"Unknown\",\n";
+                responseMsg += "\t\"package\": {\n";
+                responseMsg += "\t\t\"filename\": \"Unknown\",\n";
+                responseMsg += "\t\t\"content\": \"\",\n";
+                responseMsg += "\t\t\"version\": \"Unknown\"\n";
+                responseMsg += "\t}\n";
+            }
+            responseMsg += "}\n";
+
+            res = 200;
         } 
-        catch (Wt::Dbo::Exception const& e) 
+        else 
         {
-            Wt::log("error") << "[Asset Ressource] " << e.what();
-            res = 503;
-            responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+            res = 404;
+            responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
         }
+        transaction.commit();
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << "[Asset Ressource] " << e.what();
+        res = 503;
+        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
     }
     
     return res;
@@ -598,31 +595,40 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
 unsigned short AssetResource::putAsset(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
-    Wt::WString arch, distribName, distribRelease;
-    
-    try
-    {
-        Wt::Json::Object result;
+    Wt::WString arch = "Unknown", distribName = "Unknown", distribRelease = "Unknown";
 
-        Wt::Json::parse(sRequest, result);
+    if(sRequest.compare(""))
+    {    
+        try
+        {
+            Wt::Json::Object result;
 
-        Wt::Json::Object distrib = result.get("distribution");
-        arch = result.get("architecture");
-        distribName = distrib.get("name");
-        distribRelease = distrib.get("release");
+            Wt::Json::parse(sRequest, result);
+
+            Wt::Json::Object distrib = result.get("distribution");
+            arch = result.get("architecture");
+            distribName = distrib.get("name");
+            distribRelease = distrib.get("release");
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+            res = 400;
+            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+            res = 400;
+            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        }
     }
-    catch (Wt::Json::ParseError const& e)
+    else
     {
-        Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
         res = 400;
-        responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
-    catch (Wt::Json::TypeException const& e)
-    {
-        Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
-        res = 400;
-        responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
-    }
+
 
     if(!responseMsg.compare(""))
     {

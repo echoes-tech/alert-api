@@ -16,20 +16,70 @@
 
 #include "PublicApiResource.h"
 
+#include <Wt/Json/Array>
+#include <Wt/Json/Value>
+#include <Wt/Mail/Client>
+#include <Wt/Mail/Message>
+
+#include "itooki/ItookiSMSSender.h"
+
 class AlertResource : public PublicApiResource
 {
     public :
         AlertResource();
         virtual ~AlertResource();
         
-    protected :
+    protected:
+        enum mediaTypes {
+            mail = 1,
+            sms = 2
+        };
+        enum options {
+            quotaasset = 1,
+            quotasms = 2
+        };
 
         unsigned short getMediasValuesForAlert(std::string &responseMsg) const;       
         unsigned short getTrackingAlertList(std::string &responseMsg) const;
         unsigned short getAlerts(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
+        /**
+         * method to send a MAIL 
+         * @param collection of informations values that matches the alert
+         * @param the alert
+         * @param the alert tracking required and concerned by the sms
+         * @param the media value concern by the alert
+         * @param if the user as use all his sms, the value here is 1 if not it's 0
+         * @return error -1 or sucess 0
+         */
+        int sendMAIL
+        (
+            Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+            Wt::Dbo::ptr<Alert> alertPtr,
+            Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
+            int overSMSQuota = 0
+        );
+
+        /**
+        * method to send an SMS with the call of the API
+        * @param collection of informations values that matches the alert
+        * @param the alert
+        * @param the alert tracking required and concerned by the sms
+        * @param the media value concern by the alert
+        * @return error -1 or sucess 0
+        */     
+        int sendSMS
+        (
+            Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+            Wt::Dbo::ptr<Alert> alertPtr,
+            Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
+        );
+
         unsigned short postAlert(std::string &responseMsg, const std::string &sRequest);
+        unsigned short postAlertTracking(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

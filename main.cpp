@@ -32,7 +32,6 @@
 #include "AlertResource.h"
 #include "OrganizationResource.h"
 
-#include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
 
@@ -56,11 +55,11 @@ int main(int argc, char **argv)
 {
     Conf *conf = new Conf();
 
-    Utils::connection = "hostaddr=" + conf->getDbHost() + 
-                     " port=" + boost::lexical_cast<string>(conf->getDbPort()) + 
-                     " dbname=" + conf->getDbName() +
-                     " user=" + conf->getDbUser() +
-                     " password=" + conf->getDbPassword();
+    Utils::connection = "hostaddr=" + conf->getDbHost() +
+            " port=" + boost::lexical_cast<string>(conf->getDbPort()) +
+            " dbname=" + conf->getDbName() +
+            " user=" + conf->getDbUser() +
+            " password=" + conf->getDbPassword();
 
     try
     {
@@ -76,9 +75,9 @@ int main(int argc, char **argv)
         AlertResource  alertResource;
         AssetResource  assetResource;
         ProbeResource  probeResource;
-        SrReception     receiveSr;
-        SendSMS         sendSMS;
-        ItookiSMSSender itookiSMSSender;
+        // NetSize
+//        SrReception     receiveSr;
+//        SendSMS         sendSMS;
         ItookiAckReceiver itookiAckReceiver;
         ItookiAswReceiver itookiAswReceiver;
 //        TestSrAPI       testAPI;
@@ -103,9 +102,8 @@ int main(int argc, char **argv)
         server.addResource(&assetResource, "/assets");
         server.addResource(&probeResource, "/probes");
         server.addResource(&pluginResource, "/plugins");
-        server.addResource(&receiveSr, "/netsize/sr");
-        server.addResource(&sendSMS, "/netsize/send");
-        server.addResource(&itookiSMSSender, "/itooki/sms/sender");
+//        server.addResource(&receiveSr, "/netsize/sr");
+//        server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiAckReceiver, "/itooki/ack");
         server.addResource(&itookiAswReceiver, "/itooki/asw");
 //        server.addResource(&testAPI, "/test");

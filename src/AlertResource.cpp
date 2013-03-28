@@ -11,27 +11,28 @@
  * 
  */
 
-
 #include "AlertResource.h"
-#include <Wt/Json/Array>
-#include <Wt/Json/Value>
+#include "itooki/ItookiSMSSender.h"
 
-AlertResource::AlertResource(){
+using namespace std;
+
+AlertResource::AlertResource()
+{
 }
 
-unsigned short AlertResource::getMediasValuesForAlert(std::string &responseMsg) const
+unsigned short AlertResource::getMediasValuesForAlert(string &responseMsg) const
 {
     unsigned short res = 500;
     int idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        
-         std::string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
-                    " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
-                    "WHERE ams.\"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]) +
-                    " AND ams.\"AMS_MEV_MEV_ID\" = mev.\"MEV_ID\" "
-                    " AND mev.\"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->session->user().id());
+
+        string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev,"
+                " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
+                "WHERE ams.\"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<string > (this->vPathElements[1]) +
+                " AND ams.\"AMS_MEV_MEV_ID\" = mev.\"MEV_ID\" "
+                " AND mev.\"MEV_USR_USR_ID\" = " + boost::lexical_cast<string > (this->session->user().id());
 
         Wt::Dbo::Query
                 <
@@ -49,7 +50,6 @@ unsigned short AlertResource::getMediasValuesForAlert(std::string &responseMsg) 
                 Wt::Dbo::ptr<AlertMediaSpecialization>
                 >, Wt::Dbo::DynamicBinding
                 > (queryString);
-
 
         Wt::Dbo::collection<boost::tuple<
                 Wt::Dbo::ptr<MediaValue>,
@@ -103,7 +103,7 @@ unsigned short AlertResource::getMediasValuesForAlert(std::string &responseMsg) 
     return res;
 }
 
-unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) const
+unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
 {
     unsigned short res = 500;
     int idx = 0;
@@ -113,14 +113,14 @@ unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) con
 
         Wt::Dbo::ptr<User> user = this->session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
 
-        std::string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
+        string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
             " WHERE atr.\"ATR_ALE_ALE_ID\" = ale.\"ALE_ID\" "
             " AND ale.\"ALE_DELETE\" IS NULL "
             " AND atr.\"ATR_MEV_MEV_ID\" = mev.\"MEV_ID\" "
             " AND mev.\"MEV_USR_USR_ID\" IN"
             "("
                 "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
-                + boost::lexical_cast<std::string>(user.get()->currentOrganization.id()) + ""
+                + boost::lexical_cast<string>(user.get()->currentOrganization.id()) + ""
             ")";
         Wt::Dbo::Query
                 <
@@ -203,15 +203,14 @@ unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) con
     return res;
 }
 
-
-unsigned short AlertResource::getAlerts(std::string &responseMsg) const
+unsigned short AlertResource::getAlerts(string &responseMsg) const
 {
     unsigned short res = 500;
     int idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        std::string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
+        string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
                 " \"T_ALERT_VALUE_AVA\" ava,"
                 " \"T_ALERT_CRITERIA_ACR\" acr,"
                 " \"T_INFORMATION_UNIT_UNT\" inu "
@@ -220,7 +219,7 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
                 "SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" WHERE \"AMS_MEV_MEV_ID\" IN "
                 "("
                 "SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  = "
-                + boost::lexical_cast<std::string > (this->session->user().id())
+                + boost::lexical_cast<string > (this->session->user().id())
                 + ""
                 " )"
                 ") "
@@ -319,7 +318,7 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
 
 void AlertResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "" ;
+    string responseMsg = "", nextElement = "" ;
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -364,7 +363,7 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
 }
 
 
-unsigned short AlertResource::postAlert(std::string &responseMsg, const std::string &sRequest)
+unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
     Wt::WString alertName,alertValue, threadSleep, keyVal, astId, seaId, 
@@ -381,35 +380,35 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
         //descriptif
         alertName = result.get("name");
         alertValueInt = result.get("alert_value");
-        alertValue = boost::lexical_cast<std::string>(alertValueInt);
+        alertValue = boost::lexical_cast<string>(alertValueInt);
         
         threadSleepInt = result.get("thread_sleep");
-        threadSleep = boost::lexical_cast<std::string>(threadSleepInt);
+        threadSleep = boost::lexical_cast<string>(threadSleepInt);
         
         keyVal = result.get("key_value");   
         
         //Id asset à verifer
         astIdInt = result.get("ast_id");
-        astId = boost::lexical_cast<std::string>(astIdInt);
+        astId = boost::lexical_cast<string>(astIdInt);
         
         //information
         seaIdInt = result.get("sea_id");
-        seaId = boost::lexical_cast<std::string>(seaIdInt);
+        seaId = boost::lexical_cast<string>(seaIdInt);
         
         srcIdInt = result.get("src_id");
-        srcId = boost::lexical_cast<std::string>(srcIdInt);
+        srcId = boost::lexical_cast<string>(srcIdInt);
         
         plgIdInt = result.get("plg_id");
-        plgId = boost::lexical_cast<std::string>(plgIdInt);
+        plgId = boost::lexical_cast<string>(plgIdInt);
         
         infValNumInt = result.get("inf_value_num");
-        infValNum = boost::lexical_cast<std::string>(infValNumInt);
+        infValNum = boost::lexical_cast<string>(infValNumInt);
         
         inuIdInt = result.get("inu_id");
-        inuId = boost::lexical_cast<std::string>(inuIdInt);
+        inuId = boost::lexical_cast<string>(inuIdInt);
         //operateur
         acrIdInt = result.get("acr_id");
-        acrId = boost::lexical_cast<std::string>(acrIdInt);
+        acrId = boost::lexical_cast<string>(acrIdInt);
         //media
         amsId = result.get("ams_id");
     }
@@ -500,22 +499,22 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
 
         if (avaPtrCollec.size() > 0)
         {
-            std::string inString = "(";
+            string inString = "(";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> >::const_iterator i = avaPtrCollec.begin(); i != avaPtrCollec.end(); i++) 
             {
                 Wt::log("debug") << " [AlertResource] " << " - " << " For ava list : " << (*i).id();
-                inString += boost::lexical_cast<std::string,long long>((*i).id()) + ",";
+                inString += boost::lexical_cast<string,long long>((*i).id()) + ",";
                 i->flush();
             }
             inString.replace(inString.size()-1, 1, "");
             inString += ")";
 
 
-            std::string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale WHERE "
+            string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale WHERE "
                                     " \"ALE_ID\" IN"
                                     "("
                                         "SELECT \"T_ALERT_ALE_ALE_ID\" FROM \"TJ_AST_ALE\" WHERE \"T_ASSET_AST_AST_ID\" = " 
-                                        + boost::lexical_cast<std::string>(astId) +
+                                        + boost::lexical_cast<string>(astId) +
                                     ")"
                                     "AND ale.\"ALE_DELETE\" IS NULL "
                                     "AND \"ALE_AVA_AVA_ID\" IN" + inString;
@@ -527,19 +526,19 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
             if (alerts.size() > 0)
             {
 
-                std::string inString2 = "(";
+                string inString2 = "(";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Alert> >::const_iterator i = alerts.begin(); i != alerts.end(); i++) 
                 {
                     cerr << " [AlertResource] " << " - " << " For ale list : " << (*i).id() << "\n";
-                    inString2 += boost::lexical_cast<std::string,long long>((*i).id()) + ",";
+                    inString2 += boost::lexical_cast<string,long long>((*i).id()) + ",";
                     i->flush();
                 }
                 inString2.replace(inString2.size()-1, 1, "");
                 inString2 += ")";
 
-                std::string queryStr2 = " SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams WHERE "
+                string queryStr2 = " SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams WHERE "
                                         " \"AMS_ALE_ALE_ID\" IN" + inString2 +
-                                        " AND \"AMS_ID\" = " + boost::lexical_cast<std::string>(amsId[1]);
+                                        " AND \"AMS_ID\" = " + boost::lexical_cast<string>(amsId[1]);
 
 
                 Wt::Dbo::Query<Wt::Dbo::ptr<AlertMediaSpecialization> > queryRes2 = session->query<Wt::Dbo::ptr<AlertMediaSpecialization> >(queryStr2);
@@ -635,10 +634,280 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
     return res;
 }
 
+int AlertResource::sendMAIL
+(
+ Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+ Wt::Dbo::ptr<Alert> alertPtr,
+ Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+ Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
+ int overSMSQuota
+)
+{    
+    Wt::WString mailRecipient;
+    const Wt::WString mailRecipientName = amsPtr->mediaValue->user->firstName + " " + amsPtr->mediaValue->user->lastName ;
+    Wt::WString mailBody = "";
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
+    const Wt::WString unit = alertPtr->alertValue->information->pk.unit->name;
+    Wt::Mail::Message mailMessage;
+    Wt::Mail::Client mailClient;
+
+    // Normal case
+    if (overSMSQuota == 0)
+    {
+        mailRecipient = amsPtr->mediaValue->value;
+    }
+    else if (overSMSQuota == 1)
+    {
+        mailRecipient = amsPtr->mediaValue->user->eMail;
+
+        mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
+    }
+
+    mailBody += "Alert name : " + alertPtr->name + "<br />";
+
+    //TODO: à revoir pour les alertes complexes !!
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    {
+        mailBody += "Asset name : " +  i->get()->asset->name + "<br />";
+        if (alertPtr->alertValue->keyValue.is_initialized() && alertPtr->alertValue->keyValue.get() != "N/A")
+        {
+           mailBody += "Key : " + alertPtr->alertValue->keyValue.get() + "<br />";
+        }
+        mailBody += "Received value : " + i->get()->value + " " + unit + "<br />"
+                + "Criteria : " + alertPtr->alertValue->alertCriteria->name + "<br />"
+                + "Expected value : " + alertPtr->alertValue->value + " " + unit + "<br />"
+                + "Time : " + i->get()->creationDate.toString() + "<br />";
+    }
+    mailBody += "Check it on https://alert.echoes-tech.com";
+        
+    Wt::log("info") << " [Alert Resource] " << mailBody; 
+    
+    mailMessage.setFrom(Wt::Mail::Mailbox("alert@echoes-tech.com", "ECHOES Alert"));
+    mailMessage.addRecipient(Wt::Mail::To, Wt::Mail::Mailbox(mailRecipient.toUTF8(), mailRecipientName));
+    mailMessage.setSubject("[ECHOES Alert] " + alertPtr->name);
+    mailMessage.addHtmlBody(mailBody);
+    mailClient.connect("hermes.gayuxweb.fr");
+    mailClient.send(mailMessage);
+
+     Wt::log("info") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
+    amsPtr.modify()->lastSend = now;
+
+    alertTrackingPtr.modify()->sendDate = now;
+}
+
+int AlertResource::sendSMS
+(
+ Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+ Wt::Dbo::ptr<Alert> alertPtr,
+ Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+ Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
+)
+{
+    const Wt::WString unit = alertPtr->alertValue->information->pk.unit->name;
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
+
+    Wt::WString sms = "New alert about : " + alertPtr->name;
+    
+    //TODO: à revoir pour les alertes complexes !!
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    {
+        sms += " on " + i->get()->asset->name;
+
+        //we check if there is a key and get it if it's the case to put in the sms
+    //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
+        if (alertPtr->alertValue->keyValue.is_initialized() && alertPtr->alertValue->keyValue.get() != "N/A")
+        {
+           sms += " for : " + alertPtr->alertValue->keyValue.get();
+        }
+
+        sms += " Received information : " + i->get()->value + " " + unit
+                + " expected : " + alertPtr->alertValue->value + " " + unit
+                + " at : " + i->get()->creationDate.toString();
+    }
+
+    Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->mediaValue->value << " : " << sms;
+    
+    
+    ItookiSMSSender *itookiSMSSender =  new ItookiSMSSender(amsPtr->mediaValue->value.toUTF8(), sms.toUTF8(), this);
+    itookiSMSSender->setAlertTrackingPtr(alertTrackingPtr);
+    if(!itookiSMSSender->send())
+    {
+        amsPtr.modify()->lastSend = now;
+    }
+    
+    delete itookiSMSSender;
+}
+
+unsigned short AlertResource::postAlertTracking(string &responseMsg, const string &sRequest)
+{
+    unsigned short res = 500;
+    string ivaIDWhereString = "";
+    Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection;
+
+    if(sRequest.compare(""))
+    {    
+        try
+        {
+            unsigned idx = 1;
+
+            Wt::Json::Value result;
+
+            Wt::Json::parse(sRequest, result);
+            
+            Wt::Json::Array array = result;
+
+            for (Wt::Json::Array::const_iterator i = array.begin(); i != array.end(); ++i)
+            {
+                Wt::Json::Object tmp = *i;
+                long long id = tmp.get("id");
+                
+                ivaIDWhereString += "\"IVA_ID\" = " + boost::lexical_cast<string>(id);
+                if(idx++ < array.size())
+                {
+                    ivaIDWhereString += " OR";
+                }
+            }
+
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            Wt::log("warning") << "[Alert Ressource] Problems parsing JSON: " << sRequest;
+            res = 400;
+            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            Wt::log("warning") << "[Alert Ressource] Problems parsing JSON: " << sRequest;
+            res = 400;
+            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        }
+    }
+    else
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    
+    if(!responseMsg.compare(""))
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(*session);
+
+            //TODO: check if this alert is set for the current user organisation
+            Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>()
+                    .where("\"ALE_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"ALE_DELETE\" IS NULL");
+
+            if (Utils::checkId<Alert>(alertPtr))
+            {
+                //TODO: verifier si les IVA correspondent bien aux INF de l'alerte
+                ivaPtrCollection = session->find<InformationValue>()
+                    .where(ivaIDWhereString)
+                    .where("\"IVA_DELETE\" IS NULL");
+                
+                Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertMediaSpecialization>>::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
+                {
+                    // it is the first time we send the alert there is no last send date filled
+                    // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
+                    if (!i->get()->lastSend.isValid() || i->get()->lastSend.secsTo(now) >= i->get()->snoozeDuration)
+                    {
+                        AlertTracking *newAlertTracking = new AlertTracking();
+
+                        newAlertTracking->alert = alertPtr;
+                        newAlertTracking->mediaValue = i->get()->mediaValue;
+
+                        // WARNING : SendDate must be set by the API when the alert was sent, not before
+                        newAlertTracking->sendDate = *(new Wt::WDateTime());
+
+                        Wt::Dbo::ptr<AlertTracking> alertTrackingPtr = session->add<AlertTracking>(newAlertTracking);
+                        alertTrackingPtr.flush();
+
+                        Wt::log("info") << " [Alert Ressource] " << "Alert tracking number creation : " << alertTrackingPtr.id();
+
+                        Wt::log("debug") << " [Alert Ressource] " << "snooze = " << i->get()->snoozeDuration;
+                        switch (i->get()->mediaValue->media.id())
+                        {
+                            case sms:
+                            {
+                                Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
+
+                                // Verifying the quota of sms
+                                Wt::Dbo::ptr<OptionValue> optionValuePtr = session->find<OptionValue>()
+                                        .where("\"OPT_ID_OPT_ID\" = ?").bind(quotasms)
+                                        .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->currentOrganization.id())
+                                        .limit(1);
+
+                                try
+                                {
+                                    int smsQuota = boost::lexical_cast<int>(optionValuePtr->value); 
+                                    if (smsQuota == 0)
+                                    {
+
+                                        Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alertPtr->name;
+                                        Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
+
+                                        sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i, 1);
+                                    }
+                                    else
+                                    {
+                                        Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
+                                        optionValuePtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
+                                        optionValuePtr.flush();                        
+                                        sendSMS(ivaPtrCollection,alertPtr, alertTrackingPtr, *i); 
+                                    }
+                                }
+                                catch(boost::bad_lexical_cast &)
+                                {
+                                    res = 503;
+                                    responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+                                }
+                                break;
+                            }
+                            case mail:
+                                Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;              
+                                sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i);
+                                break;
+                            default:
+                                break;        
+                        }
+                    }
+                    else
+                    {
+                        Wt::log("debug") << " [Class:AlertSender] "
+                                << "Last time we send the alert : " << alertPtr->name
+                                << "was : " << i->get()->lastSend.toString()
+                                << "the snooze for the media " << i->get()->mediaValue->media->name
+                                << " is : " << i->get()->snoozeDuration << "secs,  it's not the time to send the alert";  
+                    }
+                }
+                res = 201;
+            }
+            else 
+            {
+                responseMsg = "{\n\t\"message\":\"Alert not found\"\n}";
+                res = 404;
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
+        }
+    }
+
+    return res;
+}
+
 
 void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
@@ -648,15 +917,19 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     }
     else
     {
-        //// SUPPRIMER     
         try
         {
             boost::lexical_cast<unsigned int>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
+//            TO Test whithout DELETE Method
+//            if(!nextElement.compare(""))
+//            {
+//                this->statusCode = deleteAlert(responseMsg);
+//            }
+            if(!nextElement.compare("trackings"))
             {
-                this->statusCode = deleteAlert(responseMsg);
+                this->statusCode = postAlertTracking(responseMsg, sRequest);
             }
             else
             {
@@ -669,10 +942,6 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
             this->statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
-        //// SUPPRIMER
-        
-       // this->statusCode = 400;
-       // responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
     response.setStatus(this->statusCode);
@@ -690,7 +959,7 @@ void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-unsigned short AlertResource::deleteAlert(std::string &responseMsg)
+unsigned short AlertResource::deleteAlert(string &responseMsg)
 {
     unsigned short res = 500;
     try 
@@ -700,17 +969,17 @@ unsigned short AlertResource::deleteAlert(std::string &responseMsg)
         Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
         Wt::Dbo::ptr<AlertValue> avaPtr = session->find<AlertValue>().where("\"AVA_ID\" = ?").bind(alertPtr.get()->alertValue.id());
 
-        std::string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
-                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
-        std::string executeString1bis = " DELETE FROM \"TJ_AST_ALE\" " 
-                                        " WHERE \"TJ_AST_ALE\".\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
+        string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
+                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) + "FOR UPDATE";
+        string executeString1bis = " DELETE FROM \"TJ_AST_ALE\" " 
+                                        " WHERE \"TJ_AST_ALE\".\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
         session->execute(executeString1);
         session->execute(executeString1bis);
 
-        std::string executeString2 = "SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams " 
-                                     " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
-        std::string executeString2bis =  " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
-                                    " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
+        string executeString2 = "SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams " 
+                                     " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) + "FOR UPDATE";
+        string executeString2bis =  " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
+                                    " WHERE \"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
 
 
         session->execute(executeString2);
@@ -737,7 +1006,7 @@ unsigned short AlertResource::deleteAlert(std::string &responseMsg)
 
 void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
