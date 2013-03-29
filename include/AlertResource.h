@@ -59,7 +59,7 @@ class AlertResource : public PublicApiResource
             Wt::Dbo::ptr<Alert> alertPtr,
             Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
-            int overSMSQuota = 0
+            bool overSMSQuota = false
         );
 
         /**

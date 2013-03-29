@@ -640,7 +640,7 @@ int AlertResource::sendMAIL
  Wt::Dbo::ptr<Alert> alertPtr,
  Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
  Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
- int overSMSQuota
+ bool overSMSQuota
 )
 {    
     Wt::WString mailRecipient;
@@ -689,7 +689,7 @@ int AlertResource::sendMAIL
     mailClient.connect("hermes.gayuxweb.fr");
     mailClient.send(mailMessage);
 
-     Wt::log("info") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
+    Wt::log("info") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
     amsPtr.modify()->lastSend = now;
 
     alertTrackingPtr.modify()->sendDate = now;
@@ -849,7 +849,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                         Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alertPtr->name;
                                         Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
 
-                                        sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i, 1);
+                                        sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i, true);
                                     }
                                     else
                                     {
