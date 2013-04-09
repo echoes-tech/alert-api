@@ -41,7 +41,7 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
                     responseMsg += ",\n";
                 }
             }
-            responseMsg = "]\n";
+            responseMsg += "]\n";
             res = 200;
         }
         else

@@ -73,7 +73,8 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = session->find<InformationUnit>();
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = session->find<InformationUnit>()
+                                                                                .orderBy("\"INU_ID\"");
         if (unitCollec.size() > 0)
         {
             

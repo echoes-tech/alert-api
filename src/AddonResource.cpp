@@ -34,7 +34,7 @@ unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) co
                                     "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
                                     "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
                                 ")";
-        std::cerr << queryStr << std::endl;
+        //std::cerr << queryStr << std::endl;
         Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();

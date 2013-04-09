@@ -598,7 +598,7 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
         ava->alertCriteria = critPtr;
         ava->value = alertValue;
         ava->keyValue = keyVal;
-
+        ava->asset = assetPtr;
         Wt::Dbo::ptr<AlertValue> avaPtr = session->add<AlertValue>(ava);
 
 
@@ -609,8 +609,8 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
         alert->threadSleep = boost::lexical_cast<int>(threadSleep);
 
         Wt::Dbo::ptr<Alert> alePtr = session->add<Alert>(alert);
-        alePtr.modify()->assets.insert(assetPtr);
-
+     //   alePtr.modify()->assets.insert(assetPtr);
+      //  avaPtr.modify()->asset.insert(assetPtr);
         for (Wt::Json::Array::const_iterator idx2 = amsId.begin() ; idx2 < amsId.end(); idx2++)
         {
             Wt::WString tmp = (*idx2).toString();
@@ -700,11 +700,11 @@ unsigned short AlertResource::deleteAlert(std::string &responseMsg)
         Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
         Wt::Dbo::ptr<AlertValue> avaPtr = session->find<AlertValue>().where("\"AVA_ID\" = ?").bind(alertPtr.get()->alertValue.id());
 
-        std::string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
-                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
+//        std::string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
+//                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
         std::string executeString1bis = " DELETE FROM \"TJ_AST_ALE\" " 
                                         " WHERE \"TJ_AST_ALE\".\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
-        session->execute(executeString1);
+//        session->execute(executeString1);
         session->execute(executeString1bis);
 
         std::string executeString2 = "SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams " 

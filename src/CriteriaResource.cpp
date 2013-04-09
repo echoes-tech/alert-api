@@ -37,7 +37,7 @@ unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
                 responseMsg += ",\n";
             }
         }
-        responseMsg = "]\n";
+        responseMsg += "]\n";
         res = 200;
         transaction.commit();
     }

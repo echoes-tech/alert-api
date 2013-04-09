@@ -124,63 +124,136 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     // default : not authentified
     this->authentified = false;
-
+    this->authenticationByToken = false;
+    
     this->login = "";
     this->password = "";
+    this->token = "";
     if (!request.getParameterValues("login").empty()) {
         this->login = request.getParameterValues("login")[0];
     }
     if (!request.getParameterValues("password").empty()) {
         this->password = request.getParameterValues("password")[0];
     }
+    if (!request.getParameterValues("token").empty()) {
+        this->token = request.getParameterValues("token")[0];
+        this->authenticationByToken = true;
+    }
 
     const Wt::WString pass = this->password;
 
-    // transaction
+    if(authenticationByToken)
     {
-        try {
-            Wt::Dbo::Transaction transaction(*session);
-
-            // check whether the user exists
-            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
-            if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
-            {
-                // find the user from his login
-                Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
-
-                if (!user.isValid()) 
-                {
-                    Wt::log("info") << "[PUBLIC API] User invalid";
-                    return;
-                }
-
-                // verify
-                switch (session->passwordAuth().verifyPassword(user, pass))
-                {
-                    case Wt::Auth::PasswordValid:
-                        session->login().login(user);
-                        this->authentified = true;
-                        Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
-                        break;
-                    case Wt::Auth::LoginThrottling:
-                        Wt::log("info") << "[PUBLIC API] too many attempts.";
-                        break;
-                    case Wt::Auth::PasswordInvalid:
-                        Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
-                        break;
-                    default:
-                        break;
-                }
-            } else 
-            {
-                Wt::log("error") << "[PUBLIC API] User " << this->login << " not found";
-            }
-        } catch (Wt::Dbo::Exception const& e) 
+        // transaction
         {
-            Wt::log("error") << "[PUBLIC API] " << e.what();
+            try 
+            {
+                Wt::Dbo::Transaction transaction(*session);
+
+                // check whether the user exists
+                Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
+                if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
+                {
+                    // find the user from his login
+                    Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
+
+                    if (!user.isValid()) 
+                    {
+                        Wt::log("info") << "[PUBLIC API] User invalid";
+                        return;
+                    }
+
+                    std::string queryStr = "SELECT \"expires\" FROM \"auth_token\" "
+                                            "WHERE \"value\" = '" + boost::lexical_cast<std::string>(token) +
+                                            "' and \"auth_info_id\" IN "
+                                                    "(SELECT \"auth_info_id\" FROM \"auth_identity\" "
+                                                    "WHERE \"identity\" = '" + boost::lexical_cast<std::string>(login) +
+                                                    "')";
+
+                    //std::cerr << queryStr << "\n\n";
+
+                    Wt::WDateTime dateTime = session->query<Wt::WDateTime> (queryStr);
+
+
+                    //std::cerr << "dateTime = " << dateTime.toString() << std::endl;
+                    if(!dateTime.isNull())
+                    {
+                        if (dateTime > Wt::WDateTime::currentDateTime())
+                        {
+                            session->login().login(user);
+                            this->authentified = true;
+                        }
+                        else
+                        {
+                            Wt::log("error") << "[PUBLIC API] This token is too old";
+                        }
+                    }
+                    else
+                    {
+                        Wt::log("error") << "[PUBLIC API] Bad Token";
+                    }
+
+                } 
+                else 
+                {
+                    Wt::log("error") << "[PUBLIC API] User " << this->login << " not found";
+                }
+                transaction.commit();
+            } 
+            catch (Wt::Dbo::Exception const& e) 
+            {
+                Wt::log("error") << "[PUBLIC API] " << e.what();
+            }
         }
     }
+    else
+    {
+        // transaction
+        {
+            try {
+                Wt::Dbo::Transaction transaction(*session);
 
+                // check whether the user exists
+                Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
+                if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
+                {
+                    // find the user from his login
+                    Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
+
+                    if (!user.isValid()) 
+                    {
+                        Wt::log("info") << "[PUBLIC API] User invalid";
+                        return;
+                    }
+
+                    // verify
+                    switch (session->passwordAuth().verifyPassword(user, pass))
+                    {
+                        case Wt::Auth::PasswordValid:
+                            session->login().login(user);
+                            this->authentified = true;
+                            Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
+                            break;
+                        case Wt::Auth::LoginThrottling:
+                            Wt::log("info") << "[PUBLIC API] too many attempts.";
+                            break;
+                        case Wt::Auth::PasswordInvalid:
+                            Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
+                            break;
+                        default:
+                            break;
+                    }
+                } else 
+                {
+                    Wt::log("error") << "[PUBLIC API] User " << this->login << " not found";
+                }
+                transaction.commit();
+            } catch (Wt::Dbo::Exception const& e) 
+            {
+                Wt::log("error") << "[PUBLIC API] " << e.what();
+            }
+        }
+    }
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
 
@@ -215,5 +288,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     
     this->indexPathElement = 1;
     this->statusCode = 500;
+    delete session;
+    Wt::log("info") << "[PUBLIC API] " << "Session Deleted";
 }
         
