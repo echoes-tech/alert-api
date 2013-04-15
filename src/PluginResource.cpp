@@ -216,11 +216,10 @@ unsigned short PluginResource::getPlugin(std::string& responseMsg) const
                 idx++;
                 if(plgPtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
             transaction.commit();
         }
@@ -233,7 +232,7 @@ unsigned short PluginResource::getPlugin(std::string& responseMsg) const
     }
     catch (Wt::Dbo::Exception const& e) 
     {
-        Wt::log("error") << e.what();
+        Wt::log("error") << "[PluginResource]" << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
@@ -255,7 +254,8 @@ unsigned short PluginResource::getInformationListForPlugin(std::string &response
         Wt::Dbo::Transaction transaction(*this->session);
         std::string queryStr = " SELECT inf FROM \"T_INFORMATION_INF\" inf "
                             "WHERE \"INF_DISPLAY\" = TRUE AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
-                            " AND \"INF_DELETE\" IS NULL";
+                            " AND \"INF_DELETE\" IS NULL"
+                            " ORDER BY \"SRC_ID\", \"SEA_ID\", \"INF_VALUE_NUM\"";
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Information2> > queryRes = session->query<Wt::Dbo::ptr<Information2> >(queryStr);
 
@@ -265,16 +265,16 @@ unsigned short PluginResource::getInformationListForPlugin(std::string &response
         {
             responseMsg = "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
-            {
-                responseMsg +=  i->modify()->toJSON();
+            { 
+                Wt::Dbo::ptr<Information2> *info = new Wt::Dbo::ptr<Information2>(*i);
+                responseMsg +=  info->modify()->toJSON();
                 idx++;
                 if(information.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
             transaction.commit();
         }
@@ -318,11 +318,10 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(std::string& response
                 ++idx;
                 if(seaCollec.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";               
+            responseMsg += "\n]\n";               
 
             res = 200;
         }
@@ -367,7 +366,6 @@ unsigned short PluginResource::getParameterValueForSearch(std::string &responseM
                 ++idx;
                 if(seaParamCollec.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
@@ -413,15 +411,15 @@ unsigned short PluginResource::getInformationForSeaSrcAndPlg(std::string& respon
             responseMsg += "[\n";
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = infCollec.begin(); i != infCollec.end(); i++) 
             {
-                responseMsg += "\t" + i->modify()->toJSON();
+                Wt::Dbo::ptr<Information2> *info = new Wt::Dbo::ptr<Information2>(*i);
+                responseMsg += "\t" + info->modify()->toJSON();
                 ++idx;
                 if(infCollec.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";               
+            responseMsg += "\n]\n";               
 
             res = 200;
 //            
@@ -468,11 +466,10 @@ unsigned short PluginResource::getSourceForPlugin(std::string& responseMsg) cons
                 ++idx;
                 if(srcCollec.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";               
+            responseMsg += "\n]\n";               
 
             res = 200;
         }
@@ -517,11 +514,10 @@ unsigned short PluginResource::getParameterValueForSource(std::string& responseM
                 ++idx;
                 if(srcParamCollec.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";               
+            responseMsg += "\n]\n";               
 
             res = 200;
         }

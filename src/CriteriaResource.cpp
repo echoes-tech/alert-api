@@ -33,11 +33,10 @@ unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
             ++idx;
             if(alertCriterias.size()-idx > 0)
             {
-                responseMsg.replace(responseMsg.size()-1, 1, "");
                 responseMsg += ",\n";
             }
         }
-        responseMsg += "]\n";
+        responseMsg += "\n]\n";
         res = 200;
         transaction.commit();
     }

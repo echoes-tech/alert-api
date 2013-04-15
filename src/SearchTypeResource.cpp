@@ -40,11 +40,10 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
                 ++idx;
                 if(seaTypePtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
             transaction.commit();     
         }
@@ -96,11 +95,10 @@ unsigned short SearchTypeResource::getParameterForSearchType(std::string &respon
                 ++idx;
                 if(seaParamPtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
             transaction.commit();     
         }

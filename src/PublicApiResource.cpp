@@ -11,6 +11,10 @@
  * 
  */
 
+#include <boost/exception/detail/exception_ptr.hpp>
+#include <Wt/WApplication>
+#include <Wt/WServer>
+
 #include "PublicApiResource.h"
 
 using namespace std;
@@ -170,12 +174,10 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                                                     "WHERE \"identity\" = '" + boost::lexical_cast<std::string>(login) +
                                                     "')";
 
-                    //std::cerr << queryStr << "\n\n";
 
                     Wt::WDateTime dateTime = session->query<Wt::WDateTime> (queryStr);
 
 
-                    //std::cerr << "dateTime = " << dateTime.toString() << std::endl;
                     if(!dateTime.isNull())
                     {
                         if (dateTime > Wt::WDateTime::currentDateTime())
@@ -202,7 +204,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
             } 
             catch (Wt::Dbo::Exception const& e) 
             {
-                Wt::log("error") << "[PUBLIC API] " << e.what();
+                Wt::log("error") << "[PUBLIC API.] " << e.what();
             }
         }
     }
@@ -288,7 +290,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     
     this->indexPathElement = 1;
     this->statusCode = 500;
+    std::cerr << "session delete";
     delete session;
-    Wt::log("info") << "[PUBLIC API] " << "Session Deleted";
 }
         

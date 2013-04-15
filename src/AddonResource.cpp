@@ -49,7 +49,7 @@ unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) co
                 ++idx;
                 if(seaTypePtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                 //   responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
@@ -105,7 +105,7 @@ unsigned short AddonResource::getParameterForAddon(std::string& responseMsg) con
                 ++idx;
                 if(srcParamPtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
+                 //   responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
@@ -147,7 +147,7 @@ unsigned short AddonResource::getAddonList(std::string& responseMsg) const
             ++idx;
             if(addonPtr.size()-idx > 0)
             {
-                responseMsg.replace(responseMsg.size()-1, 1, "");
+                //responseMsg.replace(responseMsg.size()-1, 1, "");
                 responseMsg += ",\n";
             }
         }

@@ -80,11 +80,10 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
                 +idx;
                 if(user.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg = "]\n";
+            responseMsg += "\n]\n";
             res = 200;
         }
         else 

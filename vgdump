@@ -1,0 +1,129 @@
+==7421== Memcheck, a memory error detector
+==7421== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==7421== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==7421== Command: ./dist/Debug/GNU-Linux-x86/api -c config.xml --docroot . --http-address 0.0.0.0 --http-port 8080 --deploy-path=/
+==7421== Parent PID: 2880
+==7421== 
+==7421== 
+==7421== HEAP SUMMARY:
+==7421==     in use at exit: 119,744 bytes in 1,028 blocks
+==7421==   total heap usage: 154,529 allocs, 153,501 frees, 23,460,508 bytes allocated
+==7421== 
+==7421== 300 (60 direct, 240 indirect) bytes in 1 blocks are definitely lost in loss record 60 of 95
+==7421==    at 0x4C2B3F8: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7421==    by 0x70F6594: nss_parse_service_list (nsswitch.c:678)
+==7421==    by 0x70F7055: __nss_database_lookup (nsswitch.c:175)
+==7421==    by 0x14115623: ???
+==7421==    by 0x70AFBFC: getpwuid_r@@GLIBC_2.2.5 (getXXbyYY_r.c:256)
+==7421==    by 0x94112B8: ??? (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x93FFEF9: ??? (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x940EA89: ??? (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x94102C9: ??? (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x9400AA5: PQconnectPoll (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x9401F3D: ??? (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x94028EE: PQconnectdb (in /usr/lib/libpq.so.5.4)
+==7421==    by 0x78DE3AD: Wt::Dbo::backend::Postgres::connect(std::string const&) (Postgres.C:557)
+==7421==    by 0x78DE5DA: Wt::Dbo::backend::Postgres::Postgres(std::string const&) (Postgres.C:532)
+==7421==    by 0x52BAA00: Session::Session(std::string) (Session.cpp:43)
+==7421==    by 0x7362CC: PublicApiResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PublicApiResource.cpp:149)
+==7421==    by 0x7ECC3C: PluginResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PluginResource.cpp:2175)
+==7421==    by 0x68CC33A: Wt::WResource::handle(Wt::WebRequest*, Wt::WebResponse*, Wt::Http::ResponseContinuation*) (WResource.C:139)
+==7421==    by 0x6A1E7D0: Wt::WebController::handleRequest(Wt::WebRequest*) (WebController.C:516)
+==7421==    by 0x5F05E02: http::server::WtReply::consumeRequestBody(char const*, char const*, http::server::Request::State) (WtReply.C:140)
+==7421== 
+==7421== 768 bytes in 12 blocks are definitely lost in loss record 68 of 95
+==7421==    at 0x4C2AF8E: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7421==    by 0x62DC29: __gnu_cxx::new_allocator<std::_Rb_tree_node<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::allocate(unsigned long, void const*) (new_allocator.h:94)
+==7421==    by 0x629FFD: std::_Rb_tree<SearchId, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>, std::_Select1st<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >, std::less<SearchId>, std::allocator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::_M_get_node() (stl_tree.h:369)
+==7421==    by 0x626AFE: std::_Rb_tree_node<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >* std::_Rb_tree<SearchId, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>, std::_Select1st<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >, std::less<SearchId>, std::allocator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::_M_create_node<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >(std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>&&) (stl_tree.h:402)
+==7421==    by 0x623A0F: std::_Rb_tree_iterator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > std::_Rb_tree<SearchId, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>, std::_Select1st<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >, std::less<SearchId>, std::allocator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::_M_insert_<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>&&) (stl_tree.h:979)
+==7421==    by 0x61FD2F: std::_Rb_tree_iterator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > std::_Rb_tree<SearchId, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>, std::_Select1st<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >, std::less<SearchId>, std::allocator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::_M_insert_unique_<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >(std::_Rb_tree_const_iterator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>&&) (stl_tree.h:1346)
+==7421==    by 0x61B1F3: std::_Rb_tree_iterator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > std::map<SearchId, Wt::Dbo::MetaDbo<Search>*, std::less<SearchId>, std::allocator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::insert<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>, void>(std::_Rb_tree_const_iterator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> >, std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*>&&) (stl_map.h:585)
+==7421==    by 0x618740: std::map<SearchId, Wt::Dbo::MetaDbo<Search>*, std::less<SearchId>, std::allocator<std::pair<SearchId const, Wt::Dbo::MetaDbo<Search>*> > >::operator[](SearchId const&) (stl_map.h:458)
+==7421==    by 0x6149BE: Wt::Dbo::ptr<Search> Wt::Dbo::Session::loadLazy<Search>(Wt::Dbo::dbo_traits<Search>::IdType const&) (Session_impl.h:213)
+==7421==    by 0x63D7FF: void Wt::Dbo::PtrRef<Search>::visit<Wt::Dbo::LoadBaseAction>(Wt::Dbo::LoadBaseAction&, Wt::Dbo::Session*) const (Field_impl.h:111)
+==7421==    by 0x638BDD: void Wt::Dbo::LoadBaseAction::actPtr<Search>(Wt::Dbo::PtrRef<Search> const&) (DbAction_impl.h:252)
+==7421==    by 0x65DB49: void Wt::Dbo::field<Wt::Dbo::LoadDbAction<Information2>, Search>(Wt::Dbo::LoadDbAction<Information2>&, Wt::Dbo::ptr<Search>&, std::string const&, int) (Field_impl.h:152)
+==7421==    by 0x656278: void Wt::Dbo::field<Wt::Dbo::LoadDbAction<Information2> >(Wt::Dbo::LoadDbAction<Information2>&, InformationId&, std::string const&, int) (InformationId.h:59)
+==7421==    by 0x64FD01: void Wt::Dbo::LoadDbAction<Information2>::actId<InformationId>(InformationId&, std::string const&, int) (DbAction_impl.h:301)
+==7421==    by 0x648F5C: void Wt::Dbo::id<Wt::Dbo::LoadDbAction<Information2>, InformationId>(Wt::Dbo::LoadDbAction<Information2>&, InformationId&, std::string const&, int) (Field_impl.h:133)
+==7421==    by 0x643670: void Information2::persist<Wt::Dbo::LoadDbAction<Information2> >(Wt::Dbo::LoadDbAction<Information2>&) (Information.h:36)
+==7421==    by 0x63DD2E: void Wt::Dbo::persist<Information2, void>::apply<Wt::Dbo::LoadDbAction<Information2> >(Information2&, Wt::Dbo::LoadDbAction<Information2>&) (DbAction_impl.h:20)
+==7421==    by 0x638E81: Wt::Dbo::LoadDbAction<Information2>::visit(Information2&) (DbAction_impl.h:287)
+==7421==    by 0x6337B3: void Wt::Dbo::Session::implLoad<Information2>(Wt::Dbo::MetaDbo<Information2>&, Wt::Dbo::SqlStatement*, int&) (Session_impl.h:322)
+==7421==    by 0x80E26F: Wt::Dbo::ptr<Information2> Wt::Dbo::Session::loadWithNaturalId<Information2>(Wt::Dbo::SqlStatement*, int&) (Session_impl.h:116)
+==7421== 
+==7421== 1,600 bytes in 20 blocks are definitely lost in loss record 75 of 95
+==7421==    at 0x4C2AF8E: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7421==    by 0x6206B9: __gnu_cxx::new_allocator<std::_Rb_tree_node<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::allocate(unsigned long, void const*) (new_allocator.h:94)
+==7421==    by 0x61B3E1: std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_get_node() (stl_tree.h:369)
+==7421==    by 0x63E1BC: std::_Rb_tree_node<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >* std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_create_node<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*> >(std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_tree.h:402)
+==7421==    by 0x639709: std::_Rb_tree_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_insert_<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*> >(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_tree.h:979)
+==7421==    by 0x634747: std::_Rb_tree_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_insert_unique_<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*> >(std::_Rb_tree_const_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_tree.h:1346)
+==7421==    by 0x6300E5: std::_Rb_tree_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > std::map<InformationId, Wt::Dbo::MetaDbo<Information2>*, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::insert<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>, void>(std::_Rb_tree_const_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_map.h:585)
+==7421==    by 0x62BF41: std::map<InformationId, Wt::Dbo::MetaDbo<Information2>*, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::operator[](InformationId&&) (stl_map.h:472)
+==7421==    by 0x6289EA: void Wt::Dbo::Session::implSave<Information2>(Wt::Dbo::MetaDbo<Information2>&) (Session_impl.h:264)
+==7421==    by 0x6259DF: Wt::Dbo::MetaDbo<Information2>::flush() (ptr_impl.h:80)
+==7421==    by 0x5C3C4C1: Wt::Dbo::Session::flush() (Session.C:982)
+==7421==    by 0x7F240E: Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> >::size() const (collection_impl.h:359)
+==7421==    by 0x53FD4B2: std::string Table::formatJSONForDboCollection<Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> > >(Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue> > const&, std::string, bool) (Table.h:127)
+==7421==    by 0x5403D44: Information2::toJSON() (Information.cpp:22)
+==7421==    by 0x7DB24A: PluginResource::getInformationListForPlugin(std::string&) const (PluginResource.cpp:271)
+==7421==    by 0x7DE3B1: PluginResource::processGetRequest(Wt::Http::Response&) (PluginResource.cpp:583)
+==7421==    by 0x73751E: PublicApiResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PublicApiResource.cpp:311)
+==7421==    by 0x7ECC3C: PluginResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PluginResource.cpp:2175)
+==7421==    by 0x68CC33A: Wt::WResource::handle(Wt::WebRequest*, Wt::WebResponse*, Wt::Http::ResponseContinuation*) (WResource.C:139)
+==7421==    by 0x6A1E7D0: Wt::WebController::handleRequest(Wt::WebRequest*) (WebController.C:516)
+==7421== 
+==7421== 15,936 (960 direct, 14,976 indirect) bytes in 12 blocks are definitely lost in loss record 91 of 95
+==7421==    at 0x4C2AF8E: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7421==    by 0x6206B9: __gnu_cxx::new_allocator<std::_Rb_tree_node<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::allocate(unsigned long, void const*) (new_allocator.h:94)
+==7421==    by 0x61B3E1: std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_get_node() (stl_tree.h:369)
+==7421==    by 0x63E1BC: std::_Rb_tree_node<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >* std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_create_node<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*> >(std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_tree.h:402)
+==7421==    by 0x639709: std::_Rb_tree_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_insert_<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*> >(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_tree.h:979)
+==7421==    by 0x634747: std::_Rb_tree_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > std::_Rb_tree<InformationId, std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*>, std::_Select1st<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::_M_insert_unique_<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*> >(std::_Rb_tree_const_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_tree.h:1346)
+==7421==    by 0x6300E5: std::_Rb_tree_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > std::map<InformationId, Wt::Dbo::MetaDbo<Information2>*, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::insert<std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>, void>(std::_Rb_tree_const_iterator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> >, std::pair<InformationId, Wt::Dbo::MetaDbo<Information2>*>&&) (stl_map.h:585)
+==7421==    by 0x62BF41: std::map<InformationId, Wt::Dbo::MetaDbo<Information2>*, std::less<InformationId>, std::allocator<std::pair<InformationId const, Wt::Dbo::MetaDbo<Information2>*> > >::operator[](InformationId&&) (stl_map.h:472)
+==7421==    by 0x80E31B: Wt::Dbo::ptr<Information2> Wt::Dbo::Session::loadWithNaturalId<Information2>(Wt::Dbo::SqlStatement*, int&) (Session_impl.h:122)
+==7421==    by 0x80A7AF: Wt::Dbo::Impl::LoadHelper<Information2, InformationId>::load(Wt::Dbo::Session*, Wt::Dbo::SqlStatement*, int&) (Session_impl.h:24)
+==7421==    by 0x803279: Wt::Dbo::ptr<Information2> Wt::Dbo::Session::load<Information2>(Wt::Dbo::SqlStatement*, int&) (Session_impl.h:105)
+==7421==    by 0x7FEF35: Wt::Dbo::query_result_traits<Wt::Dbo::ptr<Information2> >::load(Wt::Dbo::Session&, Wt::Dbo::SqlStatement&, int&) (ptr_impl.h:547)
+==7421==    by 0x7FACB6: Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::iterator::shared_impl::fetchNextRow() (collection_impl.h:150)
+==7421==    by 0x7F58B9: Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::iterator::operator++(int) (collection_impl.h:110)
+==7421==    by 0x7F03FA: Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator::operator++(int) (collection_impl.h:228)
+==7421==    by 0x7DB2DE: PluginResource::getInformationListForPlugin(std::string&) const (PluginResource.cpp:268)
+==7421==    by 0x7DE3B1: PluginResource::processGetRequest(Wt::Http::Response&) (PluginResource.cpp:583)
+==7421==    by 0x73751E: PublicApiResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PublicApiResource.cpp:311)
+==7421==    by 0x7ECC3C: PluginResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PluginResource.cpp:2175)
+==7421==    by 0x68CC33A: Wt::WResource::handle(Wt::WebRequest*, Wt::WebResponse*, Wt::Http::ResponseContinuation*) (WResource.C:139)
+==7421== 
+==7421== 53,948 (896 direct, 53,052 indirect) bytes in 56 blocks are definitely lost in loss record 95 of 95
+==7421==    at 0x4C2AF8E: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7421==    by 0x7DB1ED: PluginResource::getInformationListForPlugin(std::string&) const (PluginResource.cpp:270)
+==7421==    by 0x7DE3B1: PluginResource::processGetRequest(Wt::Http::Response&) (PluginResource.cpp:583)
+==7421==    by 0x73751E: PublicApiResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PublicApiResource.cpp:311)
+==7421==    by 0x7ECC3C: PluginResource::handleRequest(Wt::Http::Request const&, Wt::Http::Response&) (PluginResource.cpp:2175)
+==7421==    by 0x68CC33A: Wt::WResource::handle(Wt::WebRequest*, Wt::WebResponse*, Wt::Http::ResponseContinuation*) (WResource.C:139)
+==7421==    by 0x6A1E7D0: Wt::WebController::handleRequest(Wt::WebRequest*) (WebController.C:516)
+==7421==    by 0x5F05E02: http::server::WtReply::consumeRequestBody(char const*, char const*, http::server::Request::State) (WtReply.C:140)
+==7421==    by 0x5EE8593: http::server::RequestParser::parseBody(http::server::Request&, boost::shared_ptr<http::server::Reply>, char*&, char*) (RequestParser.C:141)
+==7421==    by 0x5ED3BDB: http::server::Connection::handleReadBody() (Connection.C:226)
+==7421==    by 0x5ED4ED5: http::server::Connection::handleReadRequest0() (Connection.C:165)
+==7421==    by 0x5F01882: boost::asio::detail::reactive_socket_recv_op<boost::asio::mutable_buffers_1, boost::_bi::bind_t<void, boost::_mfi::mf2<void, http::server::Connection, boost::system::error_code const&, unsigned long>, boost::_bi::list3<boost::_bi::value<boost::shared_ptr<http::server::TcpConnection> >, boost::arg<1> (*)(), boost::arg<2> (*)()> > >::do_complete(boost::asio::detail::task_io_service*, boost::asio::detail::task_io_service_operation*, boost::system::error_code const&, unsigned long) (mem_fn_template.hpp:271)
+==7421==    by 0x5EEF315: boost::asio::detail::task_io_service::run(boost::system::error_code&) (task_io_service_operation.hpp:37)
+==7421==    by 0x6865BFA: Wt::WIOService::run() (io_service.ipp:59)
+==7421==    by 0x7AFE6C8: ??? (in /usr/lib/libboost_thread.so.1.49.0)
+==7421==    by 0x73B7E99: start_thread (pthread_create.c:308)
+==7421==    by 0x70E4CBC: clone (clone.S:112)
+==7421== 
+==7421== LEAK SUMMARY:
+==7421==    definitely lost: 4,284 bytes in 101 blocks
+==7421==    indirectly lost: 68,268 bytes in 874 blocks
+==7421==      possibly lost: 0 bytes in 0 blocks
+==7421==    still reachable: 47,192 bytes in 53 blocks
+==7421==         suppressed: 0 bytes in 0 blocks
+==7421== Reachable blocks (those to which a pointer was found) are not shown.
+==7421== To see them, rerun with: --leak-check=full --show-reachable=yes
+==7421== 
+==7421== For counts of detected and suppressed errors, rerun with: -v
+==7421== ERROR SUMMARY: 5 errors from 5 contexts (suppressed: 2 from 2)

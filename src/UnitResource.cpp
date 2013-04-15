@@ -39,11 +39,10 @@ unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
                  ++idx;
                 if(unitTypePtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
         }
         else
@@ -87,11 +86,10 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
                  ++idx;
                 if(unitCollec.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
         }
         else
@@ -177,11 +175,10 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
                     ++idx;
                     if(infoSubUnit.size()-idx > 0)
                     {
-                        responseMsg.replace(responseMsg.size()-1, 1, "");
                         responseMsg += ",\n";
                     }
                 }  
-                responseMsg = "]\n";
+                responseMsg = "\n]\n";
                 res = 200;
             }
             else 

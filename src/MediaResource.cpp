@@ -37,11 +37,10 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
                  ++idx;
                 if(medias.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
         }
         else
@@ -91,11 +90,10 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
                 ++idx;
                 if(media.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";               
+            responseMsg += "\n]\n";               
 
             res = 200;
         }

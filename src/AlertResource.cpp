@@ -56,33 +56,25 @@ unsigned short AlertResource::getMediasValuesForAlert(std::string &responseMsg) 
                 Wt::Dbo::ptr<AlertMediaSpecialization> > > listTuples = resQuery.resultList();
         if (listTuples.size() > 0) 
         {
-            if(listTuples.size() > 1)
-            {
-            responseMsg = "[\n";
-            }
+            responseMsg = "[";
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<MediaValue>,
                     Wt::Dbo::ptr<AlertMediaSpecialization> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
                 i->get<0>().modify()->setId(i->get<0>().id());
                 i->get<1>().modify()->setId(i->get<1>().id());
-                responseMsg += "{\n";
+                responseMsg += "\n{\n";
                 responseMsg += "media_value :" + i->get<0>().modify()->toJSON();
-                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
-                responseMsg += "media_specialization :" + i->get<1>().modify()->toJSON();
-                responseMsg += "}\n";
+                responseMsg += ",\nmedia_specialization :" + i->get<1>().modify()->toJSON();
+                responseMsg += "\n}";
                  ++idx;
                 if(listTuples.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
                 
             }
-            if(listTuples.size() > 1)
-            {
             responseMsg += "]";
-            }
             res = 200; 
         } 
         else 
@@ -105,6 +97,7 @@ unsigned short AlertResource::getMediasValuesForAlert(std::string &responseMsg) 
 
 unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) const
 {
+    responseMsg="";
     unsigned short res = 500;
     int idx = 0;
     try
@@ -150,10 +143,7 @@ unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) con
 
         if (listTuples.size() > 0)
         {
-            if(listTuples.size() > 1)
-            {
-            responseMsg += "[\n";
-            }
+            responseMsg = "[";
             for (Wt::Dbo::collection<boost::tuple<
                  Wt::Dbo::ptr<Alert>,
                  Wt::Dbo::ptr<MediaValue>,
@@ -163,24 +153,18 @@ unsigned short AlertResource::getTrackingAlertList(std::string &responseMsg) con
                 i->get<1>().modify()->setId(i->get<1>().id());
                 i->get<2>().modify()->setId(i->get<2>().id());
                 
-                responseMsg += "{\n";
+                responseMsg += "\n{\n";
                 responseMsg +="\"alert\" :" + i->get<0>().modify()->toJSON();
-                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
-                responseMsg +="\"media_value\" :" + i->get<1>().modify()->toJSON();
-                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
-                responseMsg +="\"alert_tracking\" :" + i->get<2>().modify()->toJSON();
-                responseMsg += "}\n";
+                responseMsg +=",\n\"media_value\" :" + i->get<1>().modify()->toJSON();
+                responseMsg +=",\n\"alert_tracking\" :" + i->get<2>().modify()->toJSON();
+                responseMsg += "\n}";
                  ++idx;
                 if(listTuples.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            if(listTuples.size() > 1)
-            {
-            responseMsg += "]\n";
-            }
+            responseMsg += "\n]\n";
             res = 200;
 
         }
@@ -210,7 +194,7 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
     int idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(*session);
         std::string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
                 " \"T_ALERT_VALUE_AVA\" ava,"
                 " \"T_ALERT_CRITERIA_ACR\" acr,"
@@ -220,7 +204,7 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
                 "SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" WHERE \"AMS_MEV_MEV_ID\" IN "
                 "("
                 "SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  = "
-                + boost::lexical_cast<std::string > (this->session->user().id())
+                + boost::lexical_cast<std::string > (session->user().id())
                 + ""
                 " )"
                 ") "
@@ -242,7 +226,7 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
                 Wt::Dbo::ptr<InformationUnit>
                 >
                 , Wt::Dbo::DynamicBinding
-                > resQuery = this->session->query
+                > resQuery = session->query
                 <
                 boost::tuple
                 <
@@ -261,42 +245,42 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
                 Wt::Dbo::ptr<InformationUnit> > > listTuples = resQuery.resultList();
         if (listTuples.size() > 0) 
         {
-            if(listTuples.size() > 1)
-            {
-            responseMsg = "[\n";
-            }
+            responseMsg = "[";
             for (Wt::Dbo::collection<boost::tuple<
                     Wt::Dbo::ptr<Alert>,
                     Wt::Dbo::ptr<AlertCriteria>,
                     Wt::Dbo::ptr<AlertValue>,
                     Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
-                i->get<0>().modify()->setId(i->get<0>().id());
-                i->get<1>().modify()->setId(i->get<1>().id());
-                i->get<2>().modify()->setId(i->get<2>().id());
-                i->get<3>().modify()->setId(i->get<3>().id());
-                responseMsg += "{\n";
-                responseMsg += "\"alert\" :" + i->get<0>().modify()->toJSON();
-                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
-                responseMsg += "\"criteria\" :" + i->get<1>().modify()->toJSON();
-                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
-                responseMsg += "\"alert_value\" :" + i->get<2>().modify()->toJSON();
-                responseMsg.replace(responseMsg.size()-1, 1, ",\n");
-                responseMsg += "\"information_unit\" :" + i->get<3>().modify()->toJSON();
-                responseMsg += "}\n";
+                //BUG du delete session 
+                // pour contourner le bug déclaration des pointeurs aleVal et ale (les 2 pointeurs ne voulant pas se supprimer).
+                // Si on passe directement par l'itérateur la solution ne marche pas. 
+                // Probléme on ne peut pas delete le pointeur aleVal 
                 
-                  ++idx;
+                Wt::Dbo::ptr<AlertValue> *aleVal = new Wt::Dbo::ptr<AlertValue>(i->get<2>()); 
+                Wt::Dbo::ptr<Alert> *ale = new Wt::Dbo::ptr<Alert>(i->get<0>()); 
+                
+                ale->modify()->setId(i->get<0>().id());
+                i->get<1>().modify()->setId(i->get<1>().id());
+                aleVal->modify()->setId(i->get<2>().id());      
+                i->get<3>().modify()->setId(i->get<3>().id());
+                responseMsg += "\n{\n";
+                responseMsg += "\"alert\" :" + ale->modify()->toJSON();
+                responseMsg += ",\n\"criteria\" :" + i->get<1>().modify()->toJSON();
+                responseMsg += ",\n\"alert_value\" :" + aleVal->modify()->toJSON();
+                responseMsg += ",\n\"information_unit\" :" + i->get<3>().modify()->toJSON();
+                responseMsg += "\n}";
+                delete ale;
+
+
+                ++idx;
                 if(listTuples.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
 
             }
-            if(listTuples.size() > 1)
-            {
-            responseMsg += "]";
-            }
+            responseMsg += "\n]";
             res = 200; 
         } 
         else 
@@ -780,7 +764,6 @@ void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
-
     return;
 }
 
