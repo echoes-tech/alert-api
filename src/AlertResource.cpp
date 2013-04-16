@@ -801,6 +801,8 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
 
             if (Utils::checkId<Alert>(alertPtr))
             {
+                alertPtr.modify()->lastAttempt = Wt::WDateTime::currentDateTime();
+                
                 //TODO: verifier si les IVA correspondent bien aux INF de l'alerte
                 ivaPtrCollection = session->find<InformationValue>()
                     .where(ivaIDWhereString)
