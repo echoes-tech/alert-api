@@ -25,7 +25,8 @@ unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = session->find<InformationUnitType>();
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = session->find<InformationUnitType>()
+                .where("\"IUT_DELETE\" IS NULL");
                                                          
         if (unitTypePtr.size() > 0)
         {
@@ -49,7 +50,6 @@ unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
         {
             res = 404;
             responseMsg = "{\"message\":\"UnitType not found\"}";
-            return res;
         }
 
         transaction.commit();
@@ -59,7 +59,6 @@ unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -73,6 +72,7 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
         Wt::Dbo::Transaction transaction(*this->session);
       
         Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = session->find<InformationUnit>()
+                                                                                .where("\"INU_DELETE\" IS NULL")
                                                                                 .orderBy("\"INU_ID\"");
         if (unitCollec.size() > 0)
         {
@@ -96,7 +96,6 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
         {
             res = 404;
             responseMsg = "{\"message\":\"Unit not found\"}";
-            return res;
         }
 
         transaction.commit();
@@ -106,7 +105,6 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -119,12 +117,12 @@ unsigned short UnitResource::getUnit(std::string &responseMsg) const
         Wt::Dbo::Transaction transaction(*this->session);
       
         Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
-                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
+                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+                                                          .where("\"INU_DELETE\" IS NULL");
         if (!informationUnit)
         {
             res = 404;
             responseMsg = "{\"message\":\"Unit not found\"}";
-            return res;
         }
         else
         {
@@ -140,7 +138,6 @@ unsigned short UnitResource::getUnit(std::string &responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -154,17 +151,18 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
         Wt::Dbo::Transaction transaction(*this->session);
       
         Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
-                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
+                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+                                                          .where("\"INU_DELETE\" IS NULL");
         if (!informationUnit)
         {
             res = 404;
             responseMsg = "{\"message\":\"Unit not found\"}";
-            return res;
         }
         else
         {
              Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> > infoSubUnit = session->find<InformationSubUnit>()
-                                                                             .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1]);
+                                                                             .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1])
+                                                                             .where("\"ISU_DELETE\" IS NULL");
             if(infoSubUnit.size() > 0)
             {
                 responseMsg = "[\n";
@@ -178,14 +176,13 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
                         responseMsg += ",\n";
                     }
                 }  
-                responseMsg = "\n]\n";
+                responseMsg += "\n]\n";
                 res = 200;
             }
             else 
             {
                 res = 404;
                 responseMsg = "{\"message\":\"Subunit not found\"}";
-                return res;
             }
         }
         transaction.commit();
@@ -195,7 +192,6 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -287,20 +283,18 @@ unsigned short UnitResource::postUnit(std::string& responseMsg, const std::strin
             informationUnit->name = name;
             informationUnit->unitType = unitTypePtr;
             unitPtr = session->add<InformationUnit>(informationUnit);
+            
+            unitPtr.flush();
+            unitPtr.modify()->setId(unitPtr.id());
+            responseMsg = unitPtr.modify()->toJSON();
+            res = 200;
         }
         else
         {
             res = 404;
             responseMsg = "{\"message\":\"UnitType not found\"}";
-            return res;
         }
-        
-        unitPtr.flush();
-        unitPtr.modify()->setId(unitPtr.id());
-        responseMsg = unitPtr.modify()->toJSON();
         transaction.commit();
-        
-        res = 200;
         
     }
     catch (Wt::Dbo::Exception const& e) 
@@ -309,7 +303,6 @@ unsigned short UnitResource::postUnit(std::string& responseMsg, const std::strin
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
-    
     return res;
 }
 
@@ -399,37 +392,28 @@ unsigned short UnitResource::deleteUnit(std::string& responseMsg)
             if (seaUnitCollec.size() == 0)
             {                
                 //supprime l'info
-
-                std::string executeString1 = "DELETE FROM \"T_INFORMATION_UNIT_UNT\" "
-                                             "WHERE \"INU_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
-                
-                session->execute(executeString1);
+                informationUnitPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = 204;
+                transaction.commit();   
             }
             else
             {
                 res = 409;
                 responseMsg = "{\"message\":\"Conflict, an information use this unit\"}";
-                return res;
-            }
-            
+            } 
         }
         else
         {
             responseMsg = "{\"message\":\"Unit Not Found\"}";
             res = 404;
-            return res;
-        }
-        res = 204;
-        transaction.commit();               
+        }            
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
-    
     return res;
 }
 

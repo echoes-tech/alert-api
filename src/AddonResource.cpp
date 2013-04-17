@@ -52,23 +52,20 @@ unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) co
                 }
             }
             responseMsg += "]\n";
-            res = 200;
-            transaction.commit();     
+            res = 200;    
         }
         else
         {        
             res = 404;
             responseMsg = "{\"message\":\"Search parameter not found\"}";
-            return res;
         }
-
+        transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -108,21 +105,19 @@ unsigned short AddonResource::getParameterForAddon(std::string& responseMsg) con
             }
             responseMsg += "]\n";
             res = 200;
-            transaction.commit();        
         }
         else
         {        
             res = 404;
             responseMsg = "{\"message\":\"Source parameter not found\"}";
-            return res;
         }
+        transaction.commit(); 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -156,7 +151,6 @@ unsigned short AddonResource::getAddonList(std::string& responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -285,7 +279,6 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
             Wt::log("error") << e.what();
             res = 503;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
-            return res;
         }
     }
 
@@ -294,14 +287,12 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-        return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-        return res;
     }   
     
     return res;

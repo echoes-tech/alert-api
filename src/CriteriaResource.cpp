@@ -45,7 +45,6 @@ unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
