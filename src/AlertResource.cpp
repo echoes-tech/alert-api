@@ -253,25 +253,28 @@ unsigned short AlertResource::getAlerts(std::string &responseMsg) const
                     Wt::Dbo::ptr<InformationUnit> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
             {
                 //BUG du delete session 
-                // pour contourner le bug déclaration des pointeurs aleVal et ale (les 2 pointeurs ne voulant pas se supprimer).
+                // pour contourner le bug déclaration des pointeurs 
                 // Si on passe directement par l'itérateur la solution ne marche pas. 
                 // Probléme on ne peut pas delete le pointeur aleVal 
                 
                 Wt::Dbo::ptr<AlertValue> *aleVal = new Wt::Dbo::ptr<AlertValue>(i->get<2>()); 
                 Wt::Dbo::ptr<Alert> *ale = new Wt::Dbo::ptr<Alert>(i->get<0>()); 
+                Wt::Dbo::ptr<AlertCriteria> *aleCrit = new Wt::Dbo::ptr<AlertCriteria>(i->get<1>());
+                Wt::Dbo::ptr<InformationUnit> *info = new Wt::Dbo::ptr<InformationUnit>(i->get<3>()); 
                 
-                ale->modify()->setId(i->get<0>().id());
-                i->get<1>().modify()->setId(i->get<1>().id());
-                aleVal->modify()->setId(i->get<2>().id());      
-                i->get<3>().modify()->setId(i->get<3>().id());
+                ale->modify()->setId(ale->id());
+                aleCrit->modify()->setId(aleCrit->id());
+                aleVal->modify()->setId(aleVal->id());      
+                info->modify()->setId(aleVal->id());
                 responseMsg += "\n{\n";
                 responseMsg += "\"alert\" :" + ale->modify()->toJSON();
-                responseMsg += ",\n\"criteria\" :" + i->get<1>().modify()->toJSON();
+                responseMsg += ",\n\"criteria\" :" + aleCrit->modify()->toJSON();
                 responseMsg += ",\n\"alert_value\" :" + aleVal->modify()->toJSON();
-                responseMsg += ",\n\"information_unit\" :" + i->get<3>().modify()->toJSON();
+                responseMsg += ",\n\"information_unit\" :" + info->modify()->toJSON();
                 responseMsg += "\n}";
                 delete ale;
-
+                delete info;
+                delete aleCrit;
 
                 ++idx;
                 if(listTuples.size()-idx > 0)
@@ -593,8 +596,7 @@ unsigned short AlertResource::postAlert(std::string &responseMsg, const std::str
         alert->threadSleep = boost::lexical_cast<int>(threadSleep);
 
         Wt::Dbo::ptr<Alert> alePtr = session->add<Alert>(alert);
-     //   alePtr.modify()->assets.insert(assetPtr);
-      //  avaPtr.modify()->asset.insert(assetPtr);
+
         for (Wt::Json::Array::const_iterator idx2 = amsId.begin() ; idx2 < amsId.end(); idx2++)
         {
             Wt::WString tmp = (*idx2).toString();
@@ -684,11 +686,10 @@ unsigned short AlertResource::deleteAlert(std::string &responseMsg)
         Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
         Wt::Dbo::ptr<AlertValue> avaPtr = session->find<AlertValue>().where("\"AVA_ID\" = ?").bind(alertPtr.get()->alertValue.id());
 
-//        std::string executeString1 = " SELECT astale FROM \"TJ_AST_ALE\" astale" 
-//                                    " WHERE astale.\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) + "FOR UPDATE";
+
         std::string executeString1bis = " DELETE FROM \"TJ_AST_ALE\" " 
                                         " WHERE \"TJ_AST_ALE\".\"T_ALERT_ALE_ALE_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
-//        session->execute(executeString1);
+        
         session->execute(executeString1bis);
 
         std::string executeString2 = "SELECT ams FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams " 

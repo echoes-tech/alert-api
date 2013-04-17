@@ -1759,7 +1759,7 @@ unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(std::string& res
             else
             {
                 res = 409;
-                responseMsg = "{\"message\":\"Conflict, an information use this search\"}";
+                responseMsg = "{\"message\":\"Conflict, an alert use this information\"}";
                 return res;
             }
             
@@ -1815,6 +1815,8 @@ unsigned short PluginResource::deleteSearchForSourceAndPlugin(std::string& respo
                 res = deleteInformationForSeaSrcAndPlg(responseMsg);
                 if( res != 204)
                 {
+                    res = 409;
+                    responseMsg = "{\"message\":\"Conflict, an alert use this search\"}";
                     return res;
                 }
             }
@@ -1901,6 +1903,8 @@ unsigned short PluginResource::deletePlugin(std::string& responseMsg)
                 res = deleteSourceForPlugin(responseMsg);
                 if( res != 204)
                 {
+                    res = 409;
+                    responseMsg = "{\"message\":\"Conflict, an alerts use this plugin\"}";
                     return res;
                 }
             }
@@ -1970,6 +1974,8 @@ unsigned short PluginResource::deleteSourceForPlugin(std::string& responseMsg)
                     res = deleteSearchForSourceAndPlugin(responseMsg);
                     if( res != 204)
                     {
+                        res = 409;
+                        responseMsg = "{\"message\":\"Conflict, an alerts use this source\"}";
                         return res;
                     }
                 }
