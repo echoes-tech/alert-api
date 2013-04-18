@@ -27,6 +27,7 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg) c
     {
         if(organization)
         {
+            organization.modify()->setId(organization.id());
             responseMsg = organization.modify()->toJSON();
             res = 200;
         }
@@ -75,7 +76,7 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->modify()->toJSON();
-                +idx;
+                ++idx;
                 if(user.size()-idx > 0)
                 {
                     responseMsg += ",\n";
