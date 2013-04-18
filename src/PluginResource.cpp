@@ -83,7 +83,8 @@ unsigned short PluginResource::getPluginJSON(std::string& responseMsg) const
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                     "AND \"T_PLUGIN_PLG_PLG_ID\" = " + boost::lexical_cast<std::string>(vPathElements[1]) + 
-                                " )" ;
+                                " )" 
+                                " AND \"PLG_DELETE\" IS NULL";
         
          Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = session->query<Wt::Dbo::ptr<Plugin> >(queryStr);
 
@@ -98,6 +99,7 @@ unsigned short PluginResource::getPluginJSON(std::string& responseMsg) const
             responseMsg += "\t\"source\" : [\n"; 
     
             Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                                                                         .where("\"SRC_DELETE\" IS NULL")
                                                                                          .orderBy("\"SRC_ID\"");
 
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
@@ -124,6 +126,7 @@ unsigned short PluginResource::getPluginJSON(std::string& responseMsg) const
       
                 Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                                                                                              .where("\"SRC_ID\" = ?").bind(boost::lexical_cast<std::string>(i->get()->pk.id))
+                                                                                             .where("\"SEA_DELETE\" IS NULL")
                                                                                              .orderBy("\"SEA_ID\"");
 
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Search> >::const_iterator i2 = seaCollec.begin(); i2 != seaCollec.end(); i2++) 
