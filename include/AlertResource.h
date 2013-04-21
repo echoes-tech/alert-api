@@ -39,7 +39,7 @@ class AlertResource : public PublicApiResource
             quotasms = 2
         };
 
-        unsigned short getMediasValuesForAlert(std::string &responseMsg) const;       
+        unsigned short getRecipientsForAlert(std::string &responseMsg) const;       
         unsigned short getTrackingAlertList(std::string &responseMsg) const;
         unsigned short getAlerts(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);

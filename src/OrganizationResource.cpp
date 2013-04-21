@@ -27,6 +27,7 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg) c
     {
         if(organization)
         {
+            organization.modify()->setId(organization.id());
             responseMsg = organization.modify()->toJSON();
             res = 200;
         }
@@ -34,7 +35,6 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg) c
         {
             res = 404;
             responseMsg = "{\"message\":\"Organization not found\"}";
-            return res;
         }
 
         transaction.commit();
@@ -44,7 +44,6 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg) c
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -77,21 +76,19 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->modify()->toJSON();
-                +idx;
+                ++idx;
                 if(user.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg = "]\n";
+            responseMsg += "\n]\n";
             res = 200;
         }
         else 
         {
             res = 404;
             responseMsg = "{\"message\":\"User not found\"}";
-            return res;
         }
 
         transaction.commit();
@@ -101,7 +98,6 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -131,13 +127,22 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) co
                     responseMsg += ptrOptionValue.modify()->toJSON();
                     res = 200;
                 }
+                else
+                {
+                    responseMsg = "{\"message\":\"Option not found\"}";
+                    res = 404;
+                }
+            }
+            else
+            {
+                responseMsg = "{\"message\":\"Option not found\"}";
+                res = 404;
             }
         }
         else
         {
             res = 404;
             responseMsg = "{\"message\":\"user not found\"}";
-            return res;
         }
                
         transaction.commit();
@@ -147,7 +152,6 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) co
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     } 
     return res;
 }
@@ -183,7 +187,6 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg) cons
         {
             res = 404;
             responseMsg = "{\"message\":\"user not found\"}";
-            return res;
         }
                
         transaction.commit();
@@ -193,7 +196,6 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg) cons
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     } 
     return res;
 }

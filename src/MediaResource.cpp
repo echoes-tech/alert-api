@@ -37,18 +37,16 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
                  ++idx;
                 if(medias.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg = "]\n";
+            responseMsg += "\n]\n";
             res = 200;
         }
         else
         {
             res = 404;
             responseMsg = "{\"message\":\"Media not found\"}";
-            return res;
         }
 
         transaction.commit();
@@ -58,7 +56,6 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -71,16 +68,20 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
         std::string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
-                        "("
-                            "SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
-                            "WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->session->user().id()) +
-                        ")"
-                        "AND \"MED_DELETE\" IS NULL";
-
+                " ("
+                " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
+                " WHERE \"MEV_USR_USR_ID\" IN "
+                " (Select \"T_USER_USR_USR_ID\" "
+                " FROM \"TJ_USR_ORG\" "
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string > (session->user()->currentOrganization.id()) +
+                " )"
+                " )"
+                " AND \"MED_DELETE\" IS NULL";
+ 
         Wt::Dbo::Query<Wt::Dbo::ptr<Media> > queryRes = session->query<Wt::Dbo::ptr<Media> >(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Media> > media = queryRes.resultList();
-
+        
         if (media.size() > 0)
         {
             responseMsg += "[\n";
@@ -91,11 +92,10 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
                 ++idx;
                 if(media.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";               
+            responseMsg += "\n]\n";               
 
             res = 200;
         }
@@ -103,7 +103,6 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
         {
             res = 404;
             responseMsg = "{\"message\":\"Media not found\"}";
-            return res;
         }
 
         transaction.commit();
@@ -113,7 +112,6 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -160,16 +158,15 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
 unsigned short MediaResource::postMedia(std::string &responseMsg, const std::string &sRequest)
 {
     unsigned short res = 500;
-    Wt::WString medId, mevValue;
-    
+    Wt::WString mevValue;
+    long long medId;
     try
     {
-        int medIdInt;
+
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
 
-        medIdInt = result.get("med_id");
-        medId = boost::lexical_cast<std::string>(medIdInt);
+        medId = result.get("med_id");
         mevValue = result.get("mev_value");
     }
 
@@ -219,7 +216,6 @@ unsigned short MediaResource::postMedia(std::string &responseMsg, const std::str
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -229,18 +225,16 @@ unsigned short MediaResource::postMedia(std::string &responseMsg, const std::str
 unsigned short MediaResource::postMediaSpecialization(std::string &responseMsg, const std::string &sRequest)
 {
     unsigned short res = 500;
-    Wt::WString snooze, mevId;
-      
+    long long mevId;
+    int snooze;
     try
     {
-        int mevIdInt, snoozeInt;
+        
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
         //descriptif
-        mevIdInt = result.get("mev_id");
-        mevId = boost::lexical_cast<std::string>(mevIdInt);
-        snoozeInt = result.get("ams_snooze");
-        snooze = boost::lexical_cast<std::string>(snoozeInt);
+        mevId = result.get("mev_id");
+        snooze = result.get("ams_snooze");
     }
 
     catch (Wt::Json::ParseError const& e)
@@ -267,22 +261,20 @@ unsigned short MediaResource::postMediaSpecialization(std::string &responseMsg, 
         Wt::Dbo::ptr<MediaValue> mevPtr = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(mevId);
         if (mevPtr)
         {
-        ams->snoozeDuration = boost::lexical_cast<int>(snooze);
-        ams->mediaValue = mevPtr;
-        ams->notifEndOfAlert = false;
-        amsPtr = session->add<AlertMediaSpecialization>(ams);
+            ams->snoozeDuration = snooze;
+            ams->mediaValue = mevPtr;
+            ams->notifEndOfAlert = false;
+            amsPtr = session->add<AlertMediaSpecialization>(ams);
+            amsPtr.modify()->setId(amsPtr.id());
+            responseMsg = amsPtr.modify()->toJSON();
+            res = 200;
         }
         else 
         {
             res = 404;
             responseMsg = "{\"message\":\"Media Value not found\"}";
-            return res;
         }
         transaction.commit();
-        amsPtr.modify()->setId(amsPtr.id());
-        responseMsg = amsPtr.modify()->toJSON();
-        res = 200;
-        
     }
     catch (Wt::Dbo::Exception const& e) 
     {
@@ -389,10 +381,8 @@ unsigned short MediaResource::deleteMedia(std::string &responseMsg)
 
     try
     {
+        
         Wt::Dbo::Transaction transaction2(*session);
-
-
-
         std::string qryString = "DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                                 " WHERE \"AMS_ALE_ALE_ID\" IS NULL"
                                 " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]);  
@@ -412,29 +402,38 @@ unsigned short MediaResource::deleteMedia(std::string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(*session);
 
-        Wt::Dbo::ptr<MediaValue> mediaValue = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(vPathElements[1]);
 
-        if(!mediaValue)
+        std::string queryStr = "SELECT mev FROM \"T_MEDIA_VALUE_MEV\" mev"
+                " WHERE \"MEV_USR_USR_ID\" IN "
+                " (Select \"T_USER_USR_USR_ID\" "
+                " FROM \"TJ_USR_ORG\" " 
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string>(session->user()->currentOrganization.id()) +
+                " )"
+                "and \"MEV_ID\" = " + this->vPathElements[1];
+
+        Wt::Dbo::Query<Wt::Dbo::ptr<MediaValue>> resQuery = session->query<Wt::Dbo::ptr<MediaValue>>(queryStr);
+        Wt::Dbo::ptr<MediaValue> mediaValPtr = resQuery.resultValue();
+
+        if(mediaValPtr)
+        {
+            mediaValPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+            res = 204;
+            responseMsg = "";
+        }
+        else
         {
             res = 404;
             responseMsg = "{\"message\":\"Media not found\"}";
-            return res; 
         }
-
-        session->execute("DELETE FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]));
-                
+        
         transaction.commit();
-        res = 204;
-        responseMsg = "";
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
         res = 409;
         responseMsg = "{\"message\":\"Conflict, an alert use this media\"}";
-        return res;
     }
-
     return res;
 }
 

@@ -34,7 +34,6 @@ unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) co
                                     "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
                                     "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
                                 ")";
-        std::cerr << queryStr << std::endl;
         Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
@@ -49,28 +48,24 @@ unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) co
                 ++idx;
                 if(seaTypePtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
             responseMsg += "]\n";
-            res = 200;
-            transaction.commit();     
+            res = 200;    
         }
         else
         {        
             res = 404;
             responseMsg = "{\"message\":\"Search parameter not found\"}";
-            return res;
         }
-
+        transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -105,27 +100,24 @@ unsigned short AddonResource::getParameterForAddon(std::string& responseMsg) con
                 ++idx;
                 if(srcParamPtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
             responseMsg += "]\n";
             res = 200;
-            transaction.commit();        
         }
         else
         {        
             res = 404;
             responseMsg = "{\"message\":\"Source parameter not found\"}";
-            return res;
         }
+        transaction.commit(); 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -147,7 +139,6 @@ unsigned short AddonResource::getAddonList(std::string& responseMsg) const
             ++idx;
             if(addonPtr.size()-idx > 0)
             {
-                responseMsg.replace(responseMsg.size()-1, 1, "");
                 responseMsg += ",\n";
             }
         }
@@ -160,7 +151,6 @@ unsigned short AddonResource::getAddonList(std::string& responseMsg) const
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -215,7 +205,6 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
     Wt::WString name;
     Wt::Json::Array& parameter = Wt::Json::Array::Empty;
     Wt::Json::Array& searchType = Wt::Json::Array::Empty;
-  //  long long addonId;
     try
     {
         Wt::Json::Object result;                   
@@ -290,7 +279,6 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
             Wt::log("error") << e.what();
             res = 503;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
-            return res;
         }
     }
 
@@ -299,14 +287,12 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-        return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-        return res;
     }   
     
     return res;

@@ -28,7 +28,9 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
     {
         Wt::Dbo::Transaction transaction(*this->session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = session->find<SearchType>().orderBy("\"STY_ID\"");
+        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = session->find<SearchType>()
+                .where("\"STY_DELETE\" IS NULL")                                                        
+                .orderBy("\"STY_ID\"");
         
         if(seaTypePtr.size() != 0)
         {
@@ -40,11 +42,10 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
                 ++idx;
                 if(seaTypePtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
+            responseMsg += "\n]\n";
             res = 200;
             transaction.commit();     
         }
@@ -52,7 +53,6 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
         {        
             res = 404;
             responseMsg = "{\"message\":\"Search type not found\"}";
-            return res;
         }
     }
     catch (Wt::Dbo::Exception const& e) 
@@ -60,7 +60,6 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -78,9 +77,13 @@ unsigned short SearchTypeResource::getParameterForSearchType(std::string &respon
         std::string queryStr = "SELECT sep FROM \"T_SEARCH_PARAMETER_SEP\" sep "
                 " WHERE \"SEP_ID\" IN "
                 "("
-                "SELECT \"T_SEARCH_PARAMETER_SEP_SEP_ID\" FROM \"TJ_STY_SEP\" WHERE \"T_SEARCH_TYPE_STY_STY_ID\" ="
-                + boost::lexical_cast<std::string > (this->vPathElements[1])
-                + " ) ORDER BY \"SEP_ID\"";
+                "SELECT \"T_SEARCH_PARAMETER_SEP_SEP_ID\" FROM \"TJ_STY_SEP\" WHERE \"T_SEARCH_TYPE_STY_STY_ID\" IN"
+                " (SELECT \"STY_ID\" FROM \"T_SEARCH_TYPE_STY\" "
+                " WHERE \"STY_ID\" = "+ boost::lexical_cast<std::string > (this->vPathElements[1])+ 
+                " AND \"STY_DELETE\" IS NULL "
+                " )"
+                " ) "
+                "ORDER BY \"SEP_ID\"";
        
         Wt::Dbo::Query<Wt::Dbo::ptr<SearchParameter> > queryRes = session->query<Wt::Dbo::ptr<SearchParameter> >(queryStr);
 
@@ -96,27 +99,24 @@ unsigned short SearchTypeResource::getParameterForSearchType(std::string &respon
                 ++idx;
                 if(seaParamPtr.size()-idx > 0)
                 {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
                     responseMsg += ",\n";
                 }
             }
-            responseMsg += "]\n";
-            res = 200;
-            transaction.commit();     
+            responseMsg += "\n]\n";
+            res = 200;    
         }
         else
         {        
             res = 404;
             responseMsg = "{\"message\":\"Search parameter not found\"}";
-            return res;
         }
+        transaction.commit(); 
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;
@@ -258,7 +258,6 @@ unsigned short SearchTypeResource::postSearchType(std::string &responseMsg, cons
             Wt::log("error") << e.what();
             res = 503;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
-            return res;
         }
     }
 
@@ -267,14 +266,12 @@ unsigned short SearchTypeResource::postSearchType(std::string &responseMsg, cons
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-        return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-        return res;
     }   
     
     return res;
@@ -347,44 +344,24 @@ unsigned short SearchTypeResource::deleteSearchType(std::string &responseMsg)
             //verif si le search type n'est pas utilisé par une search
             if(seaPtr.size() == 0)
             {
-                //supprime les lien dans table jointe des parametres
-                std::string queryString1 = "DELETE FROM \"TJ_STY_SEP\" "
-                                 "WHERE \"T_SEARCH_TYPE_STY_STY_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
-                session->execute(queryString1);
-                
-                //supprime les lien dans table jointe des addons
-                std::string queryString1Bis = "DELETE FROM \"TJ_ADO_STY\" "
-                                 "WHERE \"T_SEARCH_TYPE_STY_STY_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
-                session->execute(queryString1Bis);
-                
                 //supprime le search type
-                std::string queryString2 = "DELETE FROM \"T_SEARCH_TYPE_STY\" "
-                                           "WHERE \"STY_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
-                session->execute(queryString2);
-                //supprime les parametres non utilisés par un search type de la base 
-                std::string queryString3 = "DELETE FROM \"T_SEARCH_PARAMETER_SEP\" "
-                                           "WHERE \"SEP_ID\" NOT IN "
-                                           "("
-                                                "SELECT \"T_SEARCH_PARAMETER_SEP_SEP_ID\" FROM \"TJ_STY_SEP\" "
-                                                "GROUP BY \"T_SEARCH_PARAMETER_SEP_SEP_ID\" "
-                                           ")";
-                session->execute(queryString3);
                 
+                seaTypePtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                responseMsg = "";
+                res = 204;
             }
             else
             {
                 res = 409;
                 responseMsg = "{\"message\":\"Conflict, an search use this search type\"}";
-                return res;
             }
         }
         else
         {
             res = 404;
             responseMsg = "{\"message\":\"Search type not found\"}";
-            return res;
         }
-        res = 204;
+
         transaction.commit();               
     }
     catch (Wt::Dbo::Exception const& e) 
