@@ -65,7 +65,6 @@ Wt::Dbo::ptr<Plugin> PluginResource::pluginIsAccessible(unsigned short& res, std
 unsigned short PluginResource::getPluginJSON(std::string& responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0, idx1 = 0, idx3 = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -706,7 +705,7 @@ unsigned short PluginResource::postSourceForPlugin(std::string& responseMsg, con
     {
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
-        int plgIdInt, addonIdInt;
+        int addonIdInt;
         //descriptif
 
         addonIdInt = result.get("addon_id");
@@ -807,7 +806,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(std::string& respons
         posKeyValue = result.get("pos_key_value");
         nbValue = result.get("nb_value");
         units = result.get("units");
-        if(units.size() <= nbValue)
+        if(units.size() <= (unsigned)nbValue)
         {
             try
             {
@@ -1304,7 +1303,6 @@ unsigned short PluginResource::patchInformationForSeaSrcAndPlg(std::string &resp
     }
     Wt::WString infName, infCalculate;
     bool infDisplay;
-    int valueNum;
          
     try
     {
@@ -1387,9 +1385,8 @@ unsigned short PluginResource::patchSearchForSourceAndPlugin(std::string& respon
     {
         return res;
     }
-    long long styId;
     bool seaIsStatic;
-    int posKeyValue, nbValue, seaPeriod;
+    int posKeyValue, seaPeriod;
     
     try
     {

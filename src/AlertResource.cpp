@@ -467,7 +467,6 @@ int threadSleep;
     //Create new alert
     Alert *alert = new Alert();
     AlertValue *ava = new AlertValue();
-    AlertMediaSpecialization *ams = new AlertMediaSpecialization();
 
     try
     {
