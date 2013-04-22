@@ -80,25 +80,21 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
 unsigned short UserResource::postActionForUser(std::string &responseMsg, const std::string &sRequest)
 {
     unsigned short res = 500;
-    Wt::WString uacId, tableObject, tableObjectId, actionAfter, actionBefore, actionRelative;
-
+    Wt::WString tableObject;
+    int actionAfter, actionBefore, actionRelative;
+    long long uacId, tableObjectId;
     try
     {
-        int uacIdInt,  tableObjectIdInt, actionAfterInt, actionBeforeInt, actionRelativeInt;
+        
         Wt::Json::Object result;                   
         Wt::Json::parse(sRequest, result);
 
-        uacIdInt = result.get("uac_id");
-        uacId = boost::lexical_cast<std::string>(uacIdInt);
+        uacId = result.get("uac_id");
         tableObject = result.get("table_object");
-        tableObjectIdInt = result.get("table_object_id");
-        tableObjectId = boost::lexical_cast<std::string>(tableObjectIdInt);
-        actionAfterInt = result.get("action_after");
-        actionAfter = boost::lexical_cast<std::string>(actionAfterInt);
-        actionBeforeInt = result.get("action_before");
-        actionBefore = boost::lexical_cast<std::string>(actionBeforeInt);
-        actionRelativeInt = result.get("action_relative");
-        actionRelative = boost::lexical_cast<std::string>(actionRelativeInt);
+        tableObjectId = result.get("table_object_id");
+        actionAfter = result.get("action_after");
+        actionBefore = result.get("action_before");
+        actionRelative = result.get("action_relative");
     }
 
     catch (Wt::Json::ParseError const& e)

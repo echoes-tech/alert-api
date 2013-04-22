@@ -350,43 +350,22 @@ unsigned short AddonResource::deleteAddon(string& responseMsg)
             //verif si l'addon n'est pas utilisée
             if(srcCollec.size() == 0)
             {
-                //supprime les lien dans table jointe
-                string queryString1 = "DELETE FROM \"TJ_ADO_SRP\" "
-                                 "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
-                session->execute(queryString1);
-                
-                string queryString1Bis = "DELETE FROM \"TJ_ADO_STY\" "
-                                 "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
-                session->execute(queryString1Bis);
-                
                 //supprime l'addon
-                string queryString2 = "DELETE FROM \"T_ADDON_ADO\" "
-                                           "WHERE \"ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
-                session->execute(queryString2);
-                //supprime les parametres non utilisés par un addon de la base 
-                string queryString3 = "DELETE FROM \"T_SOURCE_PARAMETER_SRP\" "
-                                           "WHERE \"SRP_ID\" NOT IN "
-                                           "("
-                                                "SELECT \"T_SOURCE_PARAMETER_SRP_SRP_ID\" FROM \"TJ_ADO_SRP\" "
-                                                "GROUP BY \"T_SOURCE_PARAMETER_SRP_SRP_ID\" "
-                                           ")";
-                session->execute(queryString3);
                 
+                addonPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = 204; 
             }
             else
             {
                 res = 409;
                 responseMsg = "{\"message\":\"Conflict, a source use this addon\"}";
-                return res;
             }
         }
         else
         {
             res = 404;
-            responseMsg = "{\"message\":\"Addon not foubd\"}";
-            return res;
+            responseMsg = "{\"message\":\"Addon not found\"}";
         }
-        res = 204;
         transaction.commit();               
     }
     catch (Wt::Dbo::Exception const& e) 
@@ -394,7 +373,6 @@ unsigned short AddonResource::deleteAddon(string& responseMsg)
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     
     return res;

@@ -26,9 +26,10 @@ PluginResource::PluginResource(const PluginResource& orig) : PublicApiResource::
 PluginResource::~PluginResource(){
 }
 
-Wt::Dbo::ptr<Plugin> PluginResource::pluginIsAccessible(unsigned short& res, string& responseMsg) const
+ unsigned short PluginResource::pluginIsAccessible(string& responseMsg) const
 {
-    Wt::Dbo::ptr<Plugin>  plgPtr;
+     unsigned short res = 500;
+     Wt::Dbo::ptr<Plugin> plgPtr;
     try
     {
      
@@ -65,8 +66,7 @@ Wt::Dbo::ptr<Plugin> PluginResource::pluginIsAccessible(unsigned short& res, str
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
-
-    return plgPtr;
+    return res;
 }
 
 unsigned short PluginResource::getPluginJSON(string& responseMsg) const
@@ -201,7 +201,6 @@ unsigned short PluginResource::getPlugin(string& responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
 
-        //Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> > plgPtr = session->find<Plugin>();
         // on liste les plugins rattachés à des assets détenu par l'organization
         string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
                                 "WHERE \"PLG_ID\" IN "
@@ -258,49 +257,46 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) 
 {
     unsigned short res = 500;
     unsigned idx = 0;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    try
-    {
-        
-        Wt::Dbo::Transaction transaction(*this->session);
-
-        Wt::Dbo::collection <Wt::Dbo::ptr<Information2>> information = session->find<Information2>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"INF_DELETE\" IS NULL")
-                .orderBy("\"SRC_ID\", \"SEA_ID\", \"INF_VALUE_NUM\"");
-
-        if(information.size() > 0 )
+        try
         {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
-            { 
-                Information2 info(*i->get());
-                responseMsg +=  info.toJSON();
-                idx++;
-                if(information.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
+            Wt::Dbo::Transaction transaction(*this->session);
+
+            Wt::Dbo::collection <Wt::Dbo::ptr<Information2>> information = session->find<Information2>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"INF_DELETE\" IS NULL")
+                    .orderBy("\"SRC_ID\", \"SEA_ID\", \"INF_VALUE_NUM\"");
+
+            if(information.size() > 0 )
+            {
+                responseMsg = "[\n";
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = information.begin(); i != information.end(); i++) 
+                { 
+                    Information2 info(*i->get());
+                    responseMsg +=  info.toJSON();
+                    idx++;
+                    if(information.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
                 }
+                responseMsg += "\n]\n";
+                res = 200;
             }
-            responseMsg += "\n]\n";
-            res = 200;
-            
+            else
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Information not found\"}";
+            }
+            transaction.commit();
         }
-        else
+        catch (Wt::Dbo::Exception const& e) 
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Information not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;  
 }
@@ -308,47 +304,46 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) 
 unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                .where("\"SEA_DELETE\" IS NULL")
-                .orderBy("\"SEA_ID\"");           
-        if (seaCollec.size() > 0)
+        unsigned idx = 0;
+        try
         {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Search> >::const_iterator i = seaCollec.begin(); i != seaCollec.end(); i++) 
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                    .where("\"SEA_DELETE\" IS NULL")
+                    .orderBy("\"SEA_ID\"");           
+            if (seaCollec.size() > 0)
             {
-                responseMsg += "\t" + i->modify()->toJSON();
-                ++idx;
-                if(seaCollec.size()-idx > 0)
+                responseMsg += "[\n";
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Search> >::const_iterator i = seaCollec.begin(); i != seaCollec.end(); i++) 
                 {
-                    responseMsg += ",\n";
+                    responseMsg += "\t" + i->modify()->toJSON();
+                    ++idx;
+                    if(seaCollec.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
                 }
-            }
-            responseMsg += "\n]\n";               
+                responseMsg += "\n]\n";               
 
-            res = 200;
+                res = 200;
+            }
+            else 
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Search not found\"}";
+            }
+            transaction.commit();
         }
-        else 
+        catch (Wt::Dbo::Exception const &e)
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Search not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
@@ -356,46 +351,45 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) 
 unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) const
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = session->find<SearchParameterValue>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-        if (seaParamCollec.size() > 0)
+        unsigned idx = 0;
+        try
         {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue> >::const_iterator i = seaParamCollec.begin(); i != seaParamCollec.end(); i++) 
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = session->find<SearchParameterValue>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+            if (seaParamCollec.size() > 0)
             {
-                responseMsg += "\t" + i->modify()->toJSON();
-                ++idx;
-                if(seaParamCollec.size()-idx > 0)
+                responseMsg += "[\n";
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue> >::const_iterator i = seaParamCollec.begin(); i != seaParamCollec.end(); i++) 
                 {
-                    responseMsg += ",\n";
+                    responseMsg += "\t" + i->modify()->toJSON();
+                    ++idx;
+                    if(seaParamCollec.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
                 }
-            }
-            responseMsg += "]\n";               
+                responseMsg += "]\n";               
 
-            res = 200;
+                res = 200;
+            }
+            else 
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Parameter not found\"}";
+            }
+            transaction.commit();
         }
-        else 
+        catch (Wt::Dbo::Exception const &e)
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Parameter not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
@@ -403,49 +397,48 @@ unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) c
 unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::collection < Wt::Dbo::ptr < Information2 >> infCollec = session->find<Information2>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
-                .where("\"INF_DELETE\" IS NULL")
-                .orderBy("\"INF_VALUE_NUM\"");                                                                                       
-        if (infCollec.size() > 0)
+        unsigned idx = 0;
+        try
         {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = infCollec.begin(); i != infCollec.end(); i++) 
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::collection < Wt::Dbo::ptr < Information2 >> infCollec = session->find<Information2>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                    .where("\"INF_DELETE\" IS NULL")
+                    .orderBy("\"INF_VALUE_NUM\"");                                                                                       
+            if (infCollec.size() > 0)
             {
-                Information2 info(*i->get());
-                responseMsg += "\t" + info.toJSON();
-                ++idx;
-                if(infCollec.size()-idx > 0)
+                responseMsg += "[\n";
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = infCollec.begin(); i != infCollec.end(); i++) 
                 {
-                    responseMsg += ",\n";
+                    Information2 info(*i->get());
+                    responseMsg += "\t" + info.toJSON();
+                    ++idx;
+                    if(infCollec.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
                 }
-            }
-            responseMsg += "\n]\n";               
+                responseMsg += "\n]\n";               
 
-            res = 200;
+                res = 200;
+            }
+            else 
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Information not found\"}";
+            }
+            transaction.commit();
         }
-        else 
+        catch (Wt::Dbo::Exception const &e)
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Information not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
@@ -453,47 +446,46 @@ unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg
 unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::collection < Wt::Dbo::ptr < Source >> srcCollec = session->find<Source>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_DELETE\" IS NULL")
-                .orderBy("\"SRC_ID\"");
-
-        if (srcCollec.size() > 0)
+        unsigned idx = 0;
+        try
         {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::collection < Wt::Dbo::ptr < Source >> srcCollec = session->find<Source>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"SRC_DELETE\" IS NULL")
+                    .orderBy("\"SRC_ID\"");
+
+            if (srcCollec.size() > 0)
             {
-                responseMsg += "\t" + i->modify()->toJSON();
-                ++idx;
-                if(srcCollec.size()-idx > 0)
+                responseMsg += "[\n";
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
                 {
-                    responseMsg += ",\n";
+                    responseMsg += "\t" + i->modify()->toJSON();
+                    ++idx;
+                    if(srcCollec.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
                 }
-            }
-            responseMsg += "\n]\n";               
+                responseMsg += "\n]\n";               
 
-            res = 200;
+                res = 200;
+            }
+            else 
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Source not found\"}";
+            }
+            transaction.commit();
         }
-        else 
+        catch (Wt::Dbo::Exception const &e)
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Source not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
@@ -501,46 +493,45 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
 unsigned short PluginResource::getParameterValueForSource(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::collection < Wt::Dbo::ptr < SourceParameterValue >> srcParamCollec = session->find<SourceParameterValue>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-
-        if (srcParamCollec.size() > 0)
+        unsigned idx = 0;
+        try
         {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue> >::const_iterator i = srcParamCollec.begin(); i != srcParamCollec.end(); i++) 
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::collection < Wt::Dbo::ptr < SourceParameterValue >> srcParamCollec = session->find<SourceParameterValue>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+
+            if (srcParamCollec.size() > 0)
             {
-                responseMsg += "\t" + i->modify()->toJSON();
-                ++idx;
-                if(srcParamCollec.size()-idx > 0)
+                responseMsg += "[\n";
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue> >::const_iterator i = srcParamCollec.begin(); i != srcParamCollec.end(); i++) 
                 {
-                    responseMsg += ",\n";
+                    responseMsg += "\t" + i->modify()->toJSON();
+                    ++idx;
+                    if(srcParamCollec.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
                 }
-            }
-            responseMsg += "\n]\n";               
+                responseMsg += "\n]\n";               
 
-            res = 200;
+                res = 200;
+            }
+            else 
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Parameter not found\"}";
+            }
+            transaction.commit();
         }
-        else 
+        catch (Wt::Dbo::Exception const &e)
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Parameter not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
@@ -672,14 +663,14 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
         return res;
     }   
     try 
@@ -710,235 +701,330 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
 unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    Wt::WString addonId = "";
-    
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-        int addonIdInt;
-        //descriptif
+        long long addonId;
 
-        addonIdInt = result.get("addon_id");
-        addonId = boost::lexical_cast<string>(addonIdInt);
-        
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            
-            // creer l'id de la source
-            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
-            long long srcId = 1;
-            if(srcCollec.size()> 0)
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+
+            //descriptif
+
+            addonId = result.get("addon_id");
+            try
             {
-                string queryStr = "SELECT MAX(\"SRC_ID\") FROM \"T_SOURCE_SRC\" src "
-                                   " WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string > (this->vPathElements[1]);
+                Wt::Dbo::Transaction transaction(*session);
 
-                Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
-                srcId = queryResult + 1;
+                // creer l'id de la source
+                Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
+                long long srcId = 1;
+                if(srcCollec.size()> 0)
+                {
+                    string queryStr = "SELECT MAX(\"SRC_ID\") FROM \"T_SOURCE_SRC\" src "
+                                       " WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string > (this->vPathElements[1]);
+
+                    Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
+                    srcId = queryResult + 1;
+                }
+
+                //creation de la source
+                Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
+                Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(addonId);
+                Source *source = new Source;
+                source->pk.id = srcId;
+                source->pk.plugin = plgPtr;
+                source->addon = addonPtr;
+                Wt::Dbo::ptr<Source> srcPtr = session->add<Source>(source);
+                srcPtr.flush();
+
+
+                Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> > sourceParameterPtr = addonPtr.get()->sourceParameters;
+
+                //creations des parametres
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> >::const_iterator i = sourceParameterPtr.begin(); i != sourceParameterPtr.end(); i++)
+                {
+                    SourceParameterValue *sourceParameterValue = new SourceParameterValue;
+
+                    //recuperation des "source_parameters" dans le JSON
+                    Wt::WString tmp = result.get(boost::lexical_cast<string>(i->get()->name));
+
+                    sourceParameterValue->value = tmp;
+                    sourceParameterValue->name = i->get()->name;
+                    sourceParameterValue->pk.sourceParameter = *i;
+                    sourceParameterValue->pk.source = srcPtr;
+                    session->add<SourceParameterValue>(sourceParameterValue);
+                }
+                res = 200;
+                responseMsg = srcPtr.modify()->toJSON();
+                transaction.commit();
             }
-
-            //creation de la source
-            Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
-            Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(addonId);
-            Source *source = new Source;
-            source->pk.id = srcId;
-            source->pk.plugin = plgPtr;
-            source->addon = addonPtr;
-            Wt::Dbo::ptr<Source> srcPtr = session->add<Source>(source);
-            srcPtr.flush();
-
-
-            Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> > sourceParameterPtr = addonPtr.get()->sourceParameters;
-
-            //creations des parametres
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> >::const_iterator i = sourceParameterPtr.begin(); i != sourceParameterPtr.end(); i++)
+            catch (Wt::Dbo::Exception const& e) 
             {
-                SourceParameterValue *sourceParameterValue = new SourceParameterValue;
-                
-                //recuperation des "source_parameters" dans le JSON
-                Wt::WString tmp = result.get(boost::lexical_cast<string>(i->get()->name));
-                
-                sourceParameterValue->value = tmp;
-                sourceParameterValue->name = i->get()->name;
-                sourceParameterValue->pk.sourceParameter = *i;
-                sourceParameterValue->pk.source = srcPtr;
-                session->add<SourceParameterValue>(sourceParameterValue);
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
             }
-            res = 200;
-            responseMsg = srcPtr.modify()->toJSON();
-            transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Json::ParseError const& e)
         {
-            Wt::log("error") << e.what();
-            res = 503;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
     }
-    catch (Wt::Json::ParseError const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-    }   
-
     return res;
 }
 
 unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    long long styId;
-    bool seaIsStatic;
-    int posKeyValue, nbValue, seaPeriod;
-    Wt::Json::Array& units = Wt::Json::Array::Empty;
-    
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
+        long long styId;
+        bool seaIsStatic;
+        int posKeyValue, nbValue, seaPeriod;
+        Wt::Json::Array& units = Wt::Json::Array::Empty;
 
-        //search
-        seaPeriod = result.get("sea_period");
-        styId = result.get("sty_id");
-        seaIsStatic = result.get("sea_is_static");
-        posKeyValue = result.get("pos_key_value");
-        nbValue = result.get("nb_value");
-        units = result.get("units");
-        if(units.size() <= (unsigned)nbValue)
+        try
         {
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+
+            //search
+            seaPeriod = result.get("sea_period");
+            styId = result.get("sty_id");
+            seaIsStatic = result.get("sea_is_static");
+            posKeyValue = result.get("pos_key_value");
+            nbValue = result.get("nb_value");
+            units = result.get("units");
+            if(units.size() <= (unsigned)nbValue)
+            {
+                try
+                {
+                    Wt::Dbo::Transaction transaction(*session);
+                    Wt::Dbo::ptr<Search> seaPtr;
+                    //verif si le search type va avec l'addon 
+
+                    string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
+                                           " WHERE \"STY_ID\" IN"
+                                            "("
+                                                "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
+                                                "WHERE \"T_ADDON_ADO_ADO_ID\" = " 
+                                                "("
+                                                    "SELECT \"SRC_ADO_ADO_ID\" FROM \"T_SOURCE_SRC\" "
+                                                    "WHERE \"PLG_ID_PLG_ID\" = " + this->vPathElements[1] +
+                                                    "AND \"SRC_ID\" =  " + this->vPathElements[3] + 
+                                                ")"
+                                            ")"
+                                            "AND \"STY_ID\" = " + boost::lexical_cast<string>(styId);
+
+                    Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
+
+                    Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
+
+                    if(seaTypePtr.size() == 0)
+                    {
+                            res = 404;
+                            responseMsg = "{\"message\":\"Search Type not found.\"}";
+                            return res;
+                    }
+                    // creer l'id de la search
+                    Wt::Dbo::collection <Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                            .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+                    long long seaId = 1;
+                    if (seaCollec.size() > 0)
+                    {
+                        string queryStr = "SELECT MAX(\"SEA_ID\") FROM \"T_SEARCH_SEA\" sea "
+                                               " WHERE \"PLG_ID_PLG_ID\" = " + this->vPathElements[1] +
+                                               " AND \"SRC_ID\" = " + this->vPathElements[3];
+
+                        Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
+                        seaId = queryResult + 1;    
+                    }
+
+                    //creation de la search
+                    Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                            .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+                    if(srcPtr)
+                    {
+                        Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(styId);
+                        if(seaTypPtr)
+                        {
+                            Search *search = new Search;
+                            search->pk.id = seaId;
+                            search->pk.source = srcPtr;
+                            search->searchType = seaTypPtr;
+                            search->period = seaPeriod;
+                            search->nbValue = nbValue;
+                            search->pos_key_value = posKeyValue;
+                            search->searchIsStatic = seaIsStatic;
+                            seaPtr = session->add<Search>(search);
+                            seaPtr.flush();
+
+
+                            Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr->searchParameters;
+                            //creations des parametres
+                            for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter>>::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                            {
+                                SearchParameterValue *searchParameterValue = new SearchParameterValue;
+
+                                //recuperation des "search_parameters" dans le JSON
+                                Wt::WString tmp = result.get(i->get()->name.toUTF8());
+
+                                searchParameterValue->value = tmp;
+                                searchParameterValue->name = i->get()->name;
+                                searchParameterValue->searchParameterValueId.searchParameter = *i;
+                                searchParameterValue->searchParameterValueId.search = seaPtr;
+                                session->add<SearchParameterValue>(searchParameterValue);
+                            }
+
+                            //liée aux valeurs recherchées une unité
+                            for (Wt::Json::Array::const_iterator idx1 = units.begin() ; idx1 < units.end(); idx1++)
+                            {
+                                Wt::Json::Object tmp = *idx1;
+                                int valNumUnit = tmp.get("val_num");
+                                int unitId = tmp.get("unit_id");
+                                Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
+                                if (informationUnitPtr && valNumUnit <= nbValue)
+                                {
+                                    SearchUnit *searchUnit = new SearchUnit;
+                                    searchUnit->pk.infValueNum = valNumUnit;
+                                    searchUnit->pk.search = seaPtr;
+                                    searchUnit->informationUnit = informationUnitPtr;
+                                    session->add<SearchUnit>(searchUnit);
+                                }
+                                else
+                                {
+                                    Wt::log("info") << "[Plugin Ressource] info non trouvée ou valNum non autorisée";
+                                    res = 400;
+                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+                                    return res;
+                                }
+                            }
+                            responseMsg = seaPtr.modify()->toJSON();
+                            res = 200;
+                        }
+                        else
+                        {
+                            res = 404;
+                            responseMsg = "{\"message\":\"Search Type not found\"}";
+                        }
+                    }
+                    else
+                    {
+                        res = 404;
+                        responseMsg = "{\"message\":\"Source not found\"}";
+                    }
+                    transaction.commit();
+                }
+                catch (Wt::Dbo::Exception const& e) 
+                {
+                    Wt::log("error") << e.what();
+                    res = 503;
+                    responseMsg = "{\"message\":\"Service Unavailable\"}";
+                }
+            }
+            else
+            {
+                 Wt::log("info") << "[Plugin Ressource] unité sur val_num non declarée";
+                 this->statusCode = 400;
+                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";  
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[PluginRessource] Problems parsing JSON.:" << sRequest;
+        }   
+    }
+    return res;
+}
+
+unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMsg, const string& sRequest)
+{
+    unsigned short res = 500;
+    if(pluginIsAccessible(responseMsg) == 200)
+    {
+        Wt::WString infName, infCalculate;
+        bool infDisplay;
+        int valueNum;
+
+        try
+        {
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+
+            //information
+            infName = result.get("inf_name");
+            infDisplay = result.get("inf_display");
+            valueNum = result.get("inf_value_num");
+
             try
             {
                 Wt::Dbo::Transaction transaction(*session);
-                Wt::Dbo::ptr<Search> seaPtr;
-                //verif si le search type va avec l'addon 
-                
-                string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
-                                       " WHERE \"STY_ID\" IN"
-                                        "("
-                                            "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
-                                            "WHERE \"T_ADDON_ADO_ADO_ID\" = " 
-                                            "("
-                                                "SELECT \"SRC_ADO_ADO_ID\" FROM \"T_SOURCE_SRC\" "
-                                                "WHERE \"PLG_ID_PLG_ID\" = " + this->vPathElements[1] +
-                                                "AND \"SRC_ID\" =  " + this->vPathElements[3] + 
-                                            ")"
-                                        ")"
-                                        "AND \"STY_ID\" = " + boost::lexical_cast<string>(styId);
 
-                Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
-
-                Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
-
-                if(seaTypePtr.size() == 0)
-                {
-                        res = 404;
-                        responseMsg = "{\"message\":\"Search Type not found.\"}";
-                        return res;
-                }
-                // creer l'id de la search
-                Wt::Dbo::collection <Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                //search exist ?
+                Wt::Dbo::ptr<Search> seaPtr = session->find<Search>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-                long long seaId = 1;
-                if (seaCollec.size() > 0)
-                {
-                    string queryStr = "SELECT MAX(\"SEA_ID\") FROM \"T_SEARCH_SEA\" sea "
-                                           " WHERE \"PLG_ID_PLG_ID\" = " + this->vPathElements[1] +
-                                           " AND \"SRC_ID\" = " + this->vPathElements[3];
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
 
-                    Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
-                    seaId = queryResult + 1;    
-                }
-
-                //creation de la search
-                Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
-                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-                if(srcPtr)
+                if(seaPtr)
                 {
-                    Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(styId);
-                    if(seaTypPtr)
+                    //Relier une unité à l'info
+                    // unit exist?
+                    Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>()
+                            .where("\"INF_VALUE_NUM\" = ?").bind(valueNum)
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                            .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                            .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+                    if(seaUnitPtr)
                     {
-                        Search *search = new Search;
-                        search->pk.id = seaId;
-                        search->pk.source = srcPtr;
-                        search->searchType = seaTypPtr;
-                        search->period = seaPeriod;
-                        search->nbValue = nbValue;
-                        search->pos_key_value = posKeyValue;
-                        search->searchIsStatic = seaIsStatic;
-                        seaPtr = session->add<Search>(search);
-                        seaPtr.flush();
+                        //creation info
+                        Information2 *information = new Information2;
+                        information->pk.search = seaPtr;
+                        information->pk.unit = seaUnitPtr.get()->informationUnit;
+                        information->pk.subSearchNumber = valueNum;
+                        information->name = infName;
+                        information->display = infDisplay;
 
-
-                        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr->searchParameters;
-                        //creations des parametres
-                        for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter>>::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                        if(result.contains("inf_calculate"))
                         {
-                            SearchParameterValue *searchParameterValue = new SearchParameterValue;
-
-                            //recuperation des "search_parameters" dans le JSON
-                            Wt::WString tmp = result.get(i->get()->name.toUTF8());
-
-                            searchParameterValue->value = tmp;
-                            searchParameterValue->name = i->get()->name;
-                            searchParameterValue->searchParameterValueId.searchParameter = *i;
-                            searchParameterValue->searchParameterValueId.search = seaPtr;
-                            session->add<SearchParameterValue>(searchParameterValue);
+                            infCalculate = result.get("inf_calculate");
+                            information->calculate = infCalculate;
                         }
-
-                        //liée aux valeurs recherchées une unité
-                        for (Wt::Json::Array::const_iterator idx1 = units.begin() ; idx1 < units.end(); idx1++)
-                        {
-                            Wt::Json::Object tmp = *idx1;
-                            int valNumUnit = tmp.get("val_num");
-                            int unitId = tmp.get("unit_id");
-                            Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
-                            if (informationUnitPtr && valNumUnit <= nbValue)
-                            {
-                                SearchUnit *searchUnit = new SearchUnit;
-                                searchUnit->pk.infValueNum = valNumUnit;
-                                searchUnit->pk.search = seaPtr;
-                                searchUnit->informationUnit = informationUnitPtr;
-                                session->add<SearchUnit>(searchUnit);
-                            }
-                            else
-                            {
-                                Wt::log("info") << "[Plugin Ressource] info non trouvée ou valNum non autorisée";
-                                res = 400;
-                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
-                                return res;
-                            }
-                        }
-                        responseMsg = seaPtr.modify()->toJSON();
+                        Wt::Dbo::ptr<Information2> infPtr = session->add<Information2>(information);
+                        infPtr.flush();
+                        responseMsg = infPtr.modify()->toJSON();
                         res = 200;
                     }
                     else
                     {
                         res = 404;
-                        responseMsg = "{\"message\":\"Search Type not found\"}";
+                        responseMsg = "{\"message\":\"Information not found\"}";
                     }
                 }
                 else
                 {
                     res = 404;
-                    responseMsg = "{\"message\":\"Source not found\"}";
+                    responseMsg = "{\"message\":\"Search not found\"}";
                 }
                 transaction.commit();
             }
@@ -949,120 +1035,19 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                 responseMsg = "{\"message\":\"Service Unavailable\"}";
             }
         }
-        else
+        catch (Wt::Json::ParseError const& e)
         {
-             Wt::log("info") << "[Plugin Ressource] unité sur val_num non declarée";
-             this->statusCode = 400;
-             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";  
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
-    }
-    catch (Wt::Json::ParseError const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[PluginRessource] Problems parsing JSON.:" << sRequest;
-    }   
-    return res;
-}
-
-unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMsg, const string& sRequest)
-{
-    unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
-    {
-        return res;
-    }
-    Wt::WString infName, infCalculate;
-    bool infDisplay;
-    int valueNum;
-         
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-        
-        //information
-        infName = result.get("inf_name");
-        infDisplay = result.get("inf_display");
-        valueNum = result.get("inf_value_num");
-        
-        try
+        catch (Wt::Json::TypeException const& e)
         {
-            Wt::Dbo::Transaction transaction(*session);
-            
-            //search exist ?
-            Wt::Dbo::ptr<Search> seaPtr = session->find<Search>()
-                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-            
-            if(seaPtr)
-            {
-                //Relier une unité à l'info
-                // unit exist?
-                Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>()
-                        .where("\"INF_VALUE_NUM\" = ?").bind(valueNum)
-                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-                if(seaUnitPtr)
-                {
-                    //creation info
-                    Information2 *information = new Information2;
-                    information->pk.search = seaPtr;
-                    information->pk.unit = seaUnitPtr.get()->informationUnit;
-                    information->pk.subSearchNumber = valueNum;
-                    information->name = infName;
-                    information->display = infDisplay;
-                    
-                    if(result.contains("inf_calculate"))
-                    {
-                        infCalculate = result.get("inf_calculate");
-                        information->calculate = infCalculate;
-                    }
-                    Wt::Dbo::ptr<Information2> infPtr = session->add<Information2>(information);
-                    infPtr.flush();
-                    responseMsg = infPtr.modify()->toJSON();
-                    res = 200;
-                }
-                else
-                {
-                    res = 404;
-                    responseMsg = "{\"message\":\"Information not found\"}";
-                }
-            }
-            else
-            {
-                res = 404;
-                responseMsg = "{\"message\":\"Search not found\"}";
-            }
-            transaction.commit();
-        }
-        catch (Wt::Dbo::Exception const& e) 
-        {
-            Wt::log("error") << e.what();
-            res = 503;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
-        }
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
     }
-    catch (Wt::Json::ParseError const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-    }   
     return res; 
 }
 
@@ -1095,7 +1080,15 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
                     boost::lexical_cast<unsigned long long>(nextElement);
 
                     nextElement = getNextElementFromPath();
-                    if(!nextElement.compare("searches"))
+                    
+                    ///// patch
+                    if(!nextElement.compare("parameters"))
+                    {
+                        this->statusCode = patchParametersSourceForPlugin(responseMsg, sRequest);
+                    }
+                    
+                    ////patch
+                    else if(!nextElement.compare("searches"))
                     {
                         nextElement = getNextElementFromPath();
                         if (!nextElement.compare(""))
@@ -1106,7 +1099,14 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
                         {
                             boost::lexical_cast<unsigned long long>(nextElement);
                             nextElement = getNextElementFromPath();
-                            if(!nextElement.compare("informations"))
+                            ///patch
+                            if(!nextElement.compare(""))
+                            {
+                                this->statusCode = patchSearchForSourceAndPlugin(responseMsg, sRequest);
+                            }
+                            
+                            ///patch
+                            else if(!nextElement.compare("informations"))
                             {
                                 nextElement = getNextElementFromPath();
                                 if (!nextElement.compare(""))
@@ -1115,8 +1115,20 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
                                 }
                                 else
                                 {
-                                    this->statusCode = 400;
-                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                    ///patch
+                                    boost::lexical_cast<unsigned long long>(nextElement);
+                                    nextElement = getNextElementFromPath();
+                                    
+                                    if(!nextElement.compare(""))
+                                    {
+                                        this->statusCode = patchSearchForSourceAndPlugin(responseMsg, sRequest);
+                                    }
+                                    else
+                                    {
+                                        this->statusCode = 400;
+                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                    }
+                                    ///patch
                                 }
                             }
                             else
@@ -1160,258 +1172,254 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
 unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseMsg, const string &sRequest)
 {
      unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    Wt::WString infName, infCalculate;
-    bool infDisplay;
-         
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-        
-        //information
-        infName = result.get("inf_name");
-        infDisplay = result.get("inf_display");
-        infCalculate = result.get("inf_calculate");
-        
+        Wt::WString infName, infCalculate;
+        bool infDisplay;
+
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            
-            // Information exist?
-            Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>()
-                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
-                    .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
-                    .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
-            if(infPtr)
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+
+            //information
+            infName = result.get("inf_name");
+            infDisplay = result.get("inf_display");
+            infCalculate = result.get("inf_calculate");
+
+            try
             {
-                //Relier une unité à l'info
-                // unit exist?
-                Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>()
-                        .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                Wt::Dbo::Transaction transaction(*session);
+
+                // Information exist?
+                Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-                if(seaUnitPtr)
+                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                        .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                        .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
+                if(infPtr)
                 {
+                    //Relier une unité à l'info
+                    // unit exist?
+                    Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>()
+                            .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                            .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                            .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+                    if(seaUnitPtr)
+                    {
 
-                    //creation info
-                    infPtr.modify()->name = infName;
-                    infPtr.modify()->display = infDisplay;
-                    infPtr.modify()->calculate = infCalculate;
-                    responseMsg = infPtr.modify()->toJSON();
-                    res = 200;
+                        //creation info
+                        infPtr.modify()->name = infName;
+                        infPtr.modify()->display = infDisplay;
+                        infPtr.modify()->calculate = infCalculate;
+                        responseMsg = infPtr.modify()->toJSON();
+                        res = 200;
+                    }
+                    else
+                    {
+                        res = 404;
+                        responseMsg = "{\"message\":\"Unit not found\"}";
+                    }
                 }
                 else
                 {
                     res = 404;
-                    responseMsg = "{\"message\":\"Unit not found\"}";
+                    responseMsg = "{\"message\":\"Information not found\"}";
                 }
-            }
-            else
-            {
-                res = 404;
-                responseMsg = "{\"message\":\"Information not found\"}";
-            }
 
-            transaction.commit();
+                transaction.commit();
+            }
+            catch (Wt::Dbo::Exception const& e) 
+            {
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
+            }
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Json::ParseError const& e)
         {
-            Wt::log("error") << e.what();
-            res = 503;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
     }
-    catch (Wt::Json::ParseError const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-    }   
     return res; 
 }
 
 unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    bool seaIsStatic;
-    int posKeyValue, seaPeriod;
-    
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
+        bool seaIsStatic;
+        int posKeyValue, seaPeriod;
 
-        //search
-        seaPeriod = result.get("sea_period");
-        seaIsStatic = result.get("sea_is_static");
-        posKeyValue = result.get("pos_key_value");
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::ptr<Search> seaPtr;
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
 
-            //modification de la search si elle exist
-            seaPtr = session->find<Search>()
-                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-            if(seaPtr)
+            //search
+            seaPeriod = result.get("sea_period");
+            seaIsStatic = result.get("sea_is_static");
+            posKeyValue = result.get("pos_key_value");
+            try
             {
-                Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(seaPtr->searchType.id());
-                if(seaTypPtr)
+                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::ptr<Search> seaPtr;
+
+                //modification de la search si elle exist
+                seaPtr = session->find<Search>()
+                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
+                if(seaPtr)
                 {
-
-                    seaPtr.modify()->period = seaPeriod;
-                    seaPtr.modify()->pos_key_value = posKeyValue;
-                    seaPtr.modify()->searchIsStatic = seaIsStatic;
-
-                    Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr->searchParameters;
-                    //modification des parametres
-                    for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                    Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(seaPtr->searchType.id());
+                    if(seaTypPtr)
                     {
-                        Wt::Dbo::ptr<SearchParameterValue> searchParameterValuePtr = session->find<SearchParameterValue>()
-                                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
-                                .where("\"SEP_ID_SEP_ID\" = ?").bind(i->id());
 
-                        //recuperation des "search_parameters" dans le JSON
-                        Wt::WString tmp = result.get(i->get()->name.toUTF8());
+                        seaPtr.modify()->period = seaPeriod;
+                        seaPtr.modify()->pos_key_value = posKeyValue;
+                        seaPtr.modify()->searchIsStatic = seaIsStatic;
 
-                        searchParameterValuePtr.modify()->value = tmp;
+                        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > searchParameterPtr = seaTypPtr->searchParameters;
+                        //modification des parametres
+                        for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
+                        {
+                            Wt::Dbo::ptr<SearchParameterValue> searchParameterValuePtr = session->find<SearchParameterValue>()
+                                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                                    .where("\"SEP_ID_SEP_ID\" = ?").bind(i->id());
+
+                            //recuperation des "search_parameters" dans le JSON
+                            Wt::WString tmp = result.get(i->get()->name.toUTF8());
+
+                            searchParameterValuePtr.modify()->value = tmp;
+                        }
+                        res = 200;
+                        responseMsg = seaPtr.modify()->toJSON();
                     }
-                    res = 200;
-                    responseMsg = seaPtr.modify()->toJSON();
+                    else
+                    {
+                        res = 404;
+                        responseMsg = "{\"message\":\"Search Type not found\"}";
+                    }
                 }
                 else
                 {
                     res = 404;
-                    responseMsg = "{\"message\":\"Search Type not found\"}";
+                    responseMsg = "{\"message\":\"Search not found\"}";
                 }
+                transaction.commit();
             }
-            else
+            catch (Wt::Dbo::Exception const& e) 
             {
-                res = 404;
-                responseMsg = "{\"message\":\"Search not found\"}";
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
             }
-            transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Json::ParseError const& e)
         {
-            Wt::log("error") << e.what();
-            res = 503;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
     }
-    catch (Wt::Json::ParseError const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-    }   
     return res;
 }
 
 unsigned short PluginResource::patchParametersSourceForPlugin(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    Wt::Json::Array& parameters = Wt::Json::Array::Empty;
-    
-    try
-    {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-        parameters = result.get("parameters");
+        Wt::Json::Array& parameters = Wt::Json::Array::Empty;
+
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
-                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-
-            if(srcPtr)
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+            parameters = result.get("parameters");
+            try
             {
-                //modification des parametres
-                Wt::Dbo::ptr<SourceParameterValue> srcParamValPtr;
-                for (Wt::Json::Array::const_iterator idx1 = parameters.begin() ; idx1 < parameters.end(); idx1++)
+                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
+                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
+
+                if(srcPtr)
                 {
-                    Wt::Json::Object tmp = *idx1;
-                    int srpIdParam = tmp.get("srp_id");
-                    Wt::WString valueParam = tmp.get("value");
+                    //modification des parametres
+                    Wt::Dbo::ptr<SourceParameterValue> srcParamValPtr;
+                    for (Wt::Json::Array::const_iterator idx1 = parameters.begin() ; idx1 < parameters.end(); idx1++)
+                    {
+                        Wt::Json::Object tmp = *idx1;
+                        int srpIdParam = tmp.get("srp_id");
+                        Wt::WString valueParam = tmp.get("value");
 
 
-                    srcParamValPtr = session->find<SourceParameterValue>()
-                            .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                            .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                            .where("\"SRP_ID_SRP_ID\" = ?").bind(srpIdParam);
-                    if (srcParamValPtr)
-                    {
-                        srcParamValPtr.modify()->value = valueParam;
+                        srcParamValPtr = session->find<SourceParameterValue>()
+                                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                                .where("\"SRP_ID_SRP_ID\" = ?").bind(srpIdParam);
+                        if (srcParamValPtr)
+                        {
+                            srcParamValPtr.modify()->value = valueParam;
+                        }
+                        else
+                        {
+                            res = 404;
+                            responseMsg = "{\"message\":\"Parameter not found\"}";
+                            return res;
+                        }
+                        responseMsg += srcParamValPtr.modify()->toJSON();
+                        res = 200;
                     }
-                    else
-                    {
-                        res = 404;
-                        responseMsg = "{\"message\":\"Parameter not found\"}";
-                        return res;
-                    }
-                    responseMsg += srcParamValPtr.modify()->toJSON();
-                    res = 200;
                 }
+                else
+                {
+                    res = 404;
+                    responseMsg = "{\"message\":\"Source not found\"}";
+                }
+                transaction.commit();
             }
-            else
+            catch (Wt::Dbo::Exception const& e) 
             {
-                res = 404;
-                responseMsg = "{\"message\":\"Source not found\"}";
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
             }
-            transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Json::ParseError const& e)
         {
-            Wt::log("error") << e.what();
-            res = 503;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
     }
-    catch (Wt::Json::ParseError const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = 400;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-    }   
-
     return res;
 }
 
@@ -1477,119 +1485,115 @@ void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::H
 unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(string& responseMsg)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    try 
-    {  
-        Wt::Dbo::Transaction transaction(*this->session);
-           
-        Wt::Dbo::ptr<Information2> informationPtr = session->find<Information2>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
-                .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
-                .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
-        //information exist ?
-        if(informationPtr)
-        {
-            Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue>> avaCollec = session->find<AlertValue>()
+        try 
+        {  
+            Wt::Dbo::Transaction transaction(*this->session);
+
+            Wt::Dbo::ptr<Information2> informationPtr = session->find<Information2>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
                     .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
-                    .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9])
-                    .where("\"AVA_DELETE\" IS NULL");
-            //verif si l'info n'est pas utilisée                                                                
-            if (avaCollec.size() == 0)
-            {                
-                //supprime l'info
+                    .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
+            //information exist ?
+            if(informationPtr)
+            {
+                Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue>> avaCollec = session->find<AlertValue>()
+                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                        .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                        .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9])
+                        .where("\"AVA_DELETE\" IS NULL");
+                //verif si l'info n'est pas utilisée                                                                
+                if (avaCollec.size() == 0)
+                {                
+                    //supprime l'info
 
-                informationPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                    informationPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
 
-                res = 204;
+                    res = 204;
+                }
+                else
+                {
+                    res = 409;
+                    responseMsg = "{\"message\":\"Conflict, an alert use this information\"}";
+                }
             }
             else
             {
-                res = 409;
-                responseMsg = "{\"message\":\"Conflict, an alert use this information\"}";
+                responseMsg = "{\"message\":\"Information Not Found\"}";
+                res = 404;
             }
-        }
-        else
-        {
-            responseMsg = "{\"message\":\"Information Not Found\"}";
-            res = 404;
-        }
 
-        transaction.commit();               
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    
+            transaction.commit();               
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
+        }
+    }    
     return res;
 }
 
 unsigned short PluginResource::deleteSearchForSourceAndPlugin(string& responseMsg)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    try 
-    {  
-        Wt::Dbo::Transaction transaction(*this->session);
-           
-        Wt::Dbo::ptr<Search> seaPtr = session->find<Search>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
-                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-        //search exist ?
-        if(seaPtr)
-        {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Information2>> infCollec = session->find<Information2>()
+        try 
+        {  
+            Wt::Dbo::Transaction transaction(*this->session);
+
+            Wt::Dbo::ptr<Search> seaPtr = session->find<Search>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
-
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = infCollec.begin(); i != infCollec.end(); i++) 
+            //search exist ?
+            if(seaPtr)
             {
-                string path = "/" + vPathElements[1] + "/sources/" + vPathElements[3] + "/searches/" + 
-                                         vPathElements[5] + "/inf_values/" + boost::lexical_cast<string>(i->get()->pk.subSearchNumber) +
-                                        "/units/" + boost::lexical_cast<string>(i->get()->pk.unit.id());
-                boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+                Wt::Dbo::collection<Wt::Dbo::ptr<Information2>> infCollec = session->find<Information2>()
+                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
 
-                res = deleteInformationForSeaSrcAndPlg(responseMsg);
-                if( res != 204)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Information2> >::const_iterator i = infCollec.begin(); i != infCollec.end(); i++) 
                 {
-                    res = 409;
-                    responseMsg = "{\"message\":\"Conflict, an alert use this search\"}";
-                    return res;
-                }
-            }           
-            
-            seaPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-            res = 204;   
+                    string path = "/" + vPathElements[1] + "/sources/" + vPathElements[3] + "/searches/" + 
+                                             vPathElements[5] + "/inf_values/" + boost::lexical_cast<string>(i->get()->pk.subSearchNumber) +
+                                            "/units/" + boost::lexical_cast<string>(i->get()->pk.unit.id());
+                    boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+
+                    res = deleteInformationForSeaSrcAndPlg(responseMsg);
+                    if( res != 204)
+                    {
+                        res = 409;
+                        responseMsg = "{\"message\":\"Conflict, an alert use this search\"}";
+                        return res;
+                    }
+                }           
+
+                seaPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = 204;   
+            }
+            else
+            {
+                responseMsg = "{\"message\":\"Search Not Found\"}";
+                res = 404;
+            }
+            transaction.commit();               
         }
-        else
+        catch (Wt::Dbo::Exception const& e) 
         {
-            responseMsg = "{\"message\":\"Search Not Found\"}";
-            res = 404;
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();               
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    
+    }    
     return res;
     
 }
@@ -1597,106 +1601,101 @@ unsigned short PluginResource::deleteSearchForSourceAndPlugin(string& responseMs
 unsigned short PluginResource::deletePlugin(string& responseMsg)
 {
     unsigned short res = 500;
-    try 
-    {  
-        if(!pluginIsAccessible(res, responseMsg))
-        {
-            return res;
-        }
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
-        //verif si le plugin existe
-        if(plgPtr)
-        {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
-            //verif si le plugin n'est pas utilisé
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
-            {
-                string path = "/" + vPathElements[1] + "/sources/" + boost::lexical_cast<string>(i->get()->pk.id);
-                boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
-
-                res = deleteSourceForPlugin(responseMsg);
-                if( res != 204)
-                {
-                    res = 409;
-                    responseMsg = "{\"message\":\"Conflict, an alerts use this plugin\"}";
-                    return res;
-                }
-            }
-
-            plgPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-            res = 204;
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Plugin not found\"}";
-        }
-        transaction.commit();               
-    }
-    catch (Wt::Dbo::Exception const& e) 
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    
+        try 
+        {  
+            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
+            //verif si le plugin existe
+            if(plgPtr)
+            {
+                Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
+                //verif si le plugin n'est pas utilisé
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
+                {
+                    string path = "/" + vPathElements[1] + "/sources/" + boost::lexical_cast<string>(i->get()->pk.id);
+                    boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+
+                    res = deleteSourceForPlugin(responseMsg);
+                    if( res != 204)
+                    {
+                        res = 409;
+                        responseMsg = "{\"message\":\"Conflict, an alerts use this plugin\"}";
+                        return res;
+                    }
+                }
+
+                plgPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = 204;
+            }
+            else
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Plugin not found\"}";
+            }
+            transaction.commit();               
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
+        }
+    }    
     return res;
 }
 
 unsigned short PluginResource::deleteSourceForPlugin(string& responseMsg)
 {
     unsigned short res = 500;
-    if(!pluginIsAccessible(res, responseMsg))
+    if(pluginIsAccessible(responseMsg) == 200)
     {
-        return res;
-    }
-    try 
-    {  
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-        //verif si la source existe
-        if(srcPtr)
-        {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+        try 
+        {  
+            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
-            
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Search> >::const_iterator i = seaCollec.begin(); i != seaCollec.end(); i++) 
-                {
-                    string path = "/" + vPathElements[1] + "/sources/" + vPathElements[3] + "/searches/" + 
-                                             boost::lexical_cast<string>(i->get()->pk.id);
-                    boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+            //verif si la source existe
+            if(srcPtr)
+            {
+                Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
 
-                    res = deleteSearchForSourceAndPlugin(responseMsg);
-                    if( res != 204)
+                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Search> >::const_iterator i = seaCollec.begin(); i != seaCollec.end(); i++) 
                     {
-                        res = 409;
-                        responseMsg = "{\"message\":\"Conflict, an alerts use this source\"}";
-                        return res;
+                        string path = "/" + vPathElements[1] + "/sources/" + vPathElements[3] + "/searches/" + 
+                                                 boost::lexical_cast<string>(i->get()->pk.id);
+                        boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+
+                        res = deleteSearchForSourceAndPlugin(responseMsg);
+                        if( res != 204)
+                        {
+                            res = 409;
+                            responseMsg = "{\"message\":\"Conflict, an alerts use this source\"}";
+                            return res;
+                        }
                     }
-                }
-            srcPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-                res = 204;
+                srcPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                    res = 204;
+            }
+            else
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Source not found\"}";
+            }
+            transaction.commit();               
         }
-        else
+        catch (Wt::Dbo::Exception const& e) 
         {
-            res = 404;
-            responseMsg = "{\"message\":\"Source not found\"}";
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
-        transaction.commit();               
     }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    
-    return res;
-    
+    return res; 
 }
 
 void PluginResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
