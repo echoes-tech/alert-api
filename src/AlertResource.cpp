@@ -15,7 +15,7 @@
 
 using namespace std;
 
-AlertResource::AlertResource()
+AlertResource::AlertResource() : PublicApiResource::PublicApiResource()
 {
 }
 

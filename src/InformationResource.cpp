@@ -11,12 +11,20 @@
  * 
  */
 
-
 #include "InformationResource.h"
 
 using namespace std;
 
-InformationResource::InformationResource(){
+InformationResource::InformationResource() : PublicApiResource::PublicApiResource()
+{
+}
+
+InformationResource::InformationResource(const InformationResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+InformationResource::~InformationResource()
+{
 }
 
 void InformationResource::processGetRequest(Wt::Http::Response &response)
@@ -58,7 +66,3 @@ void InformationResource::handleRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-InformationResource::~InformationResource()
-{
-    beingDeleted();
-}

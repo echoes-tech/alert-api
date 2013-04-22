@@ -13,6 +13,8 @@
 
 #include "Conf.h"
 
+using namespace std;
+
 Conf::Conf()
 {
     // Create an empty property tree object
@@ -24,11 +26,11 @@ Conf::Conf()
     try
     {
         boost::property_tree::read_ini("api.conf", pt);
-        dBhost = pt.get<std::string>("database.host");
-        dBport = pt.get<int>("database.port");
-        dBname = pt.get<std::string>("database.name");
-        dBuser = pt.get<std::string>("database.user");
-        dBpassword = pt.get<std::string>("database.password");
+        setDBhost(pt.get<string>("database.host"));
+        setDBport(pt.get<unsigned>("database.port"));
+        setDBname(pt.get<string>("database.name"));
+        setDBuser(pt.get<string>("database.user"));
+        setDBpassword(pt.get<string>("database.password"));
         
     }
     catch (boost::property_tree::ini_parser_error e)
@@ -36,37 +38,111 @@ Conf::Conf()
         Wt::log("error") << "[CONF] " << e.what();
     }
     
-    
+    setSessConnectParams(_dBhost, _dBport, _dBname, _dBuser, _dBpassword);
 }
 
-Conf::Conf(const Conf& orig) {
-}
-
-std::string Conf::getDbHost()
+Conf::Conf(const Conf& orig)
 {
-    return dBhost;
+    setDBhost(orig.getDBHost());
+    setDBport(orig.getDBPort());
+    setDBname(orig.getDBName());
+    setDBuser(orig.getDBUser());
+    setDBpassword(orig.getDBPassword());
+    setSessConnectParams(_dBhost, _dBport, _dBname, _dBuser, _dBpassword);
 }
 
-int Conf::getDbPort()
+Conf::~Conf()
 {
-    return dBport;
 }
 
-std::string Conf::getDbName()
+void Conf::setDBhost(string dBhost)
 {
-    return dBname;
+    _dBhost = dBhost;
+
+    return;
 }
 
-std::string Conf::getDbUser()
+string Conf::getDBHost() const
 {
-    return dBuser;
+    return _dBhost;
 }
 
-std::string Conf::getDbPassword()
+void Conf::setDBport(unsigned dBport)
 {
-    return dBpassword;
+    _dBport = dBport;
+
+    return;
 }
 
-Conf::~Conf() {
+unsigned Conf::getDBPort() const
+{
+    return _dBport;
 }
+
+void Conf::setDBname(string dBname)
+{
+    _dBname = dBname;
+
+    return;
+}
+
+string Conf::getDBName() const
+{
+    return _dBname;
+}
+
+void Conf::setDBuser(string dBuser)
+{
+    _dBuser = dBuser;
+
+    return;
+}
+
+string Conf::getDBUser() const
+{
+    return _dBuser;
+}
+
+void Conf::setDBpassword(string dBpassword)
+{
+    _dBpassword = dBpassword;
+
+    return;
+}
+
+string Conf::getDBPassword() const
+{
+    return _dBpassword;
+}
+
+void Conf::setSessConnectParams
+(
+        string dBhost,
+        unsigned dBport,
+        string dBname,
+        string dBuser,
+        string dBpassword
+)
+{   
+    try
+    {
+        _sessConnectParams = "hostaddr=" + dBhost +
+                             " port=" + boost::lexical_cast<string>(dBport) +
+                             " dbname=" + dBname +
+                             " user=" + dBuser +
+                             " password=" + dBpassword;
+    }
+    catch (boost::bad_lexical_cast &)
+    {
+         Wt::log("error") << "[Conf] sdPort is not an unsigned";
+    }
+
+    return;
+}
+
+string Conf::getSessConnectParams() const
+{
+    return _sessConnectParams;
+}
+
 

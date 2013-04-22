@@ -14,13 +14,13 @@
 #ifndef INFORMATIONRESOURCE_H
 #define	INFORMATIONRESOURCE_H
 
-#include "includeFile.h"
-
+#include "PublicApiResource.h"
 
 class InformationResource : public PublicApiResource
 {
     public :
         InformationResource();
+        InformationResource(const InformationResource& orig);
         virtual ~InformationResource();
         
     protected :

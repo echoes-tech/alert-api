@@ -55,11 +55,7 @@ int main(int argc, char **argv)
 {
     Conf *conf = new Conf();
 
-    Utils::connection = "hostaddr=" + conf->getDbHost() +
-            " port=" + boost::lexical_cast<string>(conf->getDbPort()) +
-            " dbname=" + conf->getDbName() +
-            " user=" + conf->getDbUser() +
-            " password=" + conf->getDbPassword();
+    Utils::connection = conf->getSessConnectParams();
 
     try
     {

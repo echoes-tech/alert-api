@@ -20,6 +20,7 @@ class MediaResource : public PublicApiResource
 {
     public :
         MediaResource();
+        MediaResource(const MediaResource& orig);
         virtual ~MediaResource();
         
     protected :

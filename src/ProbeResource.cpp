@@ -15,14 +15,15 @@
 
 using namespace std;
 
-ProbeResource::ProbeResource() {
+ProbeResource::ProbeResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-ProbeResource::ProbeResource(const ProbeResource& orig) {
+ProbeResource::ProbeResource(const ProbeResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
 }
 
 ProbeResource::~ProbeResource() {
-    beingDeleted();
 }
 
 unsigned short ProbeResource::getProbesList(string &responseMsg) const
@@ -34,15 +35,15 @@ unsigned short ProbeResource::getProbesList(string &responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->session->find<Asset> ()
-                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id());
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                .where("\"AST_DELETE\" IS NULL");
 
         responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
         {
             Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
-                .where("\"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
-                .bind(i->get()->probe.id());
+                .where("\"PRB_ID\" = ?").bind(i->get()->probe.id())
+                .where("\"PRB_DELETE\" IS NULL");
             if (Utils::checkId<Probe>(probe))
             {
                 responseMsg += "\t{\n";
@@ -80,9 +81,9 @@ unsigned short ProbeResource::getProbe(string &responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::ptr<Probe> probe = this->session->find<Probe>()
-                .where("\"PRB_ORG_ORG_ID\" = ? AND \"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id())
-                .bind(this->vPathElements[1]);
+                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                .where("\"PRB_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"PRB_DELETE\" IS NULL");
 
         if (Utils::checkId<Probe>(probe)) 
         {
@@ -92,8 +93,8 @@ unsigned short ProbeResource::getProbe(string &responseMsg) const
 
             // Est-ce que les param pkg de cette probe existent ?
             Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
-                    .where("\"PPP_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                    .bind(probe->probePackageParameter.id());
+                    .where("\"PPP_ID\" = ?").bind(probe->probePackageParameter.id())
+                    .where("\"PPP_DELETE\" IS NULL");
             if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
             {
                 responseMsg += "\t\"version\": \"" + probePackageParameter->probeVersion.toUTF8() + "\",\n";
@@ -101,8 +102,8 @@ unsigned short ProbeResource::getProbe(string &responseMsg) const
 
                 // Est-ce que le pkg de cette probe existent ?
                 Wt::Dbo::ptr<ProbePackage> probePackage = this->session->find<ProbePackage>()
-                        .where("\"PPA_ID\" = ? AND \"PPA_DELETE\" IS NULL")
-                        .bind(probePackageParameter->probePackage.id());
+                        .where("\"PPA_ID\" = ?").bind(probePackageParameter->probePackage.id())
+                        .where("\"PPA_DELETE\" IS NULL");
                 if (Utils::checkId<ProbePackage>(probePackage))
                 {
                     ifstream ifs("/var/www/wt/probe/" + probePackageParameter->probePackage->filename.toUTF8());
@@ -163,7 +164,7 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 

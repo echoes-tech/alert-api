@@ -26,7 +26,6 @@
       <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
-      <itemPath>include/includeFile.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -79,6 +78,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -149,8 +150,6 @@
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -190,6 +189,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -261,8 +262,6 @@
       <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>

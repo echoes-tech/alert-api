@@ -11,22 +11,32 @@
  * 
  */
 
-
 #include "MediaResource.h"
 
-MediaResource::MediaResource(){
+using namespace std;
+
+MediaResource::MediaResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) const
+MediaResource::MediaResource(const MediaResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+MediaResource::~MediaResource()
+{
+}
+
+unsigned short MediaResource::getListValueForMedia(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> > medias = session->find<MediaValue>()
-                                                                .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<std::string>(this->session->user().id()))
-                                                                .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1]);
+                .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<string>(this->session->user().id()))
+                .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1]);
         if (medias.size() > 0)
         {
             responseMsg = "[\n";
@@ -60,20 +70,20 @@ unsigned short MediaResource::getListValueForMedia(std::string &responseMsg) con
     return res;
 }
 
-unsigned short MediaResource::getMedia(std::string &responseMsg) const
+unsigned short MediaResource::getMedia(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        std::string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
+        string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
                 " ("
                 " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " (Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string > (session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (session->user()->currentOrganization.id()) +
                 " )"
                 " )"
                 " AND \"MED_DELETE\" IS NULL";
@@ -118,7 +128,7 @@ unsigned short MediaResource::getMedia(std::string &responseMsg) const
 
 void MediaResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -155,7 +165,7 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short MediaResource::postMedia(std::string &responseMsg, const std::string &sRequest)
+unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
     Wt::WString mevValue;
@@ -187,7 +197,7 @@ unsigned short MediaResource::postMedia(std::string &responseMsg, const std::str
     try
     {
         Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::ptr<User> ptrUser = session->find<User>().where("\"USR_ID\" = ?").bind(boost::lexical_cast<std::string > (this->session->user().id()));
+        Wt::Dbo::ptr<User> ptrUser = session->find<User>().where("\"USR_ID\" = ?").bind(boost::lexical_cast<string>(this->session->user().id()));
         Wt::Dbo::ptr<Media> media = session->find<Media>().where("\"MED_ID\" = ?").bind(medId);
 
         if(!ptrUser || !media)
@@ -209,7 +219,6 @@ unsigned short MediaResource::postMedia(std::string &responseMsg, const std::str
         transaction.commit();
 
         res = 200;
-
     }
     catch (Wt::Dbo::Exception const& e) 
     {
@@ -222,7 +231,7 @@ unsigned short MediaResource::postMedia(std::string &responseMsg, const std::str
 }
 
 
-unsigned short MediaResource::postMediaSpecialization(std::string &responseMsg, const std::string &sRequest)
+unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
     long long mevId;
@@ -288,7 +297,7 @@ unsigned short MediaResource::postMediaSpecialization(std::string &responseMsg, 
 
 void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
@@ -303,58 +312,16 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
         {
             this->statusCode = postMediaSpecialization(responseMsg, sRequest);
         }
-         /////////// a supprimer
         else
-        {
-             try
-        {
-            boost::lexical_cast<unsigned int>(nextElement);
-
-            nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = deleteMediaSpecialization(responseMsg);
-            }
-            else
-            {
-                this->statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
         {
             this->statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
-        }
-         /////////// a supprimer
     }
     else
     {
-                //// SUPPRIMER
-        try
-        {
-            boost::lexical_cast<unsigned int>(nextElement);
-
-            nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = deleteMedia(responseMsg);
-            }
-            else
-            {
-                this->statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
-        //// SUPPRIMER
-        //this->statusCode = 400;
-        //responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
     response.setStatus(this->statusCode);
@@ -374,18 +341,17 @@ void MediaResource::processPatchRequest(const Wt::Http::Request &request, Wt::Ht
     return;
 }
 
-unsigned short MediaResource::deleteMedia(std::string &responseMsg)
+unsigned short MediaResource::deleteMedia(string &responseMsg)
 {
     unsigned short res = 500;
-
 
     try
     {
         
         Wt::Dbo::Transaction transaction2(*session);
-        std::string qryString = "DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
+        string qryString = "DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                                 " WHERE \"AMS_ALE_ALE_ID\" IS NULL"
-                                " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]);  
+                                " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<string > (this->vPathElements[1]);  
 
         session->execute(qryString);
 
@@ -403,11 +369,11 @@ unsigned short MediaResource::deleteMedia(std::string &responseMsg)
         Wt::Dbo::Transaction transaction(*session);
 
 
-        std::string queryStr = "SELECT mev FROM \"T_MEDIA_VALUE_MEV\" mev"
+        string queryStr = "SELECT mev FROM \"T_MEDIA_VALUE_MEV\" mev"
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " (Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" " 
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string>(session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(session->user()->currentOrganization.id()) +
                 " )"
                 "and \"MEV_ID\" = " + this->vPathElements[1];
 
@@ -437,25 +403,26 @@ unsigned short MediaResource::deleteMedia(std::string &responseMsg)
     return res;
 }
 
-unsigned short MediaResource::deleteMediaSpecialization(std::string &responseMsg)
+unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
 {
     unsigned short res = 500;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(vPathElements[2])
-                                                                                                  .where("\"AMS_ALE_ALE_ID\" IS NULL");
-        
+        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>()
+                .where("\"AMS_ID\" = ?").bind(vPathElements[2])
+                .where("\"AMS_ALE_ALE_ID\" IS NULL");
+
         if(!amsPtr)
         {
-            res = 409;
-            responseMsg = "{\"message\":\"media not found\"}";
+            res = 404;
+            responseMsg = "{\"message\":\"Media not found\"}";
             return res; 
         }
-        
-        std::string executeString =  " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
-                                    " WHERE \"AMS_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[2]) +
-                                    " AND \"AMS_ALE_ALE_ID\" IS NULL";
+
+        string executeString = " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
+                " WHERE \"AMS_ID\" = " + boost::lexical_cast<string>(this->vPathElements[2]) +
+                " AND \"AMS_ALE_ALE_ID\" IS NULL";
         session->execute(executeString);
         transaction.commit();
 
@@ -474,16 +441,16 @@ unsigned short MediaResource::deleteMediaSpecialization(std::string &responseMsg
 
 void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
-    
+
     if (!nextElement.compare("specializations"))
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
@@ -506,7 +473,7 @@ void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
@@ -525,7 +492,7 @@ void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
-    
+
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
     return;
@@ -540,8 +507,3 @@ void MediaResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
     return;
 }
 
-
-MediaResource::~MediaResource()
-{
-    beingDeleted();
-}

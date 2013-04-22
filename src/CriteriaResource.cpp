@@ -11,16 +11,26 @@
  * 
  */
 
-
 #include "CriteriaResource.h"
 
-CriteriaResource::CriteriaResource(){
+using namespace std;
+
+CriteriaResource::CriteriaResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
+CriteriaResource::CriteriaResource(const CriteriaResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+CriteriaResource::~CriteriaResource()
+{
+}
+
+unsigned short CriteriaResource::getCriterias(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*session);
@@ -51,7 +61,7 @@ unsigned short CriteriaResource::getCriterias(std::string &responseMsg) const
 
 void CriteriaResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
 
@@ -102,10 +112,5 @@ void CriteriaResource::handleRequest(const Wt::Http::Request &request, Wt::Http:
     PublicApiResource::handleRequest(request, response);
 
     return;
-}
-
-CriteriaResource::~CriteriaResource()
-{
-    beingDeleted();
 }
 

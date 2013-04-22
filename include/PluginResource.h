@@ -11,13 +11,9 @@
  * 
  */
 
-
 #ifndef PLUGINRESOURCE_H
 #define	PLUGINRESOURCE_H
 
-
-#include <Wt/Json/Array>
-#include <Wt/Json/Value>
 #include "PublicApiResource.h"
 
 class PluginResource : public PublicApiResource

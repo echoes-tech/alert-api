@@ -20,6 +20,7 @@ class UserResource : public PublicApiResource
 {
     public :
         UserResource();
+        UserResource(const UserResource& orig);
         virtual ~UserResource();
         
     protected :

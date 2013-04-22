@@ -11,22 +11,31 @@
  * 
  */
 
-
 #include "UnitResource.h"
 
-UnitResource::UnitResource(){
+using namespace std;
+
+UnitResource::UnitResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
+UnitResource::UnitResource(const UnitResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+UnitResource::~UnitResource()
+{
+}
+
+unsigned short UnitResource::getTypeOfUnit(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = session->find<InformationUnitType>()
-                .where("\"IUT_DELETE\" IS NULL");
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = session->find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL");
                                                          
         if (unitTypePtr.size() > 0)
         {
@@ -63,7 +72,7 @@ unsigned short UnitResource::getTypeOfUnit(std::string &responseMsg) const
     return res;
 }
 
-unsigned short UnitResource::getListUnits(std::string& responseMsg) const
+unsigned short UnitResource::getListUnits(string& responseMsg) const
 {
     unsigned short res = 500;
     int idx = 0;
@@ -72,8 +81,9 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
         Wt::Dbo::Transaction transaction(*this->session);
       
         Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = session->find<InformationUnit>()
-                                                                                .where("\"INU_DELETE\" IS NULL")
-                                                                                .orderBy("\"INU_ID\"");
+                .where("\"INU_DELETE\" IS NULL")
+                .orderBy("\"INU_ID\"");
+
         if (unitCollec.size() > 0)
         {
             
@@ -109,7 +119,7 @@ unsigned short UnitResource::getListUnits(std::string& responseMsg) const
     return res;
 }
 
-unsigned short UnitResource::getUnit(std::string &responseMsg) const
+unsigned short UnitResource::getUnit(string &responseMsg) const
 {
     unsigned short res = 500;
     try
@@ -117,8 +127,9 @@ unsigned short UnitResource::getUnit(std::string &responseMsg) const
         Wt::Dbo::Transaction transaction(*this->session);
       
         Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
-                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
-                                                          .where("\"INU_DELETE\" IS NULL");
+                .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"INU_DELETE\" IS NULL");
+
         if (!informationUnit)
         {
             res = 404;
@@ -142,17 +153,18 @@ unsigned short UnitResource::getUnit(std::string &responseMsg) const
     return res;
 }
 
-unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
+unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
       
         Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
-                                                          .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
-                                                          .where("\"INU_DELETE\" IS NULL");
+                .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"INU_DELETE\" IS NULL");
+
         if (!informationUnit)
         {
             res = 404;
@@ -161,8 +173,9 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
         else
         {
              Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> > infoSubUnit = session->find<InformationSubUnit>()
-                                                                             .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1])
-                                                                             .where("\"ISU_DELETE\" IS NULL");
+                    .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"ISU_DELETE\" IS NULL");
+
             if(infoSubUnit.size() > 0)
             {
                 responseMsg = "[\n";
@@ -198,7 +211,7 @@ unsigned short UnitResource::getSubUnitsForUnit(std::string &responseMsg) const
 
 void UnitResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "";
     nextElement = getNextElementFromPath();
     
     if(!nextElement.compare(""))
@@ -214,7 +227,7 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
         try
         {
             
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
@@ -242,7 +255,7 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short UnitResource::postUnit(std::string& responseMsg, const std::string& sRequest)
+unsigned short UnitResource::postUnit(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
     Wt::WString name;
@@ -308,60 +321,23 @@ unsigned short UnitResource::postUnit(std::string& responseMsg, const std::strin
 
 void UnitResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {   
-     std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
+    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+        this->statusCode = postUnit(responseMsg, sRequest);
     }
     else
     {
-        try
-        {
-            boost::lexical_cast<unsigned int>(nextElement);
-
-            nextElement = getNextElementFromPath();
-
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = deleteUnit(responseMsg);
-            }
-            else
-            {
-                this->statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
-    return;
-    
-//    std::string responseMsg = "", nextElement = "", sRequest = "";
-//
-//    sRequest = request2string(request);
-//    nextElement = getNextElementFromPath();
-//    if(!nextElement.compare(""))
-//    {
-//        this->statusCode = postUnit(responseMsg, sRequest);
-//    }
-//    else
-//    {
-//        this->statusCode = 400;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//    }
-//
-//    response.setStatus(this->statusCode);
-//    response.out() << responseMsg;
-//    return ;
+    return ;
 }
 
 
@@ -376,7 +352,7 @@ void UnitResource::processPatchRequest(const Wt::Http::Request &request, Wt::Htt
     return;
 }
 
-unsigned short UnitResource::deleteUnit(std::string& responseMsg)
+unsigned short UnitResource::deleteUnit(string& responseMsg)
 {
     unsigned short res = 500;
     try 
@@ -419,7 +395,7 @@ unsigned short UnitResource::deleteUnit(std::string& responseMsg)
 
 void UnitResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {    
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -431,7 +407,7 @@ void UnitResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Ht
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
@@ -466,7 +442,3 @@ void UnitResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
     return;
 }
 
-UnitResource::~UnitResource()
-{
-    beingDeleted();
-}

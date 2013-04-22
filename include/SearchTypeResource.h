@@ -11,17 +11,17 @@
  * 
  */
 
-
 #ifndef SEARCHTYPERESOURCE_H
 #define	SEARCHTYPERESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 
 class SearchTypeResource : public PublicApiResource
 {
     public :
         SearchTypeResource();
+        SearchTypeResource(const SearchTypeResource& orig);
         virtual ~SearchTypeResource();
         
     protected :

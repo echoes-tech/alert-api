@@ -15,14 +15,16 @@
 
 using namespace std;
 
-AssetResource::AssetResource() {
+AssetResource::AssetResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-AssetResource::AssetResource(const AssetResource& orig) {
+AssetResource::AssetResource(const AssetResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
 }
 
-AssetResource::~AssetResource() {
-    beingDeleted();
+AssetResource::~AssetResource()
+{
 }
 
 unsigned short AssetResource::getAssetsList(string &responseMsg) const
@@ -141,19 +143,20 @@ unsigned short AssetResource::getAsset(string &responseMsg) const
 }
 
 
-unsigned short AssetResource::getKeyValueForInformation(std::string &responseMsg) const
+unsigned short AssetResource::getKeyValueForInformation(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*session);
 
-        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>().where("\"SRC_ID\" = ?").bind(this->vPathElements[5])
-                                                                             .where("\"SEA_ID\" = ?").bind(this->vPathElements[7])
-                                                                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[3])
-                                                                             .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[9])
-                                                                             .limit(1);
+        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>()
+                .where("\"SRC_ID\" = ?").bind(this->vPathElements[5])
+                .where("\"SEA_ID\" = ?").bind(this->vPathElements[7])
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[3])
+                .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[9])
+                .limit(1);
 
         if (!ptrInfoKey)
         {
@@ -162,21 +165,21 @@ unsigned short AssetResource::getKeyValueForInformation(std::string &responseMsg
             return res;
         }
 
-        std::string queryString = 
+        string queryString = 
         "SELECT iva FROM \"T_INFORMATION_VALUE_IVA\" iva WHERE \"IVA_ID\" IN ( SELECT \"IVA_ID\" FROM"
         "("
         "SELECT DISTINCT ON (\"IVA_VALUE\") \"IVA_VALUE\", \"IVA_ID\" FROM"
         "(" "SELECT iva.\"IVA_VALUE\", iva.\"IVA_ID\" FROM \"T_INFORMATION_VALUE_IVA\" iva"
-        " WHERE \"SEA_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[7]) + 
-        " AND \"SRC_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[5]) + 
-        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[3]) + 
-        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<std::string>(this->vPathElements[9]) + 
-        " AND \"IVA_AST_AST_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+        " WHERE \"SEA_ID\" = " + boost::lexical_cast<string>(this->vPathElements[7]) + 
+        " AND \"SRC_ID\" = " + boost::lexical_cast<string>(this->vPathElements[5]) + 
+        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string>(this->vPathElements[3]) + 
+        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<string>(this->vPathElements[9]) + 
+        " AND \"IVA_AST_AST_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) +
         " ORDER BY \"IVA_ID\" DESC LIMIT 50) sr"
         " ) sr_sr"
         ")";
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> > collPtrIva = session->query<Wt::Dbo::ptr<InformationValue> >(queryString);
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> collPtrIva = session->query<Wt::Dbo::ptr<InformationValue>>(queryString);
 
         if(collPtrIva.size() > 0)
         {
@@ -199,7 +202,6 @@ unsigned short AssetResource::getKeyValueForInformation(std::string &responseMsg
         {
             res = 404;
             responseMsg = "{\"message\":\"Information value not found\"}";
-            return res;
         }
     }
     catch (Wt::Dbo::Exception const &e)
@@ -207,7 +209,6 @@ unsigned short AssetResource::getKeyValueForInformation(std::string &responseMsg
         Wt::log("error") << e.what();
         res = 503;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
     }
     return res;
 }
@@ -220,10 +221,10 @@ unsigned short AssetResource::getPluginsListForAsset(string &responseMsg) const
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
-                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id())
-                .bind(this->vPathElements[1]);
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"AST_DELETE\" IS NULL");
 
         if (Utils::checkId<Asset>(asset)) 
         {
@@ -260,16 +261,16 @@ unsigned short AssetResource::getProbesListForAsset(string &responseMsg) const
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
-                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id())
-                .bind(this->vPathElements[1]);
+        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"AST_DELETE\" IS NULL");
 
         if (Utils::checkId<Asset>(asset)) 
         {
             Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
-                .where("\"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
-                .bind(asset->probe.id());
+                .where("\"PRB_ID\" = ?").bind(asset->probe.id())
+                .where("\"PRB_DELETE\" IS NULL");
             if (Utils::checkId<Probe>(probe)) 
             {
                 responseMsg += "[\n";
@@ -318,7 +319,7 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
@@ -334,25 +335,25 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
                 }
                 else
                 {
-                    boost::lexical_cast<unsigned int>(nextElement);
+                    boost::lexical_cast<unsigned long long>(nextElement);
 
                     nextElement = getNextElementFromPath();
                     if (!nextElement.compare("sources"))
                     {
                         nextElement = getNextElementFromPath();
                       
-                        boost::lexical_cast<unsigned int>(nextElement);
+                        boost::lexical_cast<unsigned long long>(nextElement);
                         nextElement = getNextElementFromPath();
                         if (!nextElement.compare("searches"))
                         {
                             nextElement = getNextElementFromPath();
                            
-                            boost::lexical_cast<unsigned int>(nextElement);
+                            boost::lexical_cast<unsigned long long>(nextElement);
                             nextElement = getNextElementFromPath();
                             if (!nextElement.compare("inf_values"))
                             {
                                 nextElement = getNextElementFromPath();
-                                boost::lexical_cast<unsigned int>(nextElement);
+                                boost::lexical_cast<unsigned long long>(nextElement);
                                 nextElement = getNextElementFromPath();
 
                                 if (!nextElement.compare("informations"))
@@ -406,19 +407,18 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 
         // Est-ce que l'asset existe ?
         Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id())
-                .bind(this->vPathElements[1]);
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"AST_DELETE\" IS NULL");
         if (Utils::checkId<Asset>(asset))
         {
             Wt::WString probeName = "Probe_" + this->session->user()->lastName + "_" + asset->name;
 
             responseMsg += "{\n";
             // Est-ce que la probe existe pour cet asset ?
-            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
-                .where("\"PRB_ORG_ORG_ID\" = ? AND \"PRB_ID\" = ? AND \"PRB_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id())
-                .bind(asset->probe);
+            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe>()
+                .where("\"PRB_ID\" = ?").bind(asset->probe.id())
+                .where("\"PRB_DELETE\" IS NULL");
             if (!Utils::checkId<Probe>(probe))
             {
                 Probe *newProbe = new Probe();
@@ -432,25 +432,24 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
             }
 
             Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
-                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                    .bind(asset->assetArchitecture.id())
-                    .bind(asset->assetDistribution.id())
-                    .bind(asset->assetRelease.id())
+                    .where("\"PPP_ASA_ASA_ID\" = ?").bind(asset->assetArchitecture.id())
+                    .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
+                    .where("\"PPP_ASR_ASR_ID\" = ?").bind(asset->assetRelease.id())
+                    .where("\"PPP_DELETE\" IS NULL")
                     .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
                     .limit(1);
-
 
             bool releaseChecked = false;
             Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
             if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
             {
-                std::string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
+                string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
                 ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
                 probePackageParameter = this->session->find<ProbePackageParameter>()
-                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                    .bind(asset->assetArchitecture.id())
-                    .bind(asset->assetDistribution.id())
-                    .bind(ptrAssetRelease.id())
+                    .where("\"PPP_ASA_ASA_ID\" = ?").bind(asset->assetArchitecture.id())
+                    .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
+                    .where("\"PPP_ASR_ASR_ID\" = ?").bind(ptrAssetRelease.id())
+                    .where("\"PPP_DELETE\" IS NULL")
                     .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
                     .limit(1);
                 releaseChecked = true;
@@ -463,19 +462,18 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
             {
                 if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
                 {
-                    std::string wildcardArchitecture = "i*86";
+                    string wildcardArchitecture = "i*86";
                     ptrAssetArchitecture = this->session->find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
                     probePackageParameter = this->session->find<ProbePackageParameter>()
-                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                    .bind(ptrAssetArchitecture.id())
-                    .bind(asset->assetDistribution.id())
-                    .bind(asset->assetRelease.id())
-                    .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
-                    .limit(1);
+                            .where("\"PPP_ASA_ASA_ID\" = ?").bind(ptrAssetArchitecture.id())
+                            .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
+                            .where("\"PPP_ASR_ASR_ID\" = ?").bind(asset->assetRelease.id())
+                            .where("\"PPP_DELETE\" IS NULL")
+                            .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
+                            .limit(1);
                     architectureChecked = true;
                 }
             }
-
 
             if (releaseChecked
                 && architectureChecked
@@ -483,14 +481,13 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                )
             {
                 probePackageParameter = this->session->find<ProbePackageParameter>()
-                    .where("\"PPP_ASA_ASA_ID\" = ? AND \"PPP_ASD_ASD_ID\" = ? AND \"PPP_ASR_ASR_ID\" = ? AND \"PPP_DELETE\" IS NULL")
-                    .bind(ptrAssetArchitecture.id())
-                    .bind(asset->assetDistribution.id())
-                    .bind(ptrAssetRelease.id())
+                    .where("\"PPP_ASA_ASA_ID\" = ?").bind(ptrAssetArchitecture.id())
+                    .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
+                    .where("\"PPP_ASR_ASR_ID\" = ?").bind(ptrAssetRelease.id())
+                    .where("\"PPP_DELETE\" IS NULL")
                     .orderBy("\"PPP_PROBE_VERSION\" DESC, \"PPP_PACKAGE_VERSION\" DESC")
                     .limit(1);
             }
-
 
             asset->probe.modify()->probePackageParameter = probePackageParameter;
 
@@ -566,7 +563,7 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     {   
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
@@ -636,14 +633,14 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
         {
             Wt::Dbo::Transaction transaction(*this->session);
             Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                    .bind(this->session->user()->currentOrganization.id())
-                    .bind(this->vPathElements[1]);
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                    .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"AST_DELETE\" IS NULL");
+
             if (Utils::checkId<Asset>(asset)) 
             {
                 Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->session->find<AssetArchitecture>()
-                        .where("\"ASA_NAME\" = ?")
-                        .bind(arch);
+                        .where("\"ASA_NAME\" = ?").bind(arch);
                 if (!Utils::checkId<AssetArchitecture> (assetArchitecture)) 
                 {
                     AssetArchitecture *newAssetArchitecture = new AssetArchitecture();
@@ -654,8 +651,7 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
                 asset.modify()->assetArchitecture = assetArchitecture;
                 
                 Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->session->find<AssetDistribution>()
-                        .where("\"ASD_NAME\" = ?")
-                        .bind(distribName);
+                        .where("\"ASD_NAME\" = ?").bind(distribName);
                 if (!Utils::checkId<AssetDistribution> (assetDistribution)) 
                 {
                     AssetDistribution *newAssetDistribution = new AssetDistribution();
@@ -666,8 +662,7 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
                 asset.modify()->assetDistribution = assetDistribution;
                 
                 Wt::Dbo::ptr<AssetRelease> assetRelease = this->session->find<AssetRelease>()
-                        .where("\"ASR_NAME\" = ?")
-                        .bind(distribRelease);
+                        .where("\"ASR_NAME\" = ?").bind(distribRelease);
                 if (!Utils::checkId<AssetRelease> (assetRelease)) 
                 {
                     AssetRelease *newAssetRelease = new AssetRelease();
@@ -712,7 +707,7 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
     {   
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 

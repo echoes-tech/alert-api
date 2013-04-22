@@ -11,11 +11,20 @@
  * 
  */
 
-
 #include "UserResource.h"
 
+using namespace std;
 
-UserResource::UserResource() {
+UserResource::UserResource() : PublicApiResource::PublicApiResource()
+{
+}
+
+UserResource::UserResource(const UserResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+UserResource::~UserResource()
+{
 }
 
 unsigned short UserResource::getInformationForUser(std::string &responseMsg) const
@@ -203,6 +212,3 @@ void UserResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Res
     return;
 }
 
-UserResource::~UserResource() {
-        beingDeleted();
-}

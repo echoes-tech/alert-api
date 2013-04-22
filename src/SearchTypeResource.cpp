@@ -11,19 +11,26 @@
  * 
  */
 
-
 #include "SearchTypeResource.h"
-#include <Wt/Json/Array>
-#include <Wt/Json/Value>
+
 using namespace std;
 
-SearchTypeResource::SearchTypeResource(){
+SearchTypeResource::SearchTypeResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) const
+SearchTypeResource::SearchTypeResource(const SearchTypeResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+SearchTypeResource::~SearchTypeResource()
+{
+}
+
+unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -47,13 +54,13 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
             }
             responseMsg += "\n]\n";
             res = 200;
-            transaction.commit();     
         }
         else
         {        
             res = 404;
             responseMsg = "{\"message\":\"Search type not found\"}";
         }
+        transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e) 
     {
@@ -65,21 +72,20 @@ unsigned short SearchTypeResource::getSearchTypeList(std::string& responseMsg) c
     return res;
 }
 
-unsigned short SearchTypeResource::getParameterForSearchType(std::string &responseMsg) const
+unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-
         
-        std::string queryStr = "SELECT sep FROM \"T_SEARCH_PARAMETER_SEP\" sep "
+        string queryStr = "SELECT sep FROM \"T_SEARCH_PARAMETER_SEP\" sep "
                 " WHERE \"SEP_ID\" IN "
                 "("
                 "SELECT \"T_SEARCH_PARAMETER_SEP_SEP_ID\" FROM \"TJ_STY_SEP\" WHERE \"T_SEARCH_TYPE_STY_STY_ID\" IN"
                 " (SELECT \"STY_ID\" FROM \"T_SEARCH_TYPE_STY\" "
-                " WHERE \"STY_ID\" = "+ boost::lexical_cast<std::string > (this->vPathElements[1])+ 
+                " WHERE \"STY_ID\" = "+ boost::lexical_cast<string > (this->vPathElements[1])+ 
                 " AND \"STY_DELETE\" IS NULL "
                 " )"
                 " ) "
@@ -124,7 +130,7 @@ unsigned short SearchTypeResource::getParameterForSearchType(std::string &respon
 
 void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -135,7 +141,7 @@ void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
@@ -170,7 +176,7 @@ void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short SearchTypeResource::postSearchType(std::string &responseMsg, const std::string &sRequest)
+unsigned short SearchTypeResource::postSearchType(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
     Wt::WString name;
@@ -195,7 +201,7 @@ unsigned short SearchTypeResource::postSearchType(std::string &responseMsg, cons
             {
                 for (Wt::Json::Array::const_iterator idx2 = addonsId.begin(); idx2 < addonsId.end(); idx2++)
                 {
-                    Wt::WString tmp2 = (*idx2).toString();
+                    Wt::WString tmp2 = idx2->toString();
                     Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(tmp2);
                     if (addonPtr)
                     {
@@ -220,13 +226,14 @@ unsigned short SearchTypeResource::postSearchType(std::string &responseMsg, cons
             {
                 for (Wt::Json::Array::const_iterator idx1 = parameter.begin() ; idx1 < parameter.end(); idx1++)
                 {
-                    Wt::Json::Object tmp = (*idx1);
+                    Wt::Json::Object tmp = *idx1;
                     Wt::WString namePar = tmp.get("name");
                     Wt::WString formatPar = tmp.get("format");
 
                     //verif si le param exit déjà en base sinon on l'ajoute
-                    Wt::Dbo::ptr<SearchParameter> seaParamPtr = session->find<SearchParameter>().where("\"SEP_NAME\" = ?").bind(namePar)
-                                                                                                .where("\"SEP_FORMAT\" = ?").bind(formatPar);
+                    Wt::Dbo::ptr<SearchParameter> seaParamPtr = session->find<SearchParameter>()
+                            .where("\"SEP_NAME\" = ?").bind(namePar)
+                            .where("\"SEP_FORMAT\" = ?").bind(formatPar);
                     if (!seaParamPtr)
                     {
                         SearchParameter *searchParameter = new SearchParameter;
@@ -279,7 +286,7 @@ unsigned short SearchTypeResource::postSearchType(std::string &responseMsg, cons
 
 void SearchTypeResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {   
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     sRequest = request2string(request);
     nextElement = getNextElementFromPath();
@@ -289,29 +296,8 @@ void SearchTypeResource::processPostRequest(const Wt::Http::Request &request, Wt
     }
     else
     {  
-        //////////////////////////////////////
-        try
-        {
-            boost::lexical_cast<unsigned int>(nextElement);
-            nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = deleteSearchType(responseMsg);
-            }
-            else
-            {
-                this->statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
-        //////////////////////////////////////
-//        this->statusCode = 400;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
@@ -330,7 +316,7 @@ void SearchTypeResource::processPatchRequest(const Wt::Http::Request &request, W
     return;
 }
 
-unsigned short SearchTypeResource::deleteSearchType(std::string &responseMsg)
+unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
 {
     unsigned short res = 500;
     try 
@@ -376,7 +362,7 @@ unsigned short SearchTypeResource::deleteSearchType(std::string &responseMsg)
 
 void SearchTypeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {    
- std::string responseMsg = "", nextElement = "", sRequest = "";
+ string responseMsg = "", nextElement = "", sRequest = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -388,7 +374,7 @@ void SearchTypeResource::processDeleteRequest(const Wt::Http::Request &request, 
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
@@ -421,7 +407,3 @@ void SearchTypeResource::handleRequest(const Wt::Http::Request &request, Wt::Htt
     return;
 }
 
-SearchTypeResource::~SearchTypeResource()
-{
-    beingDeleted();
-}

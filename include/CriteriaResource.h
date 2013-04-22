@@ -20,6 +20,7 @@ class CriteriaResource : public PublicApiResource
 {
     public :
         CriteriaResource();
+        CriteriaResource(const CriteriaResource& orig);
         virtual ~CriteriaResource();
         
     protected :

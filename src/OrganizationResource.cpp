@@ -11,11 +11,20 @@
  * 
  */
 
-
 #include "OrganizationResource.h"
-#include "PublicApiResource.h"
 
-OrganizationResource::OrganizationResource() {
+using namespace std;
+
+OrganizationResource::OrganizationResource() : PublicApiResource::PublicApiResource()
+{
+}
+
+OrganizationResource::OrganizationResource(const OrganizationResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+OrganizationResource::~OrganizationResource() 
+{
 }
 
 unsigned short OrganizationResource::getOrganization(std::string &responseMsg) const
@@ -51,7 +60,7 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg) c
 unsigned short OrganizationResource::getUsersForOrganization(std::string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -108,30 +117,21 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) co
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
-
-        if (user)
+        
+        Wt::Dbo::ptr<PackOption> ptrPackOption = session->find<PackOption>()
+                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->session->user()->currentOrganization->pack.id())
+                .where("\"POP_OPT_OPT_ID\" = 1")
+                .limit(1);
+        if (ptrPackOption.get())
         {
-            Wt::Dbo::ptr<Organization> tempOrga = user->currentOrganization;
-            Wt::Dbo::ptr<PackOption> ptrPackOption = session->find<PackOption>()
-                    .where("\"POP_PCK_PCK_ID\" = ?").bind(tempOrga.get()->pack.id())
-                    .where("\"POP_OPT_OPT_ID\" = 1")
+            Wt::Dbo::ptr<OptionValue> ptrOptionValue = session->find<OptionValue>()
+                    .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption->pk.option.id())
+                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
                     .limit(1);
-            if (ptrPackOption.get())
+            if (ptrOptionValue.get())
             {
-                Wt::Dbo::ptr<OptionValue> ptrOptionValue = session->find<OptionValue>().where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
-                                                                .where("\"ORG_ID_ORG_ID\" = ?").bind(tempOrga.id())
-                                                                .limit(1);
-                if (ptrOptionValue.get())
-                {
-                    responseMsg += ptrOptionValue.modify()->toJSON();
-                    res = 200;
-                }
-                else
-                {
-                    responseMsg = "{\"message\":\"Option not found\"}";
-                    res = 404;
-                }
+                responseMsg += ptrOptionValue.modify()->toJSON();
+                res = 200;
             }
             else
             {
@@ -141,10 +141,10 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) co
         }
         else
         {
+            responseMsg = "{\"message\":\"Option not found\"}";
             res = 404;
-            responseMsg = "{\"message\":\"user not found\"}";
         }
-               
+
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e) 
@@ -162,31 +162,22 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg) cons
     try
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
 
-        if (user)
+        Wt::Dbo::ptr<PackOption> ptrPackOption = session->find<PackOption>()
+                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->session->user()->currentOrganization->pack.id())
+                .where("\"POP_OPT_OPT_ID\" = 2")
+                .limit(1);
+        if (ptrPackOption.get())
         {
-            Wt::Dbo::ptr<Organization> tempOrga = user->currentOrganization;
-            Wt::Dbo::ptr<PackOption> ptrPackOption = session->find<PackOption>()
-                    .where("\"POP_PCK_PCK_ID\" = ?").bind(tempOrga.get()->pack.id())
-                    .where("\"POP_OPT_OPT_ID\" = 2")
+            Wt::Dbo::ptr<OptionValue> ptrOptionValue = session->find<OptionValue>()
+                    .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
+                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
                     .limit(1);
-            if (ptrPackOption.get())
+            if (ptrOptionValue.get())
             {
-                Wt::Dbo::ptr<OptionValue> ptrOptionValue = session->find<OptionValue>().where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
-                                                                .where("\"ORG_ID_ORG_ID\" = ?").bind(tempOrga.id())
-                                                                .limit(1);
-                if (ptrOptionValue.get())
-                {
-                    responseMsg += ptrOptionValue.modify()->toJSON();
-                    res = 200;
-                }
+                responseMsg += ptrOptionValue.modify()->toJSON();
+                res = 200;
             }
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"user not found\"}";
         }
                
         transaction.commit();
@@ -270,7 +261,3 @@ void OrganizationResource::handleRequest(const Wt::Http::Request &request, Wt::H
     return;
 }
 
-OrganizationResource::~OrganizationResource() 
-{
-        beingDeleted();
-}
