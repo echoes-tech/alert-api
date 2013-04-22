@@ -257,7 +257,7 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) 
 {
     unsigned short res = 500;
     unsigned idx = 0;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try
         {
@@ -304,7 +304,7 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) 
 unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         unsigned idx = 0;
         try
@@ -351,7 +351,7 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) 
 unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) const
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         unsigned idx = 0;
         try
@@ -397,7 +397,7 @@ unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) c
 unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         unsigned idx = 0;
         try
@@ -446,7 +446,7 @@ unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg
 unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         unsigned idx = 0;
         try
@@ -493,7 +493,7 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
 unsigned short PluginResource::getParameterValueForSource(string& responseMsg) const
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         unsigned idx = 0;
         try
@@ -701,7 +701,7 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
 unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         long long addonId;
 
@@ -786,7 +786,7 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         long long styId;
         bool seaIsStatic;
@@ -960,7 +960,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
 unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         Wt::WString infName, infCalculate;
         bool infDisplay;
@@ -1172,7 +1172,7 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
 unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseMsg, const string &sRequest)
 {
      unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         Wt::WString infName, infCalculate;
         bool infDisplay;
@@ -1257,7 +1257,7 @@ unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseM
 unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         bool seaIsStatic;
         int posKeyValue, seaPeriod;
@@ -1348,7 +1348,7 @@ unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg
 unsigned short PluginResource::patchParametersSourceForPlugin(string &responseMsg, const string &sRequest)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         Wt::Json::Array& parameters = Wt::Json::Array::Empty;
 
@@ -1485,7 +1485,7 @@ void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::H
 unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(string& responseMsg)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try 
         {  
@@ -1543,7 +1543,7 @@ unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(string& response
 unsigned short PluginResource::deleteSearchForSourceAndPlugin(string& responseMsg)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try 
         {  
@@ -1601,7 +1601,7 @@ unsigned short PluginResource::deleteSearchForSourceAndPlugin(string& responseMs
 unsigned short PluginResource::deletePlugin(string& responseMsg)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try 
         {  
@@ -1649,7 +1649,7 @@ unsigned short PluginResource::deletePlugin(string& responseMsg)
 unsigned short PluginResource::deleteSourceForPlugin(string& responseMsg)
 {
     unsigned short res = 500;
-    if(pluginIsAccessible(responseMsg) == 200)
+    if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try 
         {  
