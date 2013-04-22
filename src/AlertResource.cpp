@@ -12,7 +12,6 @@
  */
 
 #include "AlertResource.h"
-#include "itooki/ItookiSMSSender.h"
 
 using namespace std;
 
@@ -20,10 +19,18 @@ AlertResource::AlertResource()
 {
 }
 
+AlertResource::AlertResource(const AlertResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+AlertResource::~AlertResource()
+{
+}
+
 unsigned short AlertResource::getRecipientsForAlert(std::string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
@@ -315,7 +322,7 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
         { 
             try
             {
-                boost::lexical_cast<unsigned int>(nextElement);
+                boost::lexical_cast<unsigned long long>(nextElement);
 
                 nextElement = getNextElementFromPath();
 
@@ -347,9 +354,8 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
 {
     unsigned short res = 500;
     Wt::WString alertName, keyVal, alertValue;
-long long astId, seaId, 
-        srcId, plgId, infValNum, inuId, acrId;
-int threadSleep;
+    long long astId, seaId, srcId, plgId, infValNum, inuId, acrId;
+    int threadSleep;
     Wt::Json::Array& amsId = Wt::Json::Array::Empty;
     try
     {
@@ -410,14 +416,10 @@ int threadSleep;
         //info requête bonne?
         Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>()
                 .where("\"SEA_ID\" = ?").bind(seaId)
-                                                        .where("\"SRC_ID\" = ?")
-                                                        .bind(srcId)
-                                                        .where("\"PLG_ID_PLG_ID\" = ?")
-                                                        .bind(plgId)
-                                                        .where("\"INF_VALUE_NUM\" = ?")
-                                                        .bind(infValNum)
-                                                        .where("\"INU_ID_INU_ID\" = ?")
-                                                        .bind(inuId);
+                .where("\"SRC_ID\" = ?").bind(srcId)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(plgId)
+                .where("\"INF_VALUE_NUM\" = ?").bind(infValNum)
+                .where("\"INU_ID_INU_ID\" = ?").bind(inuId);
 
         Wt::Dbo::ptr<AlertCriteria> critPtr = session->find<AlertCriteria>().where("\"ACR_ID\" = ?").bind(acrId);
 
@@ -425,9 +427,10 @@ int threadSleep;
 
         for (Wt::Json::Array::const_iterator idx1 = amsId.begin() ; idx1 < amsId.end(); idx1++)
         {
-            Wt::WString tmp1 = (*idx1).toString();
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp1)
-                                                                                                     .where("\"AMS_ALE_ALE_ID\" IS NULL");
+            Wt::WString tmp1 = idx1->toString();
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>()
+                    .where("\"AMS_ID\" = ?").bind(tmp1)
+                    .where("\"AMS_ALE_ALE_ID\" IS NULL");
 
             if (!infoPtr || !critPtr || !assetPtr || !amsPtr)
             {
@@ -452,9 +455,7 @@ int threadSleep;
                 return res; 
             }
         }
-
         transaction.commit();
-
     }
     catch (Wt::Dbo::Exception e)
     {
@@ -472,16 +473,12 @@ int threadSleep;
     {
         Wt::Dbo::Transaction transaction(*session);
 
-        Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>().where("\"SEA_ID\" = ?")
-                                                        .bind(seaId)
-                                                        .where("\"SRC_ID\" = ?")
-                                                        .bind(srcId)
-                                                        .where("\"PLG_ID_PLG_ID\" = ?")
-                                                        .bind(plgId)
-                                                        .where("\"INF_VALUE_NUM\" = ?")
-                                                        .bind(infValNum)
-                                                        .where("\"INU_ID_INU_ID\" = ?")
-                                                        .bind(inuId);
+        Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>()
+                .where("\"SEA_ID\" = ?").bind(seaId)
+                .where("\"SRC_ID\" = ?").bind(srcId)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(plgId)
+                .where("\"INF_VALUE_NUM\" = ?").bind(infValNum)
+                .where("\"INU_ID_INU_ID\" = ?").bind(inuId);
 
         Wt::Dbo::ptr<AlertCriteria> critPtr = session->find<AlertCriteria>().where("\"ACR_ID\" = ?").bind(acrId);
 
@@ -726,13 +723,13 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                         Wt::log("debug") << " [Alert Ressource] " << "snooze = " << i->get()->snoozeDuration;
                         switch (i->get()->mediaValue->media.id())
                         {
-                            case sms:
+                            case Enums::SMS:
                             {
                                 Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
 
                                 // Verifying the quota of sms
                                 Wt::Dbo::ptr<OptionValue> optionValuePtr = session->find<OptionValue>()
-                                        .where("\"OPT_ID_OPT_ID\" = ?").bind(quotasms)
+                                        .where("\"OPT_ID_OPT_ID\" = ?").bind(Enums::QUOTA_SMS)
                                         .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->currentOrganization.id())
                                         .limit(1);
 
@@ -762,7 +759,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                 }
                                 break;
                             }
-                            case mail:
+                            case Enums::MAIL:
                                 Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;              
                                 sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i);
                                 break;
@@ -815,14 +812,9 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-//            TO Test whithout DELETE Method
-//            if(!nextElement.compare(""))
-//            {
-//                this->statusCode = deleteAlert(responseMsg);
-//            }
             if(!nextElement.compare("trackings"))
             {
                 this->statusCode = postAlertTracking(responseMsg, sRequest);
@@ -877,14 +869,13 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
         Wt::Dbo::Query<Wt::Dbo::ptr<Alert>> resQuery = session->query<Wt::Dbo::ptr<Alert>>(queryStr);
         Wt::Dbo::ptr<Alert> alertPtr = resQuery.resultValue();
        // Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
-        if(alertPtr)
+        if (alertPtr)
         {
-                alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-        transaction.commit();
-        std::cerr<<"after commit" << std::endl;
+            alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+            transaction.commit();
 
-        res = 204;
-        responseMsg = "";
+            res = 204;
+            responseMsg = "";
         }
         else
         {
@@ -915,7 +906,7 @@ void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
@@ -949,8 +940,3 @@ void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
     return;
 }
 
-
-AlertResource::~AlertResource()
-{
-    beingDeleted();
-}

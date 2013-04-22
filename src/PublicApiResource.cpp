@@ -11,10 +11,6 @@
  * 
  */
 
-#include <boost/exception/detail/exception_ptr.hpp>
-#include <Wt/WApplication>
-#include <Wt/WServer>
-
 #include "PublicApiResource.h"
 
 using namespace std;
@@ -24,13 +20,27 @@ PublicApiResource::PublicApiResource() : Wt::WResource(){
     this->statusCode = 500;
 }
 
+PublicApiResource::PublicApiResource(const PublicApiResource& orig) : Wt::WResource()
+{
+    this->indexPathElement = orig.indexPathElement;
+    this->statusCode = orig.statusCode;
+    this->login = orig.login;
+    this->password = orig.password;
+    this->token = orig.token;
+    this->authenticationByToken = orig.authenticationByToken;
+    this->authentified = orig.authentified;
+    this->session = orig.session;
+    this->vPathElements =  orig.vPathElements;
+}
+
 PublicApiResource::~PublicApiResource() {
     beingDeleted();
 }
 
 unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method)
 {
-    unsigned short res;
+    unsigned short res = 0;
+
     if(!method.compare("GET"))
     {
         res = Wt::Http::Get;
@@ -45,12 +55,7 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method
     }
     else if(!method.compare("DELETE"))
     {
-//        res = Wt::Http::Delete;
-        res = 4;
-    }
-    else
-    {
-        res = 0;
+        res = Wt::Http::Delete;
     }
 
     return res;
@@ -116,15 +121,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     // Setting the session
     session = new Session(Utils::connection);
     Session::configureAuth();
-
-    try
-    {
-        session->createTables();
-        std::cerr << "Created database." << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        std::cerr << "Using existing database";
-    }
 
     // default : not authentified
     this->authentified = false;
@@ -225,7 +221,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         } 
         catch (Wt::Dbo::Exception const& e) 
         {
-            Wt::log("error") << "[PUBLIC API.] " << e.what();
+            Wt::log("error") << "[PUBLIC API] " << e.what();
         }
     }
     else
@@ -297,7 +293,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         case Wt::Http::Put:
             processPutRequest(request, response);
             break;
-        case 4:
+        case Wt::Http::Delete:
             processDeleteRequest(request, response);
             break;
         default:
@@ -309,7 +305,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     
     this->indexPathElement = 1;
     this->statusCode = 500;
-    std::cerr << "session delete";
+    Wt::log("debug") << "[PUBLIC API] Session delete";
     delete session;
 }
         

@@ -14,12 +14,13 @@
 #ifndef ADDONRESOURCE_H
 #define	ADDONRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class AddonResource : public PublicApiResource
 {
     public :
         AddonResource();
+        AddonResource(const AddonResource& orig);
         virtual ~AddonResource();
         
     protected :

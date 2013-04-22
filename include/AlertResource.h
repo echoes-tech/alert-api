@@ -16,10 +16,10 @@
 
 #include "PublicApiResource.h"
 
-#include <Wt/Json/Array>
-#include <Wt/Json/Value>
 #include <Wt/Mail/Client>
 #include <Wt/Mail/Message>
+
+#include <tools/Enums.h>
 
 #include "itooki/ItookiSMSSender.h"
 
@@ -27,18 +27,10 @@ class AlertResource : public PublicApiResource
 {
     public :
         AlertResource();
+        AlertResource(const AlertResource& orig);
         virtual ~AlertResource();
         
     protected:
-        enum mediaTypes {
-            mail = 1,
-            sms = 2
-        };
-        enum options {
-            quotaasset = 1,
-            quotasms = 2
-        };
-
         unsigned short getRecipientsForAlert(std::string &responseMsg) const;       
         unsigned short getTrackingAlertList(std::string &responseMsg) const;
         unsigned short getAlerts(std::string &responseMsg) const;

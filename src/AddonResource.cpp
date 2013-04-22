@@ -12,27 +12,35 @@
  */
 
 #include "AddonResource.h"
-#include <Wt/Json/Array>
-#include <Wt/Json/Value>
+
 Wt::Json::Array Wt::Json::Array::Empty;
 
 using namespace std;
 
-AddonResource::AddonResource(){
+AddonResource::AddonResource() : PublicApiResource::PublicApiResource()
+{
 }
 
-unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) const
+AddonResource::AddonResource(const AddonResource& orig) : PublicApiResource::PublicApiResource(orig)
+{
+}
+
+AddonResource::~AddonResource()
+{
+}
+
+unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
-        std::string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
+        string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
                                " WHERE \"STY_ID\" IN"
                                 "("
                                     "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
-                                    "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]) +
+                                    "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) +
                                 ")";
         Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
 
@@ -71,29 +79,29 @@ unsigned short AddonResource::getSearchTypeForAddon(std::string &responseMsg) co
     return res;
 }
 
-unsigned short AddonResource::getParameterForAddon(std::string& responseMsg) const
+unsigned short AddonResource::getParameterForAddon(string& responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
 
         
-        std::string queryStr = "SELECT srp FROM \"T_SOURCE_PARAMETER_SRP\" srp"
+        string queryStr = "SELECT srp FROM \"T_SOURCE_PARAMETER_SRP\" srp"
                 " WHERE \"SRP_ID\" IN "
                 "("
                 "SELECT \"T_SOURCE_PARAMETER_SRP_SRP_ID\" FROM \"TJ_ADO_SRP\" WHERE \"T_ADDON_ADO_ADO_ID\" ="
-                + boost::lexical_cast<std::string > (this->vPathElements[1])
+                + this->vPathElements[1]
                 + " )";
        
-        Wt::Dbo::Query<Wt::Dbo::ptr<SourceParameter> > queryRes = session->query<Wt::Dbo::ptr<SourceParameter> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<SourceParameter>> queryRes = session->query<Wt::Dbo::ptr<SourceParameter>>(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> > srcParamPtr = queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter>> srcParamPtr = queryRes.resultList();
         if(srcParamPtr.size() > 0)
         {
             responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> >::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter>>::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->modify()->toJSON();
@@ -123,16 +131,16 @@ unsigned short AddonResource::getParameterForAddon(std::string& responseMsg) con
     return res;
 }
 
-unsigned short AddonResource::getAddonList(std::string& responseMsg) const
+unsigned short AddonResource::getAddonList(string& responseMsg) const
 {
     unsigned short res = 500;
-    int idx = 0;
+    unsigned idx = 0;
     try 
     {
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::collection<Wt::Dbo::ptr<Addon> > addonPtr = session->find<Addon>();
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon> >::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon>>::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
         {
             i->modify()->setId(i->id());
             responseMsg += "\t" + i->modify()->toJSON();
@@ -158,7 +166,7 @@ unsigned short AddonResource::getAddonList(std::string& responseMsg) const
 
 void AddonResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
+    string responseMsg = "", nextElement = "";
     
     nextElement = getNextElementFromPath();
 
@@ -170,7 +178,7 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
             nextElement = getNextElementFromPath();
 
             if(!nextElement.compare("parameters"))
@@ -199,12 +207,12 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short AddonResource::postAddon(std::string& responseMsg, const std::string& sRequest)
+unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequest)
 {
     unsigned short res = 500;
     Wt::WString name;
-    Wt::Json::Array& parameter = Wt::Json::Array::Empty;
-    Wt::Json::Array& searchType = Wt::Json::Array::Empty;
+    Wt::Json::Array& parameter = Wt::Json::Array::Empty, searchType = Wt::Json::Array::Empty;
+
     try
     {
         Wt::Json::Object result;                   
@@ -219,19 +227,19 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
             Addon *addon = new Addon;
             addon->name = name;
             Wt::Dbo::ptr<Addon> addonPtr = session->add<Addon>(addon);
-          //  addonPtr.flush();
-           // addonId = addonPtr.id();
-            if(parameter.size() != 0)
+
+            if(parameter.size() > 0)
             {
                 for (Wt::Json::Array::const_iterator idx1 = parameter.begin() ; idx1 < parameter.end(); idx1++)
                 {
-                    Wt::Json::Object tmp = (*idx1);
+                    Wt::Json::Object tmp = *idx1;
                     Wt::WString namePar = tmp.get("name");
                     Wt::WString formatPar = tmp.get("format");
 
                     //verif si le param exit déjà en base sinon on l'ajoute
-                    Wt::Dbo::ptr<SourceParameter> srcParamPtr = session->find<SourceParameter>().where("\"SRP_NAME\" = ?").bind(namePar)
-                                                                                                .where("\"SRP_FORMAT\" = ?").bind(formatPar);
+                    Wt::Dbo::ptr<SourceParameter> srcParamPtr = session->find<SourceParameter>()
+                            .where("\"SRP_NAME\" = ?").bind(namePar)
+                            .where("\"SRP_FORMAT\" = ?").bind(formatPar);
                     if (!srcParamPtr)
                     {
                         SourceParameter *sourceParameter = new SourceParameter;
@@ -249,7 +257,7 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
                 searchType = result.get("search_type");
                 for (Wt::Json::Array::const_iterator idx2 = searchType.begin(); idx2 < searchType.end(); idx2++)
                 {
-                    Wt::WString tmp2 = (*idx2).toString();
+                    Wt::WString tmp2 = idx2->toString();
                     Wt::Dbo::ptr<SearchType> seaTypePtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(tmp2);
                     if (seaTypePtr)
                     {
@@ -262,17 +270,17 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
                         return res;
                     }
                 }
+                addonPtr.flush();
+                addonPtr.modify()->setId(addonPtr.id());
+                responseMsg = addonPtr.modify()->toJSON();
+                transaction.commit();
+                res = 200;
             }
             else
             {
-                 this->statusCode = 400;
+                 res = 400;
                  responseMsg = "{\n\t\"message\":\"Bad Request.\"\n}"; 
             }
-            addonPtr.flush();
-            addonPtr.modify()->setId(addonPtr.id());
-            responseMsg = addonPtr.modify()->toJSON();
-            transaction.commit();
-            res = 200;
         }
         catch (Wt::Dbo::Exception const& e) 
         {
@@ -281,7 +289,6 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }
-
     catch (Wt::Json::ParseError const& e)
     {
         res = 400;
@@ -299,60 +306,24 @@ unsigned short AddonResource::postAddon(std::string& responseMsg, const std::str
 }
 
 void AddonResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{   
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+{
+    string responseMsg = "", nextElement = "", sRequest = "";
 
+    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+        this->statusCode = postAddon(responseMsg, sRequest);
     }
     else
-    {
-        try
-        {
-            boost::lexical_cast<unsigned int>(nextElement);
-
-            nextElement = getNextElementFromPath();
-
-            if(!nextElement.compare(""))
-            {
-                this->statusCode = deleteAddon(responseMsg);
-            }
-            else
-            {
-                this->statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            this->statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
+    {        
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
     response.setStatus(this->statusCode);
     response.out() << responseMsg;
-    return;
-//    std::string responseMsg = "", nextElement = "", sRequest = "";
-//
-//    sRequest = request2string(request);
-//    nextElement = getNextElementFromPath();
-//    if(!nextElement.compare(""))
-//    {
-//        this->statusCode = postAddon(responseMsg, sRequest);
-//    }
-//    else
-//    {        
-//        this->statusCode = 400;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//    }
-//
-//    response.setStatus(this->statusCode);
-//    response.out() << responseMsg;
-//    return ;
+    return ;
 }
 
 void AddonResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
@@ -360,13 +331,12 @@ void AddonResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
     return;
 }
 
-
 void AddonResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
-unsigned short AddonResource::deleteAddon(std::string& responseMsg)
+unsigned short AddonResource::deleteAddon(string& responseMsg)
 {
     unsigned short res = 500;
     try 
@@ -381,20 +351,20 @@ unsigned short AddonResource::deleteAddon(std::string& responseMsg)
             if(srcCollec.size() == 0)
             {
                 //supprime les lien dans table jointe
-                std::string queryString1 = "DELETE FROM \"TJ_ADO_SRP\" "
-                                 "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
+                string queryString1 = "DELETE FROM \"TJ_ADO_SRP\" "
+                                 "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
                 session->execute(queryString1);
                 
-                std::string queryString1Bis = "DELETE FROM \"TJ_ADO_STY\" "
-                                 "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
+                string queryString1Bis = "DELETE FROM \"TJ_ADO_STY\" "
+                                 "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
                 session->execute(queryString1Bis);
                 
                 //supprime l'addon
-                std::string queryString2 = "DELETE FROM \"T_ADDON_ADO\" "
-                                           "WHERE \"ADO_ID\" = " + boost::lexical_cast<std::string>(this->vPathElements[1]);
+                string queryString2 = "DELETE FROM \"T_ADDON_ADO\" "
+                                           "WHERE \"ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]);
                 session->execute(queryString2);
                 //supprime les parametres non utilisés par un addon de la base 
-                std::string queryString3 = "DELETE FROM \"T_SOURCE_PARAMETER_SRP\" "
+                string queryString3 = "DELETE FROM \"T_SOURCE_PARAMETER_SRP\" "
                                            "WHERE \"SRP_ID\" NOT IN "
                                            "("
                                                 "SELECT \"T_SOURCE_PARAMETER_SRP_SRP_ID\" FROM \"TJ_ADO_SRP\" "
@@ -432,7 +402,7 @@ unsigned short AddonResource::deleteAddon(std::string& responseMsg)
 
 void AddonResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {    
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "", sRequest = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -444,7 +414,7 @@ void AddonResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
@@ -479,7 +449,3 @@ void AddonResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
     return;
 }
 
-AddonResource::~AddonResource()
-{
-    beingDeleted();
-}
