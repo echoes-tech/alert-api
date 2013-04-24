@@ -212,7 +212,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg) const
                 " SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  IN"
                 " ( SELECT \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = ?" + boost::lexical_cast<std::string > (this->session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string > (this->session->user()->currentOrganization.id()) +
                 " )"
                 " )"
                 " ) "

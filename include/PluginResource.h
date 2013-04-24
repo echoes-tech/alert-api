@@ -25,7 +25,7 @@ class PluginResource : public PublicApiResource
         
     protected :
         
-        Wt::Dbo::ptr<Plugin> pluginIsAccessible(unsigned short& res, std::string& responseMsg) const;
+        unsigned short pluginIsAccessible(std::string& responseMsg) const;
         
         unsigned short getPluginJSON(std::string &responseMsg) const;
         unsigned short getPlugin(std::string &responseMsg) const;
