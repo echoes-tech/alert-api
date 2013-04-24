@@ -46,12 +46,8 @@ class PublicApiResource : public Wt::WResource {
         virtual ~PublicApiResource();
 
     protected:
-        std::string login;
-        Wt::WString password;
-        Wt::WString token;
-        bool authenticationByToken;
-        bool authentified;
         Session *session;
+        bool authentified;
         std::vector<std::string> vPathElements;
         unsigned short indexPathElement, statusCode;
 
