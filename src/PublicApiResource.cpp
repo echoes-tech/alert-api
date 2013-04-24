@@ -120,6 +120,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     // default : not authentified
     this->authentified = false;
+    bool notAllowed = false;
     
     string login = "", password = "", token = "", eno_token = "";
 
@@ -184,24 +185,14 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     }
                     else if (token.compare(""))
                     {
-                        string queryStr = "SELECT \"expires\" FROM \"auth_token\" "
-                                                "WHERE \"value\" = '" + boost::lexical_cast<string>(token) +
-                                                "' and \"auth_info_id\" IN "
-                                                        "(SELECT \"auth_info_id\" FROM \"auth_identity\" "
-                                                        "WHERE \"identity\" = '" + boost::lexical_cast<string>(login) +
-                                                        "')";
-
-                        Wt::WDateTime dateTime = session->query<Wt::WDateTime>(queryStr);
-
-                        if(!dateTime.isNull())
+                        Wt::Dbo::ptr<User> userPtr = session->find<User>()
+                                .where("\"USR_MAIL\" = ?").bind(login)
+                                .where("\"USR_TOKEN\" = ?").bind(token)
+                                .limit(1);
+                        if(userPtr)
                         {
-                            if (dateTime > Wt::WDateTime::currentDateTime())
-                            {
-                                session->login().login(user);
-                                this->authentified = true;
-                            }
-                            else
-                                Wt::log("error") << "[PUBLIC API] This token is too old";
+                            session->login().login(user);
+                            this->authentified = true;
                         }
                         else
                             Wt::log("error") << "[PUBLIC API] Bad Token";
@@ -236,7 +227,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
             {
                 Wt::Dbo::ptr<EngOrg> engOrgPtr = session->find<EngOrg>()
                         .where("\"ENG_ID_ENG_ID\" = ?").bind(enginePtr.id())
-                        .where("\"ENO_token\" = ?").bind(eno_token)
+                        .where("\"ENO_TOKEN\" = ?").bind(eno_token)
                         .where("\"ENO_DELETE\" IS NULL")
                         .limit(1);
                 if(engOrgPtr)
@@ -247,7 +238,10 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     Wt::log("error") << "[PUBLIC API] Bad eno_token";
             }
             else
+            {
                 Wt::log("error") << "[PUBLIC API] Engine with IP " << request.clientAddress() << " not found";
+                notAllowed = true;
+            }
 
             transaction.commit();
         }
@@ -282,6 +276,11 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
                 break;
         }
+    }
+    else if (notAllowed)
+    {
+        response.setStatus(400);
+        response.out() << "{\n\t\"message\": \"Bad Request\"\n}";
     }
     else
     {
