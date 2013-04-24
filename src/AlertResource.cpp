@@ -639,16 +639,15 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
         {
             unsigned idx = 1;
 
-            Wt::Json::Value result;
+            Wt::Json::Object result;
 
             Wt::Json::parse(sRequest, result);
             
-            Wt::Json::Array array = result;
+            Wt::Json::Array array = result.get("alert_ids");
 
             for (Wt::Json::Array::const_iterator i = array.begin(); i != array.end(); ++i)
             {
-                Wt::Json::Object tmp = *i;
-                long long id = tmp.get("id");
+                long long id = i->toNumber();
                 
                 ivaIDWhereString += "\"IVA_ID\" = " + boost::lexical_cast<string>(id);
                 if(idx++ < array.size())
