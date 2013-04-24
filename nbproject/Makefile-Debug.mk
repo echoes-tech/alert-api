@@ -67,7 +67,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/default/dist/Debug_SharedObject/GNU-Linux-x86 -L../dbo/dist/Debug_SharedObject/GNU-Linux-x86 -ldbo -lwtdbo -lwtdbopostgres -lwthttp -lboost_system -lboost_signals -lwt
+LDLIBSOPTIONS=-L../dbo/dist/Debug_SharedObject/GNU-Linux-x86 -ldbo -lwtdbo -lwtdbopostgres -lwthttp -lboost_system -lboost_signals -lwt
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -80,82 +80,82 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/AddonResource.o: src/AddonResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource.o src/AddonResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource.o src/AddonResource.cpp
 
 ${OBJECTDIR}/src/AlertResource.o: src/AlertResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource.o src/AlertResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource.o src/AlertResource.cpp
 
 ${OBJECTDIR}/src/AssetResource.o: src/AssetResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource.o src/AssetResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource.o src/AssetResource.cpp
 
 ${OBJECTDIR}/src/Conf.o: src/Conf.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
 
 ${OBJECTDIR}/src/CriteriaResource.o: src/CriteriaResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriteriaResource.o src/CriteriaResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriteriaResource.o src/CriteriaResource.cpp
 
 ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp
 
 ${OBJECTDIR}/src/MediaResource.o: src/MediaResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaResource.o src/MediaResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaResource.o src/MediaResource.cpp
 
 ${OBJECTDIR}/src/OrganizationResource.o: src/OrganizationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
 
 ${OBJECTDIR}/src/PluginResource.o: src/PluginResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginResource.o src/PluginResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginResource.o src/PluginResource.cpp
 
 ${OBJECTDIR}/src/ProbeResource.o: src/ProbeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeResource.o src/ProbeResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeResource.o src/ProbeResource.cpp
 
 ${OBJECTDIR}/src/PublicApiResource.o: src/PublicApiResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
 
 ${OBJECTDIR}/src/SearchTypeResource.o: src/SearchTypeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
 
 ${OBJECTDIR}/src/UnitResource.o: src/UnitResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource.o src/UnitResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource.o src/UnitResource.cpp
 
 ${OBJECTDIR}/src/UserResource.o: src/UserResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
 
 ${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src/itooki
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${JOB_NAME##\*-}/workspace/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
 
 # Subprojects
 .build-subprojects:
