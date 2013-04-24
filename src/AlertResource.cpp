@@ -27,7 +27,7 @@ AlertResource::~AlertResource()
 {
 }
 
-unsigned short AlertResource::getRecipientsForAlert(std::string &responseMsg) const
+unsigned short AlertResource::getRecipientsForAlert(string &responseMsg) const
 {
     unsigned short res = 500;
     unsigned idx = 0;
@@ -35,14 +35,14 @@ unsigned short AlertResource::getRecipientsForAlert(std::string &responseMsg) co
     {
         Wt::Dbo::Transaction transaction(*this->session);
         
-         std::string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
+         string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
                     " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
-                    "WHERE ams.\"AMS_ALE_ALE_ID\" = " + boost::lexical_cast<std::string > (this->vPathElements[1]) +
+                    "WHERE ams.\"AMS_ALE_ALE_ID\" = " + this->vPathElements[1] +
                     " AND ams.\"AMS_MEV_MEV_ID\" = mev.\"MEV_ID\" "
                     " AND mev.\"MEV_USR_USR_ID\" IN" 
                  "( Select \"T_USER_USR_USR_ID\" "
                  "FROM \"TJ_USR_ORG\" "
-                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = ?" + boost::lexical_cast<std::string > (this->session->user()->currentOrganization.id()) +
+                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = ?" + boost::lexical_cast<string > (this->session->user()->currentOrganization.id()) +
                  ")";
 
         Wt::Dbo::Query
@@ -113,8 +113,6 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
     {
         Wt::Dbo::Transaction transaction(*this->session);
 
-        Wt::Dbo::ptr<User> user = this->session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
-
         string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
             " WHERE atr.\"ATR_ALE_ALE_ID\" = ale.\"ALE_ID\" "
             " AND ale.\"ALE_DELETE\" IS NULL "
@@ -122,7 +120,7 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
             " AND mev.\"MEV_USR_USR_ID\" IN"
             "("
                 "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
-                + boost::lexical_cast<string>(user.get()->currentOrganization.id()) + ""
+                + boost::lexical_cast<string>(this->session->user()->currentOrganization.id()) + ""
             ")";
         Wt::Dbo::Query
                 <
@@ -201,7 +199,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg) const
     try 
     {
         Wt::Dbo::Transaction transaction(*session);
-        std::string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
+        string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
                 " \"T_ALERT_VALUE_AVA\" ava,"
                 " \"T_ALERT_CRITERIA_ACR\" acr,"
                 " \"T_INFORMATION_UNIT_UNT\" inu "
@@ -212,7 +210,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg) const
                 " SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  IN"
                 " ( SELECT \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string > (this->session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (this->session->user()->currentOrganization.id()) +
                 " )"
                 " )"
                 " ) "
@@ -854,7 +852,7 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
     {
 
         Wt::Dbo::Transaction transaction(*this->session);
-        std::string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale "
+        string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale "
                 " WHERE \"ALE_ID\" IN"
                 " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                 " WHERE \"AMS_MEV_MEV_ID\" IN "
@@ -862,7 +860,7 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " ( Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<std::string>(this->session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(this->session->user()->currentOrganization.id()) +
                 " )))"
                 " AND \"ALE_ID\" = " + this->vPathElements[1];
         

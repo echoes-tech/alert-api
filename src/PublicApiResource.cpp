@@ -236,7 +236,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
             {
                 Wt::Dbo::ptr<EngOrg> engOrgPtr = session->find<EngOrg>()
                         .where("\"ENG_ID_ENG_ID\" = ?").bind(enginePtr.id())
-                        .where("\"ENO_token\" = ?").where(eno_token)
+                        .where("\"ENO_token\" = ?").bind(eno_token)
                         .where("\"ENO_DELETE\" IS NULL")
                         .limit(1);
                 if(engOrgPtr)
