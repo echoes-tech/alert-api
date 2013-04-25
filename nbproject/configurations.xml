@@ -26,6 +26,7 @@
       <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
+      <itemPath>include/includeFile.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -88,14 +89,12 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/include</pElem>
           </incDir>
           <commandLine>-pedantic</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <commandlineTool>distcc</commandlineTool>
@@ -150,6 +149,8 @@
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -200,13 +201,13 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/include</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
           </incDir>
           <commandLine>-std=c++0x</commandLine>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <stripSymbols>true</stripSymbols>
@@ -262,6 +263,8 @@
       <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
