@@ -27,6 +27,7 @@ class OrganizationResource : public PublicApiResource
         
         unsigned short getOrganization(std::string &responseMsg) const;
         unsigned short getUsersForOrganization(std::string &responseMsg) const;
+        unsigned short getRolesForOrganization(std::string &responseMsg) const;
         unsigned short getQuotasSms(std::string &responseMsg) const;
         unsigned short getQuotasAsset(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);

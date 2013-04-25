@@ -111,6 +111,52 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
     return res;
 }
 
+unsigned short OrganizationResource::getRolesForOrganization(std::string &responseMsg) const
+{
+    unsigned short res = 500;
+    unsigned idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<UserRole> > userRoles = session->find<UserRole>()
+                .where("\"URO_ORG_ORG_ID\" = ?").bind(this->session->user().get()->currentOrganization.id())
+                .where("\"URO_DELETE\" IS NULL");
+
+        std::cout << this->session->user().get()->currentOrganization.id() << std::endl;
+        if (userRoles.size() > 0)
+        {
+            responseMsg = "[\n";
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<UserRole> >::const_iterator i = userRoles.begin(); i != userRoles.end(); i++) 
+            {
+                i->modify()->setId(i->id());
+                responseMsg += "\t" + i->modify()->toJSON();
+                ++idx;
+                if(userRoles.size()-idx > 0)
+                {
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg += "\n]\n";
+            res = 200;
+        }
+        else 
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Roles not found\"}";
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    return res;
+}
+
 unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) const
 {
     unsigned short res = 500;
@@ -213,6 +259,10 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
         else if(!nextElement.compare("users"))
         {
             this->statusCode = getUsersForOrganization(responseMsg);
+        }
+        else if(!nextElement.compare("roles"))
+        {
+            this->statusCode = getRolesForOrganization(responseMsg);
         }
         else
         {
