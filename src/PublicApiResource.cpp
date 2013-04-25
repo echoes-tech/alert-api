@@ -15,7 +15,8 @@
 
 using namespace std;
 
-PublicApiResource::PublicApiResource() : Wt::WResource(){
+PublicApiResource::PublicApiResource() : Wt::WResource()
+{
     this->indexPathElement = 1;
     this->statusCode = 500;
 }
@@ -116,7 +117,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     Wt::log("info") << "[PUBLIC API] Identifying";
     // Setting the session
     session = new Session(Utils::connection);
-    Session::configureAuth();
 
     // default : not authentified
     this->authentified = false;
