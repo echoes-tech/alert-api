@@ -379,6 +379,10 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             {
                 this->statusCode = getProbesListForAsset(responseMsg);
             }
+            else if(!nextElement.compare("aliases"))
+            {
+                this->statusCode = getAliasForAsset(responseMsg);
+            }
             else
             {
                 this->statusCode = 400;
@@ -544,6 +548,56 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
         res = 503;
         responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
     }
+    
+    return res;
+}
+
+unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg) const
+{
+    unsigned short res = 500;
+    if (this->role.empty())
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
+    }
+
+    if (this->media.empty())
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
+    }
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->session->find<AlertMessageAliasAsset>()
+                .where("\"AAA_DELETE\" IS NULL")
+                .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
+                .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
+                .where("\"AST_ID_AST_ID\" = ?").bind(this->vPathElements[1]);
+        if (aliasAsset)
+        {
+            responseMsg = aliasAsset.modify()->toJSON();
+            res = 200;
+            transaction.commit();
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
+        }
+        
+        
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << "[Asset Ressource] " << e.what();
+        res = 503;
+        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+    }
+    
     
     return res;
 }
@@ -741,8 +795,16 @@ void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
 void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    if (!request.getParameterValues("role").empty())
+    {
+        this->role = request.getParameterValues("role")[0];
+    }
+    
+    if (!request.getParameterValues("media").empty())
+    {
+        this->media = request.getParameterValues("media")[0];
+    }
     PublicApiResource::handleRequest(request, response);
-
     return;
 }
 

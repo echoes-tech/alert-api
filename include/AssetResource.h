@@ -29,6 +29,7 @@ class AssetResource : public PublicApiResource
         unsigned short getAsset(std::string &responseMsg) const;
         unsigned short getPluginsListForAsset(std::string &responseMsg) const;
         unsigned short getProbesListForAsset(std::string  &responseMsg) const;
+        unsigned short getAliasForAsset(std::string  &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postProbeForAsset(std::string &responseMsg, const std::string &sRequest);
@@ -40,6 +41,9 @@ class AssetResource : public PublicApiResource
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        std::string role;
+        std::string media;
 };
 
 
