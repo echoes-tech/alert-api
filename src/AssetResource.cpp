@@ -746,6 +746,117 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
     return res;
 }
 
+unsigned short AssetResource::putAlias(string &responseMsg, const string &sRequest)
+{
+    unsigned short res = 500;
+    Wt::WString sRole = "Unknown";
+    Wt::WString sMedia = "Unknown";
+    Wt::WString sValue = "Unknown";
+    if(sRequest.compare(""))
+    {    
+        try
+        {
+            Wt::Json::Object result;
+
+            Wt::Json::parse(sRequest, result);
+
+            Wt::Json::Object alias = result.get("alias");
+            sRole = alias.get("role");
+            sMedia = alias.get("media");
+            sValue = alias.get("value");
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            Wt::log("warning") << "[Asset Ressource] Problems parsing JSON: " << sRequest;
+            res = 400;
+            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            Wt::log("warning") << "[Asset Ressource] Problems parsing JSON.: " << sRequest;
+            res = 400;
+            responseMsg = "{\n\t\"message\": \"Problems parsing JSON.\"\n}";
+        }
+    }
+    else
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+
+
+    if(!responseMsg.compare(""))
+    {
+        try 
+        {
+            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::ptr<Asset> ptrAsset = this->session->find<Asset> ()
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+                    .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"AST_DELETE\" IS NULL");
+
+            if (Utils::checkId<Asset>(ptrAsset)) 
+            {
+                Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                        .where("\"URO_ID\" = ?").bind(sRole)
+                        .where("\"URO_DELETE\" IS NULL");
+                
+                if (!ptrRole)
+                {
+                    res = 404;
+                    responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
+                    return res;
+                }
+                
+                Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                        .where("\"MED_ID\" = ?").bind(sMedia)
+                        .where("\"MED_DELETE\" IS NULL");
+                
+                if (!ptrMedia)
+                {
+                    res = 404;
+                    responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
+                    return res;
+                }
+                
+                 
+                Wt::Dbo::ptr<AlertMessageAliasAsset> ptrAssetAlias = this->session->find<AlertMessageAliasAsset>()
+                        .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
+                        .where("\"AST_ID_AST_ID\" = ?").bind(ptrAsset.id())
+                        .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
+                if (ptrAssetAlias) 
+                {
+                    ptrAssetAlias.modify()->alias = sValue;
+                }
+                else
+                {
+                    AlertMessageAliasAsset *newAssetAlias = new AlertMessageAliasAsset();
+                    newAssetAlias->pk.asset = ptrAsset;
+                    newAssetAlias->pk.userRole = ptrRole;
+                    newAssetAlias->pk.media = ptrMedia;
+                    newAssetAlias->alias = sValue;
+                    ptrAssetAlias = this->session->add<AlertMessageAliasAsset>(newAssetAlias);
+                }
+                res = 200;
+            } 
+            else 
+            {
+                res = 404;
+                responseMsg = "{\n\t\"message\":\"Asset not found\"\n}";
+            }
+            transaction.commit();
+        } 
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << "[Asset Ressource] " << e.what();
+            res = 503;
+            responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+        }
+    }
+    
+    return res;
+}
+
 void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "", sRequest = "";
@@ -768,6 +879,10 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
             if(!nextElement.compare(""))
             {
                 this->statusCode = putAsset(responseMsg, sRequest);
+            }
+            if(!nextElement.compare("alias"))
+            {
+                this->statusCode = putAlias(responseMsg, sRequest);
             }
             else
             {
