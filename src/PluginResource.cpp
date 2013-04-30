@@ -28,13 +28,14 @@ PluginResource::~PluginResource(){
 
  unsigned short PluginResource::pluginIsAccessible(string& responseMsg) const
 {
-     unsigned short res = 500;
-     Wt::Dbo::ptr<Plugin> plgPtr;
+     
+    unsigned short res = 500;
+    Wt::Dbo::ptr<Plugin> plgPtr;
     try
     {
-     
+
         Wt::Dbo::Transaction transaction(*this->session);
-        
+
         string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
                                 "WHERE \"PLG_ID\" IN "
                                 "("
@@ -48,7 +49,7 @@ PluginResource::~PluginResource(){
                                     "AND \"T_PLUGIN_PLG_PLG_ID\" = " + boost::lexical_cast<string>(vPathElements[1]) + 
                                 " )"
                                 " AND \"PLG_DELETE\" IS NULL";
-        
+
          Wt::Dbo::Query<Wt::Dbo::ptr<Plugin>> queryRes = session->query<Wt::Dbo::ptr<Plugin>>(queryStr);
 
          plgPtr = queryRes;
@@ -251,6 +252,61 @@ unsigned short PluginResource::getPlugin(string& responseMsg) const
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;  
+}
+
+
+unsigned short PluginResource::getAliasForInformation(string &responseMsg) const
+{
+    unsigned short res = 500;
+    if (this->role.empty())
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
+    }
+
+    if (this->media.empty())
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
+    }
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<AlertMessageAliasInformation> aliasInformation = this->session->find<AlertMessageAliasInformation>()
+                .where("\"AAI_DELETE\" IS NULL")
+                .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
+                .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
+        if (aliasInformation)
+        {
+            responseMsg = aliasInformation.modify()->toJSON();
+            res = 200;
+            transaction.commit();
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
+        }
+        
+        
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << "[Plugin Ressource] " << e.what();
+        res = 503;
+        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+    }
+    
+    
+    return res;
 }
 
 unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) const
@@ -614,6 +670,32 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
                                 }
                                 
                             }
+                            else if(!nextElement.compare("inf_values"))
+                            {
+                                nextElement = getNextElementFromPath();
+                                boost::lexical_cast<unsigned long long>(nextElement);
+                                nextElement = getNextElementFromPath();
+                                if(!nextElement.compare("units"))
+                                {
+                                    nextElement = getNextElementFromPath();
+                                    boost::lexical_cast<unsigned long long>(nextElement);
+                                    nextElement = getNextElementFromPath();
+                                    if(!nextElement.compare("alias"))
+                                    {
+                                        this->statusCode = getAliasForInformation(responseMsg);
+                                    }
+                                    else
+                                    {
+                                        this->statusCode = 400;
+                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                    }
+                                }
+                                else
+                                {
+                                    this->statusCode = 400;
+                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                                }
+                            }   
                             else
                             {
                                 this->statusCode = 400;
@@ -1166,12 +1248,194 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
 
 void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    string responseMsg = "", nextElement = "";
+    string sRequest = request2string(request);
+    
+    nextElement = getNextElementFromPath();
+    if(!nextElement.compare(""))
+    {
+        this->statusCode = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (!nextElement.compare("sources"))
+            {
+                nextElement = getNextElementFromPath();
+                boost::lexical_cast<unsigned long long>(nextElement);
+                nextElement = getNextElementFromPath();
+                if (!nextElement.compare("searches"))
+                {
+                    nextElement = getNextElementFromPath();
+                    boost::lexical_cast<unsigned long long>(nextElement);
+                    nextElement = getNextElementFromPath();
+                    if(!nextElement.compare("inf_value"))
+                    {
+                        nextElement = getNextElementFromPath();
+                        boost::lexical_cast<unsigned long long>(nextElement);
+                        nextElement = getNextElementFromPath();
+                        if(!nextElement.compare("unit"))
+                        {
+                            this->statusCode = putAliasForInformation(responseMsg,sRequest);
+                        }
+                        else
+                        {
+                            this->statusCode = 400;
+                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                        }
+                    }
+                    else
+                    {
+                        this->statusCode = 400;
+                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                    }
+                }
+                else
+                {
+                    this->statusCode = 400;
+                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+
+            }
+            else
+            {
+                this->statusCode = 400;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }
+    }
+
+    response.setStatus(this->statusCode);
+    response.out() << responseMsg;
     return;
+}
+
+unsigned short PluginResource::putAliasForInformation(string &responseMsg, const string &sRequest)
+{
+    unsigned short res = 500;
+    Wt::WString sRole;
+    Wt::WString sMedia;
+    Wt::WString sValue;
+    if((res = pluginIsAccessible(responseMsg)) == 200)
+    {
+        try
+        {
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+
+            //information
+            Wt::Json::Object alias = result.get("alias");
+            sRole = alias.get("role");
+            sMedia = alias.get("media");
+            sValue = alias.get("value");
+
+            try
+            {
+                Wt::Dbo::Transaction transaction(*session);
+
+                // Information exist?
+                Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>()
+                        .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                        .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                        .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                        .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[7])
+                        .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[9])
+                        ;
+                if(infPtr)
+                {
+                    //Relier une unité à l'info
+                    // unit exist?
+                    Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                        .where("\"URO_ID\" = ?").bind(sRole)
+                        .where("\"URO_DELETE\" IS NULL");
+                
+                    if (!ptrRole)
+                    {
+                        res = 404;
+                        responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
+                        return res;
+                    }
+
+                    Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                            .where("\"MED_ID\" = ?").bind(sMedia)
+                            .where("\"MED_DELETE\" IS NULL");
+
+                    if (!ptrMedia)
+                    {
+                        res = 404;
+                        responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
+                        return res;
+                    }
+
+
+                    Wt::Dbo::ptr<AlertMessageAliasInformation> ptrInformationAlias = this->session->find<AlertMessageAliasInformation>()
+                            .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
+                            .where("\"SEA_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.search->pk.id)
+                            .where("\"SRC_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.search->pk.source->pk.id)
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.search->pk.source->pk.plugin.id())
+                            .where("\"INF_VALUE_NUM\" = ?").bind(ptrInformationAlias->pk.information->pk.subSearchNumber)
+                            .where("\"INU_ID_INU_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.unit.id())
+                            .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
+                    if (ptrInformationAlias) 
+                    {
+                        ptrInformationAlias.modify()->alias = sValue;
+                    }
+                    else
+                    {
+                        AlertMessageAliasInformation *newInformationAlias = new AlertMessageAliasInformation();
+                        newInformationAlias->pk.information = infPtr;
+                        newInformationAlias->pk.userRole = ptrRole;
+                        newInformationAlias->pk.media = ptrMedia;
+                        newInformationAlias->alias = sValue;
+                        ptrInformationAlias = this->session->add<AlertMessageAliasInformation>(newInformationAlias);
+                    }
+                    res = 200;
+                }
+                else
+                {
+                    res = 404;
+                    responseMsg = "{\"message\":\"Information not found\"}";
+                }
+
+                transaction.commit();
+            }
+            catch (Wt::Dbo::Exception const& e) 
+            {
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
+    }
+    return res; 
 }
 
 unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseMsg, const string &sRequest)
 {
-     unsigned short res = 500;
+    unsigned short res = 500;
     if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         Wt::WString infName, infCalculate;
@@ -1798,6 +2062,15 @@ void PluginResource::processDeleteRequest(const Wt::Http::Request &request, Wt::
 
 void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    if (!request.getParameterValues("role").empty())
+    {
+        this->role = request.getParameterValues("role")[0];
+    }
+    
+    if (!request.getParameterValues("media").empty())
+    {
+        this->media = request.getParameterValues("media")[0];
+    }
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
     return;

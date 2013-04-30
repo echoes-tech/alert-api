@@ -379,7 +379,7 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             {
                 this->statusCode = getProbesListForAsset(responseMsg);
             }
-            else if(!nextElement.compare("aliases"))
+            else if(!nextElement.compare("alias"))
             {
                 this->statusCode = getAliasForAsset(responseMsg);
             }
@@ -880,7 +880,7 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
             {
                 this->statusCode = putAsset(responseMsg, sRequest);
             }
-            if(!nextElement.compare("alias"))
+            else if(!nextElement.compare("alias"))
             {
                 this->statusCode = putAlias(responseMsg, sRequest);
             }
