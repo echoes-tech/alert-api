@@ -36,6 +36,7 @@ class PluginResource : public PublicApiResource
         unsigned short getSourceForPlugin(std::string &responseMsg) const;
         unsigned short getInformationListForPlugin(std::string &responseMsg) const;
         unsigned short getAliasForInformation(std::string &responseMsg) const;
+        unsigned short getAliasForPlugin(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
@@ -46,6 +47,7 @@ class PluginResource : public PublicApiResource
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         unsigned short putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
+        unsigned short putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
         
         
         unsigned short patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);

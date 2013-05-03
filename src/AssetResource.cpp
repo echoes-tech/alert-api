@@ -910,6 +910,8 @@ void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
 void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    this->role = "";
+    this->media = "";
     if (!request.getParameterValues("role").empty())
     {
         this->role = request.getParameterValues("role")[0];

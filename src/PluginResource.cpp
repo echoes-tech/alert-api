@@ -309,6 +309,56 @@ unsigned short PluginResource::getAliasForInformation(string &responseMsg) const
     return res;
 }
 
+unsigned short PluginResource::getAliasForPlugin(string &responseMsg) const
+{
+    unsigned short res = 500;
+    if (this->role.empty())
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
+    }
+
+    if (this->media.empty())
+    {
+        res = 400;
+        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        return res;
+    }
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<AlertMessageAliasPlugin> aliasPlugin = this->session->find<AlertMessageAliasPlugin>()
+                .where("\"AAP_DELETE\" IS NULL")
+                .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
+                .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
+        if (aliasPlugin)
+        {
+            responseMsg = aliasPlugin.modify()->toJSON();
+            res = 200;
+            transaction.commit();
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
+        }
+        
+        
+    } 
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << "[Plugin Ressource] " << e.what();
+        res = 503;
+        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+    }
+    
+    
+    return res;
+}
+
 unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) const
 {
     unsigned short res = 500;
@@ -612,6 +662,10 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
             if(!nextElement.compare(""))
             {
                 this->statusCode = getPluginJSON(responseMsg);
+            }
+            else if(!nextElement.compare("alias"))
+            {
+                this->statusCode = getAliasForPlugin(responseMsg);
             }
             else if(!nextElement.compare("informations"))
             {
@@ -1275,12 +1329,12 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
                     nextElement = getNextElementFromPath();
                     boost::lexical_cast<unsigned long long>(nextElement);
                     nextElement = getNextElementFromPath();
-                    if(!nextElement.compare("inf_value"))
+                    if(!nextElement.compare("inf_values"))
                     {
                         nextElement = getNextElementFromPath();
                         boost::lexical_cast<unsigned long long>(nextElement);
                         nextElement = getNextElementFromPath();
-                        if(!nextElement.compare("unit"))
+                        if(!nextElement.compare("units"))
                         {
                             this->statusCode = putAliasForInformation(responseMsg,sRequest);
                         }
@@ -1302,6 +1356,10 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
 
+            }
+            else if (!nextElement.compare("alias"))
+            {
+                this->statusCode = putAliasForPlugin(responseMsg,sRequest);
             }
             else
             {
@@ -1349,8 +1407,8 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
-                        .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[7])
-                        .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[9])
+                        .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
+                        .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9])
                         ;
                 if(infPtr)
                 {
@@ -1381,11 +1439,11 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
 
                     Wt::Dbo::ptr<AlertMessageAliasInformation> ptrInformationAlias = this->session->find<AlertMessageAliasInformation>()
                             .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
-                            .where("\"SEA_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.search->pk.id)
-                            .where("\"SRC_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.search->pk.source->pk.id)
-                            .where("\"PLG_ID_PLG_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.search->pk.source->pk.plugin.id())
-                            .where("\"INF_VALUE_NUM\" = ?").bind(ptrInformationAlias->pk.information->pk.subSearchNumber)
-                            .where("\"INU_ID_INU_ID\" = ?").bind(ptrInformationAlias->pk.information->pk.unit.id())
+                            .where("\"SEA_ID\" = ?").bind(infPtr->pk.search->pk.id)
+                            .where("\"SRC_ID\" = ?").bind(infPtr->pk.search->pk.source->pk.id)
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(infPtr->pk.search->pk.source->pk.plugin.id())
+                            .where("\"INF_VALUE_NUM\" = ?").bind(infPtr->pk.subSearchNumber)
+                            .where("\"INU_ID_INU_ID\" = ?").bind(infPtr->pk.unit.id())
                             .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
                     if (ptrInformationAlias) 
                     {
@@ -1399,6 +1457,111 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
                         newInformationAlias->pk.media = ptrMedia;
                         newInformationAlias->alias = sValue;
                         ptrInformationAlias = this->session->add<AlertMessageAliasInformation>(newInformationAlias);
+                    }
+                    res = 200;
+                }
+                else
+                {
+                    res = 404;
+                    responseMsg = "{\"message\":\"Information not found\"}";
+                }
+
+                transaction.commit();
+            }
+            catch (Wt::Dbo::Exception const& e) 
+            {
+                Wt::log("error") << e.what();
+                res = 503;
+                responseMsg = "{\"message\":\"Service Unavailable\"}";
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = 400;
+            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+        }   
+    }
+    return res; 
+}
+
+unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const string &sRequest)
+{
+    unsigned short res = 500;
+    Wt::WString sRole;
+    Wt::WString sMedia;
+    Wt::WString sValue;
+    if((res = pluginIsAccessible(responseMsg)) == 200)
+    {
+        try
+        {
+            Wt::Json::Object result;                   
+            Wt::Json::parse(sRequest, result);
+
+            //information
+            Wt::Json::Object alias = result.get("alias");
+            sRole = alias.get("role");
+            sMedia = alias.get("media");
+            sValue = alias.get("value");
+
+            try
+            {
+                Wt::Dbo::Transaction transaction(*session);
+
+                // Information exist?
+                Wt::Dbo::ptr<Plugin> infPlg = session->find<Plugin>()
+                        .where("\"PLG_ID\" = ?").bind(this->vPathElements[1])
+
+                        ;
+                if(infPlg)
+                {
+                    //Relier une unité à l'info
+                    // unit exist?
+                    Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                        .where("\"URO_ID\" = ?").bind(sRole)
+                        .where("\"URO_DELETE\" IS NULL");
+                
+                    if (!ptrRole)
+                    {
+                        res = 404;
+                        responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
+                        return res;
+                    }
+
+                    Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                            .where("\"MED_ID\" = ?").bind(sMedia)
+                            .where("\"MED_DELETE\" IS NULL");
+
+                    if (!ptrMedia)
+                    {
+                        res = 404;
+                        responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
+                        return res;
+                    }
+
+
+                    Wt::Dbo::ptr<AlertMessageAliasPlugin> ptrPluginAlias = this->session->find<AlertMessageAliasPlugin>()
+                            .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
+                            .where("\"PLG_ID_PLG_ID\" = ?").bind(infPlg.id())
+                            .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
+                    if (ptrPluginAlias) 
+                    {
+                        ptrPluginAlias.modify()->alias = sValue;
+                    }
+                    else
+                    {
+                        AlertMessageAliasPlugin *newPluginAlias = new AlertMessageAliasPlugin();
+                        newPluginAlias->pk.plugin = infPlg;
+                        newPluginAlias->pk.userRole = ptrRole;
+                        newPluginAlias->pk.media = ptrMedia;
+                        newPluginAlias->alias = sValue;
+                        ptrPluginAlias = this->session->add<AlertMessageAliasPlugin>(newPluginAlias);
                     }
                     res = 200;
                 }
@@ -2062,6 +2225,8 @@ void PluginResource::processDeleteRequest(const Wt::Http::Request &request, Wt::
 
 void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    this->role = "";
+    this->media = "";
     if (!request.getParameterValues("role").empty())
     {
         this->role = request.getParameterValues("role")[0];
