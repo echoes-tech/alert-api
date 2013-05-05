@@ -21,7 +21,7 @@
 
 #include "SearchTypeResource.h"
 #include "AddonResource.h"
-#include "CriteriaResource.h"
+#include "CriterionResource.h"
 #include "UnitResource.h"
 #include "AssetResource.h"
 #include "ProbeResource.h"
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     {
         SearchTypeResource searchTypeResource;
         AddonResource addonResource;
-        CriteriaResource criteriaResource;
+        CriterionResource criteriaResource;
         UnitResource unitResource;
         OrganizationResource organizationRessource;
         InformationResource informationRessource;
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
         
         server.addResource(&searchTypeResource, "/search_types");
         server.addResource(&addonResource, "/addons");
-        server.addResource(&criteriaResource, "/criterias");
+        server.addResource(&criteriaResource, "/criteria");
         server.addResource(&unitResource, "/units");
         server.addResource(&organizationRessource, "/organizations");
         server.addResource(&informationRessource, "/informations");

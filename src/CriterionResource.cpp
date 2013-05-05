@@ -1,5 +1,5 @@
 /* 
- * API CriteriaResource
+ * API CriterionResource
  * @author ECHOES Technologies (GDR)
  * @date 21/02/2013
  * 
@@ -11,23 +11,23 @@
  * 
  */
 
-#include "CriteriaResource.h"
+#include "CriterionResource.h"
 
 using namespace std;
 
-CriteriaResource::CriteriaResource() : PublicApiResource::PublicApiResource()
+CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-CriteriaResource::CriteriaResource(const CriteriaResource& orig) : PublicApiResource::PublicApiResource(orig)
+CriterionResource::CriterionResource(const CriterionResource& orig) : PublicApiResource::PublicApiResource(orig)
 {
 }
 
-CriteriaResource::~CriteriaResource()
+CriterionResource::~CriterionResource()
 {
 }
 
-unsigned short CriteriaResource::getCriterias(string &responseMsg) const
+unsigned short CriterionResource::getCriteria(string &responseMsg) const
 {
     unsigned short res = 500;
     unsigned idx = 0;
@@ -59,7 +59,7 @@ unsigned short CriteriaResource::getCriterias(string &responseMsg) const
     return res;
 }
 
-void CriteriaResource::processGetRequest(Wt::Http::Response &response)
+void CriterionResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
     
@@ -67,7 +67,7 @@ void CriteriaResource::processGetRequest(Wt::Http::Response &response)
 
     if(!nextElement.compare(""))
     {
-        this->statusCode = getCriterias(responseMsg);
+        this->statusCode = getCriteria(responseMsg);
     }
     else
     {
@@ -81,32 +81,32 @@ void CriteriaResource::processGetRequest(Wt::Http::Response &response)
 }
 
 
-void CriteriaResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {   
     return ;
 }
 
 
-void CriteriaResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
 
-void CriteriaResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     return;
 }
 
 
 
-void CriteriaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {    
     return;
 }
 
 
-void CriteriaResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);

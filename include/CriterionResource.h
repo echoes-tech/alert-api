@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API CriteriaResource
+ * HEADER OF API CriterionResource
  * @author ECHOES Technologies (GDR)
  * @date 21/02/2013
  * 
@@ -11,21 +11,21 @@
  * 
  */
 
-#ifndef CRITERIARESOURCE_H
-#define	CRITERIARESOURCE_H
+#ifndef CRITERIONRESOURCE_H
+#define	CRITERIONRESOURCE_H
 
 #include "PublicApiResource.h"
 
-class CriteriaResource : public PublicApiResource
+class CriterionResource : public PublicApiResource
 {
     public :
-        CriteriaResource();
-        CriteriaResource(const CriteriaResource& orig);
-        virtual ~CriteriaResource();
+        CriterionResource();
+        CriterionResource(const CriterionResource& orig);
+        virtual ~CriterionResource();
         
     protected :
 
-        unsigned short getCriterias(std::string &responseMsg) const;
+        unsigned short getCriteria(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -39,5 +39,5 @@ class CriteriaResource : public PublicApiResource
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
-#endif	/* CRITERIARESOURCE_H */
+#endif	/* CRITERIONRESOURCE_H */
 
