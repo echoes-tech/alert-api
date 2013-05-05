@@ -40,33 +40,35 @@ class AlertResource : public PublicApiResource
          * method to send a MAIL 
          * @param collection of informations values that matches the alert
          * @param the alert
+         * @param the alert message
          * @param the alert tracking required and concerned by the sms
          * @param the media value concern by the alert
          * @param if the user as use all his sms, the value here is 1 if not it's 0
-         * @return error -1 or sucess 0
+         * @return HTTP Code
          */
-        int sendMAIL
+        unsigned short sendMAIL
         (
             Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
-            Wt::Dbo::ptr<Alert> alertPtr,
-            Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+            Wt::Dbo::ptr<Alert> alePtr,
+            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
+            Wt::Dbo::ptr<AlertTracking> atrPtr,
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
             bool overSMSQuota = false
         );
 
         /**
-        * method to send an SMS with the call of the API
-        * @param collection of informations values that matches the alert
-        * @param the alert
-        * @param the alert tracking required and concerned by the sms
-        * @param the media value concern by the alert
-        * @return error -1 or sucess 0
-        */     
-        int sendSMS
+         * method to send an SMS with the call of the API
+         * @param collection of informations values that matches the alert
+         * @param the alert message
+         * @param the alert tracking required and concerned by the sms
+         * @param the media value concern by the alert
+         * @return HTTP Code
+         */
+        unsigned short sendSMS
         (
             Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
-            Wt::Dbo::ptr<Alert> alertPtr,
-            Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
+            Wt::Dbo::ptr<AlertTracking> atrPtr,
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
         );
 
