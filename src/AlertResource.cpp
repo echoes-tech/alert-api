@@ -386,7 +386,6 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         //media
         amsId = result.get("ams_id");
     }
-
     catch (Wt::Json::ParseError const& e)
     {
         res = 400;
@@ -490,8 +489,6 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         ava->asset = assetPtr;
         Wt::Dbo::ptr<AlertValue> avaPtr = session->add<AlertValue>(ava);
 
-
-
         alert->alertValue = avaPtr;
         alert->name = alertName;
         alert->creaDate = Wt::WDateTime::currentDateTime();
@@ -504,14 +501,68 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
             Wt::WString tmp = idx2->toString();
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp);
             amsPtr.modify()->alert = alePtr;
+            
+            AlertMessageDefinition *amd = new AlertMessageDefinition();
+            amd->pk.alert = alePtr;
+            amd->pk.media = amsPtr->mediaValue->media;
+            amd->pk.userRole = amsPtr->mediaValue->user->userRole;
+            amd->isCustom = false;
+            
+            switch (amsPtr->mediaValue->media.id())
+            {
+                case Enums::SMS:
+                    amd->message = "New alert about : " + alePtr->name;
+
+                    //TODO: à revoir pour les alertes complexes !!
+//                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+//                    {
+                        amd->message += " on " + assetPtr->name;
+
+                        //we check if there is a key and get it if it's the case to put in the sms
+                    //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
+                        if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
+                        {
+                           amd->message += " for : " + alePtr->alertValue->keyValue.get();
+                        }
+
+                        amd->message += " Received information : %value% " + infoPtr->pk.unit->name.toUTF8();
+                                + " expected : " + alePtr->alertValue->value + " " + infoPtr->pk.unit->name.toUTF8()
+                                + " at : %detection-time%";
+//                    }
+                    break;
+                case Enums::MAIL:
+
+                    amd->message = "Alert name : " + alePtr->name + "<br />";
+
+                    //TODO: à revoir pour les alertes complexes !!
+//                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+//                    {
+                        amd->message += "Asset name : " +  assetPtr->name + "<br />";
+                        if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
+                        {
+                           amd->message += "Key : " + alePtr->alertValue->keyValue.get() + "<br />";
+                        }
+                        amd->message += "Received value : %value% " + infoPtr->pk.unit->name.toUTF8() + "<br />"
+                                + "Criteria : " + alePtr->alertValue->alertCriteria->name + "<br />"
+                                + "Expected value : " + alePtr->alertValue->value + " " + infoPtr->pk.unit->name.toUTF8() + "<br />"
+                                + "Time : %detection-time%<br />";
+//                    }
+                    amd->message += "Check it on https://alert.echoes-tech.com";
+                    break;
+                default:
+                    Wt::log("error") << "[Alert Resource] Unknown ID Media: " << amsPtr->mediaValue->media.id();
+                    break;
+            }
+
+            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr = session->add<AlertMessageDefinition>(amd);
+            amdPtr.flush();
         }
         alePtr.flush();
         alePtr.modify()->setId(alePtr.id());
         responseMsg = alePtr.modify()->toJSON();
         transaction.commit();
 
-        res = 200;
-
+        res = 201;
     }
     catch (Wt::Dbo::Exception const& e) 
     {
@@ -523,20 +574,22 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
     return res;
 }
 
-int AlertResource::sendMAIL
+unsigned short AlertResource::sendMAIL
 (
  Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
- Wt::Dbo::ptr<Alert> alertPtr,
- Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+ Wt::Dbo::ptr<Alert> alePtr,
+ Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
+ Wt::Dbo::ptr<AlertTracking> atrPtr,
  Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
  bool overSMSQuota
 )
-{    
+{
+    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
+
     Wt::WString mailRecipient;
     const Wt::WString mailRecipientName = amsPtr->mediaValue->user->firstName + " " + amsPtr->mediaValue->user->lastName ;
-    Wt::WString mailBody = "";
+    string mailBody = "";
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
-    const Wt::WString unit = alertPtr->alertValue->information->pk.unit->name;
     Wt::Mail::Message mailMessage;
     Wt::Mail::Client mailClient;
 
@@ -552,28 +605,21 @@ int AlertResource::sendMAIL
         mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
     }
 
-    mailBody += "Alert name : " + alertPtr->name + "<br />";
+    mailBody += amdPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
     for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
-        mailBody += "Asset name : " +  i->get()->asset->name + "<br />";
-        if (alertPtr->alertValue->keyValue.is_initialized() && alertPtr->alertValue->keyValue.get() != "N/A")
-        {
-           mailBody += "Key : " + alertPtr->alertValue->keyValue.get() + "<br />";
-        }
-        mailBody += "Received value : " + i->get()->value + " " + unit + "<br />"
-                + "Criteria : " + alertPtr->alertValue->alertCriteria->name + "<br />"
-                + "Expected value : " + alertPtr->alertValue->value + " " + unit + "<br />"
-                + "Time : " + i->get()->creationDate.toString() + "<br />";
+          boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
+          boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+          boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
     }
-    mailBody += "Check it on https://alert.echoes-tech.com";
-        
-    Wt::log("info") << " [Alert Resource] " << mailBody; 
+
+    Wt::log("info") << " [Alert Resource] " << mailBody;     
     
     mailMessage.setFrom(Wt::Mail::Mailbox("alert@echoes-tech.com", "ECHOES Alert"));
     mailMessage.addRecipient(Wt::Mail::To, Wt::Mail::Mailbox(mailRecipient.toUTF8(), mailRecipientName));
-    mailMessage.setSubject("[ECHOES Alert] " + alertPtr->name);
+    mailMessage.setSubject("[ECHOES Alert] " + alePtr->name);
     mailMessage.addHtmlBody(mailBody);
     mailClient.connect("hermes.gayuxweb.fr");
     mailClient.send(mailMessage);
@@ -581,50 +627,45 @@ int AlertResource::sendMAIL
     Wt::log("info") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
     amsPtr.modify()->lastSend = now;
 
-    alertTrackingPtr.modify()->sendDate = now;
+    atrPtr.modify()->sendDate = now;
+
+    res = Enums::OK;
+    
+    return res;
 }
 
-int AlertResource::sendSMS
+unsigned short AlertResource::sendSMS
 (
  Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
- Wt::Dbo::ptr<Alert> alertPtr,
- Wt::Dbo::ptr<AlertTracking> alertTrackingPtr,
+ Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
+ Wt::Dbo::ptr<AlertTracking> atrPtr,
  Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
 )
 {
-    const Wt::WString unit = alertPtr->alertValue->information->pk.unit->name;
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
-
-    Wt::WString sms = "New alert about : " + alertPtr->name;
+    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
     
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
+    string sms = amdPtr->message.toUTF8();
+
     //TODO: à revoir pour les alertes complexes !!
     for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
-        sms += " on " + i->get()->asset->name;
-
-        //we check if there is a key and get it if it's the case to put in the sms
-    //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
-        if (alertPtr->alertValue->keyValue.is_initialized() && alertPtr->alertValue->keyValue.get() != "N/A")
-        {
-           sms += " for : " + alertPtr->alertValue->keyValue.get();
-        }
-
-        sms += " Received information : " + i->get()->value + " " + unit
-                + " expected : " + alertPtr->alertValue->value + " " + unit
-                + " at : " + i->get()->creationDate.toString();
+          boost::replace_all(sms, "%value%", i->get()->value.toUTF8());
+          boost::replace_all(sms, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+          boost::replace_all(sms, "%alerting-time%", now.toString().toUTF8());
     }
 
     Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->mediaValue->value << " : " << sms;
-    
-    
-    ItookiSMSSender *itookiSMSSender =  new ItookiSMSSender(amsPtr->mediaValue->value.toUTF8(), sms.toUTF8(), this);
-    itookiSMSSender->setAlertTrackingPtr(alertTrackingPtr);
-    if(!itookiSMSSender->send())
+
+    ItookiSMSSender itookiSMSSender(amsPtr->mediaValue->value.toUTF8(), sms, this);
+    itookiSMSSender.setAlertTrackingPtr(atrPtr);
+    if(!itookiSMSSender.send())
     {
         amsPtr.modify()->lastSend = now;
+        res = Enums::OK;
     }
-    
-    delete itookiSMSSender;
+
+    return res;
 }
 
 unsigned short AlertResource::postAlertTracking(string &responseMsg, const string &sRequest)
@@ -705,6 +746,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                     if (!i->get()->lastSend.isValid() || i->get()->lastSend.secsTo(now) >= i->get()->snoozeDuration)
                     {
                         AlertTracking *newAlertTracking = new AlertTracking();
+                        long long medID = i->get()->mediaValue->media.id();
 
                         newAlertTracking->alert = alertPtr;
                         newAlertTracking->mediaValue = i->get()->mediaValue;
@@ -718,7 +760,15 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                         Wt::log("info") << " [Alert Ressource] " << "Alert tracking number creation : " << alertTrackingPtr.id();
 
                         Wt::log("debug") << " [Alert Ressource] " << "snooze = " << i->get()->snoozeDuration;
-                        switch (i->get()->mediaValue->media.id())
+                        
+                        Wt::Dbo::ptr<AlertMessageDefinition> amdPtr = session->find<AlertMessageDefinition>()
+                                .where("\"ALE_ID_ALE_ID\" = ?").bind(alertPtr.id())
+                                .where("\"URO_ID_URO_ID\" = ?").bind(i->get()->mediaValue->user->userRole.id())
+                                .where("\"MED_ID_MED_ID\" = ?").bind(medID)
+                                .where("\"AMD_DELETE\" IS NULL")
+                                .limit(1);
+                        
+                        switch (medID)
                         {
                             case Enums::SMS:
                             {
@@ -739,14 +789,14 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                         Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alertPtr->name;
                                         Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
 
-                                        sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i, true);
+                                        sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i, true);
                                     }
                                     else
                                     {
                                         Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
                                         optionValuePtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
                                         optionValuePtr.flush();                        
-                                        sendSMS(ivaPtrCollection,alertPtr, alertTrackingPtr, *i); 
+                                        sendSMS(ivaPtrCollection, amdPtr, alertTrackingPtr, *i); 
                                     }
                                 }
                                 catch(boost::bad_lexical_cast &)
@@ -757,11 +807,12 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                 break;
                             }
                             case Enums::MAIL:
-                                Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;              
-                                sendMAIL(ivaPtrCollection, alertPtr, alertTrackingPtr, *i);
+                                Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;
+                                sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
                                 break;
                             default:
-                                break;        
+                                Wt::log("error") << "[Alert Resource] Unknown ID Media: " << medID;
+                                break;
                         }
                     }
                     else

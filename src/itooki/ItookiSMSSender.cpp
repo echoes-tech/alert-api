@@ -77,64 +77,62 @@ int ItookiSMSSender::send()
     return res;
 }
 
-void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response) {
-    if (!err)
+void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response)
+{
+    if (!err && response.status() == 200)
     {
-        if (response.status() == 200)
+        string resultCode = response.body();
+
+        Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
+        vector< string > splitResult;
+        boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
+
+        if (splitResult.size() != 2)
         {
-            string resultCode = response.body();
-
-            Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
-            vector< string > splitResult;
-            boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
-            
-            if (splitResult.size() != 2)
-            {
-                Wt::log("error") << "[SMS] Unexpected answer from itooki.";
-            }
-            
-            if (splitResult.size() == 0)
-            {
-                Wt::log("error") << "[SMS] Unexpected answer from itooki, no result code.";
-            }
-            
-            if (splitResult.size() == 2)
-            {
-
-                if (Utils::checkId<AlertTracking > (_alertTrackingPtr))
-                {
-                    try
-                    {
-                        Wt::Dbo::Transaction transaction(*_alertTrackingPtr.session());
-                        _alertTrackingPtr.modify()->ackId = splitResult[1];
-                        _alertTrackingPtr.modify()->ackGw = "itooki.fr";
-                        _alertTrackingPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
-
-                        AlertTrackingEvent *ate = new AlertTrackingEvent();
-                        ate->alertTracking = _alertTrackingPtr;
-                        ate->date = Wt::WDateTime::currentDateTime();
-                        ate->value = splitResult[0];
-                        transaction.commit();
-
-                    }
-                    catch (Wt::Dbo::Exception const& e)
-                    {
-                        Wt::log("error") << e.what();
-                        //TODO : behaviour in error case
-                    }
-                }
-                else
-                {
-                    Wt::log("error") << "[SMS] Alert tracking not found";
-                    //TODO error behavior
-                }
-
-            }
+            Wt::log("error") << "[SMS] Unexpected answer from itooki.";
         }
-        else
+
+        if (splitResult.size() == 0)
         {
-            Wt::log("error") << "Http::Client error: " << err.message();
+            Wt::log("error") << "[SMS] Unexpected answer from itooki, no result code.";
         }
+
+        if (splitResult.size() == 2)
+        {
+
+            if (Utils::checkId<AlertTracking > (_alertTrackingPtr))
+            {
+                try
+                {
+                    Wt::Dbo::Transaction transaction(*_alertTrackingPtr.session());
+                    _alertTrackingPtr.modify()->ackId = splitResult[1];
+                    _alertTrackingPtr.modify()->ackGw = "itooki.fr";
+                    _alertTrackingPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+
+                    AlertTrackingEvent *ate = new AlertTrackingEvent();
+                    ate->alertTracking = _alertTrackingPtr;
+                    ate->date = Wt::WDateTime::currentDateTime();
+                    ate->value = splitResult[0];
+                    transaction.commit();
+
+                }
+                catch (Wt::Dbo::Exception const& e)
+                {
+                    Wt::log("error") << e.what();
+                    //TODO : behaviour in error case
+                }
+            }
+            else
+            {
+                Wt::log("error") << "[SMS] Alert tracking not found";
+                //TODO error behavior
+            }
+
+        }
+    }
+    else
+    {
+        Wt::log("error") << "Http::Client error: " << err.message();
     }
 }
 
