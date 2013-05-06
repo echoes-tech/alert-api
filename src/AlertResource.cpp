@@ -503,9 +503,9 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
             amsPtr.modify()->alert = alePtr;
             
             AlertMessageDefinition *amd = new AlertMessageDefinition();
-            amd->alert = alePtr;
-            amd->media = amsPtr->mediaValue->media;
-            amd->userRole = amsPtr->mediaValue->user->userRole;
+            amd->pk.alert = alePtr;
+            amd->pk.media = amsPtr->mediaValue->media;
+            amd->pk.userRole = amsPtr->mediaValue->user->userRole;
             amd->isCustom = false;
             
             switch (amsPtr->mediaValue->media.id())
@@ -562,8 +562,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         responseMsg = alePtr.modify()->toJSON();
         transaction.commit();
 
-        res = 200;
-
+        res = 201;
     }
     catch (Wt::Dbo::Exception const& e) 
     {
