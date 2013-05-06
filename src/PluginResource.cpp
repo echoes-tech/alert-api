@@ -1457,15 +1457,14 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
                         if(!nextElement.compare("units"))
                         {
                             nextElement = getNextElementFromPath();
-                            if(!nextElement.compare(""))
+                            boost::lexical_cast<unsigned long long>(nextElement);
+                            nextElement = getNextElementFromPath();
+                            if(!nextElement.compare("criteria"))
                             {
-                                this->statusCode = putAliasForInformation(responseMsg,sRequest);
-                            }
-                            else
-                            {
+                                nextElement = getNextElementFromPath();
                                 boost::lexical_cast<unsigned long long>(nextElement);
                                 nextElement = getNextElementFromPath();
-                                if(!nextElement.compare("criteria"))
+                                if(!nextElement.compare("alias"))
                                 {
                                     this->statusCode = putAliasForCriterion(responseMsg,sRequest);
                                 }
@@ -1474,6 +1473,15 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
                                     this->statusCode = 400;
                                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                                 }
+                            }
+                            else if(!nextElement.compare("alias"))
+                            {
+                                this->statusCode = putAliasForInformation(responseMsg,sRequest);
+                            }
+                            else
+                            {
+                                this->statusCode = 400;
+                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                             }
                         }
                         else
