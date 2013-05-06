@@ -13,7 +13,7 @@
       <itemPath>include/AlertResource.h</itemPath>
       <itemPath>include/AssetResource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
-      <itemPath>include/CriteriaResource.h</itemPath>
+      <itemPath>include/CriterionResource.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
       <itemPath>include/OrganizationResource.h</itemPath>
@@ -44,7 +44,7 @@
         <itemPath>src/AlertResource.cpp</itemPath>
         <itemPath>src/AssetResource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
-        <itemPath>src/CriteriaResource.cpp</itemPath>
+        <itemPath>src/CriterionResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
         <itemPath>src/OrganizationResource.cpp</itemPath>
@@ -119,7 +119,7 @@
       </item>
       <item path="include/Conf.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/CriteriaResource.h" ex="false" tool="3" flavor2="0">
+      <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -163,7 +163,7 @@
       </item>
       <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/CriteriaResource.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -234,7 +234,7 @@
       </item>
       <item path="include/Conf.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/CriteriaResource.h" ex="false" tool="3" flavor2="0">
+      <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -278,7 +278,7 @@
       </item>
       <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/CriteriaResource.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -40,7 +40,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/AlertResource.o \
 	${OBJECTDIR}/src/AssetResource.o \
 	${OBJECTDIR}/src/Conf.o \
-	${OBJECTDIR}/src/CriteriaResource.o \
+	${OBJECTDIR}/src/CriterionResource.o \
 	${OBJECTDIR}/src/InformationResource.o \
 	${OBJECTDIR}/src/MediaResource.o \
 	${OBJECTDIR}/src/OrganizationResource.o \
@@ -102,10 +102,10 @@ ${OBJECTDIR}/src/Conf.o: src/Conf.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
 
-${OBJECTDIR}/src/CriteriaResource.o: src/CriteriaResource.cpp 
+${OBJECTDIR}/src/CriterionResource.o: src/CriterionResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriteriaResource.o src/CriteriaResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource.o src/CriterionResource.cpp
 
 ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
