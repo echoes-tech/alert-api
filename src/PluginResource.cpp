@@ -102,7 +102,7 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
             responseMsg += "\t\"name\" : \"" + plgPtr->name.toUTF8() + "\",\n";
             responseMsg += "\t\"desc\" : \"" + plgPtr->desc.toUTF8() + "\",\n";
             responseMsg += "\t\"idAsset\" : 0,\n";
-            responseMsg += "\t\"source\" : [\n"; 
+            responseMsg += "\t\"sources\" : [\n"; 
     
             Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
