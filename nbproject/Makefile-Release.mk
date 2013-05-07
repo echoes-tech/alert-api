@@ -121,7 +121,6 @@ ${OBJECTDIR}/src/OrganizationResource.o: src/OrganizationResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++0x -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
->>>>>>> develop
 
 ${OBJECTDIR}/src/PluginResource.o: src/PluginResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
