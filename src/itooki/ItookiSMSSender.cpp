@@ -15,184 +15,106 @@
 
 using namespace std;
 
-ItookiSMSSender::ItookiSMSSender() {
-}
-
-ItookiSMSSender::ItookiSMSSender(const ItookiSMSSender& orig) {
-}
-
-void ItookiSMSSender::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+ItookiSMSSender::ItookiSMSSender(const string &number, const string &message, Wt::WObject *parent)
 {
-    // Create Session and Check auth
-    PublicApiResource::handleRequest(request, response);
+    setNumber(number);
+    setMessage(message);
+    setParent(parent);
+}
 
-    // set Content-Type
-    response.setMimeType("application/json; charset=utf-8");
+ItookiSMSSender::ItookiSMSSender(const ItookiSMSSender& orig)
+{
+    setNumber(orig.getMessage());
+    setMessage(orig.getMessage());
+    setParent(orig.getParent());
+    setAlertTrackingPtr(orig.getAlertTrackingPtr());
+}
 
-    if (!this->authentified) {
-        Wt::log("error") << "[SMS] User not identified";
-        return;
-    }
-
-    Wt::log("info") << "[SMS] User identified";
-
-    this->alertId = "";
-    this->alertTrackingId = "";
-
-    // if a parameter is missing, we set doRequest = false
-    if (!request.getParameterValues("alertid").empty()) 
-    {
-        this->alertId = request.getParameterValues("alertid")[0];
-    }
-    else 
-    {
-        Wt::log("error") << "[SMS] Missing alert id"; 
-        return;
-    }
-    
-    if (!request.getParameterValues("alerttrackingid").empty()) 
-    {
-        this->alertTrackingId = request.getParameterValues("alerttrackingid")[0];
-    }
-    else 
-    {
-        Wt::log("error") << "[SMS] Missing alert tracking id"; 
-        return;
-    }
-    
-    // Phone Number
-    if (!request.getParameterValues("number").empty()) 
-    {
-        this->number = Wt::Utils::urlEncode(request.getParameterValues("number")[0]);
-    }
-    else 
-    {
-        Wt::log("error") << "[SMS] Missing number"; 
-        return;
-    }
-    
-    if (!request.getParameterValues("messageText").empty()) 
-    {
-        this->messageText = Wt::Utils::urlEncode(request.getParameterValues("messageText")[0]);
-    }
-    else 
-    {
-        Wt::log("error") << "[SMS] Missing message"; 
-        return;
-    }
-
-    try 
-    {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertTracking> at = this->session->find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-        if (Utils::checkId<AlertTracking > (at)) 
-        {
-            if (!at.get()->sendDate.isNull()) 
-            {
-                Wt::log("error") << "[SMS] Alert tracking already filled, SMS already sent";
-                return;
-            }
-        } 
-        else 
-        {
-            Wt::log("error") << "[SMS] Alert tracking not found";
-            return;
-        }
-    } catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        return;
-    }
+int ItookiSMSSender::send()
+{
+    int res = -1;
 
     // HTTP Client init
-    Wt::Http::Client *client = new Wt::Http::Client(this);
-    client->done().connect(boost::bind(&ItookiSMSSender::handle, this, _1, _2));
+    Wt::Http::Client *client = new Wt::Http::Client(_parent);
+    client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, _1, _2));
 
-    string apiAddress = "https://www.itooki.fr/http.php?email=contact@echoes-tech.com&pass=00SjmAuiitooki&numero=" + this->number
-            + "&message=" + this->messageText
-            + "&refaccus=o"
-            ;
+    string apiAddress = "https://www.itooki.fr/http.php"
+            "?email=contact@echoes-tech.com"
+            "&pass=00SjmAuiitooki"
+            "&numero=" + Wt::Utils::urlEncode(_number)
+            + "&message=" + Wt::Utils::urlEncode(_message)
+            + "&refaccus=o";
 
-    Wt::log("info") << "[SMS] Trying to send request to API. Address : " << apiAddress;
+    Wt::log("info") << "[Itooki SMS Sender] Trying to send request to Itooki API. Address : " << apiAddress;
     if (client->get(apiAddress)) 
     {
-        Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
-        try 
+        Wt::log("info") << "[Itooki SMS Sender] Message sent to Itooki API. Address : " << apiAddress;
+
+        if(Utils::checkId<AlertTracking>(_alertTrackingPtr))
         {
-            Wt::Dbo::Transaction transaction(*this->session);
-            Wt::Dbo::ptr<AlertTracking> at = this->session->find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-            if (Utils::checkId<AlertTracking > (at)) 
+            try
             {
+                Wt::Dbo::Transaction transaction(*_alertTrackingPtr.session());
                 //TODO : hostname cpp way
                 char hostname[255];
                 gethostname(hostname, 255);
-                at.modify()->senderSrv = hostname;
-                at.modify()->sendDate = Wt::WDateTime::currentDateTime();
+                _alertTrackingPtr.modify()->senderSrv = hostname;
+                _alertTrackingPtr.modify()->sendDate = Wt::WDateTime::currentDateTime();
+                transaction.commit();
             } 
-            else 
+            catch (Wt::Dbo::Exception const& e) 
             {
-                Wt::log("error") << "[SMS] Alert tracking not found";
+                Wt::log("error") << "[Itooki SMS Sender] " << e.what();
             }
-        } 
-        catch (Wt::Dbo::Exception const& e) 
-        {
-            Wt::log("error") << "[SMS] " << e.what();
-            return;
         }
+        res = 0;
     } 
     else 
     {
-        Wt::log("error") << "[SMS] Failed to send message to API. Address : " << apiAddress;
-        return;
+        Wt::log("error") << "[Itooki SMS Sender] Failed to send message to Itooki API. Address : " << apiAddress;
     }
+
+    return res;
 }
 
-void ItookiSMSSender::handle(boost::system::error_code err, const Wt::Http::Message& response) {
-    if (!err)
+void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response)
+{
+    if (!err && response.status() == 200)
     {
-        if (response.status() == 200)
+        string resultCode = response.body();
+
+        Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
+        vector< string > splitResult;
+        boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
+
+        if (splitResult.size() != 2)
         {
-            Session session(Utils::connection);
+            Wt::log("error") << "[SMS] Unexpected answer from itooki.";
+        }
 
-            string resultCode = response.body();
+        if (splitResult.size() == 0)
+        {
+            Wt::log("error") << "[SMS] Unexpected answer from itooki, no result code.";
+        }
 
-            Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
-            vector< string > splitResult;
-            boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
-            
-            if (splitResult.size() != 2)
-            {
-                Wt::log("error") << "[SMS] Unexpected answer from itooki.";
-            }
-            
-            if (splitResult.size() == 0)
-            {
-                Wt::log("error") << "[SMS] Unexpected answer from itooki, no result code.";
-            }
-            
-            if (splitResult.size() == 2)
+        if (splitResult.size() == 2)
+        {
+
+            if (Utils::checkId<AlertTracking > (_alertTrackingPtr))
             {
                 try
                 {
-                    Wt::Dbo::Transaction transaction(session);
-                    Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-                    if (Utils::checkId<AlertTracking > (at))
-                    {
-                        at.modify()->ackId = splitResult[1];
-                        at.modify()->ackGw = "itooki.fr";
-                        at.modify()->receiveDate = Wt::WDateTime::currentDateTime();
-                        
-                        AlertTrackingEvent *ate = new AlertTrackingEvent();
-                        ate->alertTracking = at;
-                        ate->date = Wt::WDateTime::currentDateTime();
-                        ate->value = splitResult[0];
-                        
-                    }
-                    else
-                    {
-                        Wt::log("error") << "[SMS] Alert tracking not found";
-                        //TODO error behavior
-                    }
+                    Wt::Dbo::Transaction transaction(*_alertTrackingPtr.session());
+                    _alertTrackingPtr.modify()->ackId = splitResult[1];
+                    _alertTrackingPtr.modify()->ackGw = "itooki.fr";
+                    _alertTrackingPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+
+                    AlertTrackingEvent *ate = new AlertTrackingEvent();
+                    ate->alertTracking = _alertTrackingPtr;
+                    ate->date = Wt::WDateTime::currentDateTime();
+                    ate->value = splitResult[0];
+                    transaction.commit();
+
                 }
                 catch (Wt::Dbo::Exception const& e)
                 {
@@ -200,15 +122,65 @@ void ItookiSMSSender::handle(boost::system::error_code err, const Wt::Http::Mess
                     //TODO : behaviour in error case
                 }
             }
+            else
+            {
+                Wt::log("error") << "[SMS] Alert tracking not found";
+                //TODO error behavior
+            }
+
         }
-        else
-        {
-            Wt::log("error") << "Http::Client error: " << err.message();
-        }
+    }
+    else
+    {
+        Wt::log("error") << "Http::Client error: " << err.message();
     }
 }
 
-ItookiSMSSender::~ItookiSMSSender() {
-    beingDeleted();
+void ItookiSMSSender::setMessage(string message)
+{
+    _message = message;
+    return;
+}
+
+std::string ItookiSMSSender::getMessage() const
+{
+    return _message;
+}
+
+void ItookiSMSSender::setNumber(string number)
+{
+    _number = number;
+    return;
+}
+
+std::string ItookiSMSSender::getNumber() const
+{
+    return _number;
+}
+
+void ItookiSMSSender::setAlertTrackingPtr(Wt::Dbo::ptr<AlertTracking> alertTrackingPtr)
+{
+    _alertTrackingPtr = alertTrackingPtr;
+    return;
+}
+
+Wt::Dbo::ptr<AlertTracking> ItookiSMSSender::getAlertTrackingPtr() const
+{
+    return _alertTrackingPtr;
+}
+
+void ItookiSMSSender::setParent(Wt::WObject* parent)
+{
+    _parent = parent;
+    return;
+}
+
+Wt::WObject* ItookiSMSSender::getParent() const
+{
+    return _parent;
+}
+
+ItookiSMSSender::~ItookiSMSSender()
+{
 }
 

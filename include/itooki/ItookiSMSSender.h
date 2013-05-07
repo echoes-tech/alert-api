@@ -14,20 +14,45 @@
 #ifndef ITOOKISMSSENDER_H
 #define	ITOOKISMSSENDER_H
 
-#include "PublicApiResource.h"
+#include <Wt/Http/Client>
+#include <Wt/Http/Request>
+#include <Wt/Http/Response>
+#include <Wt/Utils>
+#include <Wt/WObject>
+#include <Wt/WLogger>
 
-class ItookiSMSSender : public PublicApiResource
+#include <boost/algorithm/string.hpp>
+
+#include <tools/SessionPool.h>
+
+#include "Utils.h"
+
+class ItookiSMSSender
 {
     public:
-        ItookiSMSSender();
+        ItookiSMSSender(const std::string &number, const std::string &message, Wt::WObject *parent = 0);
         ItookiSMSSender(const ItookiSMSSender& orig);
         virtual ~ItookiSMSSender();
 
-    protected:
-        std::string alertId, alertTrackingId, number, messageText;
-    
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        void handle(boost::system::error_code err, const Wt::Http::Message& response);
+        void setAlertTrackingPtr(Wt::Dbo::ptr<AlertTracking> alertTrackingPtr);
+
+        std::string getMessage() const;
+        std::string getNumber() const;
+        Wt::WObject* getParent() const;
+        Wt::Dbo::ptr<AlertTracking> getAlertTrackingPtr() const;
+
+        int send();
+
+    private:
+        std::string _number, _message;
+        Wt::WObject *_parent;
+        Wt::Dbo::ptr<AlertTracking> _alertTrackingPtr;
+
+        void setMessage(std::string message);
+        void setNumber(std::string number);
+        void setParent(Wt::WObject* parent);
+
+        void handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response);
 };
 
 #endif	/* ITOOKISMSSENDER_H */

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="84">
+<configurationDescriptor version="88">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -9,16 +9,21 @@
         <itemPath>include/ItookiAswReceiver.h</itemPath>
         <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
       </logicalFolder>
+      <itemPath>include/AddonResource.h</itemPath>
       <itemPath>include/AlertResource.h</itemPath>
       <itemPath>include/AssetResource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
+      <itemPath>include/CriterionResource.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
+      <itemPath>include/OrganizationResource.h</itemPath>
       <itemPath>include/PluginResource.h</itemPath>
       <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
+      <itemPath>include/SearchTypeResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
+      <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
       <itemPath>include/includeFile.h</itemPath>
@@ -35,14 +40,19 @@
         <logicalFolder name="itooki" displayName="itooki" projectFiles="true">
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
         </logicalFolder>
+        <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
         <itemPath>src/AssetResource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
+        <itemPath>src/CriterionResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
+        <itemPath>src/OrganizationResource.cpp</itemPath>
         <itemPath>src/PluginResource.cpp</itemPath>
         <itemPath>src/ProbeResource.cpp</itemPath>
         <itemPath>src/PublicApiResource.cpp</itemPath>
+        <itemPath>src/SearchTypeResource.cpp</itemPath>
+        <itemPath>src/UnitResource.cpp</itemPath>
         <itemPath>src/UserResource.cpp</itemPath>
       </logicalFolder>
       <itemPath>main.cpp</itemPath>
@@ -69,6 +79,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -97,11 +109,89 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="api.conf" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AlertResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AssetResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Conf.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ProbeResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SrReception.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/UnitResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AlertResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AssetResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/UnitResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/UserResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -111,13 +201,13 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo-master/workspace/include</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
           </incDir>
           <commandLine>-std=c++0x</commandLine>
         </ccTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo-master/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
           <stripSymbols>true</stripSymbols>
@@ -134,6 +224,82 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="api.conf" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AlertResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AssetResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Conf.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ProbeResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SrReception.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/UnitResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AlertResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AssetResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/UnitResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/UserResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>

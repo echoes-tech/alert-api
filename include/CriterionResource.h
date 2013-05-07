@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API UserResource
+ * HEADER OF API CriterionResource
  * @author ECHOES Technologies (GDR)
- * @date 05/02/2013
+ * @date 21/02/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,24 +11,23 @@
  * 
  */
 
-#ifndef USERRESOURCE_H
-#define	USERRESOURCE_H
+#ifndef CRITERIONRESOURCE_H
+#define	CRITERIONRESOURCE_H
 
 #include "PublicApiResource.h"
 
-class UserResource : public PublicApiResource
+class CriterionResource : public PublicApiResource
 {
     public :
-        UserResource();
-        UserResource(const UserResource& orig);
-        virtual ~UserResource();
+        CriterionResource();
+        CriterionResource(const CriterionResource& orig);
+        virtual ~CriterionResource();
         
     protected :
 
-        unsigned short getInformationForUser(std::string &response) const;
+        unsigned short getCriteria(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
@@ -40,5 +39,5 @@ class UserResource : public PublicApiResource
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
-#endif	/* USERRESOURCE_H */
+#endif	/* CRITERIONRESOURCE_H */
 

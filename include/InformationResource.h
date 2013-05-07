@@ -14,18 +14,27 @@
 #ifndef INFORMATIONRESOURCE_H
 #define	INFORMATIONRESOURCE_H
 
-#include "includeFile.h"
+#include "PublicApiResource.h"
 
 class InformationResource : public PublicApiResource
 {
     public :
         InformationResource();
+        InformationResource(const InformationResource& orig);
         virtual ~InformationResource();
         
     protected :
         
-        int unitId;
-        Wt::WString alertOption;
+        virtual void processGetRequest(Wt::Http::Response &response);
+
+        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
+        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             
 };

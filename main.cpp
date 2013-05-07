@@ -19,6 +19,10 @@
 
 #include "PublicApiResource.h"
 
+#include "SearchTypeResource.h"
+#include "AddonResource.h"
+#include "CriterionResource.h"
+#include "UnitResource.h"
 #include "AssetResource.h"
 #include "ProbeResource.h"
 #include "InformationResource.h"
@@ -26,8 +30,8 @@
 #include "PluginResource.h"
 #include "UserResource.h"
 #include "AlertResource.h"
+#include "OrganizationResource.h"
 
-#include "itooki/ItookiSMSSender.h"
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
 
@@ -51,14 +55,15 @@ int main(int argc, char **argv)
 {
     Conf *conf = new Conf();
 
-    Utils::connection = "hostaddr=" + conf->getDbHost() + 
-                     " port=" + boost::lexical_cast<string>(conf->getDbPort()) + 
-                     " dbname=" + conf->getDbName() +
-                     " user=" + conf->getDbUser() +
-                     " password=" + conf->getDbPassword();
+    Utils::connection = conf->getSessConnectParams();
 
     try
     {
+        SearchTypeResource searchTypeResource;
+        AddonResource addonResource;
+        CriterionResource criteriaResource;
+        UnitResource unitResource;
+        OrganizationResource organizationRessource;
         InformationResource informationRessource;
         MediaResource  mediaResource;
         PluginResource pluginResource;
@@ -66,9 +71,9 @@ int main(int argc, char **argv)
         AlertResource  alertResource;
         AssetResource  assetResource;
         ProbeResource  probeResource;
-        SrReception     receiveSr;
-        SendSMS         sendSMS;
-        ItookiSMSSender itookiSMSSender;
+        // NetSize
+//        SrReception     receiveSr;
+//        SendSMS         sendSMS;
         ItookiAckReceiver itookiAckReceiver;
         ItookiAswReceiver itookiAswReceiver;
 //        TestSrAPI       testAPI;
@@ -81,16 +86,20 @@ int main(int argc, char **argv)
         // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
 //        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
         
-        server.addResource(&informationRessource, "/information");
-        server.addResource(&mediaResource, "/media");
-        server.addResource(&userResource, "/user");
-        server.addResource(&alertResource, "/alert");
+        server.addResource(&searchTypeResource, "/search_types");
+        server.addResource(&addonResource, "/addons");
+        server.addResource(&criteriaResource, "/criteria");
+        server.addResource(&unitResource, "/units");
+        server.addResource(&organizationRessource, "/organizations");
+        server.addResource(&informationRessource, "/informations");
+        server.addResource(&mediaResource, "/medias");
+        server.addResource(&userResource, "/users");
+        server.addResource(&alertResource, "/alerts");
         server.addResource(&assetResource, "/assets");
         server.addResource(&probeResource, "/probes");
         server.addResource(&pluginResource, "/plugins");
-        server.addResource(&receiveSr, "/netsize/sr");
-        server.addResource(&sendSMS, "/netsize/send");
-        server.addResource(&itookiSMSSender, "/itooki/sms/sender");
+//        server.addResource(&receiveSr, "/netsize/sr");
+//        server.addResource(&sendSMS, "/netsize/send");
         server.addResource(&itookiAckReceiver, "/itooki/ack");
         server.addResource(&itookiAswReceiver, "/itooki/asw");
 //        server.addResource(&testAPI, "/test");

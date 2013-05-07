@@ -16,21 +16,23 @@
 
 #include <unistd.h>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/exception/detail/exception_ptr.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/algorithm/string.hpp>
-
-#include <boost/algorithm/string/predicate.hpp>
 
 #include <Wt/Http/Client>
 #include <Wt/Http/Request>
 #include <Wt/Http/Response>
-#include <Wt/WResource>
-#include <Wt/WLogger>
-#include <Wt/Utils>
-#include <Wt/WEnvironment>
+#include <Wt/Json/Array>
 #include <Wt/Json/Object>
 #include <Wt/Json/Parser>
+#include <Wt/Utils>
+#include <Wt/WApplication>
+#include <Wt/WEnvironment>
+#include <Wt/WLogger>
+#include <Wt/WResource>
+#include <Wt/WServer>
 
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
@@ -40,13 +42,12 @@
 class PublicApiResource : public Wt::WResource {
     public:
         PublicApiResource();
+        PublicApiResource(const PublicApiResource& orig);
         virtual ~PublicApiResource();
 
     protected:
-        std::string login;
-        Wt::WString password;
-        bool authentified;
         Session *session;
+        bool authentified;
         std::vector<std::string> vPathElements;
         unsigned short indexPathElement, statusCode;
 

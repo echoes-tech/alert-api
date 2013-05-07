@@ -15,9 +15,19 @@
 
 using namespace std;
 
-PublicApiResource::PublicApiResource() : Wt::WResource(){
+PublicApiResource::PublicApiResource() : Wt::WResource()
+{
     this->indexPathElement = 1;
     this->statusCode = 500;
+}
+
+PublicApiResource::PublicApiResource(const PublicApiResource& orig) : Wt::WResource()
+{
+    this->session = orig.session;
+    this->authentified = orig.authentified;
+    this->statusCode = orig.statusCode;
+    this->indexPathElement = orig.indexPathElement;
+    this->vPathElements =  orig.vPathElements;
 }
 
 PublicApiResource::~PublicApiResource() {
@@ -26,7 +36,8 @@ PublicApiResource::~PublicApiResource() {
 
 unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method)
 {
-    unsigned short res;
+    unsigned short res = 0;
+
     if(!method.compare("GET"))
     {
         res = Wt::Http::Get;
@@ -41,12 +52,7 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method
     }
     else if(!method.compare("DELETE"))
     {
-//        res = Wt::Http::Delete;
-        res = 4;
-    }
-    else
-    {
-        res = 0;
+        res = Wt::Http::Delete;
     }
 
     return res;
@@ -111,109 +117,180 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     Wt::log("info") << "[PUBLIC API] Identifying";
     // Setting the session
     session = new Session(Utils::connection);
-    Session::configureAuth();
-
-    try
-    {
-        session->createTables();
-        std::cerr << "Created database." << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        std::cerr << "Using existing database";
-    }
 
     // default : not authentified
     this->authentified = false;
+    bool notAllowed = false;
+    
+    string login = "", password = "", token = "", eno_token = "";
 
-    this->login = "";
-    this->password = "";
-    if (!request.getParameterValues("login").empty()) {
-        this->login = request.getParameterValues("login")[0];
-    }
-    if (!request.getParameterValues("password").empty()) {
-        this->password = request.getParameterValues("password")[0];
-    }
-
-    const Wt::WString pass = this->password;
-
-    // transaction
+    if (!request.getParameterValues("login").empty())
     {
-        try {
+        login = request.getParameterValues("login")[0];
+        if (login.compare(""))
+        {
+            if (!request.getParameterValues("password").empty())
+                password = request.getParameterValues("password")[0];
+            else if (!request.getParameterValues("token").empty())
+                token = request.getParameterValues("token")[0];
+            else
+                Wt::log("error") << "[Public API Resource] No password or token parameter";
+        }
+        else
+            Wt::log("error") << "[Public API Resource] login is empty";
+    }
+    else if(!request.getParameterValues("eno_token").empty())
+    {
+        eno_token = request.getParameterValues("eno_token")[0];
+        if (!eno_token.compare(""))
+            Wt::log("error") << "[Public API Resource] org_token is empty";
+    }
+    else
+        Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
+
+    if (login.compare("") != 0)
+    {
+        try
+        {
             Wt::Dbo::Transaction transaction(*session);
 
             // check whether the user exists
-            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(this->login);
+            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
             if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
             {
                 // find the user from his login
-                Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,this->login);
+                Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,login);
 
-                if (!user.isValid()) 
+                if (user.isValid()) 
                 {
+                    if (password.compare(""))
+                    {
+                        // verify
+                        switch (session->passwordAuth().verifyPassword(user, password))
+                        {
+                            case Wt::Auth::PasswordValid:
+                                session->login().login(user);
+                                this->authentified = true;
+                                Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
+                                break;
+                            case Wt::Auth::LoginThrottling:
+                                Wt::log("info") << "[PUBLIC API] too many attempts.";
+                                break;
+                            case Wt::Auth::PasswordInvalid:
+                                Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else if (token.compare(""))
+                    {
+                        Wt::Dbo::ptr<User> userPtr = session->find<User>()
+                                .where("\"USR_MAIL\" = ?").bind(login)
+                                .where("\"USR_TOKEN\" = ?").bind(token)
+                                .limit(1);
+                        if(userPtr)
+                        {
+                            session->login().login(user);
+                            this->authentified = true;
+                        }
+                        else
+                            Wt::log("error") << "[PUBLIC API] Bad Token";
+                    }
+                    else
+                        Wt::log("error") << "[Public API Resource] Password or token is empty";
+                }
+                else
                     Wt::log("info") << "[PUBLIC API] User invalid";
-                    return;
-                }
-
-                // verify
-                switch (session->passwordAuth().verifyPassword(user, pass))
-                {
-                    case Wt::Auth::PasswordValid:
-                        session->login().login(user);
-                        this->authentified = true;
-                        Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
-                        break;
-                    case Wt::Auth::LoginThrottling:
-                        Wt::log("info") << "[PUBLIC API] too many attempts.";
-                        break;
-                    case Wt::Auth::PasswordInvalid:
-                        Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
-                        break;
-                    default:
-                        break;
-                }
-            } else 
-            {
-                Wt::log("error") << "[PUBLIC API] User " << this->login << " not found";
             }
-        } catch (Wt::Dbo::Exception const& e) 
+            else 
+                Wt::log("error") << "[PUBLIC API] User " << login << " not found";
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << "[PUBLIC API] " << e.what();
         }
     }
+    else if (eno_token.compare("") != 0)
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::ptr<Engine> enginePtr = session->find<Engine>()
+                    .where("\"ENG_FQDN\" = ?").bind(request.clientAddress())
+                    .where("\"ENG_DELETE\" IS NULL")
+                    .limit(1);
 
+            if(enginePtr)
+            {
+                Wt::Dbo::ptr<EngOrg> engOrgPtr = session->find<EngOrg>()
+                        .where("\"ENG_ID_ENG_ID\" = ?").bind(enginePtr.id())
+                        .where("\"ENO_TOKEN\" = ?").bind(eno_token)
+                        .where("\"ENO_DELETE\" IS NULL")
+                        .limit(1);
+                if(engOrgPtr)
+                {
+                    this->authentified = true;
+                }
+                else
+                    Wt::log("error") << "[PUBLIC API] Bad eno_token";
+            }
+            else
+            {
+                Wt::log("error") << "[PUBLIC API] Engine with IP " << request.clientAddress() << " not found";
+                notAllowed = true;
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << "[PUBLIC API] " << e.what();
+        }
+    }
+   
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
 
-    if (!this->authentified) {
+    if (this->authentified) {
+        setPathElementsVector(request.pathInfo());
+
+        switch(retrieveCurrentHttpMethod(request.method()))
+        {
+            case Wt::Http::Get:
+                processGetRequest(response);
+                break;
+            case Wt::Http::Post:
+                processPostRequest(request, response);
+                break;
+            case Wt::Http::Put:
+                processPutRequest(request, response);
+                break;
+            case Wt::Http::Delete:
+                processDeleteRequest(request, response);
+                break;
+            default:
+                response.setStatus(405);
+                response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
+                break;
+        }
+    }
+    else if (notAllowed)
+    {
+        response.setStatus(400);
+        response.out() << "{\n\t\"message\": \"Bad Request\"\n}";
+    }
+    else
+    {
         response.setStatus(401);
         response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
-        return;
     }
-    
-    setPathElementsVector(request.pathInfo());
 
-    switch(retrieveCurrentHttpMethod(request.method()))
-    {
-        case Wt::Http::Get:
-            processGetRequest(response);
-            break;
-        case Wt::Http::Post:
-            processPostRequest(request, response);
-            break;
-        case Wt::Http::Put:
-            processPutRequest(request, response);
-            break;
-        case 4:
-            processDeleteRequest(request, response);
-            break;
-        default:
-            response.setStatus(405);
-            response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
-            return;
-            break;
-    }
-    
     this->indexPathElement = 1;
     this->statusCode = 500;
+    Wt::log("debug") << "[PUBLIC API] Session delete";
+    delete session;
 }
         
