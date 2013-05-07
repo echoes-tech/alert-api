@@ -59,6 +59,7 @@ class AlertResource : public PublicApiResource
         /**
          * method to send an SMS with the call of the API
          * @param collection of informations values that matches the alert
+         * @param the alert
          * @param the alert message
          * @param the alert tracking required and concerned by the sms
          * @param the media value concern by the alert
@@ -67,6 +68,7 @@ class AlertResource : public PublicApiResource
         unsigned short sendSMS
         (
             Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+            Wt::Dbo::ptr<Alert> alePtr,
             Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
             Wt::Dbo::ptr<AlertTracking> atrPtr,
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr

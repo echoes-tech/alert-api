@@ -508,46 +508,143 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
             amd->pk.userRole = amsPtr->mediaValue->user->userRole;
             amd->isCustom = false;
             
+            Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->session->find<AlertMessageAliasAsset>()
+                    .where("\"AAA_DELETE\" IS NULL")
+                    .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
+                    .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
+                    .where("\"AST_ID_AST_ID\" = ?").bind(assetPtr.id());
+            
+            Wt::Dbo::ptr<AlertMessageAliasPlugin> aliasPlugin = this->session->find<AlertMessageAliasPlugin>()
+                .where("\"AAP_DELETE\" IS NULL")
+                .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
+                .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(infoPtr->pk.search->pk.source->pk.plugin.id());
+            
+            Wt::Dbo::ptr<AlertMessageAliasInformation> aliasInformation = this->session->find<AlertMessageAliasInformation>()
+                .where("\"AAI_DELETE\" IS NULL")
+                .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
+                .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(infoPtr->pk.search->pk.source->pk.plugin.id())
+                .where("\"SRC_ID\" = ?").bind(infoPtr->pk.search->pk.source->pk.id)
+                .where("\"SEA_ID\" = ?").bind(infoPtr->pk.search->pk.id)
+                .where("\"INF_VALUE_NUM\" = ?").bind(infoPtr->pk.subSearchNumber)
+                .where("\"INU_ID_INU_ID\" = ?").bind(infoPtr->pk.unit);
+            
+            Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> aliasCriteria = this->session->find<AlertMessageAliasInformationCriteria>()
+                .where("\"AIC_DELETE\" IS NULL")
+                .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
+                .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
+                .where("\"PLG_ID_PLG_ID\" = ?").bind(infoPtr->pk.search->pk.source->pk.plugin.id())
+                .where("\"SRC_ID\" = ?").bind(infoPtr->pk.search->pk.source->pk.id)
+                .where("\"SEA_ID\" = ?").bind(infoPtr->pk.search->pk.id)
+                .where("\"INF_VALUE_NUM\" = ?").bind(infoPtr->pk.subSearchNumber)
+                .where("\"INU_ID_INU_ID\" = ?").bind(infoPtr->pk.unit)
+                .where("\"ACR_ID_ACR_ID\" = ?").bind(alePtr->alertValue->alertCriteria.id());
+                    
             switch (amsPtr->mediaValue->media.id())
             {
                 case Enums::SMS:
-                    amd->message = "New alert about : " + alePtr->name;
+                    amd->message = "[EA][%detection-time%] : ";
 
                     //TODO: à revoir pour les alertes complexes !!
 //                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
 //                    {
-                        amd->message += " on " + assetPtr->name;
+                    
+                    if (aliasAsset)
+                    {
+                        amd->message += " Serveur : " + aliasAsset->alias;
+                    }
+                    else
+                    {
+                        amd->message += " Serveur " + assetPtr->name;
+                    }
 
                         //we check if there is a key and get it if it's the case to put in the sms
                     //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
-                        if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
-                        {
-                           amd->message += " for : " + alePtr->alertValue->keyValue.get();
-                        }
-
-                        amd->message += " Received information : %value% " + infoPtr->pk.unit->name.toUTF8();
-                                + " expected : " + alePtr->alertValue->value + " " + infoPtr->pk.unit->name.toUTF8()
-                                + " at : %detection-time%";
+                    if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
+                    {
+                       amd->message += " Cle : " + alePtr->alertValue->keyValue.get();
+                    }
+                    
+                    if (aliasPlugin)
+                    {
+                        amd->message += " Application : " + aliasPlugin->alias;
+                    }
+                    else
+                    {
+                        amd->message += " Application : " + infoPtr->pk.search->pk.source->pk.plugin->name;
+                    }
+                    
+                    if (aliasInformation)
+                    {
+                         amd->message += " Information : " + aliasInformation->alias;
+                    }
+                    else
+                    {
+                        amd->message += " Information : " + infoPtr->name;
+                    }
+                    
+                    if (aliasCriteria)
+                    {
+                        amd->message += " Critere : " + aliasCriteria->alias + " " + infoPtr->pk.unit->name.toUTF8();
+                    }
+                    else
+                    {
+                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8();
+                    }
 //                    }
                     break;
                 case Enums::MAIL:
-
-                    amd->message = "Alert name : " + alePtr->name + "<br />";
+                    amd->message = "[EA][%detection-time%] : <br />";
 
                     //TODO: à revoir pour les alertes complexes !!
 //                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
 //                    {
-                        amd->message += "Asset name : " +  assetPtr->name + "<br />";
-                        if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
-                        {
-                           amd->message += "Key : " + alePtr->alertValue->keyValue.get() + "<br />";
-                        }
-                        amd->message += "Received value : %value% " + infoPtr->pk.unit->name.toUTF8() + "<br />"
-                                + "Criteria : " + alePtr->alertValue->alertCriteria->name + "<br />"
-                                + "Expected value : " + alePtr->alertValue->value + " " + infoPtr->pk.unit->name.toUTF8() + "<br />"
-                                + "Time : %detection-time%<br />";
-//                    }
-                    amd->message += "Check it on https://alert.echoes-tech.com";
+                    
+                    if (aliasAsset)
+                    {
+                        amd->message += " Serveur : " + aliasAsset->alias + "<br />";
+                    }
+                    else
+                    {
+                        amd->message += " Serveur " + assetPtr->name + "<br />";
+                    }
+
+                        //we check if there is a key and get it if it's the case to put in the sms
+                    //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
+                    if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
+                    {
+                       amd->message += " Cle : " + alePtr->alertValue->keyValue.get() + "<br />";
+                    }
+                    
+                    if (aliasPlugin)
+                    {
+                        amd->message += " Application : " + aliasPlugin->alias + "<br />";
+                    }
+                    else
+                    {
+                        amd->message += " Application : " + infoPtr->pk.search->pk.source->pk.plugin->name + "<br />";
+                    }
+                    
+                    if (aliasInformation)
+                    {
+                         amd->message += " Information : " + aliasInformation->alias + "<br />";
+                    }
+                    else
+                    {
+                        amd->message += " Information : " + infoPtr->name + "<br />";
+                    }
+                    
+                    if (aliasCriteria)
+                    {
+                        amd->message += " Critere : " + aliasCriteria->alias + " " + infoPtr->pk.unit->name.toUTF8() + "<br />";
+                    }
+                    else
+                    {
+                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8() + "<br />";
+                    }
+
+                    amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
                     break;
                 default:
                     Wt::log("error") << "[Alert Resource] Unknown ID Media: " << amsPtr->mediaValue->media.id();
@@ -611,6 +708,7 @@ unsigned short AlertResource::sendMAIL
     for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
           boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
+          boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
           boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
           boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
     }
@@ -637,6 +735,7 @@ unsigned short AlertResource::sendMAIL
 unsigned short AlertResource::sendSMS
 (
  Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+ Wt::Dbo::ptr<Alert> alePtr,
  Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
  Wt::Dbo::ptr<AlertTracking> atrPtr,
  Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
@@ -651,6 +750,7 @@ unsigned short AlertResource::sendSMS
     for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
           boost::replace_all(sms, "%value%", i->get()->value.toUTF8());
+          boost::replace_all(sms, "%threshold%", alePtr->alertValue->value.toUTF8());
           boost::replace_all(sms, "%detection-time%", i->get()->creationDate.toString().toUTF8());
           boost::replace_all(sms, "%alerting-time%", now.toString().toUTF8());
     }
@@ -796,7 +896,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                         Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
                                         optionValuePtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
                                         optionValuePtr.flush();                        
-                                        sendSMS(ivaPtrCollection, amdPtr, alertTrackingPtr, *i); 
+                                        sendSMS(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i); 
                                     }
                                 }
                                 catch(boost::bad_lexical_cast &)
