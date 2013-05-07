@@ -586,11 +586,37 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     
                     if (aliasCriteria)
                     {
-                        amd->message += " Critere : " + aliasCriteria->alias + " " + infoPtr->pk.unit->name.toUTF8();
+                        amd->message += " Critere : " + aliasCriteria->alias;
                     }
                     else
                     {
-                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8();
+                        std::string comp;
+                        if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("lt"))
+                        {
+                            comp="Inférieur";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("le"))
+                        {
+                            comp="Inférieur ou égal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("eq"))
+                        {
+                            comp="Egal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ne"))
+                        {
+                            comp="Différent";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ge"))
+                        {
+                            comp="Supérieur ou égal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("gt"))
+                        {
+                            comp="Supérieur";
+                        }
+                        amd->message += " Critere : %value% " + comp + " %threshold% " + infoPtr->pk.unit->name.toUTF8();
+//                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8();
                     }
 //                    }
                     break;
@@ -641,7 +667,33 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     }
                     else
                     {
-                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8() + "<br />";
+                        std::string comp;
+                        if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("lt"))
+                        {
+                            comp="Inférieur";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("le"))
+                        {
+                            comp="Inférieur ou égal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("eq"))
+                        {
+                            comp="Egal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ne"))
+                        {
+                            comp="Différent";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ge"))
+                        {
+                            comp="Supérieur ou égal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("gt"))
+                        {
+                            comp="Supérieur";
+                        }
+                        amd->message += " Critere : %value% " + comp + " %threshold% " + infoPtr->pk.unit->name.toUTF8() + "<br />";
+//                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8() + "<br />";
                     }
 
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
