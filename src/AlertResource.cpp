@@ -828,16 +828,16 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                     .where("\"ALE_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"ALE_DELETE\" IS NULL");
 
-            if (Utils::checkId<Alert>(alertPtr))
+            if (alertPtr)
             {
-                alertPtr.modify()->lastAttempt = Wt::WDateTime::currentDateTime();
-                
+                Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+
+                alertPtr.modify()->lastAttempt = now;
+
                 //TODO: verifier si les IVA correspondent bien aux INF de l'alerte
                 ivaPtrCollection = session->find<InformationValue>()
                     .where(ivaIDWhereString)
                     .where("\"IVA_DELETE\" IS NULL");
-                
-                Wt::WDateTime now = Wt::WDateTime::currentDateTime();
 
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertMediaSpecialization>>::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
                 {
@@ -867,64 +867,70 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                 .where("\"MED_ID_MED_ID\" = ?").bind(medID)
                                 .where("\"AMD_DELETE\" IS NULL")
                                 .limit(1);
-                        
-                        switch (medID)
+
+                        if (amdPtr)
                         {
-                            case Enums::SMS:
+                            switch (medID)
                             {
-                                Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
-
-                                // Verifying the quota of sms
-                                Wt::Dbo::ptr<OptionValue> optionValuePtr = session->find<OptionValue>()
-                                        .where("\"OPT_ID_OPT_ID\" = ?").bind(Enums::QUOTA_SMS)
-                                        .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->currentOrganization.id())
-                                        .limit(1);
-
-                                try
+                                case Enums::SMS:
                                 {
-                                    int smsQuota = boost::lexical_cast<int>(optionValuePtr->value); 
-                                    if (smsQuota == 0)
-                                    {
+                                    Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
 
-                                        Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alertPtr->name;
-                                        Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
+                                    // Verifying the quota of sms
+                                    Wt::Dbo::ptr<OptionValue> optionValuePtr = session->find<OptionValue>()
+                                            .where("\"OPT_ID_OPT_ID\" = ?").bind(Enums::QUOTA_SMS)
+                                            .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->currentOrganization.id())
+                                            .limit(1);
 
-                                        sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i, true);
-                                    }
-                                    else
+                                    try
                                     {
-                                        Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
-                                        optionValuePtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
-                                        optionValuePtr.flush();                        
-                                        sendSMS(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i); 
+                                        int smsQuota = boost::lexical_cast<int>(optionValuePtr->value); 
+                                        if (smsQuota == 0)
+                                        {
+
+                                            Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alertPtr->name;
+                                            Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
+
+                                            sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i, true);
+                                        }
+                                        else
+                                        {
+                                            Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
+                                            optionValuePtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
+                                            optionValuePtr.flush();                        
+                                            sendSMS(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i); 
+                                        }
                                     }
+                                    catch(boost::bad_lexical_cast &)
+                                    {
+                                        res = 503;
+                                        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
+                                    }
+                                    break;
                                 }
-                                catch(boost::bad_lexical_cast &)
-                                {
-                                    res = 503;
-                                    responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
-                                }
-                                break;
+                                case Enums::MAIL:
+                                    Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;
+                                    sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
+                                    break;
+                                default:
+                                    Wt::log("error") << "[Alert Resource] Unknown ID Media: " << medID;
+                                    break;
                             }
-                            case Enums::MAIL:
-                                Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;
-                                sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
-                                break;
-                            default:
-                                Wt::log("error") << "[Alert Resource] Unknown ID Media: " << medID;
-                                break;
+                        }
+                        else
+                        {
+                            Wt::log("debug") << "[Alert Resource] Undefined AlertMessageDefition";
                         }
                     }
                     else
                     {
-                        Wt::log("debug") << " [Class:AlertSender] "
+                        Wt::log("debug") << "[Alert Resource] "
                                 << "Last time we send the alert : " << alertPtr->name
                                 << "was : " << i->get()->lastSend.toString()
                                 << "the snooze for the media " << i->get()->mediaValue->media->name
                                 << " is : " << i->get()->snoozeDuration << "secs,  it's not the time to send the alert";  
                     }
                 }
-                res = 201;
             }
             else 
             {
