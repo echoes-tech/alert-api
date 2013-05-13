@@ -680,7 +680,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     
                     if (aliasCriteria)
                     {
-                        amd->message += " Critere : " + aliasCriteria->alias + " " + infoPtr->pk.unit->name.toUTF8() + "<br />";
+                        amd->message += " Critere : " + aliasCriteria->alias + "<br />";
                     }
                     else
                     {
@@ -709,8 +709,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                         {
                             comp="Supérieur";
                         }
-                        amd->message += " Critere : %value% " + comp + " %threshold% " + infoPtr->pk.unit->name.toUTF8() + "<br />";
-//                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8() + "<br />";
+                        amd->message += " Critere : %value% %unit%" + comp + " %threshold% %unit%<br />";
                     }
 
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
@@ -780,6 +779,8 @@ unsigned short AlertResource::sendMAIL
           boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
           boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
           boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
+          boost::replace_all(mailBody, "%unit%", i->get()->information->pk.unit->name.toUTF8());
+          
     }
 
     Wt::log("info") << " [Alert Resource] " << mailBody;     
@@ -1000,6 +1001,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                 << " is : " << i->get()->snoozeDuration << "secs,  it's not the time to send the alert";  
                     }
                 }
+                res = 201;
             }
             else 
             {
