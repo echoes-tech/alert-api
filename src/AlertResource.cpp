@@ -105,6 +105,67 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg) const
     return res;
 }
 
+unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg) const
+{
+    responseMsg="";
+    unsigned short res = 500;
+    int idx = 0;
+    
+    try 
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+         
+        string queryString = ("SELECT atr FROM \"T_ALERT_TRACKING_ATR\" atr"
+       " WHERE \"ATR_ALE_ALE_ID\" IN"
+       " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\""
+       " WHERE \"AMS_MEV_MEV_ID\" IN "
+       " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\""
+       " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(session->user().id()) +
+       " and \"MEV_MED_MED_ID\" = " + this->media +
+                "))"
+       " ORDER BY \"ATR_SEND_DATE\" DESC"
+       " LIMIT 20");
+          
+        Wt::Dbo::Query<Wt::Dbo::ptr<AlertTracking> > queryRes = session->query<Wt::Dbo::ptr<AlertTracking> >(queryString);
+
+         Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> > aleTrackingPtr = queryRes.resultList(); 
+
+        if (aleTrackingPtr.size() > 0)
+        {
+            responseMsg = "[\n"; 
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking>>::const_iterator i = aleTrackingPtr.begin(); i != aleTrackingPtr.end(); ++i) 
+            {
+                i->modify()->setId(i->id());
+                
+                responseMsg += i->modify()->toJSON();
+                 ++idx;
+                if(aleTrackingPtr.size()-idx > 0)
+                {
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg += "\n]\n";
+            res = 200;
+
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Not found\"}";
+        }
+
+        transaction.commit();
+        
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    return res;
+}
+
 unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
 {
     responseMsg="";
@@ -116,13 +177,14 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
 
         string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
             " WHERE atr.\"ATR_ALE_ALE_ID\" = ale.\"ALE_ID\" "
-            " AND ale.\"ALE_DELETE\" IS NULL "
             " AND atr.\"ATR_MEV_MEV_ID\" = mev.\"MEV_ID\" "
             " AND mev.\"MEV_USR_USR_ID\" IN"
             "("
                 "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
-                + boost::lexical_cast<string>(this->session->user()->currentOrganization.id()) + ""
-            ")";
+                + boost::lexical_cast<string>(this->session->user()->currentOrganization.id()) + " "
+            ")"
+            " order by \"ATR_SEND_DATE\" desc "
+            " limit 50";
         Wt::Dbo::Query
                 <
                 boost::tuple
@@ -315,26 +377,34 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
     {
         if(!nextElement.compare("tracking"))
         {
-            this->statusCode = getTrackingAlertList(responseMsg) ;
+            nextElement = getNextElementFromPath();
+             if(!nextElement.compare("messages"))
+                {
+                    this->statusCode = getTrackingAlertMessage(responseMsg);
+                }
+                else
+                {
+                   this->statusCode = getTrackingAlertList(responseMsg) ;
+                }
         }
         else
         { 
             try
             {
-                boost::lexical_cast<unsigned long long>(nextElement);
+                    boost::lexical_cast<unsigned long long>(nextElement);
 
-                nextElement = getNextElementFromPath();
+                    nextElement = getNextElementFromPath();
 
-                if(!nextElement.compare("recipients"))
-                {
-                    this->statusCode = getRecipientsForAlert(responseMsg);
+                    if(!nextElement.compare("recipients"))
+                    {
+                        this->statusCode = getRecipientsForAlert(responseMsg);
+                    }
+                    else
+                    {
+                        this->statusCode = 400;
+                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                    }
                 }
-                else
-                {
-                    this->statusCode = 400;
-                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                }
-            }
             catch(boost::bad_lexical_cast &)
             {
                 this->statusCode = 400;
@@ -796,7 +866,8 @@ unsigned short AlertResource::sendMAIL
     amsPtr.modify()->lastSend = now;
 
     atrPtr.modify()->sendDate = now;
-
+    atrPtr.modify()->content = mailBody;
+    
     res = Enums::OK;
     
     return res;
@@ -829,6 +900,9 @@ unsigned short AlertResource::sendSMS
 
     ItookiSMSSender itookiSMSSender(amsPtr->mediaValue->value.toUTF8(), sms, this);
     itookiSMSSender.setAlertTrackingPtr(atrPtr);
+    
+    atrPtr.modify()->content = sms;
+    
     if(!itookiSMSSender.send())
     {
         amsPtr.modify()->lastSend = now;
@@ -854,7 +928,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
 
             Wt::Json::parse(sRequest, result);
             
-            Wt::Json::Array array = result.get("alert_ids");
+            Wt::Json::Array array = result.get("alert_ids"); 
 
             for (Wt::Json::Array::const_iterator i = array.begin(); i != array.end(); ++i)
             {
@@ -1160,6 +1234,12 @@ void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
 void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
+    this->media = "";
+    
+    if (!request.getParameterValues("media").empty())
+    {
+        this->media = request.getParameterValues("media")[0];
+    }
     // Create Session and Check auth
     PublicApiResource::handleRequest(request, response);
     return;

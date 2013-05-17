@@ -32,6 +32,7 @@ class AlertResource : public PublicApiResource
         
     protected:
         unsigned short getRecipientsForAlert(std::string &responseMsg) const;       
+        unsigned short getTrackingAlertMessage(std::string &responseMsg) const;
         unsigned short getTrackingAlertList(std::string &responseMsg) const;
         unsigned short getAlerts(std::string &responseMsg) const;
         virtual void processGetRequest(Wt::Http::Response &response);
@@ -87,6 +88,8 @@ class AlertResource : public PublicApiResource
         virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        
+        std::string media;
 };
 #endif	/* ALERTRESOURCE_H */
 
