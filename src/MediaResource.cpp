@@ -36,7 +36,8 @@ unsigned short MediaResource::getListValueForMedia(string &responseMsg) const
         Wt::Dbo::Transaction transaction(*this->session);
         Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> > medias = session->find<MediaValue>()
                 .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<string>(this->session->user().id()))
-                .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1]);
+                .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"MEV_DELETE\" is NULL");
         if (medias.size() > 0)
         {
             responseMsg = "[\n";
@@ -80,11 +81,12 @@ unsigned short MediaResource::getMedia(string &responseMsg) const
         string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
                 " ("
                 " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
-                " WHERE \"MEV_USR_USR_ID\" IN "
-                " (Select \"T_USER_USR_USR_ID\" "
-                " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (session->user()->currentOrganization.id()) +
-                " )"
+                " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(this->session->user().id()) +
+//                " (Select \"T_USER_USR_USR_ID\" "
+//                " FROM \"TJ_USR_ORG\" "
+//                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (session->user()->currentOrganization.id()) +  
+//                " )"
+                " AND \"MEV_DELETE\" IS NULL"
                 " )"
                 " AND \"MED_DELETE\" IS NULL";
  

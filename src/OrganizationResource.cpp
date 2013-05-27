@@ -157,6 +157,113 @@ unsigned short OrganizationResource::getRolesForOrganization(std::string &respon
     return res;
 }
 
+ unsigned short OrganizationResource::getMediasForUserForOrganization(std::string &responseMsg) const
+ {
+ unsigned short res = 500;
+    unsigned idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
+                " ("
+                " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
+                " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(vPathElements[2]) +
+                " AND \"MEV_DELETE\" IS NULL"
+                " )"
+                " AND \"MED_DELETE\" IS NULL";
+ 
+        Wt::Dbo::Query<Wt::Dbo::ptr<Media> > queryRes = session->query<Wt::Dbo::ptr<Media> >(queryStr);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Media> > media = queryRes.resultList();
+        
+        if (media.size() > 0)
+        {
+            responseMsg += "[\n";
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
+            {
+                i->modify()->setId(i->id());
+                responseMsg += "\t" + i->modify()->toJSON();
+                ++idx;
+                if(media.size()-idx > 0)
+                {
+                    responseMsg += ",\n";
+                }
+            }
+            responseMsg += "\n]\n";               
+
+            res = 200;
+        }
+        else 
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Media not found\"}";
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    return res;
+ }
+ 
+unsigned short OrganizationResource::getMediasValuesForUserForOrganization(std::string &responseMsg) const
+{
+    unsigned short res = 500;
+    int idx = 0;
+    try
+    {
+        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(vPathElements[2])
+                                                         .where("\"CURRENT_ORG_ID\" = ?").bind(session->user().get()->currentOrganization.id())
+                                                        .where("\"USR_DELETE\" is NULL");
+        if(user)
+        {
+            Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue>> mediaValues = session->find<MediaValue>().where("\"MEV_USR_USR_ID\" = ?").bind(user.id())
+                                                                                                   .where("\"MEV_MED_MED_ID\" = ?").bind(vPathElements[4])
+                                                                                                   .where("\"MEV_DELETE\" is NULL");
+            responseMsg = "[\n";
+            if(mediaValues.size() > 0)
+            {
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = mediaValues.begin(); i != mediaValues.end(); i++) 
+                {
+                    i->modify()->setId(i->id());
+                    responseMsg += "\t" + i->modify()->toJSON();
+                    ++idx;
+                    if(mediaValues.size()-idx > 0)
+                    {
+                        responseMsg += ",\n";
+                    }
+                }
+                responseMsg += "\n]\n";
+                res = 200;
+            }
+            else
+            {
+                responseMsg = "{\"message\":\"Media value not found\"}";
+                 res = 404;
+            }
+        }
+        else 
+        {
+             responseMsg = "{\"message\":\"User not found\"}";
+             res = 404;
+        }
+        
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    return res;
+}
+
 unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg) const
 {
     unsigned short res = 500;
@@ -258,7 +365,53 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
         }
         else if(!nextElement.compare("users"))
         {
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare(""))
+            {
             this->statusCode = getUsersForOrganization(responseMsg);
+            }
+            else
+            {
+                try
+                {
+                    boost::lexical_cast<unsigned long long>(nextElement);
+
+                    nextElement = getNextElementFromPath();
+
+                    if(!nextElement.compare("medias"))
+                    {
+                        nextElement = getNextElementFromPath();
+                        if(!nextElement.compare(""))
+                        {
+                            this->statusCode =  getMediasForUserForOrganization(responseMsg);
+                        }
+                        else
+                        {
+                            boost::lexical_cast<unsigned long long>(nextElement);
+                            nextElement = getNextElementFromPath();
+                            if(!nextElement.compare(""))
+                            {
+                                this->statusCode = getMediasValuesForUserForOrganization(responseMsg);
+                            }
+                            else
+                            {
+                                this->statusCode = 400;
+                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        this->statusCode = 400;
+                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                    }
+                }
+                catch(boost::bad_lexical_cast &)
+                {
+                    this->statusCode = 400;
+                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }             
+            }
         }
         else if(!nextElement.compare("roles"))
         {
