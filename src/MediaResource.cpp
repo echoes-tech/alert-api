@@ -276,6 +276,7 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
             ams->mediaValue = mevPtr;
             ams->notifEndOfAlert = false;
             amsPtr = session->add<AlertMediaSpecialization>(ams);
+            amsPtr.flush();
             amsPtr.modify()->setId(amsPtr.id());
             responseMsg = amsPtr.modify()->toJSON();
             res = 200;
