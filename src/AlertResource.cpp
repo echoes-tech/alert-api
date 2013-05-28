@@ -423,7 +423,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
 {
     unsigned short res = 500;
     Wt::WString alertName, keyVal, alertValue;
-    long long astId, seaId, srcId, plgId, infValNum, inuId, acrId, uroId;
+    long long astId, seaId, srcId, plgId, infValNum, inuId, acrId;//, uroId;
     int threadSleep;
     Wt::Json::Array& amsId = Wt::Json::Array::Empty;
     try
@@ -458,7 +458,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         amsId = result.get("ams_id");
         
         //userRole
-        uroId = result.get("uro_id");
+//        uroId = result.get("uro_id");
     }
     catch (Wt::Json::ParseError const& e)
     {
@@ -545,16 +545,16 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
     {
         Wt::Dbo::Transaction transaction(*session);
 
-        Wt::Dbo::ptr<UserRole> uroPtr = session->find<UserRole>()
-                .where("\"URO_ID\" = ?").bind(uroId);
-        
-        if(!uroPtr)
-        {
-            Wt::log("info") << "user_role not found or not available";
-            res = 404;
-            responseMsg = "{\"message\":\"Role not found\"}";
-            return res;
-        }
+//        Wt::Dbo::ptr<UserRole> uroPtr = session->find<UserRole>()
+//                .where("\"URO_ID\" = ?").bind(uroId);
+//        
+//        if(!uroPtr)
+//        {
+//            Wt::log("info") << "user_role not found or not available";
+//            res = 404;
+//            responseMsg = "{\"message\":\"Role not found\"}";
+//            return res;
+//        }
          
         
         Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>()
@@ -587,6 +587,20 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         {
             Wt::WString tmp = idx2->toString();
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp);
+            
+            
+            Wt::Dbo::ptr<UserRole> uroPtr = session->find<UserRole>()
+                .where("\"URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole);
+        
+            if(!uroPtr)
+            {
+                Wt::log("info") << "user_role not found or not available";
+                res = 404;
+                responseMsg = "{\"message\":\"Role not found\"}";
+                return res;
+            }
+            
+            
             amsPtr.modify()->alert = alePtr;
             
             AlertMessageDefinition *amd = new AlertMessageDefinition();
