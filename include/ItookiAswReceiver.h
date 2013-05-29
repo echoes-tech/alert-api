@@ -10,6 +10,8 @@
 
 #include <Wt/WResource>
 
+#include "Conf.h"
+
 class ItookiAswReceiver : public Wt::WResource
 {
     public:
@@ -24,7 +26,7 @@ class ItookiAswReceiver : public Wt::WResource
         
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            Session session(Utils::connection);
+            Session session(conf.getSessConnectParams());
 
             Wt::log("notice") << "[ASW] Query string : " << request.queryString();
             
@@ -40,13 +42,8 @@ class ItookiAswReceiver : public Wt::WResource
             {
                 this->message = request.getParameterValues("message")[0];
             }
-            
-            
 
-
-            
             // new transaction
-            
             try
             {
                 Wt::Dbo::Transaction transaction(session);

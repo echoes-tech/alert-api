@@ -14,10 +14,7 @@
 #ifndef CONF_H
 #define	CONF_H
 
-#include <boost/config.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-
+#include <Wt/WServer>
 #include <Wt/WLogger>
 
 class Conf {
@@ -26,31 +23,48 @@ class Conf {
         Conf(const Conf& orig);
         virtual ~Conf();
 
+        /**
+         * Reads ECHOES configuration properties.
+         * @param WServer
+         * @return true if every value are defined or false
+         */
+        bool readProperties(Wt::WServer& server);
+
         std::string getDBHost() const;
         unsigned getDBPort() const;
         std::string getDBName() const;
         std::string getDBUser() const;
         std::string getDBPassword() const;
         std::string getSessConnectParams() const;
+        std::string getSMTPHost() const;
+        unsigned getSMTPPort() const;
+        std::string getAlertMailSenderAddress() const;
+        std::string getAlertMailSenderName() const;       
 
     protected:
-        std::string _dBhost, _dBname, _dBuser, _dBpassword, _sessConnectParams;
-        unsigned _dBport;
+        std::string _dbHost, _dbName, _dbUser, _dbPassword, _sessConnectParams, _smtpHost, _alertMailSenderName, _alertMailSenderAddress;
+        unsigned _dbPort, _smtpPort;
 
-        void setDBpassword(std::string dBpassword);
-        void setDBport(unsigned _dBport);
-        void setDBuser(std::string dBuser);
-        void setDBname(std::string dBname);
-        void setDBhost(std::string dBhost);
+        void setDBPassword(std::string dbPassword);
+        void setDBPort(unsigned dbPort);
+        void setDBUser(std::string dbUser);
+        void setDBName(std::string dbName);
+        void setDBHost(std::string dbHost);
         void setSessConnectParams
         (
-                std::string dBhost,
-                unsigned dBport,
-                std::string dBname,
-                std::string dBuser,
-                std::string dBpassword
+                std::string dbHost,
+                unsigned dbPort,
+                std::string dbName,
+                std::string dbUser,
+                std::string dbPassword
         );
+        void setSMTPPort(unsigned smtpPort);
+        void setAlertMailSenderAddress(std::string alertMailSenderAddress);
+        void setAlertMailSenderName(std::string alertMailSenderName);
+        void setSMTPHost(std::string smtpHost);
 };
+
+extern Conf conf;
 
 #endif	/* CONF_H */
 

@@ -116,7 +116,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 {
     Wt::log("info") << "[PUBLIC API] Identifying";
     // Setting the session
-    session = new Session(Utils::connection);
+    session = new Session(conf.getSessConnectParams());
 
     // default : not authentified
     this->authentified = false;

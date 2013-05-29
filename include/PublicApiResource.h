@@ -37,6 +37,7 @@
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
 
+#include "Conf.h"
 #include "Utils.h"
 
 class PublicApiResource : public Wt::WResource {

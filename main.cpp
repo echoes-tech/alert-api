@@ -11,8 +11,8 @@
  * 
  */
 
-#include <boost/thread/thread.hpp>
-#include <Wt/WServer>
+#include <signal.h>
+
 #include <tools/SessionPool.h>
 
 #include "Conf.h"
@@ -35,12 +35,10 @@
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
 
-#include "SendSMS.h"
-#include "SrReception.h"
+//#include "SendSMS.h"
+//#include "SrReception.h"
 
 using namespace std;
-
-string Utils::connection;
 
 SessionPool* SessionPool::instance = 0;
 string SessionPool::credentials = "";
@@ -53,76 +51,90 @@ Point d'entrée du programme.
 */
 int main(int argc, char **argv)
 {
-    Conf *conf = new Conf();
-
-    Utils::connection = conf->getSessConnectParams();
+    int res = EXIT_FAILURE;
 
     try
     {
-        SearchTypeResource searchTypeResource;
-        AddonResource addonResource;
-        CriterionResource criteriaResource;
-        UnitResource unitResource;
-        OrganizationResource organizationRessource;
-        InformationResource informationRessource;
-        MediaResource  mediaResource;
-        PluginResource pluginResource;
-        UserResource   userResource;
-        AlertResource  alertResource;
-        AssetResource  assetResource;
-        ProbeResource  probeResource;
-        // NetSize
-//        SrReception     receiveSr;
-//        SendSMS         sendSMS;
-        ItookiAckReceiver itookiAckReceiver;
-        ItookiAswReceiver itookiAswReceiver;
-//        TestSrAPI       testAPI;
-//        FakeNetsize     fakeN;
-        
-        // On passe le premier paramètre d'entrée au serveur
+        // use argv[0] as the application name to match a suitable entry
+        // in the Wt configuration file
         Wt::WServer server(argv[0]);
+
         // On définit la configuration du serveur en lui passant les paramètres d'entrée et son fichier de configuration
         server.setServerConfiguration(argc, argv);
-        // On fixe le point d'entrée du programme (type de point d'entée, méthode à appeler, uri, chemin favicon)
-//        server.addEntryPoint(Wt::Application, createEchoesHomeApplication,"", "/favicon.ico");
-        
-        server.addResource(&searchTypeResource, "/search_types");
-        server.addResource(&addonResource, "/addons");
-        server.addResource(&criteriaResource, "/criteria");
-        server.addResource(&unitResource, "/units");
-        server.addResource(&organizationRessource, "/organizations");
-        server.addResource(&informationRessource, "/informations");
-        server.addResource(&mediaResource, "/medias");
-        server.addResource(&userResource, "/users");
-        server.addResource(&alertResource, "/alerts");
-        server.addResource(&assetResource, "/assets");
-        server.addResource(&probeResource, "/probes");
-        server.addResource(&pluginResource, "/plugins");
-//        server.addResource(&receiveSr, "/netsize/sr");
-//        server.addResource(&sendSMS, "/netsize/send");
-        server.addResource(&itookiAckReceiver, "/itooki/ack");
-        server.addResource(&itookiAswReceiver, "/itooki/asw");
-//        server.addResource(&testAPI, "/test");
-//        server.addResource(&fakeN, "/fake");
-        
-        Session::configureAuth();
-        
-        // démarrage du serveur en arrière plan
-        if (server.start())
+
+        if (conf.readProperties(server))
         {
-            // méthode qui bloque le thread courant en attendant le signal d'exctinction
-            Wt::WServer::waitForShutdown();
-            server.stop();
+            AddonResource        addonResource;
+            AlertResource        alertResource;
+            AssetResource        assetResource;
+            CriterionResource    criteriaResource;
+            InformationResource  informationRessource;
+            MediaResource        mediaResource;
+            OrganizationResource organizationRessource;
+            PluginResource       pluginResource;
+            ProbeResource        probeResource;
+            SearchTypeResource   searchTypeResource;
+            UnitResource         unitResource;
+            UserResource         userResource;
+            ItookiAckReceiver    itookiAckReceiver;
+            ItookiAswReceiver    itookiAswReceiver;
+            // NetSize
+//            SrReception     receiveSr;
+//            SendSMS         sendSMS;
+            // Tests
+//            TestSrAPI       testAPI;
+//            FakeNetsize     fakeN;
+
+            server.addResource(&searchTypeResource, "/search_types");
+            server.addResource(&addonResource, "/addons");
+            server.addResource(&criteriaResource, "/criteria");
+            server.addResource(&unitResource, "/units");
+            server.addResource(&organizationRessource, "/organizations");
+            server.addResource(&informationRessource, "/informations");
+            server.addResource(&mediaResource, "/medias");
+            server.addResource(&userResource, "/users");
+            server.addResource(&alertResource, "/alerts");
+            server.addResource(&assetResource, "/assets");
+            server.addResource(&probeResource, "/probes");
+            server.addResource(&pluginResource, "/plugins");
+            server.addResource(&itookiAckReceiver, "/itooki/ack");
+            server.addResource(&itookiAswReceiver, "/itooki/asw");
+            // NetSize
+//            server.addResource(&receiveSr, "/netsize/sr");
+//            server.addResource(&sendSMS, "/netsize/send");
+            // Tests
+//            server.addResource(&testAPI, "/test");
+//            server.addResource(&fakeN, "/fake");
+
+            Session::configureAuth();
+
+            // démarrage du serveur en arrière plan
+            if (server.start())
+            {
+                // méthode qui bloque le thread courant en attendant le signal d'exctinction
+                int sig = Wt::WServer::waitForShutdown(argv[0]);
+
+                Wt::log("info") << "[Main] Shutdown (signal = " << sig << ")";
+
+                server.stop();
+
+                if (sig == SIGHUP)
+                    Wt::WServer::restart(argc, argv, environ);
+
+                res = EXIT_SUCCESS;
+            }
         }
+        else
+            Wt::log("fatal") << "[Main] Every properties are not correctly set in " << WT_CONFIG_XML;
     }
     catch (Wt::WServer::Exception& e)
     {
         cerr << e.what() << endl;
     }
-    catch (exception &e)
+    catch (exception& e)
     {
         cerr << "exception: " << e.what() << endl;
     }
-    
-    delete conf;
+
+    return res;
 }

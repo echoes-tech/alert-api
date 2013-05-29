@@ -14,13 +14,13 @@
 #ifndef ALERTRESOURCE_H
 #define	ALERTRESOURCE_H
 
-#include "PublicApiResource.h"
-
 #include <Wt/Mail/Client>
 #include <Wt/Mail/Message>
 
 #include <tools/Enums.h>
 
+#include "Conf.h"
+#include "PublicApiResource.h"
 #include "itooki/ItookiSMSSender.h"
 
 class AlertResource : public PublicApiResource

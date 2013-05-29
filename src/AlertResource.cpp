@@ -388,28 +388,28 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
                 }
         }
         else
-        { 
+        {
             try
             {
-                    boost::lexical_cast<unsigned long long>(nextElement);
+                boost::lexical_cast<unsigned long long>(nextElement);
 
-                    nextElement = getNextElementFromPath();
+                nextElement = getNextElementFromPath();
 
-                    if(!nextElement.compare("recipients"))
-                    {
-                        this->statusCode = getRecipientsForAlert(responseMsg);
-                    }
-                    else
-                    {
-                        this->statusCode = 400;
-                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                    }
+                if (!nextElement.compare("recipients"))
+                {
+                    this->statusCode = getRecipientsForAlert(responseMsg);
                 }
-            catch(boost::bad_lexical_cast &)
+                else
+                {
+                    this->statusCode = 400;
+                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+            }
+            catch (boost::bad_lexical_cast &)
             {
                 this->statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }             
+            }
         }
     }
    
@@ -845,21 +845,20 @@ unsigned short AlertResource::sendMAIL
     //TODO: à revoir pour les alertes complexes !!
     for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
-          boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
-          boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
-          boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
-          boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
-          boost::replace_all(mailBody, "%unit%", i->get()->information->pk.unit->name.toUTF8());
-          
+        boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
+        boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
+        boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+        boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
+        boost::replace_all(mailBody, "%unit%", i->get()->information->pk.unit->name.toUTF8());
     }
 
-    Wt::log("info") << " [Alert Resource] " << mailBody;     
-    
-    mailMessage.setFrom(Wt::Mail::Mailbox("alert@echoes-tech.com", "ECHOES Alert"));
+    Wt::log("info") << " [Alert Resource] " << mailBody;
+
+    mailMessage.setFrom(Wt::Mail::Mailbox(conf.getAlertMailSenderAddress(), conf.getAlertMailSenderName()));
     mailMessage.addRecipient(Wt::Mail::To, Wt::Mail::Mailbox(mailRecipient.toUTF8(), mailRecipientName));
     mailMessage.setSubject("[ECHOES Alert] " + alePtr->name);
     mailMessage.addHtmlBody(mailBody);
-    mailClient.connect("hermes.gayuxweb.fr");
+    mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
     mailClient.send(mailMessage);
 
     Wt::log("info") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
@@ -867,9 +866,9 @@ unsigned short AlertResource::sendMAIL
 
     atrPtr.modify()->sendDate = now;
     atrPtr.modify()->content = mailBody;
-    
+
     res = Enums::OK;
-    
+
     return res;
 }
 

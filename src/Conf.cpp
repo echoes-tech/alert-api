@@ -15,128 +15,174 @@
 
 using namespace std;
 
+Conf conf;
+
 Conf::Conf()
 {
-    // Create an empty property tree object
-    using boost::property_tree::ptree;
-    ptree pt;
-    
-    // Load the INI file into the property tree. If reading fails
-    // (cannot open file, parse error), an exception is thrown.
-    try
-    {
-        boost::property_tree::read_ini("api.conf", pt);
-        setDBhost(pt.get<string>("database.host"));
-        setDBport(pt.get<unsigned>("database.port"));
-        setDBname(pt.get<string>("database.name"));
-        setDBuser(pt.get<string>("database.user"));
-        setDBpassword(pt.get<string>("database.password"));
-        
-    }
-    catch (boost::property_tree::ini_parser_error e)
-    {
-        Wt::log("error") << "[CONF] " << e.what();
-    }
-    
-    setSessConnectParams(_dBhost, _dBport, _dBname, _dBuser, _dBpassword);
 }
 
 Conf::Conf(const Conf& orig)
 {
-    setDBhost(orig.getDBHost());
-    setDBport(orig.getDBPort());
-    setDBname(orig.getDBName());
-    setDBuser(orig.getDBUser());
-    setDBpassword(orig.getDBPassword());
-    setSessConnectParams(_dBhost, _dBport, _dBname, _dBuser, _dBpassword);
+    setDBHost(orig.getDBHost());
+    setDBPort(orig.getDBPort());
+    setDBName(orig.getDBName());
+    setDBUser(orig.getDBUser());
+    setDBPassword(orig.getDBPassword());
+    setSessConnectParams(_dbHost, _dbPort, _dbName, _dbUser, _dbPassword);
+    setSMTPHost(orig.getSMTPHost());
+    setSMTPPort(orig.getSMTPPort());
 }
 
 Conf::~Conf()
 {
 }
 
-void Conf::setDBhost(string dBhost)
+bool Conf::readProperties(Wt::WServer& server)
 {
-    _dBhost = dBhost;
+    Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML;
+
+    bool res = false;
+    string dbHost = "", dbPort = "", dbName = "", dbUser = "", dbPassword = "", smtpHost = "", smtpPort = "", alertMailSenderName = "", alertMailSenderAddress = "";
+
+    if
+      (
+       server.readConfigurationProperty("db-host", dbHost)
+       && server.readConfigurationProperty("db-port", dbPort)
+       && server.readConfigurationProperty("db-name", dbName)
+       && server.readConfigurationProperty("db-user", dbUser)
+       && server.readConfigurationProperty("db-password", dbPassword)
+      )
+    {
+        setDBHost(dbHost);
+        try
+        {
+            setDBPort(boost::lexical_cast<unsigned>(dbPort));
+        }
+        catch (boost::bad_lexical_cast &)
+        {
+             Wt::log("error") << "[Conf] Property named 'db-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
+             return res;
+        }
+        setDBName(dbName);
+        setDBUser(dbUser);
+        setDBPassword(dbPassword);
+
+        setSessConnectParams(_dbHost, _dbPort, _dbName, _dbUser, _dbPassword);
+
+        if (server.readConfigurationProperty("smtp-host", smtpHost) && server.readConfigurationProperty("smtp-port", smtpPort))
+        {
+            setSMTPHost(smtpHost);
+            try
+            {
+                setSMTPPort(boost::lexical_cast<unsigned>(smtpPort));
+            }
+            catch (boost::bad_lexical_cast &)
+            {
+                 Wt::log("error") << "[Conf] Property named 'smtp-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
+                 return res;
+            }
+            
+            if (server.readConfigurationProperty("alert-mail-sender-name", alertMailSenderName))
+                setAlertMailSenderName(alertMailSenderName);
+            else
+            {
+                setAlertMailSenderName("ECHOES Alert");
+                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-name' is set 'ECHOES Alert' because it is not set in " << WT_CONFIG_XML << ".";
+            }
+            
+            if (server.readConfigurationProperty("alert-mail-sender-address", alertMailSenderAddress))
+                setAlertMailSenderName(alertMailSenderAddress);
+            else
+            {
+                setAlertMailSenderName("noreply-alert@echoes-tech.com");
+                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-address' is set 'noreply-alert@echoes-tech.com' because it is not set in " << WT_CONFIG_XML << ".";
+            }
+
+            res = true;
+        }
+        else
+            Wt::log("error") << "[Conf] Incomplete SMTP properties in " << WT_CONFIG_XML;
+    }
+    else
+        Wt::log("error") << "[Conf] Incomplete DB properties in " << WT_CONFIG_XML;
+    
+    return res;
+}
+
+void Conf::setDBHost(string dbHost)
+{
+    _dbHost = dbHost;
 
     return;
 }
 
 string Conf::getDBHost() const
 {
-    return _dBhost;
+    return _dbHost;
 }
 
-void Conf::setDBport(unsigned dBport)
+void Conf::setDBPort(unsigned dbPort)
 {
-    _dBport = dBport;
+    _dbPort = dbPort;
 
     return;
 }
 
 unsigned Conf::getDBPort() const
 {
-    return _dBport;
+    return _dbPort;
 }
 
-void Conf::setDBname(string dBname)
+void Conf::setDBName(string dbName)
 {
-    _dBname = dBname;
+    _dbName = dbName;
 
     return;
 }
 
 string Conf::getDBName() const
 {
-    return _dBname;
+    return _dbName;
 }
 
-void Conf::setDBuser(string dBuser)
+void Conf::setDBUser(string dbUser)
 {
-    _dBuser = dBuser;
+    _dbUser = dbUser;
 
     return;
 }
 
 string Conf::getDBUser() const
 {
-    return _dBuser;
+    return _dbUser;
 }
 
-void Conf::setDBpassword(string dBpassword)
+void Conf::setDBPassword(string dbPassword)
 {
-    _dBpassword = dBpassword;
+    _dbPassword = dbPassword;
 
     return;
 }
 
 string Conf::getDBPassword() const
 {
-    return _dBpassword;
+    return _dbPassword;
 }
 
 void Conf::setSessConnectParams
 (
-        string dBhost,
-        unsigned dBport,
-        string dBname,
-        string dBuser,
-        string dBpassword
+    string dbHost,
+    unsigned dbPort,
+    string dbName,
+    string dbUser,
+    string dbPassword
 )
 {   
-    try
-    {
-        _sessConnectParams = "hostaddr=" + dBhost +
-                             " port=" + boost::lexical_cast<string>(dBport) +
-                             " dbname=" + dBname +
-                             " user=" + dBuser +
-                             " password=" + dBpassword;
-    }
-    catch (boost::bad_lexical_cast &)
-    {
-         Wt::log("error") << "[Conf] sdPort is not an unsigned";
-    }
-
+    _sessConnectParams = "hostaddr=" + dbHost +
+                         " port=" + boost::lexical_cast<string>(dbPort) +
+                         " dbname=" + dbName +
+                         " user=" + dbUser +
+                         " password=" + dbPassword;
     return;
 }
 
@@ -145,4 +191,47 @@ string Conf::getSessConnectParams() const
     return _sessConnectParams;
 }
 
+void Conf::setSMTPHost(std::string smtpHost)
+{
+    _smtpHost = smtpHost;
+    return;
+}
+
+std::string Conf::getSMTPHost() const
+{
+    return _smtpHost;
+}
+
+void Conf::setSMTPPort(unsigned smtpPort)
+{
+    _smtpPort = smtpPort;
+    return;
+}
+
+unsigned Conf::getSMTPPort() const
+{
+    return _smtpPort;
+}
+
+void Conf::setAlertMailSenderAddress(std::string alertMailSenderAddress)
+{
+    _alertMailSenderAddress = alertMailSenderAddress;
+    return;
+}
+
+std::string Conf::getAlertMailSenderAddress() const
+{
+    return _alertMailSenderAddress;
+}
+
+void Conf::setAlertMailSenderName(std::string alertMailSenderName)
+{
+    _alertMailSenderName = alertMailSenderName;
+    return;
+}
+
+std::string Conf::getAlertMailSenderName() const
+{
+    return _alertMailSenderName;
+}
 

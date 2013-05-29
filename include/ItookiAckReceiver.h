@@ -24,7 +24,7 @@ class ItookiAckReceiver : public Wt::WResource
         
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            Session session(Utils::connection);
+            Session session(conf.getSessConnectParams());
             
 
             Wt::log("notice") << "[ACK] Query string : " << request.queryString();

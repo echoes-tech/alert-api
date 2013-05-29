@@ -166,7 +166,7 @@ protected:
     void handle(boost::system::error_code err, const Wt::Http::Message& response) {
         if (!err) {
             if (response.status() == 200) {
-                Session session(Utils::connection);
+                Session session(conf.getSessConnectParams());
                 /** stream : mandatory for boost ptree */
                 std::istringstream requestBodyStream(response.body());
                 boost::property_tree::ptree ptree;

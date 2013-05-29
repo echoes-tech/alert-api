@@ -24,8 +24,6 @@ class Utils
             }
             return res;
         }
-        
-        static std::string connection;
 };
 
 
