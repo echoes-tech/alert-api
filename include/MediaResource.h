@@ -27,8 +27,8 @@ class MediaResource : public PublicApiResource
         
         Wt::WString mediaId;
       
-        unsigned short getMedia(std::string &responseMsg) const;
-        unsigned short getListValueForMedia(std::string &responseMsg) const;
+        unsigned short getMedia(std::string &responseMsg);
+        unsigned short getListValueForMedia(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postMediaSpecialization(std::string &responseMsg, const std::string &sRequest);

@@ -27,15 +27,15 @@ SearchTypeResource::~SearchTypeResource()
 {
 }
 
-unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg) const
+unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = session->find<SearchType>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = _session.find<SearchType>()
                 .where("\"STY_DELETE\" IS NULL")                                                        
                 .orderBy("\"STY_ID\"");
         
@@ -72,13 +72,13 @@ unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg) const
     return res;
 }
 
-unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg) const
+unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
         
         string queryStr = "SELECT sep FROM \"T_SEARCH_PARAMETER_SEP\" sep "
                 " WHERE \"SEP_ID\" IN "
@@ -91,7 +91,7 @@ unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg
                 " ) "
                 "ORDER BY \"SEP_ID\"";
        
-        Wt::Dbo::Query<Wt::Dbo::ptr<SearchParameter> > queryRes = session->query<Wt::Dbo::ptr<SearchParameter> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<SearchParameter> > queryRes = _session.query<Wt::Dbo::ptr<SearchParameter> >(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > seaParamPtr = queryRes.resultList();
         
@@ -191,10 +191,10 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
         
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::Transaction transaction(_session);
             SearchType *searchType = new SearchType;
             searchType->name = name;
-            Wt::Dbo::ptr<SearchType> seaTypePtr = session->add<SearchType>(searchType);
+            Wt::Dbo::ptr<SearchType> seaTypePtr = _session.add<SearchType>(searchType);
             seaTypePtr.flush();
             addonsId = result.get("addons");
             if(addonsId.size() != 0 )
@@ -202,7 +202,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
                 for (Wt::Json::Array::const_iterator idx2 = addonsId.begin(); idx2 < addonsId.end(); idx2++)
                 {
                     Wt::WString tmp2 = idx2->toString();
-                    Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(tmp2);
+                    Wt::Dbo::ptr<Addon> addonPtr = _session.find<Addon>().where("\"ADO_ID\" = ?").bind(tmp2);
                     if (addonPtr)
                     {
                         seaTypePtr.modify()->addons.insert(addonPtr);
@@ -231,7 +231,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
                     Wt::WString formatPar = tmp.get("format");
 
                     //verif si le param exit déjà en base sinon on l'ajoute
-                    Wt::Dbo::ptr<SearchParameter> seaParamPtr = session->find<SearchParameter>()
+                    Wt::Dbo::ptr<SearchParameter> seaParamPtr = _session.find<SearchParameter>()
                             .where("\"SEP_NAME\" = ?").bind(namePar)
                             .where("\"SEP_FORMAT\" = ?").bind(formatPar);
                     if (!seaParamPtr)
@@ -239,7 +239,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
                         SearchParameter *searchParameter = new SearchParameter;
                         searchParameter->name = namePar;
                         searchParameter->format = formatPar;
-                        Wt::Dbo::ptr<SearchParameter> seaParamPtr1 = session->add<SearchParameter>(searchParameter);
+                        Wt::Dbo::ptr<SearchParameter> seaParamPtr1 = _session.add<SearchParameter>(searchParameter);
                         seaTypePtr.modify()->searchParameters.insert(seaParamPtr1);
                     }
                     else
@@ -321,9 +321,9 @@ unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
     unsigned short res = 500;
     try 
     {  
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<SearchType> seaTypePtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(this->vPathElements[1]);   
-        Wt::Dbo::collection<Wt::Dbo::ptr<Search> > seaPtr = session->find<Search>().where("\"SEA_STY_STY_ID\" = ?").bind(this->vPathElements[1]);
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<SearchType> seaTypePtr = _session.find<SearchType>().where("\"STY_ID\" = ?").bind(this->vPathElements[1]);   
+        Wt::Dbo::collection<Wt::Dbo::ptr<Search> > seaPtr = _session.find<Search>().where("\"SEA_STY_STY_ID\" = ?").bind(this->vPathElements[1]);
         //verif si le search type existe
         if(seaTypePtr)
         {

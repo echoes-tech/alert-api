@@ -29,20 +29,20 @@ AddonResource::~AddonResource()
 {
 }
 
-unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg) const
+unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
         string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
                                " WHERE \"STY_ID\" IN"
                                 "("
                                     "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
                                     "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) +
                                 ")";
-        Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = _session.query<Wt::Dbo::ptr<SearchType> >(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
         
@@ -79,13 +79,13 @@ unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg) const
     return res;
 }
 
-unsigned short AddonResource::getParameterForAddon(string& responseMsg) const
+unsigned short AddonResource::getParameterForAddon(string& responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
         
         string queryStr = "SELECT srp FROM \"T_SOURCE_PARAMETER_SRP\" srp"
@@ -95,7 +95,7 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg) const
                 + this->vPathElements[1]
                 + " )";
        
-        Wt::Dbo::Query<Wt::Dbo::ptr<SourceParameter>> queryRes = session->query<Wt::Dbo::ptr<SourceParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<SourceParameter>> queryRes = _session.query<Wt::Dbo::ptr<SourceParameter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter>> srcParamPtr = queryRes.resultList();
         if(srcParamPtr.size() > 0)
@@ -131,14 +131,14 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg) const
     return res;
 }
 
-unsigned short AddonResource::getAddonList(string& responseMsg) const
+unsigned short AddonResource::getAddonList(string& responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Addon> > addonPtr = session->find<Addon>();
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Addon> > addonPtr = _session.find<Addon>();
         responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon>>::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
         {
@@ -223,10 +223,10 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
         
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::Transaction transaction(_session);
             Addon *addon = new Addon;
             addon->name = name;
-            Wt::Dbo::ptr<Addon> addonPtr = session->add<Addon>(addon);
+            Wt::Dbo::ptr<Addon> addonPtr = _session.add<Addon>(addon);
 
             if(parameter.size() > 0)
             {
@@ -237,7 +237,7 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
                     Wt::WString formatPar = tmp.get("format");
 
                     //verif si le param exit déjà en base sinon on l'ajoute
-                    Wt::Dbo::ptr<SourceParameter> srcParamPtr = session->find<SourceParameter>()
+                    Wt::Dbo::ptr<SourceParameter> srcParamPtr = _session.find<SourceParameter>()
                             .where("\"SRP_NAME\" = ?").bind(namePar)
                             .where("\"SRP_FORMAT\" = ?").bind(formatPar);
                     if (!srcParamPtr)
@@ -245,7 +245,7 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
                         SourceParameter *sourceParameter = new SourceParameter;
                         sourceParameter->name = namePar;
                         sourceParameter->format = formatPar;
-                        Wt::Dbo::ptr<SourceParameter> srcParamPtr1 = session->add<SourceParameter>(sourceParameter);
+                        Wt::Dbo::ptr<SourceParameter> srcParamPtr1 = _session.add<SourceParameter>(sourceParameter);
                         addonPtr.modify()->sourceParameters.insert(srcParamPtr1);
                     }
                     else
@@ -258,7 +258,7 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
                 for (Wt::Json::Array::const_iterator idx2 = searchType.begin(); idx2 < searchType.end(); idx2++)
                 {
                     Wt::WString tmp2 = idx2->toString();
-                    Wt::Dbo::ptr<SearchType> seaTypePtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(tmp2);
+                    Wt::Dbo::ptr<SearchType> seaTypePtr = _session.find<SearchType>().where("\"STY_ID\" = ?").bind(tmp2);
                     if (seaTypePtr)
                     {
                         addonPtr.modify()->searchTypes.insert(seaTypePtr);
@@ -341,12 +341,12 @@ unsigned short AddonResource::deleteAddon(string& responseMsg)
     unsigned short res = 500;
     try 
     {  
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(this->vPathElements[1]);                                                             
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<Addon> addonPtr = _session.find<Addon>().where("\"ADO_ID\" = ?").bind(this->vPathElements[1]);                                                             
         //verif si l'addon existe
         if(addonPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"SRC_ADO_ADO_ID\" = ?").bind(this->vPathElements[1]);
+            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = _session.find<Source>().where("\"SRC_ADO_ADO_ID\" = ?").bind(this->vPathElements[1]);
             //verif si l'addon n'est pas utilisée
             if(srcCollec.size() == 0)
             {

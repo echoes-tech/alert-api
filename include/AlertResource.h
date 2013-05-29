@@ -31,10 +31,10 @@ class AlertResource : public PublicApiResource
         virtual ~AlertResource();
         
     protected:
-        unsigned short getRecipientsForAlert(std::string &responseMsg) const;       
-        unsigned short getTrackingAlertMessage(std::string &responseMsg) const;
-        unsigned short getTrackingAlertList(std::string &responseMsg) const;
-        unsigned short getAlerts(std::string &responseMsg) const;
+        unsigned short getRecipientsForAlert(std::string &responseMsg);       
+        unsigned short getTrackingAlertMessage(std::string &responseMsg);
+        unsigned short getTrackingAlertList(std::string &responseMsg);
+        unsigned short getAlerts(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         /**

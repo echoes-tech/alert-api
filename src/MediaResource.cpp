@@ -27,15 +27,15 @@ MediaResource::~MediaResource()
 {
 }
 
-unsigned short MediaResource::getListValueForMedia(string &responseMsg) const
+unsigned short MediaResource::getListValueForMedia(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> > medias = session->find<MediaValue>()
-                .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<string>(this->session->user().id()))
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> > medias = _session.find<MediaValue>()
+                .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<string>(this->_session.user().id()))
                 .where("\"MEV_MED_MED_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"MEV_DELETE\" is NULL");
         if (medias.size() > 0)
@@ -71,26 +71,26 @@ unsigned short MediaResource::getListValueForMedia(string &responseMsg) const
     return res;
 }
 
-unsigned short MediaResource::getMedia(string &responseMsg) const
+unsigned short MediaResource::getMedia(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
         string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
                 " ("
                 " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
-                " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(this->session->user().id()) +
+                " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(this->_session.user().id()) +
 //                " (Select \"T_USER_USR_USR_ID\" "
 //                " FROM \"TJ_USR_ORG\" "
-//                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (session->user()->currentOrganization.id()) +  
+//                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (session.user()->currentOrganization.id()) +  
 //                " )"
                 " AND \"MEV_DELETE\" IS NULL"
                 " )"
                 " AND \"MED_DELETE\" IS NULL";
  
-        Wt::Dbo::Query<Wt::Dbo::ptr<Media> > queryRes = session->query<Wt::Dbo::ptr<Media> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Media> > queryRes = _session.query<Wt::Dbo::ptr<Media> >(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Media> > media = queryRes.resultList();
         
@@ -198,9 +198,9 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
     }  
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::ptr<User> ptrUser = session->find<User>().where("\"USR_ID\" = ?").bind(boost::lexical_cast<string>(this->session->user().id()));
-        Wt::Dbo::ptr<Media> media = session->find<Media>().where("\"MED_ID\" = ?").bind(medId);
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<User> ptrUser = _session.find<User>().where("\"USR_ID\" = ?").bind(boost::lexical_cast<string>(this->_session.user().id()));
+        Wt::Dbo::ptr<Media> media = _session.find<Media>().where("\"MED_ID\" = ?").bind(medId);
 
         if(!ptrUser || !media)
         {
@@ -213,7 +213,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
         mev->user= ptrUser;
         mev->media = media;
         mev->value = mevValue;
-        Wt::Dbo::ptr<MediaValue> ptrMev = session->add<MediaValue>(mev);
+        Wt::Dbo::ptr<MediaValue> ptrMev = _session.add<MediaValue>(mev);
         ptrMev.flush();
         ptrMev.modify()->setId(ptrMev.id());
         responseMsg = ptrMev.modify()->toJSON();        
@@ -264,18 +264,18 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
     }    
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
         
         AlertMediaSpecialization *ams = new AlertMediaSpecialization();
         Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr;
 
-        Wt::Dbo::ptr<MediaValue> mevPtr = session->find<MediaValue>().where("\"MEV_ID\" = ?").bind(mevId);
+        Wt::Dbo::ptr<MediaValue> mevPtr = _session.find<MediaValue>().where("\"MEV_ID\" = ?").bind(mevId);
         if (mevPtr)
         {
             ams->snoozeDuration = snooze;
             ams->mediaValue = mevPtr;
             ams->notifEndOfAlert = false;
-            amsPtr = session->add<AlertMediaSpecialization>(ams);
+            amsPtr = _session.add<AlertMediaSpecialization>(ams);
             amsPtr.flush();
             amsPtr.modify()->setId(amsPtr.id());
             responseMsg = amsPtr.modify()->toJSON();
@@ -351,12 +351,12 @@ unsigned short MediaResource::deleteMedia(string &responseMsg)
     try
     {
         
-        Wt::Dbo::Transaction transaction2(*session);
+        Wt::Dbo::Transaction transaction2(_session);
         string qryString = "DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                                 " WHERE \"AMS_ALE_ALE_ID\" IS NULL"
                                 " AND \"AMS_MEV_MEV_ID\" = " + boost::lexical_cast<string > (this->vPathElements[1]);  
 
-        session->execute(qryString);
+        _session.execute(qryString);
 
         transaction2.commit();
     }
@@ -369,18 +369,18 @@ unsigned short MediaResource::deleteMedia(string &responseMsg)
     }
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
 
 
         string queryStr = "SELECT mev FROM \"T_MEDIA_VALUE_MEV\" mev"
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " (Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" " 
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(_session.user()->currentOrganization.id()) +
                 " )"
                 "and \"MEV_ID\" = " + this->vPathElements[1];
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<MediaValue>> resQuery = session->query<Wt::Dbo::ptr<MediaValue>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<MediaValue>> resQuery = _session.query<Wt::Dbo::ptr<MediaValue>>(queryStr);
         Wt::Dbo::ptr<MediaValue> mediaValPtr = resQuery.resultValue();
 
         if(mediaValPtr)
@@ -411,8 +411,8 @@ unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
     unsigned short res = 500;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = _session.find<AlertMediaSpecialization>()
                 .where("\"AMS_ID\" = ?").bind(vPathElements[2])
                 .where("\"AMS_ALE_ALE_ID\" IS NULL");
 
@@ -426,7 +426,7 @@ unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
         string executeString = " DELETE FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
                 " WHERE \"AMS_ID\" = " + boost::lexical_cast<string>(this->vPathElements[2]) +
                 " AND \"AMS_ALE_ALE_ID\" IS NULL";
-        session->execute(executeString);
+        _session.execute(executeString);
         transaction.commit();
 
         res = 204;

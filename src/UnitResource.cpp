@@ -27,15 +27,15 @@ UnitResource::~UnitResource()
 {
 }
 
-unsigned short UnitResource::getTypeOfUnit(string &responseMsg) const
+unsigned short UnitResource::getTypeOfUnit(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = session->find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL");
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL");
                                                          
         if (unitTypePtr.size() > 0)
         {
@@ -72,15 +72,15 @@ unsigned short UnitResource::getTypeOfUnit(string &responseMsg) const
     return res;
 }
 
-unsigned short UnitResource::getListUnits(string& responseMsg) const
+unsigned short UnitResource::getListUnits(string& responseMsg)
 {
     unsigned short res = 500;
     int idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = session->find<InformationUnit>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = _session.find<InformationUnit>()
                 .where("\"INU_DELETE\" IS NULL")
                 .orderBy("\"INU_ID\"");
 
@@ -119,14 +119,14 @@ unsigned short UnitResource::getListUnits(string& responseMsg) const
     return res;
 }
 
-unsigned short UnitResource::getUnit(string &responseMsg) const
+unsigned short UnitResource::getUnit(string &responseMsg)
 {
     unsigned short res = 500;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
       
-        Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
+        Wt::Dbo::ptr<InformationUnit> informationUnit = _session.find<InformationUnit>()
                 .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"INU_DELETE\" IS NULL");
 
@@ -153,15 +153,15 @@ unsigned short UnitResource::getUnit(string &responseMsg) const
     return res;
 }
 
-unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg) const
+unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
       
-        Wt::Dbo::ptr<InformationUnit> informationUnit = session->find<InformationUnit>()
+        Wt::Dbo::ptr<InformationUnit> informationUnit = _session.find<InformationUnit>()
                 .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"INU_DELETE\" IS NULL");
 
@@ -172,7 +172,7 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg) const
         }
         else
         {
-             Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> > infoSubUnit = session->find<InformationSubUnit>()
+             Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> > infoSubUnit = _session.find<InformationSubUnit>()
                     .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"ISU_DELETE\" IS NULL");
 
@@ -286,8 +286,8 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
     }    
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::ptr<InformationUnitType> unitTypePtr = session->find<InformationUnitType>().where("\"IUT_ID\" = ?").bind(typeId);
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<InformationUnitType> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_ID\" = ?").bind(typeId);
         Wt::Dbo::ptr<InformationUnit> unitPtr;
         
         if(unitTypePtr)
@@ -295,7 +295,7 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
             InformationUnit *informationUnit = new InformationUnit;
             informationUnit->name = name;
             informationUnit->unitType = unitTypePtr;
-            unitPtr = session->add<InformationUnit>(informationUnit);
+            unitPtr = _session.add<InformationUnit>(informationUnit);
             
             unitPtr.flush();
             unitPtr.modify()->setId(unitPtr.id());
@@ -357,13 +357,13 @@ unsigned short UnitResource::deleteUnit(string& responseMsg)
     unsigned short res = 500;
     try 
     {  
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
            
-        Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
+        Wt::Dbo::ptr<InformationUnit> informationUnitPtr = _session.find<InformationUnit>().where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
         //Unit exist ?
         if(informationUnitPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<SearchUnit>> seaUnitCollec = session->find<SearchUnit>().where("\"SEU_INU_INU_ID\" = ?").bind(this->vPathElements[1]);
+            Wt::Dbo::collection<Wt::Dbo::ptr<SearchUnit>> seaUnitCollec = _session.find<SearchUnit>().where("\"SEU_INU_INU_ID\" = ?").bind(this->vPathElements[1]);
             //verif si l'unité n'est pas utilisée                                                                
             if (seaUnitCollec.size() == 0)
             {                

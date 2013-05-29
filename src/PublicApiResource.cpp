@@ -15,26 +15,24 @@
 
 using namespace std;
 
-PublicApiResource::PublicApiResource() : Wt::WResource()
+PublicApiResource::PublicApiResource() : Wt::WResource(), _session(conf.getSessConnectParams()), indexPathElement(1), statusCode(500)
 {
-    this->indexPathElement = 1;
-    this->statusCode = 500;
 }
 
-PublicApiResource::PublicApiResource(const PublicApiResource& orig) : Wt::WResource()
+PublicApiResource::PublicApiResource(const PublicApiResource& orig) : Wt::WResource(), _session(conf.getSessConnectParams())
 {
-    this->session = orig.session;
     this->authentified = orig.authentified;
     this->statusCode = orig.statusCode;
     this->indexPathElement = orig.indexPathElement;
     this->vPathElements =  orig.vPathElements;
 }
 
-PublicApiResource::~PublicApiResource() {
+PublicApiResource::~PublicApiResource()
+{
     beingDeleted();
 }
 
-unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method)
+unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method) const
 {
     unsigned short res = 0;
 
@@ -115,8 +113,6 @@ void PublicApiResource::processDeleteRequest(const Wt::Http::Request &request, W
 void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     Wt::log("info") << "[PUBLIC API] Identifying";
-    // Setting the session
-    session = new Session(conf.getSessConnectParams());
 
     // default : not authentified
     this->authentified = false;
@@ -152,24 +148,24 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::Transaction transaction(_session);
 
             // check whether the user exists
-            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
+            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = _session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
             if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
             {
                 // find the user from his login
-                Wt::Auth::User user = session->users().findWithIdentity(Wt::Auth::Identity::LoginName,login);
+                Wt::Auth::User user = _session.users().findWithIdentity(Wt::Auth::Identity::LoginName,login);
 
                 if (user.isValid()) 
                 {
                     if (password.compare(""))
                     {
                         // verify
-                        switch (session->passwordAuth().verifyPassword(user, password))
+                        switch (_session.passwordAuth().verifyPassword(user, password))
                         {
                             case Wt::Auth::PasswordValid:
-                                session->login().login(user);
+                                _session.login().login(user);
                                 this->authentified = true;
                                 Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
                                 break;
@@ -185,13 +181,13 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     }
                     else if (token.compare(""))
                     {
-                        Wt::Dbo::ptr<User> userPtr = session->find<User>()
+                        Wt::Dbo::ptr<User> userPtr = _session.find<User>()
                                 .where("\"USR_MAIL\" = ?").bind(login)
                                 .where("\"USR_TOKEN\" = ?").bind(token)
                                 .limit(1);
                         if(userPtr)
                         {
-                            session->login().login(user);
+                            _session.login().login(user);
                             this->authentified = true;
                         }
                         else
@@ -217,15 +213,15 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::ptr<Engine> enginePtr = session->find<Engine>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<Engine> enginePtr = _session.find<Engine>()
                     .where("\"ENG_FQDN\" = ?").bind(request.clientAddress())
                     .where("\"ENG_DELETE\" IS NULL")
                     .limit(1);
 
             if(enginePtr)
             {
-                Wt::Dbo::ptr<EngOrg> engOrgPtr = session->find<EngOrg>()
+                Wt::Dbo::ptr<EngOrg> engOrgPtr = _session.find<EngOrg>()
                         .where("\"ENG_ID_ENG_ID\" = ?").bind(enginePtr.id())
                         .where("\"ENO_TOKEN\" = ?").bind(eno_token)
                         .where("\"ENO_DELETE\" IS NULL")
@@ -290,7 +286,5 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     this->indexPathElement = 1;
     this->statusCode = 500;
-    Wt::log("debug") << "[PUBLIC API] Session delete";
-    delete session;
 }
         

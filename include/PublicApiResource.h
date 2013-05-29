@@ -47,12 +47,12 @@ class PublicApiResource : public Wt::WResource {
         virtual ~PublicApiResource();
 
     protected:
-        Session *session;
+        Session _session;
         bool authentified;
         std::vector<std::string> vPathElements;
         unsigned short indexPathElement, statusCode;
 
-        unsigned short retrieveCurrentHttpMethod(const std::string &method);
+        unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
 
         void setPathElementsVector(const std::string &path);
         std::string getNextElementFromPath();

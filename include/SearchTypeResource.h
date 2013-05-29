@@ -26,8 +26,8 @@ class SearchTypeResource : public PublicApiResource
         
     protected :
        
-        unsigned short getSearchTypeList(std::string &responseMsg) const; 
-        unsigned short getParameterForSearchType(std::string &responseMsg) const;
+        unsigned short getSearchTypeList(std::string &responseMsg); 
+        unsigned short getParameterForSearchType(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postSearchType(std::string &responseMsg, const std::string &sRequest);

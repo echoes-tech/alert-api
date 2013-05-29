@@ -26,7 +26,7 @@ PluginResource::PluginResource(const PluginResource& orig) : PublicApiResource::
 PluginResource::~PluginResource(){
 }
 
- unsigned short PluginResource::pluginIsAccessible(string& responseMsg) const
+ unsigned short PluginResource::pluginIsAccessible(string& responseMsg)
 {
      
     unsigned short res = 500;
@@ -34,7 +34,7 @@ PluginResource::~PluginResource(){
     try
     {
 
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
         string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
                                 "WHERE \"PLG_ID\" IN "
@@ -43,14 +43,14 @@ PluginResource::~PluginResource(){
                                    "wHERE \"T_ASSET_AST_AST_ID\" IN "
                                         "("
                                         "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(session->user().get()->currentOrganization.id()) +
+                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(_session.user().get()->currentOrganization.id()) +
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                     "AND \"T_PLUGIN_PLG_PLG_ID\" = " + boost::lexical_cast<string>(vPathElements[1]) + 
                                 " )"
                                 " AND \"PLG_DELETE\" IS NULL";
 
-         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin>> queryRes = session->query<Wt::Dbo::ptr<Plugin>>(queryStr);
+         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin>> queryRes = _session.query<Wt::Dbo::ptr<Plugin>>(queryStr);
 
          plgPtr = queryRes;
          res = 200;
@@ -70,12 +70,12 @@ PluginResource::~PluginResource(){
     return res;
 }
 
-unsigned short PluginResource::getPluginJSON(string& responseMsg) const
+unsigned short PluginResource::getPluginJSON(string& responseMsg)
 {
     unsigned short res = 500;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
         // on regarde si le plugin appartient à l'organisation
         string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
@@ -85,14 +85,14 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
                                    "wHERE \"T_ASSET_AST_AST_ID\" IN "
                                         "("
                                         "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(session->user().get()->currentOrganization.id()) +
+                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(_session.user().get()->currentOrganization.id()) +
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                     "AND \"T_PLUGIN_PLG_PLG_ID\" = " + boost::lexical_cast<string>(vPathElements[1]) + 
                                 " )" 
                                 " AND \"PLG_DELETE\" IS NULL";
         
-         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = session->query<Wt::Dbo::ptr<Plugin> >(queryStr);
+         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = _session.query<Wt::Dbo::ptr<Plugin> >(queryStr);
 
          Wt::Dbo::ptr<Plugin> plgPtr = queryRes;
          
@@ -104,7 +104,7 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
             responseMsg += "\t\"idAsset\" : 0,\n";
             responseMsg += "\t\"sources\" : [\n"; 
     
-            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = _session.find<Source>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_DELETE\" IS NULL")
                     .orderBy("\"SRC_ID\"");
@@ -116,13 +116,13 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
                 responseMsg += "\t\t\"idAddon\" : " + boost::lexical_cast<string>(i->get()->addon.id()) +",\n";
                 responseMsg += "\t\t\"params\" : {\n";
                 
-                Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue>> srcParamCollec = session->find<SourceParameterValue>()
+                Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue>> srcParamCollec = _session.find<SourceParameterValue>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(boost::lexical_cast<string>(i->get()->pk.id));
 
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue> >::const_iterator i1 = srcParamCollec.begin(); i1 != srcParamCollec.end(); i1++) 
                 {
-                    Wt::Dbo::ptr<SourceParameter> srcParam = session->find<SourceParameter>().where("\"SRP_ID\" = ?").bind(i1->get()->pk.sourceParameter.id());
+                    Wt::Dbo::ptr<SourceParameter> srcParam = _session.find<SourceParameter>().where("\"SRP_ID\" = ?").bind(i1->get()->pk.sourceParameter.id());
                     responseMsg += "\t\t\t\"" + boost::lexical_cast<string>(srcParam.get()->name) + "\": \""+ boost::lexical_cast<string>(i1->get()->value) +"\",\n";              
                 }
                 if(srcParamCollec.size() != 0)
@@ -132,7 +132,7 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
                 responseMsg += "\t\t},\n";
                 responseMsg += "\t\t\"searches\": [\n";  
       
-                Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = _session.find<Search>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(boost::lexical_cast<string>(i->get()->pk.id))
                         .where("\"SEA_DELETE\" IS NULL")
@@ -145,14 +145,14 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
                     responseMsg += "\t\t\t\"idType\" : " + boost::lexical_cast<string>(i2->get()->searchType.id()) +",\n";
                     responseMsg += "\t\t\t\"params\" : {\n";
 
-                    Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = session->find<SearchParameterValue>()
+                    Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = _session.find<SearchParameterValue>()
                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                             .where("\"SRC_ID\" = ?").bind(boost::lexical_cast<string>(i->get()->pk.id))
                             .where("\"SEA_ID\" = ?").bind(boost::lexical_cast<string>(i2->get()->pk.id));
 
                     for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue> >::const_iterator i3 = seaParamCollec.begin(); i3 != seaParamCollec.end(); i3++) 
                     {
-                        Wt::Dbo::ptr<SearchParameter> seaParam = session->find<SearchParameter>().where("\"SEP_ID\" = ?").bind(i3->get()->searchParameterValueId.searchParameter.id());
+                        Wt::Dbo::ptr<SearchParameter> seaParam = _session.find<SearchParameter>().where("\"SEP_ID\" = ?").bind(i3->get()->searchParameterValueId.searchParameter.id());
                         responseMsg += "\t\t\t\t\"" + boost::lexical_cast<string>(seaParam.get()->name) + "\": \""+ boost::lexical_cast<string>(i3->get()->value) +"\",\n";           
                     }
                     if(seaParamCollec.size() != 0)
@@ -194,13 +194,13 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg) const
     return res;  
 }
 
-unsigned short PluginResource::getPlugin(string& responseMsg) const
+unsigned short PluginResource::getPlugin(string& responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
         // on liste les plugins rattachés à des assets détenu par l'organization
         string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
@@ -210,14 +210,14 @@ unsigned short PluginResource::getPlugin(string& responseMsg) const
                                    "wHERE \"T_ASSET_AST_AST_ID\" IN "
                                         "("
                                         "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(session->user().get()->currentOrganization.id()) +
+                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(_session.user().get()->currentOrganization.id()) +
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                 ") "
                                 " AND \"PLG_DELETE\" IS NULL"
                                 " ORDER BY \"PLG_ID\" ";
         
-         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = session->query<Wt::Dbo::ptr<Plugin> >(queryStr);
+         Wt::Dbo::Query<Wt::Dbo::ptr<Plugin> > queryRes = _session.query<Wt::Dbo::ptr<Plugin> >(queryStr);
 
          Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> > plgPtr = queryRes.resultList();
 
@@ -255,7 +255,7 @@ unsigned short PluginResource::getPlugin(string& responseMsg) const
 }
 
 
-unsigned short PluginResource::getAliasForInformation(string &responseMsg) const
+unsigned short PluginResource::getAliasForInformation(string &responseMsg)
 {
     unsigned short res = 500;
     if (this->role.empty())
@@ -274,8 +274,8 @@ unsigned short PluginResource::getAliasForInformation(string &responseMsg) const
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertMessageAliasInformation> aliasInformation = this->session->find<AlertMessageAliasInformation>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<AlertMessageAliasInformation> aliasInformation = this->_session.find<AlertMessageAliasInformation>()
                 .where("\"AAI_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
                 .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
@@ -309,7 +309,7 @@ unsigned short PluginResource::getAliasForInformation(string &responseMsg) const
     return res;
 }
 
-unsigned short PluginResource::getAliasForCriteria(string &responseMsg) const
+unsigned short PluginResource::getAliasForCriteria(string &responseMsg)
 {
     unsigned short res = 500;
     if (this->role.empty())
@@ -328,8 +328,8 @@ unsigned short PluginResource::getAliasForCriteria(string &responseMsg) const
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> aliasCriteria = this->session->find<AlertMessageAliasInformationCriteria>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> aliasCriteria = this->_session.find<AlertMessageAliasInformationCriteria>()
                 .where("\"AIC_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
                 .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
@@ -364,14 +364,14 @@ unsigned short PluginResource::getAliasForCriteria(string &responseMsg) const
     return res;
 }
 
-unsigned short PluginResource::getCriteriaForInformation(string &responseMsg) const
+unsigned short PluginResource::getCriteriaForInformation(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria>> informationAlertCriteria = this->session->find<AlertCriteria>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria>> informationAlertCriteria = this->_session.find<AlertCriteria>()
                 .where("\"ACR_DELETE\" IS NULL");
 
         if(informationAlertCriteria.size() > 0 )
@@ -407,7 +407,7 @@ unsigned short PluginResource::getCriteriaForInformation(string &responseMsg) co
     return res;
 }
 
-unsigned short PluginResource::getAliasForPlugin(string &responseMsg) const
+unsigned short PluginResource::getAliasForPlugin(string &responseMsg)
 {
     unsigned short res = 500;
     if (this->role.empty())
@@ -426,8 +426,8 @@ unsigned short PluginResource::getAliasForPlugin(string &responseMsg) const
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertMessageAliasPlugin> aliasPlugin = this->session->find<AlertMessageAliasPlugin>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<AlertMessageAliasPlugin> aliasPlugin = this->_session.find<AlertMessageAliasPlugin>()
                 .where("\"AAP_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
                 .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
@@ -457,7 +457,7 @@ unsigned short PluginResource::getAliasForPlugin(string &responseMsg) const
     return res;
 }
 
-unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) const
+unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
@@ -465,9 +465,9 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) 
     {
         try
         {
-            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::Transaction transaction(_session);
 
-            Wt::Dbo::collection <Wt::Dbo::ptr<Information2>> information = session->find<Information2>()
+            Wt::Dbo::collection <Wt::Dbo::ptr<Information2>> information = _session.find<Information2>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"INF_DELETE\" IS NULL")
                     .orderBy("\"SRC_ID\", \"SEA_ID\", \"INF_VALUE_NUM\"");
@@ -505,7 +505,7 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg) 
     return res;  
 }
 
-unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) const
+unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg)
 {
     unsigned short res = 500;
     if((res = pluginIsAccessible(responseMsg)) == 200)
@@ -513,8 +513,8 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) 
         unsigned idx = 0;
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = _session.find<Search>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_DELETE\" IS NULL")
@@ -552,7 +552,7 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) 
     return res;
 }
 
-unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) const
+unsigned short PluginResource::getParameterValueForSearch(string &responseMsg)
 {
     unsigned short res = 500;
     if((res = pluginIsAccessible(responseMsg)) == 200)
@@ -560,8 +560,8 @@ unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) c
         unsigned idx = 0;
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = session->find<SearchParameterValue>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue>> seaParamCollec = _session.find<SearchParameterValue>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
@@ -598,7 +598,7 @@ unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) c
     return res;
 }
 
-unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg) const
+unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg)
 {
     unsigned short res = 500;
     if((res = pluginIsAccessible(responseMsg)) == 200)
@@ -606,8 +606,8 @@ unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg
         unsigned idx = 0;
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::collection < Wt::Dbo::ptr < Information2 >> infCollec = session->find<Information2>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::collection < Wt::Dbo::ptr < Information2 >> infCollec = _session.find<Information2>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -647,7 +647,7 @@ unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg
     return res;
 }
 
-unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
+unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
 {
     unsigned short res = 500;
     if((res = pluginIsAccessible(responseMsg)) == 200)
@@ -655,8 +655,8 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
         unsigned idx = 0;
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::collection < Wt::Dbo::ptr < Source >> srcCollec = session->find<Source>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::collection < Wt::Dbo::ptr < Source >> srcCollec = _session.find<Source>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_DELETE\" IS NULL")
                     .orderBy("\"SRC_ID\"");
@@ -694,7 +694,7 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
     return res;
 }
 
-unsigned short PluginResource::getParameterValueForSource(string& responseMsg) const
+unsigned short PluginResource::getParameterValueForSource(string& responseMsg)
 {
     unsigned short res = 500;
     if((res = pluginIsAccessible(responseMsg)) == 200)
@@ -702,8 +702,8 @@ unsigned short PluginResource::getParameterValueForSource(string& responseMsg) c
         unsigned idx = 0;
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::collection < Wt::Dbo::ptr < SourceParameterValue >> srcParamCollec = session->find<SourceParameterValue>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::collection < Wt::Dbo::ptr < SourceParameterValue >> srcParamCollec = _session.find<SourceParameterValue>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
 
@@ -931,12 +931,12 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
     }   
     try 
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
         Plugin *plugin = new Plugin();
         plugin->name = plgName;
         plugin->desc = plgDesc;
         
-        Wt::Dbo::ptr<Plugin> plgPtr = session->add<Plugin>(plugin);
+        Wt::Dbo::ptr<Plugin> plgPtr = _session.add<Plugin>(plugin);
        
         plgPtr.flush();
         plgPtr.modify()->setId(plgPtr.id());
@@ -971,28 +971,28 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
             addonId = result.get("addon_id");
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
 
                 // creer l'id de la source
-                Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
+                Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = _session.find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
                 long long srcId = 1;
                 if(srcCollec.size()> 0)
                 {
                     string queryStr = "SELECT MAX(\"SRC_ID\") FROM \"T_SOURCE_SRC\" src "
                                        " WHERE \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string > (this->vPathElements[1]);
 
-                    Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
+                    Wt::Dbo::Query<long long> queryResult = _session.query<long long>(queryStr);
                     srcId = queryResult + 1;
                 }
 
                 //creation de la source
-                Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
-                Wt::Dbo::ptr<Addon> addonPtr = session->find<Addon>().where("\"ADO_ID\" = ?").bind(addonId);
+                Wt::Dbo::ptr<Plugin> plgPtr = _session.find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
+                Wt::Dbo::ptr<Addon> addonPtr = _session.find<Addon>().where("\"ADO_ID\" = ?").bind(addonId);
                 Source *source = new Source;
                 source->pk.id = srcId;
                 source->pk.plugin = plgPtr;
                 source->addon = addonPtr;
-                Wt::Dbo::ptr<Source> srcPtr = session->add<Source>(source);
+                Wt::Dbo::ptr<Source> srcPtr = _session.add<Source>(source);
                 srcPtr.flush();
 
 
@@ -1010,7 +1010,7 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
                     sourceParameterValue->name = i->get()->name;
                     sourceParameterValue->pk.sourceParameter = *i;
                     sourceParameterValue->pk.source = srcPtr;
-                    session->add<SourceParameterValue>(sourceParameterValue);
+                    _session.add<SourceParameterValue>(sourceParameterValue);
                 }
                 res = 200;
                 responseMsg = srcPtr.modify()->toJSON();
@@ -1065,7 +1065,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
             {
                 try
                 {
-                    Wt::Dbo::Transaction transaction(*session);
+                    Wt::Dbo::Transaction transaction(_session);
                     Wt::Dbo::ptr<Search> seaPtr;
                     //verif si le search type va avec l'addon 
 
@@ -1082,7 +1082,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                                             ")"
                                             "AND \"STY_ID\" = " + boost::lexical_cast<string>(styId);
 
-                    Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = session->query<Wt::Dbo::ptr<SearchType> >(queryStr);
+                    Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = _session.query<Wt::Dbo::ptr<SearchType> >(queryStr);
 
                     Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
 
@@ -1093,7 +1093,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                             return res;
                     }
                     // creer l'id de la search
-                    Wt::Dbo::collection <Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                    Wt::Dbo::collection <Wt::Dbo::ptr<Search>> seaCollec = _session.find<Search>()
                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                             .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
                     long long seaId = 1;
@@ -1103,17 +1103,17 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                                                " WHERE \"PLG_ID_PLG_ID\" = " + this->vPathElements[1] +
                                                " AND \"SRC_ID\" = " + this->vPathElements[3];
 
-                        Wt::Dbo::Query<long long> queryResult = session->query<long long>(queryStr);
+                        Wt::Dbo::Query<long long> queryResult = _session.query<long long>(queryStr);
                         seaId = queryResult + 1;    
                     }
 
                     //creation de la search
-                    Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
+                    Wt::Dbo::ptr<Source> srcPtr = _session.find<Source>()
                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                             .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
                     if(srcPtr)
                     {
-                        Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(styId);
+                        Wt::Dbo::ptr<SearchType> seaTypPtr = _session.find<SearchType>().where("\"STY_ID\" = ?").bind(styId);
                         if(seaTypPtr)
                         {
                             Search *search = new Search;
@@ -1124,7 +1124,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                             search->nbValue = nbValue;
                             search->pos_key_value = posKeyValue;
                             search->searchIsStatic = seaIsStatic;
-                            seaPtr = session->add<Search>(search);
+                            seaPtr = _session.add<Search>(search);
                             seaPtr.flush();
 
 
@@ -1141,7 +1141,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                                 searchParameterValue->name = i->get()->name;
                                 searchParameterValue->searchParameterValueId.searchParameter = *i;
                                 searchParameterValue->searchParameterValueId.search = seaPtr;
-                                session->add<SearchParameterValue>(searchParameterValue);
+                                _session.add<SearchParameterValue>(searchParameterValue);
                             }
 
                             //liée aux valeurs recherchées une unité
@@ -1150,14 +1150,14 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                                 Wt::Json::Object tmp = *idx1;
                                 int valNumUnit = tmp.get("val_num");
                                 int unitId = tmp.get("unit_id");
-                                Wt::Dbo::ptr<InformationUnit> informationUnitPtr = session->find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
+                                Wt::Dbo::ptr<InformationUnit> informationUnitPtr = _session.find<InformationUnit>().where("\"INU_ID\" = ?").bind(unitId);
                                 if (informationUnitPtr && valNumUnit <= nbValue)
                                 {
                                     SearchUnit *searchUnit = new SearchUnit;
                                     searchUnit->pk.infValueNum = valNumUnit;
                                     searchUnit->pk.search = seaPtr;
                                     searchUnit->informationUnit = informationUnitPtr;
-                                    session->add<SearchUnit>(searchUnit);
+                                    _session.add<SearchUnit>(searchUnit);
                                 }
                                 else
                                 {
@@ -1234,10 +1234,10 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMs
 
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
 
                 //search exist ?
-                Wt::Dbo::ptr<Search> seaPtr = session->find<Search>()
+                Wt::Dbo::ptr<Search> seaPtr = _session.find<Search>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
@@ -1246,7 +1246,7 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMs
                 {
                     //Relier une unité à l'info
                     // unit exist?
-                    Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>()
+                    Wt::Dbo::ptr<SearchUnit> seaUnitPtr = _session.find<SearchUnit>()
                             .where("\"INF_VALUE_NUM\" = ?").bind(valueNum)
                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                             .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
@@ -1266,7 +1266,7 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMs
                             infCalculate = result.get("inf_calculate");
                             information->calculate = infCalculate;
                         }
-                        Wt::Dbo::ptr<Information2> infPtr = session->add<Information2>(information);
+                        Wt::Dbo::ptr<Information2> infPtr = _session.add<Information2>(information);
                         infPtr.flush();
                         responseMsg = infPtr.modify()->toJSON();
                         res = 200;
@@ -1546,10 +1546,10 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
 
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
 
                 // Information exist?
-                Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>()
+                Wt::Dbo::ptr<Information2> infPtr = _session.find<Information2>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -1560,7 +1560,7 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
                 {
                     //Relier une unité à l'info
                     // unit exist?
-                    Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                    Wt::Dbo::ptr<UserRole> ptrRole = this->_session.find<UserRole>()
                         .where("\"URO_ID\" = ?").bind(sRole)
                         .where("\"URO_DELETE\" IS NULL");
                 
@@ -1571,7 +1571,7 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
                         return res;
                     }
 
-                    Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                    Wt::Dbo::ptr<Media> ptrMedia = this->_session.find<Media>()
                             .where("\"MED_ID\" = ?").bind(sMedia)
                             .where("\"MED_DELETE\" IS NULL");
 
@@ -1583,7 +1583,7 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
                     }
 
 
-                    Wt::Dbo::ptr<AlertMessageAliasInformation> ptrInformationAlias = this->session->find<AlertMessageAliasInformation>()
+                    Wt::Dbo::ptr<AlertMessageAliasInformation> ptrInformationAlias = this->_session.find<AlertMessageAliasInformation>()
                             .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
                             .where("\"SEA_ID\" = ?").bind(infPtr->pk.search->pk.id)
                             .where("\"SRC_ID\" = ?").bind(infPtr->pk.search->pk.source->pk.id)
@@ -1602,7 +1602,7 @@ unsigned short PluginResource::putAliasForInformation(string &responseMsg, const
                         newInformationAlias->pk.userRole = ptrRole;
                         newInformationAlias->pk.media = ptrMedia;
                         newInformationAlias->alias = sValue;
-                        ptrInformationAlias = this->session->add<AlertMessageAliasInformation>(newInformationAlias);
+                        ptrInformationAlias = this->_session.add<AlertMessageAliasInformation>(newInformationAlias);
                     }
                     res = 200;
                 }
@@ -1658,10 +1658,10 @@ unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const s
 
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
 
                 // Information exist?
-                Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>()
+                Wt::Dbo::ptr<Information2> infPtr = _session.find<Information2>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -1672,7 +1672,7 @@ unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const s
                 {
                     //Relier une unité à l'info
                     // unit exist?
-                    Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                    Wt::Dbo::ptr<UserRole> ptrRole = this->_session.find<UserRole>()
                         .where("\"URO_ID\" = ?").bind(sRole)
                         .where("\"URO_DELETE\" IS NULL");
                 
@@ -1683,7 +1683,7 @@ unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const s
                         return res;
                     }
 
-                    Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                    Wt::Dbo::ptr<Media> ptrMedia = this->_session.find<Media>()
                             .where("\"MED_ID\" = ?").bind(sMedia)
                             .where("\"MED_DELETE\" IS NULL");
 
@@ -1694,7 +1694,7 @@ unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const s
                         return res;
                     }
                     
-                    Wt::Dbo::ptr<AlertCriteria> ptrCriterion = this->session->find<AlertCriteria>()
+                    Wt::Dbo::ptr<AlertCriteria> ptrCriterion = this->_session.find<AlertCriteria>()
                             .where("\"ACR_ID\" = ?").bind(this->vPathElements[11])
                             .where("\"ACR_DELETE\" IS NULL");
 
@@ -1706,7 +1706,7 @@ unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const s
                     }
 
 
-                    Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> ptrInformationCriteriaAlias = this->session->find<AlertMessageAliasInformationCriteria>()
+                    Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> ptrInformationCriteriaAlias = this->_session.find<AlertMessageAliasInformationCriteria>()
                             .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
                             .where("\"SEA_ID\" = ?").bind(infPtr->pk.search->pk.id)
                             .where("\"SRC_ID\" = ?").bind(infPtr->pk.search->pk.source->pk.id)
@@ -1727,7 +1727,7 @@ unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const s
                         newInformationCriteriaAlias->pk.media = ptrMedia;
                         newInformationCriteriaAlias->pk.alertCriteria = ptrCriterion;
                         newInformationCriteriaAlias->alias = sValue;
-                        ptrInformationCriteriaAlias = this->session->add<AlertMessageAliasInformationCriteria>(newInformationCriteriaAlias);
+                        ptrInformationCriteriaAlias = this->_session.add<AlertMessageAliasInformationCriteria>(newInformationCriteriaAlias);
                     }
                     res = 200;
                 }
@@ -1783,10 +1783,10 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
 
                 // Information exist?
-                Wt::Dbo::ptr<Plugin> infPlg = session->find<Plugin>()
+                Wt::Dbo::ptr<Plugin> infPlg = _session.find<Plugin>()
                         .where("\"PLG_ID\" = ?").bind(this->vPathElements[1])
 
                         ;
@@ -1794,7 +1794,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
                 {
                     //Relier une unité à l'info
                     // unit exist?
-                    Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                    Wt::Dbo::ptr<UserRole> ptrRole = this->_session.find<UserRole>()
                         .where("\"URO_ID\" = ?").bind(sRole)
                         .where("\"URO_DELETE\" IS NULL");
                 
@@ -1805,7 +1805,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
                         return res;
                     }
 
-                    Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                    Wt::Dbo::ptr<Media> ptrMedia = this->_session.find<Media>()
                             .where("\"MED_ID\" = ?").bind(sMedia)
                             .where("\"MED_DELETE\" IS NULL");
 
@@ -1817,7 +1817,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
                     }
 
 
-                    Wt::Dbo::ptr<AlertMessageAliasPlugin> ptrPluginAlias = this->session->find<AlertMessageAliasPlugin>()
+                    Wt::Dbo::ptr<AlertMessageAliasPlugin> ptrPluginAlias = this->_session.find<AlertMessageAliasPlugin>()
                             .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
                             .where("\"PLG_ID_PLG_ID\" = ?").bind(infPlg.id())
                             .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
@@ -1832,7 +1832,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
                         newPluginAlias->pk.userRole = ptrRole;
                         newPluginAlias->pk.media = ptrMedia;
                         newPluginAlias->alias = sValue;
-                        ptrPluginAlias = this->session->add<AlertMessageAliasPlugin>(newPluginAlias);
+                        ptrPluginAlias = this->_session.add<AlertMessageAliasPlugin>(newPluginAlias);
                     }
                     res = 200;
                 }
@@ -1887,10 +1887,10 @@ unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseM
 
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
 
                 // Information exist?
-                Wt::Dbo::ptr<Information2> infPtr = session->find<Information2>()
+                Wt::Dbo::ptr<Information2> infPtr = _session.find<Information2>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -1900,7 +1900,7 @@ unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseM
                 {
                     //Relier une unité à l'info
                     // unit exist?
-                    Wt::Dbo::ptr<SearchUnit> seaUnitPtr = session->find<SearchUnit>()
+                    Wt::Dbo::ptr<SearchUnit> seaUnitPtr = _session.find<SearchUnit>()
                             .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[7])
                             .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                             .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
@@ -1971,17 +1971,17 @@ unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg
             posKeyValue = result.get("pos_key_value");
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
+                Wt::Dbo::Transaction transaction(_session);
                 Wt::Dbo::ptr<Search> seaPtr;
 
                 //modification de la search si elle exist
-                seaPtr = session->find<Search>()
+                seaPtr = _session.find<Search>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
                 if(seaPtr)
                 {
-                    Wt::Dbo::ptr<SearchType> seaTypPtr = session->find<SearchType>().where("\"STY_ID\" = ?").bind(seaPtr->searchType.id());
+                    Wt::Dbo::ptr<SearchType> seaTypPtr = _session.find<SearchType>().where("\"STY_ID\" = ?").bind(seaPtr->searchType.id());
                     if(seaTypPtr)
                     {
 
@@ -1993,7 +1993,7 @@ unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg
                         //modification des parametres
                         for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = searchParameterPtr.begin(); i != searchParameterPtr.end(); i++)
                         {
-                            Wt::Dbo::ptr<SearchParameterValue> searchParameterValuePtr = session->find<SearchParameterValue>()
+                            Wt::Dbo::ptr<SearchParameterValue> searchParameterValuePtr = _session.find<SearchParameterValue>()
                                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -2057,8 +2057,8 @@ unsigned short PluginResource::patchParametersSourceForPlugin(string &responseMs
             parameters = result.get("parameters");
             try
             {
-                Wt::Dbo::Transaction transaction(*session);
-                Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
+                Wt::Dbo::Transaction transaction(_session);
+                Wt::Dbo::ptr<Source> srcPtr = _session.find<Source>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
 
@@ -2073,7 +2073,7 @@ unsigned short PluginResource::patchParametersSourceForPlugin(string &responseMs
                         Wt::WString valueParam = tmp.get("value");
 
 
-                        srcParamValPtr = session->find<SourceParameterValue>()
+                        srcParamValPtr = _session.find<SourceParameterValue>()
                                 .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                                 .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                                 .where("\"SRP_ID_SRP_ID\" = ?").bind(srpIdParam);
@@ -2187,9 +2187,9 @@ unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(string& response
     {
         try 
         {  
-            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::Transaction transaction(_session);
 
-            Wt::Dbo::ptr<Information2> informationPtr = session->find<Information2>()
+            Wt::Dbo::ptr<Information2> informationPtr = _session.find<Information2>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -2198,7 +2198,7 @@ unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(string& response
             //information exist ?
             if(informationPtr)
             {
-                Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue>> avaCollec = session->find<AlertValue>()
+                Wt::Dbo::collection<Wt::Dbo::ptr<AlertValue>> avaCollec = _session.find<AlertValue>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
@@ -2245,16 +2245,16 @@ unsigned short PluginResource::deleteSearchForSourceAndPlugin(string& responseMs
     {
         try 
         {  
-            Wt::Dbo::Transaction transaction(*this->session);
+            Wt::Dbo::Transaction transaction(_session);
 
-            Wt::Dbo::ptr<Search> seaPtr = session->find<Search>()
+            Wt::Dbo::ptr<Search> seaPtr = _session.find<Search>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                     .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
             //search exist ?
             if(seaPtr)
             {
-                Wt::Dbo::collection<Wt::Dbo::ptr<Information2>> infCollec = session->find<Information2>()
+                Wt::Dbo::collection<Wt::Dbo::ptr<Information2>> infCollec = _session.find<Information2>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
                         .where("\"SEA_ID\" = ?").bind(this->vPathElements[5]);
@@ -2303,12 +2303,12 @@ unsigned short PluginResource::deletePlugin(string& responseMsg)
     {
         try 
         {  
-            Wt::Dbo::Transaction transaction(*this->session);
-            Wt::Dbo::ptr<Plugin> plgPtr = session->find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<Plugin> plgPtr = _session.find<Plugin>().where("\"PLG_ID\" = ?").bind(this->vPathElements[1]);
             //verif si le plugin existe
             if(plgPtr)
             {
-                Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = session->find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
+                Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = _session.find<Source>().where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
                 //verif si le plugin n'est pas utilisé
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
                 {
@@ -2351,14 +2351,14 @@ unsigned short PluginResource::deleteSourceForPlugin(string& responseMsg)
     {
         try 
         {  
-            Wt::Dbo::Transaction transaction(*this->session);
-            Wt::Dbo::ptr<Source> srcPtr = session->find<Source>()
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<Source> srcPtr = _session.find<Source>()
                     .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
             //verif si la source existe
             if(srcPtr)
             {
-                Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = session->find<Search>()
+                Wt::Dbo::collection<Wt::Dbo::ptr<Search>> seaCollec = _session.find<Search>()
                         .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
                         .where("\"SRC_ID\" = ?").bind(this->vPathElements[3]);
 

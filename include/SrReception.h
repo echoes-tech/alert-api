@@ -10,6 +10,8 @@
 
 #include <Wt/WResource>
 
+#include "Conf.h"
+
 class SrReception : public Wt::WResource
 {
     public:
@@ -21,7 +23,7 @@ class SrReception : public Wt::WResource
     protected:
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            Session session(Utils::connection);
+            Session session(conf.getSessConnectParams());
             
             Wt::log("notice") << "[SR] Client address : " << request.clientAddress();
             Wt::log("notice") << "[SR] Content type : " << request.contentType();

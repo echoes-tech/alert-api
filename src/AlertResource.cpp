@@ -28,13 +28,13 @@ AlertResource::~AlertResource()
 {
 }
 
-unsigned short AlertResource::getRecipientsForAlert(string &responseMsg) const
+unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
         
          string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
                     " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
@@ -43,7 +43,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg) const
                     " AND mev.\"MEV_USR_USR_ID\" IN" 
                  "( Select \"T_USER_USR_USR_ID\" "
                  "FROM \"TJ_USR_ORG\" "
-                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = ?" + boost::lexical_cast<string > (this->session->user()->currentOrganization.id()) +
+                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = ?" + boost::lexical_cast<string > (this->_session.user()->currentOrganization.id()) +
                  ")";
 
         Wt::Dbo::Query
@@ -54,7 +54,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg) const
                 Wt::Dbo::ptr<AlertMediaSpecialization>
                 >
                 , Wt::Dbo::DynamicBinding
-                > resQuery = this->session->query
+                > resQuery = this->_session.query
                 <
                 boost::tuple
                 <
@@ -105,7 +105,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg) const
     return res;
 }
 
-unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg) const
+unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
 {
     responseMsg="";
     unsigned short res = 500;
@@ -113,20 +113,20 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg) 
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
          
         string queryString = ("SELECT atr FROM \"T_ALERT_TRACKING_ATR\" atr"
        " WHERE \"ATR_ALE_ALE_ID\" IN"
        " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\""
        " WHERE \"AMS_MEV_MEV_ID\" IN "
        " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\""
-       " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(session->user().id()) +
+       " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(_session.user().id()) +
        " and \"MEV_MED_MED_ID\" = " + this->media +
                 "))"
        " ORDER BY \"ATR_SEND_DATE\" DESC"
        " LIMIT 20");
           
-        Wt::Dbo::Query<Wt::Dbo::ptr<AlertTracking> > queryRes = session->query<Wt::Dbo::ptr<AlertTracking> >(queryString);
+        Wt::Dbo::Query<Wt::Dbo::ptr<AlertTracking> > queryRes = _session.query<Wt::Dbo::ptr<AlertTracking> >(queryString);
 
          Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> > aleTrackingPtr = queryRes.resultList(); 
 
@@ -166,14 +166,14 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg) 
     return res;
 }
 
-unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
+unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
 {
     responseMsg="";
     unsigned short res = 500;
     int idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
         string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
             " WHERE atr.\"ATR_ALE_ALE_ID\" = ale.\"ALE_ID\" "
@@ -181,7 +181,7 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
             " AND mev.\"MEV_USR_USR_ID\" IN"
             "("
                 "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
-                + boost::lexical_cast<string>(this->session->user()->currentOrganization.id()) + " "
+                + boost::lexical_cast<string>(this->_session.user()->currentOrganization.id()) + " "
             ")"
             " order by \"ATR_SEND_DATE\" desc "
             " limit 50";
@@ -194,7 +194,7 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
                 Wt::Dbo::ptr<AlertTracking> 
                 >
                 ,Wt::Dbo::DynamicBinding
-                >resQuery = this->session->query
+                >resQuery = this->_session.query
                 <
                 boost::tuple
                 <
@@ -255,13 +255,13 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg) const
     return res;
 }
 
-unsigned short AlertResource::getAlerts(string &responseMsg) const
+unsigned short AlertResource::getAlerts(string &responseMsg)
 {
     unsigned short res = 500;
     int idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
         string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
                 " \"T_ALERT_VALUE_AVA\" ava,"
                 " \"T_ALERT_CRITERIA_ACR\" acr,"
@@ -273,7 +273,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg) const
                 " SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  IN"
                 " ( SELECT \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (this->session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (this->_session.user()->currentOrganization.id()) +
                 " )"
                 " )"
                 " ) "
@@ -295,7 +295,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg) const
                 Wt::Dbo::ptr<InformationUnit>
                 >
                 , Wt::Dbo::DynamicBinding
-                > resQuery = session->query
+                > resQuery = _session.query
                 <
                 boost::tuple
                 <
@@ -483,24 +483,24 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
     
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
 
         //info requête bonne?
-        Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>()
+        Wt::Dbo::ptr<Information2> infoPtr = _session.find<Information2>()
                 .where("\"SEA_ID\" = ?").bind(seaId)
                 .where("\"SRC_ID\" = ?").bind(srcId)
                 .where("\"PLG_ID_PLG_ID\" = ?").bind(plgId)
                 .where("\"INF_VALUE_NUM\" = ?").bind(infValNum)
                 .where("\"INU_ID_INU_ID\" = ?").bind(inuId);
 
-        Wt::Dbo::ptr<AlertCriteria> critPtr = session->find<AlertCriteria>().where("\"ACR_ID\" = ?").bind(acrId);
+        Wt::Dbo::ptr<AlertCriteria> critPtr = _session.find<AlertCriteria>().where("\"ACR_ID\" = ?").bind(acrId);
 
-        Wt::Dbo::ptr<Asset> assetPtr = session->find<Asset>().where("\"AST_ID\" = ?").bind(astId);
+        Wt::Dbo::ptr<Asset> assetPtr = _session.find<Asset>().where("\"AST_ID\" = ?").bind(astId);
 
         for (Wt::Json::Array::const_iterator idx1 = amsId.begin() ; idx1 < amsId.end(); idx1++)
         {
             Wt::WString tmp1 = idx1->toString();
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>()
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = _session.find<AlertMediaSpecialization>()
                     .where("\"AMS_ID\" = ?").bind(tmp1)
                     .where("\"AMS_ALE_ALE_ID\" IS NULL");
 
@@ -543,9 +543,9 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
 
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
 
-//        Wt::Dbo::ptr<UserRole> uroPtr = session->find<UserRole>()
+//        Wt::Dbo::ptr<UserRole> uroPtr = session.find<UserRole>()
 //                .where("\"URO_ID\" = ?").bind(uroId);
 //        
 //        if(!uroPtr)
@@ -557,16 +557,16 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
 //        }
          
         
-        Wt::Dbo::ptr<Information2> infoPtr = session->find<Information2>()
+        Wt::Dbo::ptr<Information2> infoPtr = _session.find<Information2>()
                 .where("\"SEA_ID\" = ?").bind(seaId)
                 .where("\"SRC_ID\" = ?").bind(srcId)
                 .where("\"PLG_ID_PLG_ID\" = ?").bind(plgId)
                 .where("\"INF_VALUE_NUM\" = ?").bind(infValNum)
                 .where("\"INU_ID_INU_ID\" = ?").bind(inuId);
 
-        Wt::Dbo::ptr<AlertCriteria> critPtr = session->find<AlertCriteria>().where("\"ACR_ID\" = ?").bind(acrId);
+        Wt::Dbo::ptr<AlertCriteria> critPtr = _session.find<AlertCriteria>().where("\"ACR_ID\" = ?").bind(acrId);
 
-        Wt::Dbo::ptr<Asset> assetPtr = session->find<Asset>().where("\"AST_ID\" = ?").bind(astId);
+        Wt::Dbo::ptr<Asset> assetPtr = _session.find<Asset>().where("\"AST_ID\" = ?").bind(astId);
 
 
         ava->information = infoPtr;
@@ -574,22 +574,22 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         ava->value = alertValue;
         ava->keyValue = keyVal;
         ava->asset = assetPtr;
-        Wt::Dbo::ptr<AlertValue> avaPtr = session->add<AlertValue>(ava);
+        Wt::Dbo::ptr<AlertValue> avaPtr = _session.add<AlertValue>(ava);
 
         alert->alertValue = avaPtr;
         alert->name = alertName;
         alert->creaDate = Wt::WDateTime::currentDateTime();
         alert->threadSleep = threadSleep;
 
-        Wt::Dbo::ptr<Alert> alePtr = session->add<Alert>(alert);
+        Wt::Dbo::ptr<Alert> alePtr = _session.add<Alert>(alert);
 
         for (Wt::Json::Array::const_iterator idx2 = amsId.begin() ; idx2 < amsId.end(); idx2++)
         {
             Wt::WString tmp = idx2->toString();
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = session->find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp);
+            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr = _session.find<AlertMediaSpecialization>().where("\"AMS_ID\" = ?").bind(tmp);
             
             
-            Wt::Dbo::ptr<UserRole> uroPtr = session->find<UserRole>()
+            Wt::Dbo::ptr<UserRole> uroPtr = _session.find<UserRole>()
                 .where("\"URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole);
         
             if(!uroPtr)
@@ -609,19 +609,19 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
             amd->pk.userRole = uroPtr;
             amd->isCustom = false;
             
-            Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->session->find<AlertMessageAliasAsset>()
+            Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->_session.find<AlertMessageAliasAsset>()
                     .where("\"AAA_DELETE\" IS NULL")
                     .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
                     .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
                     .where("\"AST_ID_AST_ID\" = ?").bind(assetPtr.id());
             
-            Wt::Dbo::ptr<AlertMessageAliasPlugin> aliasPlugin = this->session->find<AlertMessageAliasPlugin>()
+            Wt::Dbo::ptr<AlertMessageAliasPlugin> aliasPlugin = this->_session.find<AlertMessageAliasPlugin>()
                 .where("\"AAP_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
                 .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
                 .where("\"PLG_ID_PLG_ID\" = ?").bind(infoPtr->pk.search->pk.source->pk.plugin.id());
             
-            Wt::Dbo::ptr<AlertMessageAliasInformation> aliasInformation = this->session->find<AlertMessageAliasInformation>()
+            Wt::Dbo::ptr<AlertMessageAliasInformation> aliasInformation = this->_session.find<AlertMessageAliasInformation>()
                 .where("\"AAI_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
                 .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
@@ -631,7 +631,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                 .where("\"INF_VALUE_NUM\" = ?").bind(infoPtr->pk.subSearchNumber)
                 .where("\"INU_ID_INU_ID\" = ?").bind(infoPtr->pk.unit);
             
-            Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> aliasCriteria = this->session->find<AlertMessageAliasInformationCriteria>()
+            Wt::Dbo::ptr<AlertMessageAliasInformationCriteria> aliasCriteria = this->_session.find<AlertMessageAliasInformationCriteria>()
                 .where("\"AIC_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(amsPtr->mediaValue->user->userRole)
                 .where("\"MED_ID_MED_ID\" = ?").bind(amsPtr->mediaValue->media)
@@ -803,7 +803,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     break;
             }
 
-            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr = session->add<AlertMessageDefinition>(amd);
+            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr = _session.add<AlertMessageDefinition>(amd);
             amdPtr.flush();
         }
         alePtr.flush();
@@ -978,10 +978,10 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
     {
         try
         {
-            Wt::Dbo::Transaction transaction(*session);
+            Wt::Dbo::Transaction transaction(_session);
 
             //TODO: check if this alert is set for the current user organisation
-            Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>()
+            Wt::Dbo::ptr<Alert> alertPtr = _session.find<Alert>()
                     .where("\"ALE_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"ALE_DELETE\" IS NULL");
 
@@ -992,7 +992,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                 alertPtr.modify()->lastAttempt = now;
 
                 //TODO: verifier si les IVA correspondent bien aux INF de l'alerte
-                ivaPtrCollection = session->find<InformationValue>()
+                ivaPtrCollection = _session.find<InformationValue>()
                     .where(ivaIDWhereString)
                     .where("\"IVA_DELETE\" IS NULL");
 
@@ -1011,14 +1011,14 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                         // WARNING : SendDate must be set by the API when the alert was sent, not before
                         newAlertTracking->sendDate = *(new Wt::WDateTime());
 
-                        Wt::Dbo::ptr<AlertTracking> alertTrackingPtr = session->add<AlertTracking>(newAlertTracking);
+                        Wt::Dbo::ptr<AlertTracking> alertTrackingPtr = _session.add<AlertTracking>(newAlertTracking);
                         alertTrackingPtr.flush();
 
                         Wt::log("info") << " [Alert Ressource] " << "Alert tracking number creation : " << alertTrackingPtr.id();
 
                         Wt::log("debug") << " [Alert Ressource] " << "snooze = " << i->get()->snoozeDuration;
                         
-                        Wt::Dbo::ptr<AlertMessageDefinition> amdPtr = session->find<AlertMessageDefinition>()
+                        Wt::Dbo::ptr<AlertMessageDefinition> amdPtr = _session.find<AlertMessageDefinition>()
                                 .where("\"ALE_ID_ALE_ID\" = ?").bind(alertPtr.id())
                                 .where("\"URO_ID_URO_ID\" = ?").bind(i->get()->mediaValue->user->userRole.id())
                                 .where("\"MED_ID_MED_ID\" = ?").bind(medID)
@@ -1034,7 +1034,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                     Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
 
                                     // Verifying the quota of sms
-                                    Wt::Dbo::ptr<OptionValue> optionValuePtr = session->find<OptionValue>()
+                                    Wt::Dbo::ptr<OptionValue> optionValuePtr = _session.find<OptionValue>()
                                             .where("\"OPT_ID_OPT_ID\" = ?").bind(Enums::QUOTA_SMS)
                                             .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->currentOrganization.id())
                                             .limit(1);
@@ -1165,7 +1165,7 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
     try 
     {
 
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
         string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale "
                 " WHERE \"ALE_ID\" IN"
                 " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
@@ -1174,13 +1174,13 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " ( Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(this->session->user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(this->_session.user()->currentOrganization.id()) +
                 " )))"
                 " AND \"ALE_ID\" = " + this->vPathElements[1];
         
-        Wt::Dbo::Query<Wt::Dbo::ptr<Alert>> resQuery = session->query<Wt::Dbo::ptr<Alert>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Alert>> resQuery = _session.query<Wt::Dbo::ptr<Alert>>(queryStr);
         Wt::Dbo::ptr<Alert> alertPtr = resQuery.resultValue();
-       // Wt::Dbo::ptr<Alert> alertPtr = session->find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
+       // Wt::Dbo::ptr<Alert> alertPtr = session.find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(this->vPathElements[1])); 
         if (alertPtr)
         {
             alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();

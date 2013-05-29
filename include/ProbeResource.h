@@ -24,8 +24,8 @@ class ProbeResource : public PublicApiResource
         virtual ~ProbeResource();
 
     protected:
-        unsigned short getProbesList(std::string &responseMsg) const;
-        unsigned short getProbe(std::string &responseMsg) const;
+        unsigned short getProbesList(std::string &responseMsg);
+        unsigned short getProbe(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

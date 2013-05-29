@@ -27,17 +27,17 @@ AssetResource::~AssetResource()
 {
 }
 
-unsigned short AssetResource::getAssetsList(string &responseMsg) const
+unsigned short AssetResource::getAssetsList(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned long idx = 0;
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->session->find<Asset> ()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->_session.find<Asset> ()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id());
+                .bind(this->_session.user()->currentOrganization.id());
 
         responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
@@ -67,16 +67,16 @@ unsigned short AssetResource::getAssetsList(string &responseMsg) const
     return res;
 }
 
-unsigned short AssetResource::getAsset(string &responseMsg) const
+unsigned short AssetResource::getAsset(string &responseMsg)
 {
     unsigned short res = 500;
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->session->user()->currentOrganization.id())
+                .bind(this->_session.user()->currentOrganization.id())
                 .bind(this->vPathElements[1]);
         
 
@@ -85,7 +85,7 @@ unsigned short AssetResource::getAsset(string &responseMsg) const
             responseMsg += "{\n";
             responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(asset.id()) + ",\n";
             responseMsg += "\t\"name\": \"" + asset->name.toUTF8() + "\",\n";
-            Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->session->find<AssetArchitecture> ()
+            Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->_session.find<AssetArchitecture> ()
                 .where("\"ASA_ID\" = ? AND \"ASA_DELETE\" IS NULL")
                 .bind(asset->assetArchitecture.id());
             if (Utils::checkId<AssetArchitecture>(assetArchitecture)) 
@@ -97,7 +97,7 @@ unsigned short AssetResource::getAsset(string &responseMsg) const
                 responseMsg += "\t\"architecture\": \"Unknown\",\n";
             }
             responseMsg += "\t\"distribution\": {\n";
-            Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->session->find<AssetDistribution> ()
+            Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->_session.find<AssetDistribution> ()
                 .where("\"ASD_ID\" = ? AND \"ASD_DELETE\" IS NULL")
                 .bind(asset->assetDistribution.id());
             if (Utils::checkId<AssetDistribution>(assetDistribution)) 
@@ -108,7 +108,7 @@ unsigned short AssetResource::getAsset(string &responseMsg) const
             {
                 responseMsg += "\t\t\"name\": \"Unknown\",\n";
             }
-            Wt::Dbo::ptr<AssetRelease> assetRelease = this->session->find<AssetRelease> ()
+            Wt::Dbo::ptr<AssetRelease> assetRelease = this->_session.find<AssetRelease> ()
                 .where("\"ASR_ID\" = ? AND \"ASR_DELETE\" IS NULL")
                 .bind(asset->assetRelease.id());
             if (Utils::checkId<AssetRelease>(assetRelease)) 
@@ -143,15 +143,15 @@ unsigned short AssetResource::getAsset(string &responseMsg) const
 }
 
 
-unsigned short AssetResource::getKeyValueForInformation(string &responseMsg) const
+unsigned short AssetResource::getKeyValueForInformation(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
+        Wt::Dbo::Transaction transaction(_session);
 
-        Wt::Dbo::ptr<Information2> ptrInfoKey = session->find<Information2>()
+        Wt::Dbo::ptr<Information2> ptrInfoKey = _session.find<Information2>()
                 .where("\"SRC_ID\" = ?").bind(this->vPathElements[5])
                 .where("\"SEA_ID\" = ?").bind(this->vPathElements[7])
                 .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[3])
@@ -179,7 +179,7 @@ unsigned short AssetResource::getKeyValueForInformation(string &responseMsg) con
         " ) sr_sr"
         ")";
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> collPtrIva = session->query<Wt::Dbo::ptr<InformationValue>>(queryString);
+        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> collPtrIva = _session.query<Wt::Dbo::ptr<InformationValue>>(queryString);
 
         if(collPtrIva.size() > 0)
         {
@@ -214,15 +214,15 @@ unsigned short AssetResource::getKeyValueForInformation(string &responseMsg) con
 }
 
 
-unsigned short AssetResource::getPluginsListForAsset(string &responseMsg) const
+unsigned short AssetResource::getPluginsListForAsset(string &responseMsg)
 {
     unsigned short res = 500;
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                 .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
 
@@ -254,21 +254,21 @@ unsigned short AssetResource::getPluginsListForAsset(string &responseMsg) const
     return res;
 }
 
-unsigned short AssetResource::getProbesListForAsset(string &responseMsg) const
+unsigned short AssetResource::getProbesListForAsset(string &responseMsg)
 {
     unsigned short res = 500;
 
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                 .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
 
         if (Utils::checkId<Asset>(asset)) 
         {
-            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
+            Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe> ()
                 .where("\"PRB_ID\" = ?").bind(asset->probe.id())
                 .where("\"PRB_DELETE\" IS NULL");
             if (Utils::checkId<Probe>(probe)) 
@@ -407,35 +407,35 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
         // Est-ce que l'asset existe ?
-        Wt::Dbo::ptr<Asset> asset = this->session->find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                 .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
         if (Utils::checkId<Asset>(asset))
         {
-            Wt::WString probeName = "Probe_" + this->session->user()->lastName + "_" + asset->name;
+            Wt::WString probeName = "Probe_" + this->_session.user()->lastName + "_" + asset->name;
 
             responseMsg += "{\n";
             // Est-ce que la probe existe pour cet asset ?
-            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe>()
+            Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe>()
                 .where("\"PRB_ID\" = ?").bind(asset->probe.id())
                 .where("\"PRB_DELETE\" IS NULL");
             if (!Utils::checkId<Probe>(probe))
             {
                 Probe *newProbe = new Probe();
                 newProbe->name = probeName;
-                newProbe->organization = this->session->user()->currentOrganization;
-                asset.modify()->probe = this->session->add<Probe>(newProbe);
+                newProbe->organization = this->_session.user()->currentOrganization;
+                asset.modify()->probe = this->_session.add<Probe>(newProbe);
             }
             else
             {
                 asset->probe.modify()->name = probeName;
             }
 
-            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
+            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->_session.find<ProbePackageParameter>()
                     .where("\"PPP_ASA_ASA_ID\" = ?").bind(asset->assetArchitecture.id())
                     .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                     .where("\"PPP_ASR_ASR_ID\" = ?").bind(asset->assetRelease.id())
@@ -448,8 +448,8 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
             if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
             {
                 string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
-                ptrAssetRelease = this->session->find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
-                probePackageParameter = this->session->find<ProbePackageParameter>()
+                ptrAssetRelease = this->_session.find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
+                probePackageParameter = this->_session.find<ProbePackageParameter>()
                     .where("\"PPP_ASA_ASA_ID\" = ?").bind(asset->assetArchitecture.id())
                     .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                     .where("\"PPP_ASR_ASR_ID\" = ?").bind(ptrAssetRelease.id())
@@ -467,8 +467,8 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                 if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
                 {
                     string wildcardArchitecture = "i*86";
-                    ptrAssetArchitecture = this->session->find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
-                    probePackageParameter = this->session->find<ProbePackageParameter>()
+                    ptrAssetArchitecture = this->_session.find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
+                    probePackageParameter = this->_session.find<ProbePackageParameter>()
                             .where("\"PPP_ASA_ASA_ID\" = ?").bind(ptrAssetArchitecture.id())
                             .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                             .where("\"PPP_ASR_ASR_ID\" = ?").bind(asset->assetRelease.id())
@@ -484,7 +484,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                 && !Utils::checkId<ProbePackageParameter>(probePackageParameter)
                )
             {
-                probePackageParameter = this->session->find<ProbePackageParameter>()
+                probePackageParameter = this->_session.find<ProbePackageParameter>()
                     .where("\"PPP_ASA_ASA_ID\" = ?").bind(ptrAssetArchitecture.id())
                     .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                     .where("\"PPP_ASR_ASR_ID\" = ?").bind(ptrAssetRelease.id())
@@ -552,7 +552,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
     return res;
 }
 
-unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg) const
+unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg)
 {
     unsigned short res = 500;
     if (this->role.empty())
@@ -571,8 +571,8 @@ unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg) const
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->session->find<AlertMessageAliasAsset>()
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->_session.find<AlertMessageAliasAsset>()
                 .where("\"AAA_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
                 .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
@@ -685,43 +685,43 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
     {
         try 
         {
-            Wt::Dbo::Transaction transaction(*this->session);
-            Wt::Dbo::ptr<Asset> asset = this->session->find<Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset> ()
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                     .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"AST_DELETE\" IS NULL");
 
             if (Utils::checkId<Asset>(asset)) 
             {
-                Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->session->find<AssetArchitecture>()
+                Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->_session.find<AssetArchitecture>()
                         .where("\"ASA_NAME\" = ?").bind(arch);
                 if (!Utils::checkId<AssetArchitecture> (assetArchitecture)) 
                 {
                     AssetArchitecture *newAssetArchitecture = new AssetArchitecture();
                     newAssetArchitecture->name = arch;
-                    assetArchitecture = this->session->add<AssetArchitecture>(newAssetArchitecture);
+                    assetArchitecture = this->_session.add<AssetArchitecture>(newAssetArchitecture);
                     assetArchitecture.flush();
                 }
                 asset.modify()->assetArchitecture = assetArchitecture;
                 
-                Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->session->find<AssetDistribution>()
+                Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->_session.find<AssetDistribution>()
                         .where("\"ASD_NAME\" = ?").bind(distribName);
                 if (!Utils::checkId<AssetDistribution> (assetDistribution)) 
                 {
                     AssetDistribution *newAssetDistribution = new AssetDistribution();
                     newAssetDistribution->name = distribName;
-                    assetDistribution = this->session->add<AssetDistribution>(newAssetDistribution);
+                    assetDistribution = this->_session.add<AssetDistribution>(newAssetDistribution);
                     assetDistribution.flush();
                 }
                 asset.modify()->assetDistribution = assetDistribution;
                 
-                Wt::Dbo::ptr<AssetRelease> assetRelease = this->session->find<AssetRelease>()
+                Wt::Dbo::ptr<AssetRelease> assetRelease = this->_session.find<AssetRelease>()
                         .where("\"ASR_NAME\" = ?").bind(distribRelease);
                 if (!Utils::checkId<AssetRelease> (assetRelease)) 
                 {
                     AssetRelease *newAssetRelease = new AssetRelease();
                     newAssetRelease->name = distribRelease;
-                    assetRelease = this->session->add<AssetRelease>(newAssetRelease);
+                    assetRelease = this->_session.add<AssetRelease>(newAssetRelease);
                     assetRelease.flush();
                 }
                 asset.modify()->assetRelease = assetRelease;
@@ -789,15 +789,15 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
     {
         try 
         {
-            Wt::Dbo::Transaction transaction(*this->session);
-            Wt::Dbo::ptr<Asset> ptrAsset = this->session->find<Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<Asset> ptrAsset = this->_session.find<Asset> ()
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                     .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
                     .where("\"AST_DELETE\" IS NULL");
 
             if (Utils::checkId<Asset>(ptrAsset)) 
             {
-                Wt::Dbo::ptr<UserRole> ptrRole = this->session->find<UserRole>()
+                Wt::Dbo::ptr<UserRole> ptrRole = this->_session.find<UserRole>()
                         .where("\"URO_ID\" = ?").bind(sRole)
                         .where("\"URO_DELETE\" IS NULL");
                 
@@ -808,7 +808,7 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
                     return res;
                 }
                 
-                Wt::Dbo::ptr<Media> ptrMedia = this->session->find<Media>()
+                Wt::Dbo::ptr<Media> ptrMedia = this->_session.find<Media>()
                         .where("\"MED_ID\" = ?").bind(sMedia)
                         .where("\"MED_DELETE\" IS NULL");
                 
@@ -820,7 +820,7 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
                 }
                 
                  
-                Wt::Dbo::ptr<AlertMessageAliasAsset> ptrAssetAlias = this->session->find<AlertMessageAliasAsset>()
+                Wt::Dbo::ptr<AlertMessageAliasAsset> ptrAssetAlias = this->_session.find<AlertMessageAliasAsset>()
                         .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
                         .where("\"AST_ID_AST_ID\" = ?").bind(ptrAsset.id())
                         .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
@@ -835,7 +835,7 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
                     newAssetAlias->pk.userRole = ptrRole;
                     newAssetAlias->pk.media = ptrMedia;
                     newAssetAlias->alias = sValue;
-                    ptrAssetAlias = this->session->add<AlertMessageAliasAsset>(newAssetAlias);
+                    ptrAssetAlias = this->_session.add<AlertMessageAliasAsset>(newAssetAlias);
                 }
                 res = 200;
             } 

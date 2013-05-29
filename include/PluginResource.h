@@ -25,20 +25,20 @@ class PluginResource : public PublicApiResource
         
     protected :
         
-        unsigned short pluginIsAccessible(std::string& responseMsg) const;
+        unsigned short pluginIsAccessible(std::string& responseMsg);
         
-        unsigned short getPluginJSON(std::string &responseMsg) const;
-        unsigned short getPlugin(std::string &responseMsg) const;
-        unsigned short getParameterValueForSearch(std::string &responseMsg) const;
-        unsigned short getParameterValueForSource(std::string &responseMsg) const;
-        unsigned short getInformationForSeaSrcAndPlg(std::string &responseMsg) const;
-        unsigned short getSearchForSourceAndPlugin(std::string &responseMsg) const;
-        unsigned short getSourceForPlugin(std::string &responseMsg) const;
-        unsigned short getInformationListForPlugin(std::string &responseMsg) const;
-        unsigned short getAliasForInformation(std::string &responseMsg) const;
-        unsigned short getAliasForCriteria(std::string &responseMsg) const;
-        unsigned short getCriteriaForInformation(std::string &responseMsg) const;
-        unsigned short getAliasForPlugin(std::string &responseMsg) const;
+        unsigned short getPluginJSON(std::string &responseMsg);
+        unsigned short getPlugin(std::string &responseMsg);
+        unsigned short getParameterValueForSearch(std::string &responseMsg);
+        unsigned short getParameterValueForSource(std::string &responseMsg);
+        unsigned short getInformationForSeaSrcAndPlg(std::string &responseMsg);
+        unsigned short getSearchForSourceAndPlugin(std::string &responseMsg);
+        unsigned short getSourceForPlugin(std::string &responseMsg);
+        unsigned short getInformationListForPlugin(std::string &responseMsg);
+        unsigned short getAliasForInformation(std::string &responseMsg);
+        unsigned short getAliasForCriteria(std::string &responseMsg);
+        unsigned short getCriteriaForInformation(std::string &responseMsg);
+        unsigned short getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);

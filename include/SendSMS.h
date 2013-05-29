@@ -73,8 +73,8 @@ protected:
 
         try 
         {
-            Wt::Dbo::Transaction transaction(*session);
-            Wt::Dbo::ptr<AlertTracking> at = session->find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<AlertTracking> at = _session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
             if (Utils::checkId<AlertTracking > (at)) 
             {
                 if (!at.get()->sendDate.isNull()) 
@@ -135,8 +135,8 @@ protected:
             Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
             try 
             {
-                Wt::Dbo::Transaction transaction(*session);
-                Wt::Dbo::ptr<AlertTracking> at = session->find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                Wt::Dbo::Transaction transaction(_session);
+                Wt::Dbo::ptr<AlertTracking> at = _session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
                 if (Utils::checkId<AlertTracking > (at)) 
                 {
                     //TODO : hostname cpp way
@@ -166,7 +166,7 @@ protected:
     void handle(boost::system::error_code err, const Wt::Http::Message& response) {
         if (!err) {
             if (response.status() == 200) {
-                Session session(conf.getSessConnectParams());
+                Session _session(conf.getSessConnectParams());
                 /** stream : mandatory for boost ptree */
                 std::istringstream requestBodyStream(response.body());
                 boost::property_tree::ptree ptree;
@@ -181,8 +181,8 @@ protected:
                 Wt::log("info") << "[SMS][ACK] response : " << response.body();
 
                 try {
-                    Wt::Dbo::Transaction transaction(session);
-                    Wt::Dbo::ptr<AlertTracking> at = session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                    Wt::Dbo::Transaction transaction(_session);
+                    Wt::Dbo::ptr<AlertTracking> at = _session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
                     if (Utils::checkId<AlertTracking > (at)) {
                         //TODO : hostname cpp way
                         char hostname[255];

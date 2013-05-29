@@ -25,7 +25,7 @@ class CriterionResource : public PublicApiResource
         
     protected :
 
-        unsigned short getCriteria(std::string &responseMsg) const;
+        unsigned short getCriteria(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

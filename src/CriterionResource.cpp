@@ -27,14 +27,14 @@ CriterionResource::~CriterionResource()
 {
 }
 
-unsigned short CriterionResource::getCriteria(string &responseMsg) const
+unsigned short CriterionResource::getCriteria(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(*session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = session->find<AlertCriteria>();
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = _session.find<AlertCriteria>();
         responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {

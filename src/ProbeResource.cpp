@@ -23,25 +23,26 @@ ProbeResource::ProbeResource(const ProbeResource& orig) : PublicApiResource::Pub
 {
 }
 
-ProbeResource::~ProbeResource() {
+ProbeResource::~ProbeResource()
+{
 }
 
-unsigned short ProbeResource::getProbesList(string &responseMsg) const
+unsigned short ProbeResource::getProbesList(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned long idx = 0;
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->session->find<Asset> ()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->_session.find<Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                 .where("\"AST_DELETE\" IS NULL");
 
         responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
         {
-            Wt::Dbo::ptr<Probe> probe = this->session->find<Probe> ()
+            Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe> ()
                 .where("\"PRB_ID\" = ?").bind(i->get()->probe.id())
                 .where("\"PRB_DELETE\" IS NULL");
             if (Utils::checkId<Probe>(probe))
@@ -73,15 +74,15 @@ unsigned short ProbeResource::getProbesList(string &responseMsg) const
     return res;
 }
 
-unsigned short ProbeResource::getProbe(string &responseMsg) const
+unsigned short ProbeResource::getProbe(string &responseMsg)
 {
     unsigned short res = 500;
     
     try 
     {
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<Probe> probe = this->session->find<Probe>()
-                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->session->user()->currentOrganization.id())
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe>()
+                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
                 .where("\"PRB_ID\" = ?").bind(this->vPathElements[1])
                 .where("\"PRB_DELETE\" IS NULL");
 
@@ -92,7 +93,7 @@ unsigned short ProbeResource::getProbe(string &responseMsg) const
             responseMsg += "\t\"name\": \"" + probe->name.toUTF8() + "\",\n";
 
             // Est-ce que les param pkg de cette probe existent ?
-            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->session->find<ProbePackageParameter>()
+            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->_session.find<ProbePackageParameter>()
                     .where("\"PPP_ID\" = ?").bind(probe->probePackageParameter.id())
                     .where("\"PPP_DELETE\" IS NULL");
             if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
@@ -101,7 +102,7 @@ unsigned short ProbeResource::getProbe(string &responseMsg) const
                 responseMsg += "\t\"package\": {\n";
 
                 // Est-ce que le pkg de cette probe existent ?
-                Wt::Dbo::ptr<ProbePackage> probePackage = this->session->find<ProbePackage>()
+                Wt::Dbo::ptr<ProbePackage> probePackage = this->_session.find<ProbePackage>()
                         .where("\"PPA_ID\" = ?").bind(probePackageParameter->probePackage.id())
                         .where("\"PPA_DELETE\" IS NULL");
                 if (Utils::checkId<ProbePackage>(probePackage))

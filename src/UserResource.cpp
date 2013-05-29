@@ -27,13 +27,13 @@ UserResource::~UserResource()
 {
 }
 
-unsigned short UserResource::getInformationForUser(std::string &responseMsg) const
+unsigned short UserResource::getInformationForUser(std::string &responseMsg)
 {
     unsigned short res = 500;
     try
     {        
-        Wt::Dbo::Transaction transaction(*this->session);
-        Wt::Dbo::ptr<User> user = session->find<User>().where("\"USR_ID\" = ?").bind(this->session->user().id());
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<User> user = _session.find<User>().where("\"USR_ID\" = ?").bind(this->_session.user().id());
       
         if(user)
         {
@@ -113,17 +113,17 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
     }
     try
     {
-        Wt::Dbo::Transaction transaction(*this->session);
+        Wt::Dbo::Transaction transaction(_session);
 
-        Wt::Dbo::ptr<UserAction> ptrUserAction = session->find<UserAction>().where("\"UAC_ID\" = ?").bind(uacId);
+        Wt::Dbo::ptr<UserAction> ptrUserAction = _session.find<UserAction>().where("\"UAC_ID\" = ?").bind(uacId);
 
         UserHistoricalAction *userHistoricalAction = new UserHistoricalAction();
         userHistoricalAction->tableObject = tableObject;
         userHistoricalAction->tableObjectId = boost::lexical_cast<long long>(tableObjectId);
 
-        Wt::Dbo::ptr<UserHistoricalAction> ptrUserHistoricalAction = session->add<UserHistoricalAction>(userHistoricalAction);
+        Wt::Dbo::ptr<UserHistoricalAction> ptrUserHistoricalAction = _session.add<UserHistoricalAction>(userHistoricalAction);
         ptrUserHistoricalAction.modify()->userAction = ptrUserAction;
-        ptrUserHistoricalAction.modify()->user = session->user();
+        ptrUserHistoricalAction.modify()->user = _session.user();
         ptrUserHistoricalAction.modify()->dateTime = Wt::WDateTime::currentDateTime();
         ptrUserHistoricalAction.modify()->actionAfter = boost::lexical_cast<int>(actionAfter);
         ptrUserHistoricalAction.modify()->actionBefore = boost::lexical_cast<int>(actionBefore);
