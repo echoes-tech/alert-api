@@ -12,6 +12,7 @@
  */
 
 #include "MediaResource.h"
+#include <Wt/WRandom>
 
 using namespace std;
 
@@ -213,6 +214,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
         mev->user= ptrUser;
         mev->media = media;
         mev->value = mevValue;
+        mev->token = Wt::WRandom::generateId(25);
         Wt::Dbo::ptr<MediaValue> ptrMev = _session.add<MediaValue>(mev);
         ptrMev.flush();
         ptrMev.modify()->setId(ptrMev.id());
@@ -232,6 +234,69 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
     return res;
 }
 
+ unsigned short MediaResource::postMediaValidation(std::string &responseMsg, const std::string &sRequest)
+ {
+    unsigned short res = 500;
+    Wt::WString mevToken;
+    bool mevValidate;
+    try
+    {
+
+        Wt::Json::Object result;                   
+        Wt::Json::parse(sRequest, result);
+
+        mevValidate = result.get("mev_validation");
+        mevToken = result.get("mev_token");
+    }
+
+    catch (Wt::Json::ParseError const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        return res;
+    }
+    catch (Wt::Json::TypeException const& e)
+    {
+        res = 400;
+        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        return res;
+    }  
+    try
+    {
+        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::ptr<MediaValue> mev = _session.find<MediaValue>().where("\"MEV_MED_MED_ID\" = ?").bind(vPathElements[1])
+                                                               .where("\"MEV_ID\" = ?").bind(vPathElements[3])
+                                                               .where("\"MEV_USR_USR_ID\" = ?").bind(_session.user().id())
+                                                               .where("\"MEV_TOKEN\" = ?").bind(mevToken);
+
+        if(!mev)
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Media value Not found\"}";
+        }
+        else
+        {
+        mev.modify()->isConfirmed = mevValidate;
+        mev.flush();
+        mev.modify()->setId(mev.id());
+        responseMsg = mev.modify()->toJSON();        
+        
+        transaction.commit();
+
+        res = 200;
+        }
+    }
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    
+    return res;
+ }
 
 unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const string &sRequest)
 {
@@ -323,8 +388,37 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     }
     else
     {
-        this->statusCode = 400;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare("media_values"))
+            {
+                nextElement = getNextElementFromPath();
+                 boost::lexical_cast<unsigned long long>(nextElement);
+
+                nextElement = getNextElementFromPath();
+                if(!nextElement.compare("validate"))
+                {
+                        this->statusCode = postMediaValidation(responseMsg, sRequest);
+                }
+                else
+                {
+                     this->statusCode = 400;
+                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+            }
+            else
+            {
+                 this->statusCode = 400;
+                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
+        }catch(boost::bad_lexical_cast &)
+        {
+            this->statusCode = 400;
+            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        }            
     }
 
     response.setStatus(this->statusCode);

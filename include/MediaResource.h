@@ -33,6 +33,7 @@ class MediaResource : public PublicApiResource
 
         unsigned short postMediaSpecialization(std::string &responseMsg, const std::string &sRequest);
         unsigned short postMedia(std::string &responseMsg, const std::string &sRequest);
+        unsigned short postMediaValidation(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
