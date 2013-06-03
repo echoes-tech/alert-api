@@ -33,6 +33,7 @@ class PluginResource : public PublicApiResource
         unsigned short getParameterValueForSource(std::string &responseMsg);
         unsigned short getInformationForSeaSrcAndPlg(std::string &responseMsg);
         unsigned short getSearchForSourceAndPlugin(std::string &responseMsg);
+        unsigned short getSearchForSearchIdForSourceAndPlugin(std::string &responseMsg);
         unsigned short getSourceForPlugin(std::string &responseMsg);
         unsigned short getInformationListForPlugin(std::string &responseMsg);
         unsigned short getAliasForInformation(std::string &responseMsg);

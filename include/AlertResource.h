@@ -35,6 +35,7 @@ class AlertResource : public PublicApiResource
         unsigned short getTrackingAlertMessage(std::string &responseMsg);
         unsigned short getTrackingAlertList(std::string &responseMsg);
         unsigned short getAlerts(std::string &responseMsg);
+        unsigned short getAlert(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         /**

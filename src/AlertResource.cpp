@@ -43,7 +43,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
                     " AND mev.\"MEV_USR_USR_ID\" IN" 
                  "( Select \"T_USER_USR_USR_ID\" "
                  "FROM \"TJ_USR_ORG\" "
-                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = ?" + boost::lexical_cast<string > (this->_session.user()->currentOrganization.id()) +
+                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (this->_session.user()->currentOrganization.id()) +
                  ")";
 
         Wt::Dbo::Query
@@ -351,7 +351,100 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
         else 
         {
             res = 404;
-            responseMsg = "{\"message\":\"User not found\"}";
+            responseMsg = "{\"message\":\"Alert not found\"}";
+        }
+        transaction.commit();
+    }                    
+    catch (Wt::Dbo::Exception const& e) 
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    return res;
+}
+
+unsigned short AlertResource::getAlert(std::string &responseMsg)
+{
+    unsigned short res = 500;
+    try 
+    {
+        Wt::Dbo::Transaction transaction(_session);
+        string queryString = "SELECT ale, acr, ava, inu FROM \"T_ALERT_ALE\" ale,"
+                " \"T_ALERT_VALUE_AVA\" ava,"
+                " \"T_ALERT_CRITERIA_ACR\" acr,"
+                " \"T_INFORMATION_UNIT_UNT\" inu "
+                " WHERE \"ALE_ID\" IN "
+                " ("
+                " SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" WHERE \"AMS_MEV_MEV_ID\" IN "
+                " ("
+                " SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  IN"
+                " ( SELECT \"T_USER_USR_USR_ID\" "
+                " FROM \"TJ_USR_ORG\" "
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (this->_session.user()->currentOrganization.id()) +
+                " )"
+                " )"
+                " AND \"AMS_ALE_ALE_ID\" = " + this->vPathElements[1] +
+                " ) "
+                " AND ale.\"ALE_AVA_AVA_ID\" = ava.\"AVA_ID\" "
+                " AND ale.\"ALE_DELETE\" IS NULL "
+                " AND ava.\"AVA_ACR_ACR_ID\" = acr.\"ACR_ID\" "
+                " AND inu.\"INU_ID\" = ava.\"INU_ID_INU_ID\" ";
+                
+         
+        
+        Wt::Dbo::Query
+                <
+                boost::tuple
+                <
+                Wt::Dbo::ptr<Alert>,
+                Wt::Dbo::ptr<AlertCriteria>,
+                Wt::Dbo::ptr<AlertValue>,
+                Wt::Dbo::ptr<InformationUnit>
+                >
+                , Wt::Dbo::DynamicBinding
+                > resQuery = _session.query
+                <
+                boost::tuple
+                <
+                Wt::Dbo::ptr<Alert>,
+                Wt::Dbo::ptr<AlertCriteria>,
+                Wt::Dbo::ptr<AlertValue>,
+                Wt::Dbo::ptr<InformationUnit>
+                >, Wt::Dbo::DynamicBinding
+                > (queryString);
+
+
+        boost::tuple<
+                Wt::Dbo::ptr<Alert>,
+                Wt::Dbo::ptr<AlertCriteria>,
+                Wt::Dbo::ptr<AlertValue>,
+                Wt::Dbo::ptr<InformationUnit> >  tuples = resQuery;
+        
+        Wt::Dbo::ptr<AlertValue> aleVal(tuples.get<2>()); 
+        Wt::Dbo::ptr<Alert> ale(tuples.get<0>()); 
+        Wt::Dbo::ptr<AlertCriteria> aleCrit(tuples.get<1>());
+        Wt::Dbo::ptr<InformationUnit> info(tuples.get<3>()); 
+        if (aleVal) 
+        {
+            ale.modify()->setId(ale.id());
+            aleCrit.modify()->setId(aleCrit.id());
+            aleVal.modify()->setId(aleVal.id());      
+            info.modify()->setId(info.id());
+            responseMsg = "[";
+            responseMsg += "\n{\n";
+            responseMsg += "\"alert\" :" + ale.modify()->toJSON();
+            responseMsg += ",\n\"criteria\" :" + aleCrit.modify()->toJSON();
+            responseMsg += ",\n\"alert_value\" :" + aleVal.modify()->toJSON();
+            responseMsg += ",\n\"information_unit\" :" + info.modify()->toJSON();
+            responseMsg += "\n}";
+            responseMsg += "\n]";
+            res = 200; 
+        } 
+        else 
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Alert not found\"}";
         }
         transaction.commit();
     }                    
@@ -394,8 +487,11 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
                 boost::lexical_cast<unsigned long long>(nextElement);
 
                 nextElement = getNextElementFromPath();
-
-                if (!nextElement.compare("recipients"))
+                if (!nextElement.compare(""))
+                {
+                    this->statusCode = getAlert(responseMsg);
+                }
+                else if (!nextElement.compare("recipients"))
                 {
                     this->statusCode = getRecipientsForAlert(responseMsg);
                 }

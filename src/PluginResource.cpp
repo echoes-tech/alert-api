@@ -552,6 +552,46 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg)
     return res;
 }
 
+unsigned short PluginResource::getSearchForSearchIdForSourceAndPlugin(string& responseMsg)
+{
+    unsigned short res = 500;
+    if((res = pluginIsAccessible(responseMsg)) == 200)
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::ptr<Search> seaCollec = _session.find<Search>()
+                    .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1])
+                    .where("\"SRC_ID\" = ?").bind(this->vPathElements[3])
+                    .where("\"SEA_ID\" = ?").bind(this->vPathElements[5])
+                    .where("\"SEA_DELETE\" IS NULL")
+                    .orderBy("\"SEA_ID\"");           
+            if (seaCollec)
+            {
+                responseMsg += "[\n";
+                responseMsg += "\t" + seaCollec.modify()->toJSON();
+                responseMsg += "\n]\n";               
+
+                res = 200;
+            }
+            else 
+            {
+                res = 404;
+                responseMsg = "{\"message\":\"Search not found\"}";
+            }
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const &e)
+        {
+            Wt::log("error") << e.what();
+            res = 503;
+            responseMsg = "{\"message\":\"Service Unavailable\"}";
+        }
+    }
+    return res;
+}
+
+
 unsigned short PluginResource::getParameterValueForSearch(string &responseMsg)
 {
     unsigned short res = 500;
@@ -804,7 +844,11 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
                         {
                             boost::lexical_cast<unsigned long long>(nextElement);
                             nextElement = getNextElementFromPath();
-                            if(!nextElement.compare("parameters"))
+                            if(!nextElement.compare(""))
+                            {
+                                this->statusCode = getSearchForSearchIdForSourceAndPlugin(responseMsg);
+                            }
+                            else if(!nextElement.compare("parameters"))
                             {
                                 this->statusCode = getParameterValueForSearch(responseMsg);
                             }
