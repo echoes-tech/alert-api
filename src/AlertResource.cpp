@@ -431,14 +431,12 @@ unsigned short AlertResource::getAlert(std::string &responseMsg)
             aleCrit.modify()->setId(aleCrit.id());
             aleVal.modify()->setId(aleVal.id());      
             info.modify()->setId(info.id());
-            responseMsg = "[";
-            responseMsg += "\n{\n";
+            responseMsg = "{\n";
             responseMsg += "\"alert\" :" + ale.modify()->toJSON();
             responseMsg += ",\n\"criteria\" :" + aleCrit.modify()->toJSON();
             responseMsg += ",\n\"alert_value\" :" + aleVal.modify()->toJSON();
             responseMsg += ",\n\"information_unit\" :" + info.modify()->toJSON();
             responseMsg += "\n}";
-            responseMsg += "\n]";
             res = 200; 
         } 
         else 
