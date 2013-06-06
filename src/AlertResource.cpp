@@ -76,8 +76,8 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
                 i->get<0>().modify()->setId(i->get<0>().id());
                 i->get<1>().modify()->setId(i->get<1>().id());
                 responseMsg += "\n{\n";
-                responseMsg += "media_value :" + i->get<0>().modify()->toJSON();
-                responseMsg += ",\nmedia_specialization :" + i->get<1>().modify()->toJSON();
+                responseMsg += "\"media_value\" :" + i->get<0>().modify()->toJSON();
+                responseMsg += ",\n\"media_specialization\" :" + i->get<1>().modify()->toJSON();
                 responseMsg += "\n}";
                  ++idx;
                 if(listTuples.size()-idx > 0)
@@ -116,16 +116,10 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
         Wt::Dbo::Transaction transaction(_session);
          
         string queryString = ("SELECT atr FROM \"T_ALERT_TRACKING_ATR\" atr"
-       " WHERE \"ATR_ALE_ALE_ID\" IN"
-       " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\""
-       " WHERE \"AMS_MEV_MEV_ID\" IN "
-       " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\""
-       " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(_session.user().id()) +
-       " and \"MEV_MED_MED_ID\" = " + this->media +
-                "))"
+       " WHERE \"ATR_MEV_MEV_ID\" = " + this->vPathElements[2] +
        " ORDER BY \"ATR_SEND_DATE\" DESC"
        " LIMIT 20");
-          
+
         Wt::Dbo::Query<Wt::Dbo::ptr<AlertTracking> > queryRes = _session.query<Wt::Dbo::ptr<AlertTracking> >(queryString);
 
          Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> > aleTrackingPtr = queryRes.resultList(); 
@@ -466,17 +460,42 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
     }
     else
     {
-        if(!nextElement.compare("tracking"))
+        if(!nextElement.compare("trackings"))
         {
             nextElement = getNextElementFromPath();
-             if(!nextElement.compare("messages"))
+             if(!nextElement.compare(""))
                 {
-                    this->statusCode = getTrackingAlertMessage(responseMsg);
+                    this->statusCode = getTrackingAlertList(responseMsg) ;
                 }
                 else
                 {
-                   this->statusCode = getTrackingAlertList(responseMsg) ;
+                   this->statusCode = 400;
+                   responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
+        }
+        else if(!nextElement.compare("recipients"))
+        {
+            nextElement = getNextElementFromPath();
+            boost::lexical_cast<unsigned long long>(nextElement);
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare("trackings"))
+            {
+                nextElement = getNextElementFromPath();
+                 if(!nextElement.compare(""))
+                 {
+                    this->statusCode = getTrackingAlertMessage(responseMsg) ;
+                 }
+                 else
+                {
+                 this->statusCode = 400;
+                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+            }
+            else
+            {
+               this->statusCode = 400;
+               responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
         }
         else
         {
