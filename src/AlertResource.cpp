@@ -127,7 +127,7 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
         if (aleTrackingPtr.size() > 0)
         {
             responseMsg = "[\n"; 
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking>>::const_iterator i = aleTrackingPtr.begin(); i != aleTrackingPtr.end(); ++i) 
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> >::const_iterator i = aleTrackingPtr.begin(); i != aleTrackingPtr.end(); ++i) 
             {
                 i->modify()->setId(i->id());
                 
@@ -970,7 +970,7 @@ unsigned short AlertResource::sendMAIL
     mailBody += amdPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
         boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
         boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
@@ -1014,7 +1014,7 @@ unsigned short AlertResource::sendSMS
     string sms = amdPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
           boost::replace_all(sms, "%value%", i->get()->value.toUTF8());
           boost::replace_all(sms, "%threshold%", alePtr->alertValue->value.toUTF8());
@@ -1109,7 +1109,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                     .where(ivaIDWhereString)
                     .where("\"IVA_DELETE\" IS NULL");
 
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertMediaSpecialization>>::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertMediaSpecialization> >::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
                 {
                     // it is the first time we send the alert there is no last send date filled
                     // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
