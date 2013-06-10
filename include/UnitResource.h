@@ -25,7 +25,8 @@ class UnitResource : public PublicApiResource
         
     protected :
 
-        unsigned short getTypeOfUnit(std::string &responseMsg);
+        unsigned short getTypeOfUnits(std::string &responseMsg);
+        unsigned short getTypeForUnit(std::string &responseMsg);
         unsigned short getSubUnitsForUnit(std::string &responseMsg);
         unsigned short getListUnits(std::string &responseMsg);
         unsigned short getUnit(std::string &responseMsg);

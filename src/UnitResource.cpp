@@ -27,7 +27,7 @@ UnitResource::~UnitResource()
 {
 }
 
-unsigned short UnitResource::getTypeOfUnit(string &responseMsg)
+unsigned short UnitResource::getTypeOfUnits(string &responseMsg)
 {
     unsigned short res = 500;
     unsigned idx = 0;
@@ -209,6 +209,45 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
     return res;
 }
 
+ unsigned short UnitResource::getTypeForUnit(std::string &responseMsg)
+ {
+    unsigned short res = 500;
+    try
+    {
+        Wt::Dbo::Transaction transaction(_session);
+      
+         Wt::Dbo::ptr<InformationUnit> informationUnit = _session.find<InformationUnit>()
+                .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+                .where("\"INU_DELETE\" IS NULL");
+
+                                                         
+        if (informationUnit)
+        {
+//            Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL")
+//                                                                                                                     .where("\"IUT_ID\" = ?").bind(informationUnit.get()->unitType.id());
+
+                informationUnit.get()->unitType.modify()->setId(informationUnit.get()->unitType.id());                
+                responseMsg += informationUnit.get()->unitType.modify()->toJSON();
+
+            res = 200;
+        }
+        else
+        {
+            res = 404;
+            responseMsg = "{\"message\":\"Unit not found\"}";
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const &e)
+    {
+        Wt::log("error") << e.what();
+        res = 503;
+        responseMsg = "{\"message\":\"Service Unavailable\"}";
+    }
+    return res;
+ }
+
 void UnitResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
@@ -220,7 +259,7 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
     }
     else if(!nextElement.compare("types"))
     {
-        this->statusCode = getTypeOfUnit(responseMsg);
+        this->statusCode = getTypeOfUnits(responseMsg);
     }
     else
     {
@@ -237,6 +276,10 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
             else if(!nextElement.compare("subunits"))
             {
                 this->statusCode = getSubUnitsForUnit(responseMsg);
+            }
+            else if(!nextElement.compare("types"))
+            {
+                this->statusCode = getTypeForUnit(responseMsg);
             }
             else
             {
