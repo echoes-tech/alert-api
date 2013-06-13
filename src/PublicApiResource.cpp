@@ -87,6 +87,26 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
         s.append(1,c);
         c = request.in().get();
     }
+    
+    
+    //WHY : Dans l'appli mobile lorsqu'on fait un post les premier caracteres de la requette sont remplacé par des caractére spéciaux. 
+    //N'ayant pas su résoudre ce probléme, l'appli mobile envoie ses requette avec des caracteres en trop au début du JSON il faut donc les supprimer
+    // on supprime donc tout les caractére avant "[" ou "{" suivant les cas pour éviter les probléme de parse .
+    if(s.find("{", 0) != 0 || s.find("[", 0))
+    {
+        int tmp = s.find("{", 0);
+        int tmp1 = s.find("[", 0);
+        cout << "\n" << tmp << "     " << tmp1;
+        if(tmp1 != -1 && tmp1<tmp && tmp1 < s.size())
+        {
+           s = s.erase(0,tmp1);
+        }
+        else
+        {
+            s = s.erase(0,tmp);
+        }
+    }
+
     return s;
 }
 
@@ -259,6 +279,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 processGetRequest(response);
                 break;
             case Wt::Http::Post:
+                
                 processPostRequest(request, response);
                 break;
             case Wt::Http::Put:
