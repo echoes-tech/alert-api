@@ -170,6 +170,7 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
 
 unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequest)
 {
+     Wt::log("info") << "[Alert Ressource] JSON received:" << sRequest; //TODO :: test pour l'appli mobile à retirer
     unsigned short res = 500;
     Wt::WString mevValue;
     long long medId;
@@ -236,6 +237,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
 
  unsigned short MediaResource::postMediaValidation(std::string &responseMsg, const std::string &sRequest)
  {
+     Wt::log("info") << "[Alert Ressource] JSON received:" << sRequest; //TODO :: test pour l'appli mobile à retirer
     unsigned short res = 500;
     Wt::WString mevToken;
     bool mevValidate;
