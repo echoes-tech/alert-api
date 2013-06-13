@@ -92,7 +92,7 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
     //WHY : Dans l'appli mobile lorsqu'on fait un post les premier caracteres de la requette sont remplacé par des caractére spéciaux. 
     //N'ayant pas su résoudre ce probléme, l'appli mobile envoie ses requette avec des caracteres en trop au début du JSON il faut donc les supprimer
     // on supprime donc tout les caractére avant "[" ou "{" suivant les cas pour éviter les probléme de parse .
-    if(s.find("{", 0) != 0 || s.find("[", 0))
+    if(s.find("{", 0) != 0 || s.find("[", 0) != 0)
     {
         int tmp = s.find("{", 0);
         int tmp1 = s.find("[", 0);
