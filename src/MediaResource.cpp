@@ -188,14 +188,14 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest  << "\n Erreur : " << e.what();
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest  << "\n Erreur : " << e.what();
         return res;
     }  
     try
@@ -255,14 +255,14 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest << "\n Erreur : " << e.what();
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest  << "\n Erreur : " << e.what();
         return res;
     }  
     try
