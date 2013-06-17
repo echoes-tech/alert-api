@@ -36,6 +36,7 @@
 
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
+#include <tools/Enums.h>
 
 #include "Conf.h"
 #include "Utils.h"

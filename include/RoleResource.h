@@ -1,7 +1,7 @@
 /* 
- * HEADER OF API UserResource
- * @author ECHOES Technologies (GDR)
- * @date 05/02/2013
+ * HEADER OF API RoleResource
+ * @author ECHOES Technologies (TSA)
+ * @date 08/09/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,26 +11,23 @@
  * 
  */
 
-#ifndef USERRESOURCE_H
-#define	USERRESOURCE_H
+#ifndef ROLERESOURCE_H
+#define	ROLERESOURCE_H
 
 #include "PublicApiResource.h"
 
-class UserResource : public PublicApiResource
+class RoleResource : public PublicApiResource
 {
     public :
-        UserResource();
-        UserResource(const UserResource& orig);
-        virtual ~UserResource();
+        RoleResource();
+        RoleResource(const RoleResource& orig);
+        virtual ~RoleResource();
         
     protected :
 
-        unsigned short getInformationForUser(std::string &response);
+        unsigned short getRoleForUser(std::string &response);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postRoleForUser(std::string &responseMsg, const std::string &sRequest);
-        
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

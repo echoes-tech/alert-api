@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/PluginResource.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
+	${OBJECTDIR}/src/RoleResource.o \
 	${OBJECTDIR}/src/SearchTypeResource.o \
 	${OBJECTDIR}/src/UnitResource.o \
 	${OBJECTDIR}/src/UserResource.o \
@@ -136,6 +137,11 @@ ${OBJECTDIR}/src/PublicApiResource.o: src/PublicApiResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
+
+${OBJECTDIR}/src/RoleResource.o: src/RoleResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -std=c++11 -pedantic -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource.o src/RoleResource.cpp
 
 ${OBJECTDIR}/src/SearchTypeResource.o: src/SearchTypeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

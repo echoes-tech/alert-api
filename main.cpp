@@ -29,6 +29,7 @@
 #include "MediaResource.h"
 #include "PluginResource.h"
 #include "UserResource.h"
+#include "RoleResource.h"
 #include "AlertResource.h"
 #include "OrganizationResource.h"
 
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
             SearchTypeResource   searchTypeResource;
             UnitResource         unitResource;
             UserResource         userResource;
+            RoleResource         roleResource;
             ItookiAckReceiver    itookiAckReceiver;
             ItookiAswReceiver    itookiAswReceiver;
             // NetSize
@@ -93,6 +95,7 @@ int main(int argc, char **argv)
             server.addResource(&informationRessource, "/informations");
             server.addResource(&mediaResource, "/medias");
             server.addResource(&userResource, "/users");
+            server.addResource(&roleResource, "/roles");
             server.addResource(&alertResource, "/alerts");
             server.addResource(&assetResource, "/assets");
             server.addResource(&probeResource, "/probes");

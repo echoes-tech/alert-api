@@ -20,6 +20,7 @@
       <itemPath>include/PluginResource.h</itemPath>
       <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
+      <itemPath>include/RoleResource.h</itemPath>
       <itemPath>include/SearchTypeResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
@@ -52,6 +53,7 @@
         <itemPath>src/PluginResource.cpp</itemPath>
         <itemPath>src/ProbeResource.cpp</itemPath>
         <itemPath>src/PublicApiResource.cpp</itemPath>
+        <itemPath>src/RoleResource.cpp</itemPath>
         <itemPath>src/SearchTypeResource.cpp</itemPath>
         <itemPath>src/UnitResource.cpp</itemPath>
         <itemPath>src/UserResource.cpp</itemPath>
@@ -137,6 +139,8 @@
       </item>
       <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
@@ -176,6 +180,8 @@
       <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -254,6 +260,8 @@
       </item>
       <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
@@ -293,6 +301,8 @@
       <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
