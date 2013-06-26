@@ -76,6 +76,24 @@ class AlertResource : public PublicApiResource
             Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
         );
 
+        /**
+         * method to put a date and content in Alertetracking table 
+         * @param collection of informations values that matches the alert
+         * @param the alert
+         * @param the alert message
+         * @param the alert tracking required and concerned by the sms
+         * @param the media value concern by the alert
+         * @return HTTP Code
+         */
+        unsigned short sendMobileApp
+        (
+         Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+         Wt::Dbo::ptr<Alert> alePtr,
+         Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
+         Wt::Dbo::ptr<AlertTracking> atrPtr,
+         Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
+        );
+        
         unsigned short postAlert(std::string &responseMsg, const std::string &sRequest);
         unsigned short postAlertTracking(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
