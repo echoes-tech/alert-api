@@ -926,41 +926,41 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     
                     if (aliasAsset)
                     {
-                        amd->message += " Serveur : " + aliasAsset->alias + "\n";
+                        amd->message += " Serveur : " + aliasAsset->alias;
                     }
                     else
                     {
-                        amd->message += " Serveur : " + assetPtr->name + "\n";
+                        amd->message += " Serveur : " + assetPtr->name;
                     }
 
                         //we check if there is a key and get it if it's the case to put in the sms
                     //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
                     if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
                     {
-                       amd->message += " Cle : " + alePtr->alertValue->keyValue.get() + "\n";
+                       amd->message += " Cle : " + alePtr->alertValue->keyValue.get();
                     }
                     
                     if (aliasPlugin)
                     {
-                        amd->message += " Application : " + aliasPlugin->alias + "\n";
+                        amd->message += " Application : " + aliasPlugin->alias;
                     }
                     else
                     {
-                        amd->message += " Application : " + infoPtr->pk.search->pk.source->pk.plugin->name + "\n";
+                        amd->message += " Application : " + infoPtr->pk.search->pk.source->pk.plugin->name;
                     }
                     
                     if (aliasInformation)
                     {
-                         amd->message += " Information : " + aliasInformation->alias + "\n";
+                         amd->message += " Information : " + aliasInformation->alias;
                     }
                     else
                     {
-                        amd->message += " Information : " + infoPtr->name + "\n";
+                        amd->message += " Information : " + infoPtr->name;
                     }
                     
                     if (aliasCriteria)
                     {
-                        amd->message += " Critere : " + aliasCriteria->alias + "\n";
+                        amd->message += " Critere : " + aliasCriteria->alias;
                     }
                     else
                     {
