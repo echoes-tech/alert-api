@@ -918,7 +918,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
                     break;
                 case 3://Enums::MOBILEAPP :
-                    amd->message = "[EA][%detection-time%] : ";
+                    amd->message = "[EA][%detection-time%] : \n";
 
                     //TODO: à revoir pour les alertes complexes !!
 //                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
@@ -989,7 +989,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                         {
                             comp="Supérieur";
                         }
-                        amd->message += " Critere : %value% %unit%" + comp + " %threshold% %unit%" + infoPtr->pk.unit->name.toUTF8();
+                        amd->message += " Critere : %value% %unit% " + comp + " %threshold% %unit%";
 //                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8();
                     }
 //                    }
@@ -1148,6 +1148,7 @@ unsigned short AlertResource::sendMobileApp
     Wt::log("info") << " [Alert Resource] New Alerte for mobileApp : " << amsPtr->mediaValue->value << " : " << mobileApp;
     
     atrPtr.modify()->content = mobileApp;
+    atrPtr.modify()->sendDate = now;
     
     amsPtr.modify()->lastSend = now;
     res = Enums::OK;
