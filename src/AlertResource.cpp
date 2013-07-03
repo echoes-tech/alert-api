@@ -918,7 +918,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
                     break;
                 case 3://Enums::MOBILEAPP :
-                    amd->message = "[EA][%detection-time%] : \n";
+                    amd->message = "[EA][%detection-time%] : ";
 
                     //TODO: à revoir pour les alertes complexes !!
 //                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
@@ -933,8 +933,6 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                         amd->message += " Serveur : " + assetPtr->name;
                     }
 
-                        //we check if there is a key and get it if it's the case to put in the sms
-                    //    if (!boost::lexical_cast<Wt::WString,boost::optional<Wt::WString> >(alertPtr.get()->alertValue.get()->keyValue).empty())
                     if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
                     {
                        amd->message += " Cle : " + alePtr->alertValue->keyValue.get();
@@ -967,11 +965,11 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                         std::string comp;
                         if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("lt"))
                         {
-                            comp="Inférieur";
+                            comp="Inferieur";
                         }
                         else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("le"))
                         {
-                            comp="Inférieur ou égal";
+                            comp="Inferieur ou egal";
                         }
                         else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("eq"))
                         {
@@ -979,20 +977,18 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                         }
                         else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ne"))
                         {
-                            comp="Différent";
+                            comp="Different";
                         }
                         else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ge"))
                         {
-                            comp="Supérieur ou égal";
+                            comp="Superieur ou egal";
                         }
                         else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("gt"))
                         {
-                            comp="Supérieur";
+                            comp="Superieur";
                         }
                         amd->message += " Critere : %value% %unit% " + comp + " %threshold% %unit%";
-//                        amd->message += " Critere : %value% " + Wt::WString::tr("Alert.alert.operator."+alePtr->alertValue->alertCriteria->name.toUTF8()).toUTF8() + " %threshold% " + infoPtr->pk.unit->name.toUTF8();
-                    }
-//                    }
+                      }
                     break;
                 default:
                     Wt::log("error") << "[Alert Resource] Unknown ID Media: " << amsPtr->mediaValue->media.id();
