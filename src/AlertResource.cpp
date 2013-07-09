@@ -76,8 +76,8 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
                 i->get<0>().modify()->setId(i->get<0>().id());
                 i->get<1>().modify()->setId(i->get<1>().id());
                 responseMsg += "\n{\n";
-                responseMsg += "media_value :" + i->get<0>().modify()->toJSON();
-                responseMsg += ",\nmedia_specialization :" + i->get<1>().modify()->toJSON();
+                responseMsg += "\"media_value\" :" + i->get<0>().modify()->toJSON();
+                responseMsg += ",\n\"media_specialization\" :" + i->get<1>().modify()->toJSON();
                 responseMsg += "\n}";
                  ++idx;
                 if(listTuples.size()-idx > 0)
@@ -115,25 +115,25 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(_session);
          
-        string queryString = ("SELECT atr FROM \"T_ALERT_TRACKING_ATR\" atr"
-       " WHERE \"ATR_ALE_ALE_ID\" IN"
-       " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\""
-       " WHERE \"AMS_MEV_MEV_ID\" IN "
-       " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\""
-       " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(_session.user().id()) +
-       " and \"MEV_MED_MED_ID\" = " + this->media +
-                "))"
-       " ORDER BY \"ATR_SEND_DATE\" DESC"
-       " LIMIT 20");
-          
-        Wt::Dbo::Query<Wt::Dbo::ptr<AlertTracking> > queryRes = _session.query<Wt::Dbo::ptr<AlertTracking> >(queryString);
+//        string queryString = ("SELECT atr FROM \"T_ALERT_TRACKING_ATR\" atr"
+//       " WHERE \"ATR_MEV_MEV_ID\" = " + this->vPathElements[2] +
+//       " ORDER BY \"ATR_SEND_DATE\" DESC"
+//       " LIMIT 20");
+//
+//        Wt::Dbo::Query<Wt::Dbo::ptr<AlertTracking> > queryRes = _session.query<Wt::Dbo::ptr<AlertTracking> >(queryString);
 
-         Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> > aleTrackingPtr = queryRes.resultList(); 
+//         Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> > aleTrackingPtr = queryRes.resultList(); 
+        
+        Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> > aleTrackingPtr = _session.find<AlertTracking>()
+                .where("\"ATR_MEV_MEV_ID\" = ? ").bind(this->vPathElements[2])
+                .where("\"ATR_SEND_DATE\" IS NOT NULL")
+                .orderBy("\"ATR_SEND_DATE\" DESC")
+                .limit(20);
 
         if (aleTrackingPtr.size() > 0)
         {
             responseMsg = "[\n"; 
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking>>::const_iterator i = aleTrackingPtr.begin(); i != aleTrackingPtr.end(); ++i) 
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertTracking> >::const_iterator i = aleTrackingPtr.begin(); i != aleTrackingPtr.end(); ++i) 
             {
                 i->modify()->setId(i->id());
                 
@@ -431,14 +431,12 @@ unsigned short AlertResource::getAlert(std::string &responseMsg)
             aleCrit.modify()->setId(aleCrit.id());
             aleVal.modify()->setId(aleVal.id());      
             info.modify()->setId(info.id());
-            responseMsg = "[";
-            responseMsg += "\n{\n";
+            responseMsg = "{\n";
             responseMsg += "\"alert\" :" + ale.modify()->toJSON();
             responseMsg += ",\n\"criteria\" :" + aleCrit.modify()->toJSON();
             responseMsg += ",\n\"alert_value\" :" + aleVal.modify()->toJSON();
             responseMsg += ",\n\"information_unit\" :" + info.modify()->toJSON();
             responseMsg += "\n}";
-            responseMsg += "\n]";
             res = 200; 
         } 
         else 
@@ -468,17 +466,42 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
     }
     else
     {
-        if(!nextElement.compare("tracking"))
+        if(!nextElement.compare("trackings"))
         {
             nextElement = getNextElementFromPath();
-             if(!nextElement.compare("messages"))
+             if(!nextElement.compare(""))
                 {
-                    this->statusCode = getTrackingAlertMessage(responseMsg);
+                    this->statusCode = getTrackingAlertList(responseMsg) ;
                 }
                 else
                 {
-                   this->statusCode = getTrackingAlertList(responseMsg) ;
+                   this->statusCode = 400;
+                   responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
+        }
+        else if(!nextElement.compare("recipients"))
+        {
+            nextElement = getNextElementFromPath();
+            boost::lexical_cast<unsigned long long>(nextElement);
+            nextElement = getNextElementFromPath();
+            if(!nextElement.compare("trackings"))
+            {
+                nextElement = getNextElementFromPath();
+                 if(!nextElement.compare(""))
+                 {
+                    this->statusCode = getTrackingAlertMessage(responseMsg) ;
+                 }
+                 else
+                {
+                 this->statusCode = 400;
+                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                }
+            }
+            else
+            {
+               this->statusCode = 400;
+               responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            }
         }
         else
         {
@@ -894,6 +917,79 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
 
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
                     break;
+                case 3://Enums::MOBILEAPP :
+                    amd->message = "[EA][%detection-time%] : ";
+
+                    //TODO: à revoir pour les alertes complexes !!
+//                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+//                    {
+                    
+                    if (aliasAsset)
+                    {
+                        amd->message += " Serveur : " + aliasAsset->alias;
+                    }
+                    else
+                    {
+                        amd->message += " Serveur : " + assetPtr->name;
+                    }
+
+                    if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
+                    {
+                       amd->message += " Cle : " + alePtr->alertValue->keyValue.get();
+                    }
+                    
+                    if (aliasPlugin)
+                    {
+                        amd->message += " Application : " + aliasPlugin->alias;
+                    }
+                    else
+                    {
+                        amd->message += " Application : " + infoPtr->pk.search->pk.source->pk.plugin->name;
+                    }
+                    
+                    if (aliasInformation)
+                    {
+                         amd->message += " Information : " + aliasInformation->alias;
+                    }
+                    else
+                    {
+                        amd->message += " Information : " + infoPtr->name;
+                    }
+                    
+                    if (aliasCriteria)
+                    {
+                        amd->message += " Critere : " + aliasCriteria->alias;
+                    }
+                    else
+                    {
+                        std::string comp;
+                        if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("lt"))
+                        {
+                            comp="Inferieur";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("le"))
+                        {
+                            comp="Inferieur ou egal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("eq"))
+                        {
+                            comp="Egal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ne"))
+                        {
+                            comp="Different";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("ge"))
+                        {
+                            comp="Superieur ou egal";
+                        }
+                        else if(!alePtr->alertValue->alertCriteria->name.toUTF8().compare("gt"))
+                        {
+                            comp="Superieur";
+                        }
+                        amd->message += " Critere : %value% %unit% " + comp + " %threshold% %unit%";
+                      }
+                    break;
                 default:
                     Wt::log("error") << "[Alert Resource] Unknown ID Media: " << amsPtr->mediaValue->media.id();
                     break;
@@ -953,7 +1049,7 @@ unsigned short AlertResource::sendMAIL
     mailBody += amdPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
         boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
         boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
@@ -997,7 +1093,7 @@ unsigned short AlertResource::sendSMS
     string sms = amdPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
     {
           boost::replace_all(sms, "%value%", i->get()->value.toUTF8());
           boost::replace_all(sms, "%threshold%", alePtr->alertValue->value.toUTF8());
@@ -1017,6 +1113,42 @@ unsigned short AlertResource::sendSMS
         amsPtr.modify()->lastSend = now;
         res = Enums::OK;
     }
+
+    return res;
+}
+
+unsigned short AlertResource::sendMobileApp
+(
+ Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
+ Wt::Dbo::ptr<Alert> alePtr,
+ Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
+ Wt::Dbo::ptr<AlertTracking> atrPtr,
+ Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
+)
+{
+    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
+    
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
+    string mobileApp = amdPtr->message.toUTF8();
+
+    //TODO: à revoir pour les alertes complexes !!
+    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+    {
+          boost::replace_all(mobileApp, "%value%", i->get()->value.toUTF8());
+          boost::replace_all(mobileApp, "%threshold%", alePtr->alertValue->value.toUTF8());
+          boost::replace_all(mobileApp, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+          boost::replace_all(mobileApp, "%alerting-time%", now.toString().toUTF8());
+          boost::replace_all(mobileApp, "%unit%", i->get()->information->pk.unit->name.toUTF8());
+    }
+
+    Wt::log("info") << " [Alert Resource] New Alerte for mobileApp : " << amsPtr->mediaValue->value << " : " << mobileApp;
+    
+    atrPtr.modify()->content = mobileApp;
+    atrPtr.modify()->sendDate = now;
+    
+    amsPtr.modify()->lastSend = now;
+    res = Enums::OK;
+    
 
     return res;
 }
@@ -1092,7 +1224,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                     .where(ivaIDWhereString)
                     .where("\"IVA_DELETE\" IS NULL");
 
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertMediaSpecialization>>::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertMediaSpecialization> >::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
                 {
                     // it is the first time we send the alert there is no last send date filled
                     // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
@@ -1165,6 +1297,10 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                     Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;
                                     sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
                                     break;
+                                case 3://Enums::MOBILEAPP:
+                                Wt::log("info") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alertPtr->name;
+                                sendMobileApp(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
+                                break;
                                 default:
                                     Wt::log("error") << "[Alert Resource] Unknown ID Media: " << medID;
                                     break;

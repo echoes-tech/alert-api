@@ -87,6 +87,24 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
         s.append(1,c);
         c = request.in().get();
     }
+
+    // WHY: Dans l'appli mobile lorsqu'on fait un post les premiers caractères de la requête sont remplacés par des caractères spéciaux. 
+    // N'ayant pas su résoudre ce probléme, l'appli mobile envoie ses requêtes avec des caractères en trop au début du JSON. Il faut donc les supprimer.
+    // On supprime donc tous les caractére avant "[" ou "{" suivant les cas pour éviter les problèmes de parse.
+    const size_t pos1 = s.find("{", 0);
+    const size_t pos2 = s.find("[", 0);
+    if (pos1 != 0 || pos2 != 0)
+    {
+        if (pos2 != string::npos && pos2 < pos1)
+        {
+            s = s.erase(0, pos2);
+        }
+        else
+        {
+            s = s.erase(0, pos1);
+        }
+    }
+
     return s;
 }
 
@@ -259,6 +277,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 processGetRequest(response);
                 break;
             case Wt::Http::Post:
+                
                 processPostRequest(request, response);
                 break;
             case Wt::Http::Put:

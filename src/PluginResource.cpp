@@ -568,9 +568,7 @@ unsigned short PluginResource::getSearchForSearchIdForSourceAndPlugin(string& re
                     .orderBy("\"SEA_ID\"");           
             if (seaCollec)
             {
-                responseMsg += "[\n";
-                responseMsg += "\t" + seaCollec.modify()->toJSON();
-                responseMsg += "\n]\n";               
+                responseMsg = "\t" + seaCollec.modify()->toJSON();             
 
                 res = 200;
             }

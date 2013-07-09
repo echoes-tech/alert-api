@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="88">
+<configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -27,7 +27,6 @@
       <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
-      <itemPath>include/includeFile.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -153,8 +152,6 @@
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -273,8 +270,6 @@
       <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/includeFile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>

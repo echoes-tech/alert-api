@@ -101,7 +101,7 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg)
         if(srcParamPtr.size() > 0)
         {
             responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter>>::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> >::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->modify()->toJSON();
@@ -140,7 +140,7 @@ unsigned short AddonResource::getAddonList(string& responseMsg)
         Wt::Dbo::Transaction transaction(_session);
         Wt::Dbo::collection<Wt::Dbo::ptr<Addon> > addonPtr = _session.find<Addon>();
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon>>::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon> >::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
         {
             i->modify()->setId(i->id());
             responseMsg += "\t" + i->modify()->toJSON();

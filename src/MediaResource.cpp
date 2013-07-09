@@ -170,6 +170,7 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
 
 unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequest)
 {
+     Wt::log("info") << "[Alert Ressource] JSON received:" << sRequest; //TODO :: test pour l'appli mobile à retirer
     unsigned short res = 500;
     Wt::WString mevValue;
     long long medId;
@@ -187,14 +188,14 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        Wt::log("warning") << "[Media Ressource] " << e.what();
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        Wt::log("warning") << "[Media Ressource] " << e.what();
         return res;
     }  
     try
@@ -236,6 +237,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
 
  unsigned short MediaResource::postMediaValidation(std::string &responseMsg, const std::string &sRequest)
  {
+     Wt::log("info") << "[Alert Ressource] JSON received:" << sRequest ; //TODO :: test pour l'appli mobile à retirer
     unsigned short res = 500;
     Wt::WString mevToken;
     bool mevValidate;
@@ -253,14 +255,14 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
+        Wt::log("warning") << "[Media Ressource]  " << e.what();
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
         res = 400;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
+        Wt::log("warning") << "[Media Ressource] " << e.what();
         return res;
     }  
     try

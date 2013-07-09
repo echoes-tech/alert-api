@@ -40,7 +40,7 @@ unsigned short AssetResource::getAssetsList(string &responseMsg)
                 .bind(this->_session.user()->currentOrganization.id());
 
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset> >::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
         {
             responseMsg += "\t{\n";
             responseMsg += "\t\t\"id\": " + boost::lexical_cast<string, long long>(i->id()) + ",\n";
