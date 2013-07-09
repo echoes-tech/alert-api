@@ -87,23 +87,21 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
         s.append(1,c);
         c = request.in().get();
     }
-    
-    
-    //WHY : Dans l'appli mobile lorsqu'on fait un post les premier caracteres de la requette sont remplacé par des caractére spéciaux. 
-    //N'ayant pas su résoudre ce probléme, l'appli mobile envoie ses requette avec des caracteres en trop au début du JSON il faut donc les supprimer
-    // on supprime donc tout les caractére avant "[" ou "{" suivant les cas pour éviter les probléme de parse .
-    if(s.find("{", 0) != 0 || s.find("[", 0) != 0)
+
+    // WHY: Dans l'appli mobile lorsqu'on fait un post les premiers caractères de la requête sont remplacés par des caractères spéciaux. 
+    // N'ayant pas su résoudre ce probléme, l'appli mobile envoie ses requêtes avec des caractères en trop au début du JSON. Il faut donc les supprimer.
+    // On supprime donc tous les caractére avant "[" ou "{" suivant les cas pour éviter les problèmes de parse.
+    const size_t pos1 = s.find("{", 0);
+    const size_t pos2 = s.find("[", 0);
+    if (pos1 != 0 || pos2 != 0)
     {
-        int tmp = s.find("{", 0);
-        int tmp1 = s.find("[", 0);
-        cout << "\n" << tmp << "     " << tmp1;
-        if(tmp1 != -1 && tmp1<tmp && tmp1 < s.size())
+        if (pos2 != string::npos && pos2 < pos1)
         {
-           s = s.erase(0,tmp1);
+            s = s.erase(0, pos2);
         }
         else
         {
-            s = s.erase(0,tmp);
+            s = s.erase(0, pos1);
         }
     }
 
