@@ -918,7 +918,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
                     break;
                 case 3://Enums::MOBILEAPP :
-                    amd->message = "[EA][%detection-time%] : ";
+//                    amd->message = "[EA][%detection-time%] : ";
 
                     //TODO: à revoir pour les alertes complexes !!
 //                    for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>>::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
@@ -926,11 +926,11 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     
                     if (aliasAsset)
                     {
-                        amd->message += " Serveur : " + aliasAsset->alias;
+                        amd->message = "Serveur : " + aliasAsset->alias;
                     }
                     else
                     {
-                        amd->message += " Serveur : " + assetPtr->name;
+                        amd->message = "Serveur : " + assetPtr->name;
                     }
 
                     if (alePtr->alertValue->keyValue.is_initialized() && alePtr->alertValue->keyValue.get() != "N/A")
