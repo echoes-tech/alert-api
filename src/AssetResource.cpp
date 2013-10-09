@@ -187,7 +187,7 @@ unsigned short AssetResource::getKeyValueForInformation(string &responseMsg) con
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
             { 
                 i->modify()->setId(i->id());
-                responseMsg += i->modify()->toJSON();
+                responseMsg += i->get()->toJSON();
                  ++idx;
                 if(collPtrIva.size()-idx > 0)
                 {
@@ -579,7 +579,7 @@ unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg) const
                 .where("\"AST_ID_AST_ID\" = ?").bind(this->vPathElements[1]);
         if (aliasAsset)
         {
-            responseMsg = aliasAsset.modify()->toJSON();
+            responseMsg = aliasAsset->toJSON();
             res = 200;
             transaction.commit();
         }

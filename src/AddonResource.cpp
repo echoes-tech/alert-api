@@ -52,7 +52,7 @@ unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg) const
             for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(seaTypePtr.size()-idx > 0)
                 {
@@ -104,7 +104,7 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg) const
             for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter>>::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(srcParamPtr.size()-idx > 0)
                 {
@@ -143,7 +143,7 @@ unsigned short AddonResource::getAddonList(string& responseMsg) const
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon>>::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
         {
             i->modify()->setId(i->id());
-            responseMsg += "\t" + i->modify()->toJSON();
+            responseMsg += "\t" + i->get()->toJSON();
             ++idx;
             if(addonPtr.size()-idx > 0)
             {
@@ -272,7 +272,7 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
                 }
                 addonPtr.flush();
                 addonPtr.modify()->setId(addonPtr.id());
-                responseMsg = addonPtr.modify()->toJSON();
+                responseMsg = addonPtr->toJSON();
                 transaction.commit();
                 res = 200;
             }

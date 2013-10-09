@@ -228,7 +228,7 @@ unsigned short PluginResource::getPlugin(string& responseMsg) const
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Plugin> >::const_iterator i = plgPtr.begin(); i != plgPtr.end(); i++) 
             {
                 i->modify()->setId(i->id());
-                responseMsg +=  i->modify()->toJSON();
+                responseMsg +=  i->get()->toJSON();
                 idx++;
                 if(plgPtr.size()-idx > 0)
                 {
@@ -286,7 +286,7 @@ unsigned short PluginResource::getAliasForInformation(string &responseMsg) const
                 .where("\"INU_ID_INU_ID\" = ?").bind(this->vPathElements[9]);
         if (aliasInformation)
         {
-            responseMsg = aliasInformation.modify()->toJSON();
+            responseMsg = aliasInformation->toJSON();
             res = 200;
             transaction.commit();
         }
@@ -341,7 +341,7 @@ unsigned short PluginResource::getAliasForCriteria(string &responseMsg) const
                 .where("\"ACR_ID_ACR_ID\" = ?").bind(this->vPathElements[11]);
         if (aliasCriteria)
         {
-            responseMsg = aliasCriteria.modify()->toJSON();
+            responseMsg = aliasCriteria->toJSON();
             res = 200;
             transaction.commit();
         }
@@ -434,7 +434,7 @@ unsigned short PluginResource::getAliasForPlugin(string &responseMsg) const
                 .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[1]);
         if (aliasPlugin)
         {
-            responseMsg = aliasPlugin.modify()->toJSON();
+            responseMsg = aliasPlugin->toJSON();
             res = 200;
             transaction.commit();
         }
@@ -524,7 +524,7 @@ unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg) 
                 responseMsg += "[\n";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Search> >::const_iterator i = seaCollec.begin(); i != seaCollec.end(); i++) 
                 {
-                    responseMsg += "\t" + i->modify()->toJSON();
+                    responseMsg += "\t" + i->get()->toJSON();
                     ++idx;
                     if(seaCollec.size()-idx > 0)
                     {
@@ -570,7 +570,7 @@ unsigned short PluginResource::getParameterValueForSearch(string &responseMsg) c
                 responseMsg += "[\n";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameterValue> >::const_iterator i = seaParamCollec.begin(); i != seaParamCollec.end(); i++) 
                 {
-                    responseMsg += "\t" + i->modify()->toJSON();
+                    responseMsg += "\t" + i->get()->toJSON();
                     ++idx;
                     if(seaParamCollec.size()-idx > 0)
                     {
@@ -666,7 +666,7 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg) const
                 responseMsg += "[\n";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Source> >::const_iterator i = srcCollec.begin(); i != srcCollec.end(); i++) 
                 {
-                    responseMsg += "\t" + i->modify()->toJSON();
+                    responseMsg += "\t" + i->get()->toJSON();
                     ++idx;
                     if(srcCollec.size()-idx > 0)
                     {
@@ -712,7 +712,7 @@ unsigned short PluginResource::getParameterValueForSource(string& responseMsg) c
                 responseMsg += "[\n";
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameterValue> >::const_iterator i = srcParamCollec.begin(); i != srcParamCollec.end(); i++) 
                 {
-                    responseMsg += "\t" + i->modify()->toJSON();
+                    responseMsg += "\t" + i->get()->toJSON();
                     ++idx;
                     if(srcParamCollec.size()-idx > 0)
                     {
@@ -940,7 +940,7 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
        
         plgPtr.flush();
         plgPtr.modify()->setId(plgPtr.id());
-        responseMsg = plgPtr.modify()->toJSON();
+        responseMsg = plgPtr->toJSON();
         
         transaction.commit();
         res = 200;
@@ -1013,7 +1013,7 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
                     session->add<SourceParameterValue>(sourceParameterValue);
                 }
                 res = 200;
-                responseMsg = srcPtr.modify()->toJSON();
+                responseMsg = srcPtr->toJSON();
                 transaction.commit();
             }
             catch (Wt::Dbo::Exception const& e) 
@@ -1167,7 +1167,7 @@ unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg,
                                     return res;
                                 }
                             }
-                            responseMsg = seaPtr.modify()->toJSON();
+                            responseMsg = seaPtr->toJSON();
                             res = 200;
                         }
                         else
@@ -1268,7 +1268,7 @@ unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMs
                         }
                         Wt::Dbo::ptr<Information2> infPtr = session->add<Information2>(information);
                         infPtr.flush();
-                        responseMsg = infPtr.modify()->toJSON();
+                        responseMsg = infPtr->toJSON();
                         res = 200;
                     }
                     else
@@ -1912,7 +1912,7 @@ unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseM
                         infPtr.modify()->name = infName;
                         infPtr.modify()->display = infDisplay;
                         infPtr.modify()->calculate = infCalculate;
-                        responseMsg = infPtr.modify()->toJSON();
+                        responseMsg = infPtr->toJSON();
                         res = 200;
                     }
                     else
@@ -2005,7 +2005,7 @@ unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg
                             searchParameterValuePtr.modify()->value = tmp;
                         }
                         res = 200;
-                        responseMsg = seaPtr.modify()->toJSON();
+                        responseMsg = seaPtr->toJSON();
                     }
                     else
                     {
@@ -2087,7 +2087,7 @@ unsigned short PluginResource::patchParametersSourceForPlugin(string &responseMs
                             responseMsg = "{\"message\":\"Parameter not found\"}";
                             return res;
                         }
-                        responseMsg += srcParamValPtr.modify()->toJSON();
+                        responseMsg += srcParamValPtr->toJSON();
                         res = 200;
                     }
                 }

@@ -38,7 +38,7 @@ unsigned short UserResource::getInformationForUser(std::string &responseMsg) con
         if(user)
         {
             user.modify()->setId(user.id());
-            responseMsg += user.modify()->toJSON();
+            responseMsg += user->toJSON();
             res = 200;
         }
         else
@@ -131,7 +131,7 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
         
         ptrUserHistoricalAction.flush();
         ptrUserHistoricalAction.modify()->setId(ptrUserHistoricalAction.id());
-        responseMsg = ptrUserHistoricalAction.modify()->toJSON();    
+        responseMsg = ptrUserHistoricalAction->toJSON();    
         res = 200;
         transaction.commit();
     }
