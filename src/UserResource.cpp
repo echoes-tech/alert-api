@@ -38,8 +38,8 @@ unsigned short UserResource::getInformationForUser(std::string &responseMsg)
         if(user)
         {
             user.modify()->setId(user.id());
-            responseMsg += user.modify()->toJSON();
-            res = Enums::OK;
+            responseMsg += user->toJSON();
+            res = 200;
         }
         else
         {
@@ -131,8 +131,8 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
         
         ptrUserHistoricalAction.flush();
         ptrUserHistoricalAction.modify()->setId(ptrUserHistoricalAction.id());
-        responseMsg = ptrUserHistoricalAction.modify()->toJSON();    
-        res = Enums::OK;
+        responseMsg = ptrUserHistoricalAction->toJSON();    
+        res = 200;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)

@@ -45,7 +45,7 @@ unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg)
             for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(seaTypePtr.size()-idx > 0)
                 {
@@ -101,7 +101,7 @@ unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg
             for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = seaParamPtr.begin(); i != seaParamPtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(seaParamPtr.size()-idx > 0)
                 {
@@ -256,7 +256,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
             }
             
             seaTypePtr.modify()->setId(seaTypePtr.id());
-            responseMsg = seaTypePtr.modify()->toJSON();
+            responseMsg = seaTypePtr->toJSON();
             transaction.commit();
             res = 200;
         }

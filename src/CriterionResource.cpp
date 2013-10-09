@@ -39,7 +39,7 @@ unsigned short CriterionResource::getCriteria(string &responseMsg)
         for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
             i->modify()->setId(i->id());
-            responseMsg += "\t" + i->modify()->toJSON();
+            responseMsg += "\t" + i->get()->toJSON();
             ++idx;
             if(alertCriterias.size()-idx > 0)
             {

@@ -45,7 +45,7 @@ unsigned short UnitResource::getTypeOfUnits(string &responseMsg)
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType> >::const_iterator i = unitTypePtr.begin(); i != unitTypePtr.end(); ++i)
             {
                 i->modify()->setId(i->id());                
-                responseMsg += i->modify()->toJSON();
+                responseMsg += i->get()->toJSON();
                  ++idx;
                 if(unitTypePtr.size()-idx > 0)
                 {
@@ -92,7 +92,7 @@ unsigned short UnitResource::getListUnits(string& responseMsg)
             for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit> >::const_iterator i = unitCollec.begin(); i != unitCollec.end(); ++i)
             {
                 i->modify()->setId(i->id());                
-                responseMsg += i->modify()->toJSON();
+                responseMsg += i->get()->toJSON();
                  ++idx;
                 if(unitCollec.size()-idx > 0)
                 {
@@ -138,7 +138,7 @@ unsigned short UnitResource::getUnit(string &responseMsg)
         else
         {
             informationUnit.modify()->setId(informationUnit.id());
-            responseMsg = informationUnit.modify()->toJSON();
+            responseMsg = informationUnit->toJSON();
             res = 200;
         }
 
@@ -182,7 +182,7 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
                 {
                     i->modify()->setId(i->id());
-                    responseMsg += i->modify()->toJSON();
+                    responseMsg += i->get()->toJSON();
                     ++idx;
                     if(infoSubUnit.size()-idx > 0)
                     {
@@ -342,7 +342,7 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
             
             unitPtr.flush();
             unitPtr.modify()->setId(unitPtr.id());
-            responseMsg = unitPtr.modify()->toJSON();
+            responseMsg = unitPtr->toJSON();
             res = 200;
         }
         else

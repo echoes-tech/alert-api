@@ -37,7 +37,7 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg)
         if(organization)
         {
             organization.modify()->setId(organization.id());
-            responseMsg = organization.modify()->toJSON();
+            responseMsg = organization->toJSON();
             res = 200;
         }
         else 
@@ -84,7 +84,7 @@ unsigned short OrganizationResource::getUsersForOrganization(std::string &respon
             for (Wt::Dbo::collection<Wt::Dbo::ptr<User> >::const_iterator i = user.begin(); i != user.end(); i++) 
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(user.size()-idx > 0)
                 {
@@ -130,7 +130,7 @@ unsigned short OrganizationResource::getRolesForOrganization(std::string &respon
             for (Wt::Dbo::collection<Wt::Dbo::ptr<UserRole> >::const_iterator i = userRoles.begin(); i != userRoles.end(); i++) 
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(userRoles.size()-idx > 0)
                 {
@@ -283,7 +283,7 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg)
                     .limit(1);
             if (ptrOptionValue.get())
             {
-                responseMsg += ptrOptionValue.modify()->toJSON();
+                responseMsg += ptrOptionValue->toJSON();
                 res = 200;
             }
             else
@@ -328,7 +328,7 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg)
                     .limit(1);
             if (ptrOptionValue.get())
             {
-                responseMsg += ptrOptionValue.modify()->toJSON();
+                responseMsg += ptrOptionValue->toJSON();
                 res = 200;
             }
         }

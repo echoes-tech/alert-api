@@ -45,7 +45,7 @@ unsigned short MediaResource::getListValueForMedia(string &responseMsg)
             for (Wt::Dbo::collection<Wt::Dbo::ptr<MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
             {
                 i->modify()->setId(i->id());                
-                responseMsg += i->modify()->toJSON();
+                responseMsg += i->get()->toJSON();
                  ++idx;
                 if(medias.size()-idx > 0)
                 {
@@ -101,7 +101,7 @@ unsigned short MediaResource::getMedia(string &responseMsg)
             for (Wt::Dbo::collection<Wt::Dbo::ptr<Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
             {
                 i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
+                responseMsg += "\t" + i->get()->toJSON();
                 ++idx;
                 if(media.size()-idx > 0)
                 {
@@ -219,7 +219,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
         Wt::Dbo::ptr<MediaValue> ptrMev = _session.add<MediaValue>(mev);
         ptrMev.flush();
         ptrMev.modify()->setId(ptrMev.id());
-        responseMsg = ptrMev.modify()->toJSON();        
+        responseMsg = ptrMev->toJSON();        
         
         transaction.commit();
 
@@ -345,7 +345,7 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
             amsPtr = _session.add<AlertMediaSpecialization>(ams);
             amsPtr.flush();
             amsPtr.modify()->setId(amsPtr.id());
-            responseMsg = amsPtr.modify()->toJSON();
+            responseMsg = amsPtr->toJSON();
             res = 200;
         }
         else 

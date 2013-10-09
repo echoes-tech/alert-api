@@ -76,8 +76,8 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
                 i->get<0>().modify()->setId(i->get<0>().id());
                 i->get<1>().modify()->setId(i->get<1>().id());
                 responseMsg += "\n{\n";
-                responseMsg += "\"media_value\" :" + i->get<0>().modify()->toJSON();
-                responseMsg += ",\n\"media_specialization\" :" + i->get<1>().modify()->toJSON();
+                responseMsg += "media_value :" + i->get<0>()->toJSON();
+                responseMsg += ",\nmedia_specialization :" + i->get<1>()->toJSON();
                 responseMsg += "\n}";
                  ++idx;
                 if(listTuples.size()-idx > 0)
@@ -224,9 +224,9 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
                 i->get<2>().modify()->setId(i->get<2>().id());
                 
                 responseMsg += "\n{\n";
-                responseMsg +="\"alert\" :" + i->get<0>().modify()->toJSON();
-                responseMsg +=",\n\"media_value\" :" + i->get<1>().modify()->toJSON();
-                responseMsg +=",\n\"alert_tracking\" :" + i->get<2>().modify()->toJSON();
+                responseMsg +="\"alert\" :" + i->get<0>()->toJSON();
+                responseMsg +=",\n\"media_value\" :" + i->get<1>()->toJSON();
+                responseMsg +=",\n\"alert_tracking\" :" + i->get<2>()->toJSON();
                 responseMsg += "\n}";
                  ++idx;
                 if(listTuples.size()-idx > 0)
@@ -331,10 +331,10 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
                 aleVal.modify()->setId(aleVal.id());      
                 info.modify()->setId(info.id());
                 responseMsg += "\n{\n";
-                responseMsg += "\"alert\" :" + ale.modify()->toJSON();
-                responseMsg += ",\n\"criteria\" :" + aleCrit.modify()->toJSON();
-                responseMsg += ",\n\"alert_value\" :" + aleVal.modify()->toJSON();
-                responseMsg += ",\n\"information_unit\" :" + info.modify()->toJSON();
+                responseMsg += "\"alert\" :" + ale->toJSON();
+                responseMsg += ",\n\"criteria\" :" + aleCrit->toJSON();
+                responseMsg += ",\n\"alert_value\" :" + aleVal->toJSON();
+                responseMsg += ",\n\"information_unit\" :" + info->toJSON();
                 responseMsg += "\n}";
 
 
@@ -1000,7 +1000,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
         }
         alePtr.flush();
         alePtr.modify()->setId(alePtr.id());
-        responseMsg = alePtr.modify()->toJSON();
+        responseMsg = alePtr->toJSON();
         transaction.commit();
 
         res = 201;
