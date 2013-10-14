@@ -15,7 +15,7 @@
 
 using namespace std;
 
-PublicApiResource::PublicApiResource() : Wt::WResource(), _session(conf.getSessConnectParams()), indexPathElement(1), statusCode(500)
+PublicApiResource::PublicApiResource() : Wt::WResource(), _session(), indexPathElement(1), statusCode(500)
 {
 }
 
@@ -162,6 +162,8 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     else
         Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
 
+    _session.initConnection(conf.getSessConnectParams());
+    _session.initMapClass();
     if (login.compare("") != 0)
     {
         try
