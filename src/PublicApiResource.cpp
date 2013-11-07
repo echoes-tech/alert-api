@@ -163,7 +163,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
 
     _session.initConnection(conf.getSessConnectParams());
-    _session.initMapClass();
     if (login.compare("") != 0)
     {
         try
@@ -181,6 +180,10 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 {
                     if (password.compare(""))
                     {
+                        /*******************************
+                         ** TO DO: find problem cause **
+                         *******************************/
+                        _session.rereadAll();
                         // verify
                         switch (_session.passwordAuth().verifyPassword(user, password))
                         {
