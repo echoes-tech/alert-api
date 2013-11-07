@@ -140,7 +140,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     if (!request.getParameterValues("login").empty())
     {
-        login = request.getParameterValues("login")[0];
+        login = Wt::Utils::urlDecode(request.getParameterValues("login")[0]);
         if (login.compare(""))
         {
             if (!request.getParameterValues("password").empty())
