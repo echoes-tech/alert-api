@@ -20,7 +20,6 @@ class InformationResource : public PublicApiResource
 {
     public :
         InformationResource();
-        InformationResource(const InformationResource& orig);
         virtual ~InformationResource();
         
     protected :

@@ -19,10 +19,6 @@ SearchTypeResource::SearchTypeResource() : PublicApiResource::PublicApiResource(
 {
 }
 
-SearchTypeResource::SearchTypeResource(const SearchTypeResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 SearchTypeResource::~SearchTypeResource()
 {
 }
@@ -33,16 +29,16 @@ unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg)
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = _session.find<SearchType>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType> > seaTypePtr = m_session.find<Echoes::Dbo::SearchType>()
                 .where("\"STY_DELETE\" IS NULL")                                                        
                 .orderBy("\"STY_ID\"");
         
         if(seaTypePtr.size() != 0)
         {
             responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->get()->toJSON();
@@ -78,27 +74,27 @@ unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
         
         string queryStr = "SELECT sep FROM \"T_SEARCH_PARAMETER_SEP\" sep "
                 " WHERE \"SEP_ID\" IN "
                 "("
                 "SELECT \"T_SEARCH_PARAMETER_SEP_SEP_ID\" FROM \"TJ_STY_SEP\" WHERE \"T_SEARCH_TYPE_STY_STY_ID\" IN"
                 " (SELECT \"STY_ID\" FROM \"T_SEARCH_TYPE_STY\" "
-                " WHERE \"STY_ID\" = "+ boost::lexical_cast<string > (this->vPathElements[1])+ 
+                " WHERE \"STY_ID\" = "+ boost::lexical_cast<string > (this->m_pathElements[1])+ 
                 " AND \"STY_DELETE\" IS NULL "
                 " )"
                 " ) "
                 "ORDER BY \"SEP_ID\"";
        
-        Wt::Dbo::Query<Wt::Dbo::ptr<SearchParameter> > queryRes = _session.query<Wt::Dbo::ptr<SearchParameter> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> >(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> > seaParamPtr = queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> > seaParamPtr = queryRes.resultList();
         
         if(seaParamPtr.size() != 0)
         {
             responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchParameter> >::const_iterator i = seaParamPtr.begin(); i != seaParamPtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> >::const_iterator i = seaParamPtr.begin(); i != seaParamPtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->get()->toJSON();
@@ -135,7 +131,7 @@ void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = getSearchTypeList(responseMsg);
+        this->m_statusCode = getSearchTypeList(responseMsg);
     }
     else
     {
@@ -150,28 +146,28 @@ void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
                 nextElement = getNextElementFromPath();
                 if(!nextElement.compare(""))
                 {
-                    this->statusCode = getParameterForSearchType(responseMsg);
+                    this->m_statusCode = getParameterForSearchType(responseMsg);
                 }
                 else
                 {
-                    this->statusCode = 400;
+                    this->m_statusCode = 400;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -191,10 +187,10 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
         
         try
         {
-            Wt::Dbo::Transaction transaction(_session);
-            SearchType *searchType = new SearchType;
+            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SearchType *searchType = new Echoes::Dbo::SearchType;
             searchType->name = name;
-            Wt::Dbo::ptr<SearchType> seaTypePtr = _session.add<SearchType>(searchType);
+            Wt::Dbo::ptr<Echoes::Dbo::SearchType> seaTypePtr = m_session.add<Echoes::Dbo::SearchType>(searchType);
             seaTypePtr.flush();
             addonsId = result.get("addons");
             if(addonsId.size() != 0 )
@@ -202,7 +198,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
                 for (Wt::Json::Array::const_iterator idx2 = addonsId.begin(); idx2 < addonsId.end(); idx2++)
                 {
                     Wt::WString tmp2 = idx2->toString();
-                    Wt::Dbo::ptr<Addon> addonPtr = _session.find<Addon>().where("\"ADO_ID\" = ?").bind(tmp2);
+                    Wt::Dbo::ptr<Echoes::Dbo::Addon> addonPtr = m_session.find<Echoes::Dbo::Addon>().where("\"ADO_ID\" = ?").bind(tmp2);
                     if (addonPtr)
                     {
                         seaTypePtr.modify()->addons.insert(addonPtr);
@@ -231,15 +227,15 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
                     Wt::WString formatPar = tmp.get("format");
 
                     //verif si le param exit déjà en base sinon on l'ajoute
-                    Wt::Dbo::ptr<SearchParameter> seaParamPtr = _session.find<SearchParameter>()
+                    Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> seaParamPtr = m_session.find<Echoes::Dbo::SearchParameter>()
                             .where("\"SEP_NAME\" = ?").bind(namePar)
                             .where("\"SEP_FORMAT\" = ?").bind(formatPar);
                     if (!seaParamPtr)
                     {
-                        SearchParameter *searchParameter = new SearchParameter;
+                        Echoes::Dbo::SearchParameter *searchParameter = new Echoes::Dbo::SearchParameter;
                         searchParameter->name = namePar;
                         searchParameter->format = formatPar;
-                        Wt::Dbo::ptr<SearchParameter> seaParamPtr1 = _session.add<SearchParameter>(searchParameter);
+                        Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> seaParamPtr1 = m_session.add<Echoes::Dbo::SearchParameter>(searchParameter);
                         seaTypePtr.modify()->searchParameters.insert(seaParamPtr1);
                     }
                     else
@@ -292,14 +288,14 @@ void SearchTypeResource::processPostRequest(const Wt::Http::Request &request, Wt
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = postSearchType(responseMsg, sRequest);
+        this->m_statusCode = postSearchType(responseMsg, sRequest);
     }
     else
     {  
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return ;
 }
@@ -321,9 +317,9 @@ unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
     unsigned short res = 500;
     try 
     {  
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<SearchType> seaTypePtr = _session.find<SearchType>().where("\"STY_ID\" = ?").bind(this->vPathElements[1]);   
-        Wt::Dbo::collection<Wt::Dbo::ptr<Search> > seaPtr = _session.find<Search>().where("\"SEA_STY_STY_ID\" = ?").bind(this->vPathElements[1]);
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::SearchType> seaTypePtr = m_session.find<Echoes::Dbo::SearchType>().where("\"STY_ID\" = ?").bind(this->m_pathElements[1]);   
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search> > seaPtr = m_session.find<Echoes::Dbo::Search>().where("\"SEA_STY_STY_ID\" = ?").bind(this->m_pathElements[1]);
         //verif si le search type existe
         if(seaTypePtr)
         {
@@ -367,7 +363,7 @@ void SearchTypeResource::processDeleteRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -378,22 +374,22 @@ void SearchTypeResource::processDeleteRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                this->statusCode = deleteSearchType(responseMsg);
+                this->m_statusCode = deleteSearchType(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }

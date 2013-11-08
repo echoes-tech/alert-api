@@ -20,10 +20,12 @@ class AssetResource : public PublicApiResource
 {
     public:
         AssetResource();
-        AssetResource(const AssetResource& orig);
         virtual ~AssetResource();
 
     protected:
+        std::string m_role;
+        std::string m_media;
+        
         unsigned short getKeyValueForInformation(std::string &responseMsg);
         unsigned short getAssetsList(std::string &responseMsg);
         unsigned short getAsset(std::string &responseMsg);
@@ -43,8 +45,7 @@ class AssetResource : public PublicApiResource
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
-        std::string role;
-        std::string media;
+        
 };
 
 

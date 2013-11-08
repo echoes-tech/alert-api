@@ -21,18 +21,6 @@ Conf::Conf()
 {
 }
 
-Conf::Conf(const Conf& orig)
-{
-    setDBHost(orig.getDBHost());
-    setDBPort(orig.getDBPort());
-    setDBName(orig.getDBName());
-    setDBUser(orig.getDBUser());
-    setDBPassword(orig.getDBPassword());
-    setSessConnectParams(_dbHost, _dbPort, _dbName, _dbUser, _dbPassword);
-    setSMTPHost(orig.getSMTPHost());
-    setSMTPPort(orig.getSMTPPort());
-}
-
 Conf::~Conf()
 {
 }

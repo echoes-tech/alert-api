@@ -27,10 +27,11 @@ class AlertResource : public PublicApiResource
 {
     public :
         AlertResource();
-        AlertResource(const AlertResource& orig);
         virtual ~AlertResource();
         
     protected:
+        std::string m_media;
+        
         unsigned short getRecipientsForAlert(std::string &responseMsg);       
         unsigned short getTrackingAlertMessage(std::string &responseMsg);
         unsigned short getTrackingAlertList(std::string &responseMsg);
@@ -50,11 +51,11 @@ class AlertResource : public PublicApiResource
          */
         unsigned short sendMAIL
         (
-            Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
-            Wt::Dbo::ptr<Alert> alePtr,
-            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
-            Wt::Dbo::ptr<AlertTracking> atrPtr,
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr,
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr,
+            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
             bool overSMSQuota = false
         );
 
@@ -69,11 +70,11 @@ class AlertResource : public PublicApiResource
          */
         unsigned short sendSMS
         (
-            Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
-            Wt::Dbo::ptr<Alert> alePtr,
-            Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
-            Wt::Dbo::ptr<AlertTracking> atrPtr,
-            Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr,
+            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
         );
 
         /**
@@ -87,11 +88,11 @@ class AlertResource : public PublicApiResource
          */
         unsigned short sendMobileApp
         (
-         Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> ivaPtrCollection,
-         Wt::Dbo::ptr<Alert> alePtr,
-         Wt::Dbo::ptr<AlertMessageDefinition> amdPtr,
-         Wt::Dbo::ptr<AlertTracking> atrPtr,
-         Wt::Dbo::ptr<AlertMediaSpecialization> amsPtr
+         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+         Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+         Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr,
+         Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
+         Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
         );
         
         unsigned short postAlert(std::string &responseMsg, const std::string &sRequest);
@@ -108,7 +109,7 @@ class AlertResource : public PublicApiResource
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         
-        std::string media;
+        
 };
 #endif	/* ALERTRESOURCE_H */
 

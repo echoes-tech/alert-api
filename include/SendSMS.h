@@ -27,7 +27,7 @@ protected:
         // Create Session and Check auth
         PublicApiResource::handleRequest(request, response);
 
-        if (!this->authentified) {
+        if (!this->m_authentified) {
             Wt::log("error") << "[SMS] User not identified";
             return;
         }
@@ -73,9 +73,9 @@ protected:
 
         try 
         {
-            Wt::Dbo::Transaction transaction(_session);
-            Wt::Dbo::ptr<AlertTracking> at = _session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-            if (Utils::checkId<AlertTracking > (at)) 
+            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> at = m_session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+            if (Utils::checkId<Echoes::Dbo::AlertTracking > (at)) 
             {
                 if (!at.get()->sendDate.isNull()) 
                 {
@@ -135,9 +135,9 @@ protected:
             Wt::log("info") << "[SMS] Message sent to API. Address : " << apiAddress;
             try 
             {
-                Wt::Dbo::Transaction transaction(_session);
-                Wt::Dbo::ptr<AlertTracking> at = _session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-                if (Utils::checkId<AlertTracking > (at)) 
+                Wt::Dbo::Transaction transaction(m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> at = m_session.find<Echoes::Dbo::AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                if (Utils::checkId<Echoes::Dbo::AlertTracking > (at)) 
                 {
                     //TODO : hostname cpp way
                     char hostname[255];
@@ -166,7 +166,7 @@ protected:
     void handle(boost::system::error_code err, const Wt::Http::Message& response) {
         if (!err) {
             if (response.status() == 200) {
-                Session _session(conf.getSessConnectParams());
+                Echoes::Dbo::Session _session(conf.getSessConnectParams());
                 /** stream : mandatory for boost ptree */
                 std::istringstream requestBodyStream(response.body());
                 boost::property_tree::ptree ptree;
@@ -182,8 +182,8 @@ protected:
 
                 try {
                     Wt::Dbo::Transaction transaction(_session);
-                    Wt::Dbo::ptr<AlertTracking> at = _session.find<AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
-                    if (Utils::checkId<AlertTracking > (at)) {
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> at = _session.find<Echoes::Dbo::AlertTracking > ().where("\"ATR_ID\" = ?").bind(this->alertTrackingId);
+                    if (Utils::checkId<Echoes::Dbo::AlertTracking > (at)) {
                         //TODO : hostname cpp way
                         char hostname[255];
                         gethostname(hostname, 255);
@@ -193,7 +193,7 @@ protected:
                         //                                ate->alertTracking = at;
                         //                                ate->eventValue = resultCode;
                         //                                
-                        //                                Wt::Dbo::ptr<AlertTrackingEvent> ptrAte = session.add(ate);
+                        //                                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = session.add(ate);
                     } else {
                         Wt::log("error") << "[SMS] Alert tracking not found";
                         //TODO error behavior

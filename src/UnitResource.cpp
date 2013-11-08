@@ -19,10 +19,6 @@ UnitResource::UnitResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-UnitResource::UnitResource(const UnitResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 UnitResource::~UnitResource()
 {
 }
@@ -33,16 +29,16 @@ unsigned short UnitResource::getTypeOfUnits(string &responseMsg)
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL");
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType>> unitTypePtr = m_session.find<Echoes::Dbo::InformationUnitType>().where("\"IUT_DELETE\" IS NULL");
                                                          
         if (unitTypePtr.size() > 0)
         {
             
             responseMsg = "[\n";
             
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType> >::const_iterator i = unitTypePtr.begin(); i != unitTypePtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> >::const_iterator i = unitTypePtr.begin(); i != unitTypePtr.end(); ++i)
             {
                 i->modify()->setId(i->id());                
                 responseMsg += i->get()->toJSON();
@@ -78,9 +74,9 @@ unsigned short UnitResource::getListUnits(string& responseMsg)
     int idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
       
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit>> unitCollec = _session.find<InformationUnit>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> unitCollec = m_session.find<Echoes::Dbo::InformationUnit>()
                 .where("\"INU_DELETE\" IS NULL")
                 .orderBy("\"INU_ID\"");
 
@@ -89,7 +85,7 @@ unsigned short UnitResource::getListUnits(string& responseMsg)
             
             responseMsg = "[\n";
             
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnit> >::const_iterator i = unitCollec.begin(); i != unitCollec.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> >::const_iterator i = unitCollec.begin(); i != unitCollec.end(); ++i)
             {
                 i->modify()->setId(i->id());                
                 responseMsg += i->get()->toJSON();
@@ -124,10 +120,10 @@ unsigned short UnitResource::getUnit(string &responseMsg)
     unsigned short res = 500;
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
       
-        Wt::Dbo::ptr<InformationUnit> informationUnit = _session.find<InformationUnit>()
-                .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnit = m_session.find<Echoes::Dbo::InformationUnit>()
+                .where("\"INU_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"INU_DELETE\" IS NULL");
 
         if (!informationUnit)
@@ -159,10 +155,10 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
       
-        Wt::Dbo::ptr<InformationUnit> informationUnit = _session.find<InformationUnit>()
-                .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnit = m_session.find<Echoes::Dbo::InformationUnit>()
+                .where("\"INU_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"INU_DELETE\" IS NULL");
 
         if (!informationUnit)
@@ -172,14 +168,14 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
         }
         else
         {
-             Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> > infoSubUnit = _session.find<InformationSubUnit>()
-                    .where("\"ISU_INU_INU_ID\" = ?").bind(this->vPathElements[1])
+             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> > infoSubUnit = m_session.find<Echoes::Dbo::InformationSubUnit>()
+                    .where("\"ISU_INU_INU_ID\" = ?").bind(this->m_pathElements[1])
                     .where("\"ISU_DELETE\" IS NULL");
 
             if(infoSubUnit.size() > 0)
             {
                 responseMsg = "[\n";
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
                 {
                     i->modify()->setId(i->id());
                     responseMsg += i->get()->toJSON();
@@ -214,16 +210,16 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
     unsigned short res = 500;
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
       
-         Wt::Dbo::ptr<InformationUnit> informationUnit = _session.find<InformationUnit>()
-                .where("\"INU_ID\" = ?").bind(this->vPathElements[1])
+         Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnit = m_session.find<Echoes::Dbo::InformationUnit>()
+                .where("\"INU_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"INU_DELETE\" IS NULL");
 
                                                          
         if (informationUnit)
         {
-//            Wt::Dbo::collection<Wt::Dbo::ptr<InformationUnitType>> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL")
+//            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType>> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL")
 //                                                                                                                     .where("\"IUT_ID\" = ?").bind(informationUnit.get()->unitType.id());
 
                 informationUnit.get()->unitType.modify()->setId(informationUnit.get()->unitType.id());                
@@ -255,11 +251,11 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
     
     if(!nextElement.compare(""))
     {
-        this->statusCode = getListUnits(responseMsg);
+        this->m_statusCode = getListUnits(responseMsg);
     }
     else if(!nextElement.compare("types"))
     {
-        this->statusCode = getTypeOfUnits(responseMsg);
+        this->m_statusCode = getTypeOfUnits(responseMsg);
     }
     else
     {
@@ -271,29 +267,29 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                this->statusCode = getUnit(responseMsg);
+                this->m_statusCode = getUnit(responseMsg);
             }
             else if(!nextElement.compare("subunits"))
             {
-                this->statusCode = getSubUnitsForUnit(responseMsg);
+                this->m_statusCode = getSubUnitsForUnit(responseMsg);
             }
             else if(!nextElement.compare("types"))
             {
-                this->statusCode = getTypeForUnit(responseMsg);
+                this->m_statusCode = getTypeForUnit(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }      
     }
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -329,16 +325,16 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
     }    
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<InformationUnitType> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_ID\" = ?").bind(typeId);
-        Wt::Dbo::ptr<InformationUnit> unitPtr;
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> unitTypePtr = m_session.find<Echoes::Dbo::InformationUnitType>().where("\"IUT_ID\" = ?").bind(typeId);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> unitPtr;
         
         if(unitTypePtr)
         {        
-            InformationUnit *informationUnit = new InformationUnit;
+            Echoes::Dbo::InformationUnit *informationUnit = new Echoes::Dbo::InformationUnit;
             informationUnit->name = name;
             informationUnit->unitType = unitTypePtr;
-            unitPtr = _session.add<InformationUnit>(informationUnit);
+            unitPtr = m_session.add<Echoes::Dbo::InformationUnit>(informationUnit);
             
             unitPtr.flush();
             unitPtr.modify()->setId(unitPtr.id());
@@ -370,15 +366,15 @@ void UnitResource::processPostRequest(const Wt::Http::Request &request, Wt::Http
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = postUnit(responseMsg, sRequest);
+        this->m_statusCode = postUnit(responseMsg, sRequest);
     }
     else
     {
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return ;
 }
@@ -400,13 +396,13 @@ unsigned short UnitResource::deleteUnit(string& responseMsg)
     unsigned short res = 500;
     try 
     {  
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<InformationUnit> informationUnitPtr = _session.find<InformationUnit>().where("\"INU_ID\" = ?").bind(this->vPathElements[1]);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnitPtr = m_session.find<Echoes::Dbo::InformationUnit>().where("\"INU_ID\" = ?").bind(this->m_pathElements[1]);
         //Unit exist ?
         if(informationUnitPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<SearchUnit>> seaUnitCollec = _session.find<SearchUnit>().where("\"SEU_INU_INU_ID\" = ?").bind(this->vPathElements[1]);
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchUnit>> seaUnitCollec = m_session.find<Echoes::Dbo::SearchUnit>().where("\"SEU_INU_INU_ID\" = ?").bind(this->m_pathElements[1]);
             //verif si l'unité n'est pas utilisée                                                                
             if (seaUnitCollec.size() == 0)
             {                
@@ -443,7 +439,7 @@ void UnitResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Ht
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -456,22 +452,22 @@ void UnitResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Ht
 
             if(!nextElement.compare(""))
             {
-                this->statusCode = deleteUnit(responseMsg);
+                this->m_statusCode = deleteUnit(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }

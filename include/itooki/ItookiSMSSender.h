@@ -31,22 +31,21 @@ class ItookiSMSSender
 {
     public:
         ItookiSMSSender(const std::string &number, const std::string &message, Wt::WObject *parent = 0);
-        ItookiSMSSender(const ItookiSMSSender& orig);
         virtual ~ItookiSMSSender();
 
-        void setAlertTrackingPtr(Wt::Dbo::ptr<AlertTracking> alertTrackingPtr);
+        void setAlertTrackingPtr(Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> alertTrackingPtr);
 
         std::string getMessage() const;
         std::string getNumber() const;
         Wt::WObject* getParent() const;
-        Wt::Dbo::ptr<AlertTracking> getAlertTrackingPtr() const;
+        Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> getAlertTrackingPtr() const;
 
         int send();
 
     private:
         std::string _number, _message;
         Wt::WObject *_parent;
-        Wt::Dbo::ptr<AlertTracking> _alertTrackingPtr;
+        Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> _alertTrackingPtr;
 
         void setMessage(std::string message);
         void setNumber(std::string number);

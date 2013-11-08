@@ -31,6 +31,7 @@
 #include <Wt/WApplication>
 #include <Wt/WEnvironment>
 #include <Wt/WLogger>
+#include <Wt/WRandom>
 #include <Wt/WResource>
 #include <Wt/WServer>
 
@@ -44,14 +45,14 @@
 class PublicApiResource : public Wt::WResource {
     public:
         PublicApiResource();
-        PublicApiResource(const PublicApiResource& orig);
         virtual ~PublicApiResource();
 
     protected:
-        Session _session;
-        bool authentified;
-        std::vector<std::string> vPathElements;
-        unsigned short indexPathElement, statusCode;
+        Echoes::Dbo::Session m_session;
+        bool m_authentified;
+        std::vector<std::string> m_pathElements;
+        unsigned short m_indexPathElement;
+        unsigned short m_statusCode;
 
         unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
 

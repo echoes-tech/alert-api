@@ -21,7 +21,6 @@ class SearchTypeResource : public PublicApiResource
 {
     public :
         SearchTypeResource();
-        SearchTypeResource(const SearchTypeResource& orig);
         virtual ~SearchTypeResource();
         
     protected :

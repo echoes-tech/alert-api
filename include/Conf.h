@@ -20,7 +20,6 @@
 class Conf {
     public:
         Conf();
-        Conf(const Conf& orig);
         virtual ~Conf();
 
         /**

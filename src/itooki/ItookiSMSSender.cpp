@@ -22,14 +22,6 @@ ItookiSMSSender::ItookiSMSSender(const string &number, const string &message, Wt
     setParent(parent);
 }
 
-ItookiSMSSender::ItookiSMSSender(const ItookiSMSSender& orig)
-{
-    setNumber(orig.getMessage());
-    setMessage(orig.getMessage());
-    setParent(orig.getParent());
-    setAlertTrackingPtr(orig.getAlertTrackingPtr());
-}
-
 int ItookiSMSSender::send()
 {
     int res = -1;
@@ -50,7 +42,7 @@ int ItookiSMSSender::send()
     {
         Wt::log("info") << "[Itooki SMS Sender] Message sent to Itooki API. Address : " << apiAddress;
 
-        if(Utils::checkId<AlertTracking>(_alertTrackingPtr))
+        if(Utils::checkId<Echoes::Dbo::AlertTracking>(_alertTrackingPtr))
         {
             try
             {
@@ -100,7 +92,7 @@ void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt
         if (splitResult.size() == 2)
         {
 
-            if (Utils::checkId<AlertTracking > (_alertTrackingPtr))
+            if (Utils::checkId<Echoes::Dbo::AlertTracking > (_alertTrackingPtr))
             {
                 try
                 {
@@ -109,7 +101,7 @@ void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt
                     _alertTrackingPtr.modify()->ackGw = "itooki.fr";
                     _alertTrackingPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
 
-                    AlertTrackingEvent *ate = new AlertTrackingEvent();
+                    Echoes::Dbo::AlertTrackingEvent *ate = new Echoes::Dbo::AlertTrackingEvent();
                     ate->alertTracking = _alertTrackingPtr;
                     ate->date = Wt::WDateTime::currentDateTime();
                     ate->value = splitResult[0];
@@ -158,13 +150,13 @@ std::string ItookiSMSSender::getNumber() const
     return _number;
 }
 
-void ItookiSMSSender::setAlertTrackingPtr(Wt::Dbo::ptr<AlertTracking> alertTrackingPtr)
+void ItookiSMSSender::setAlertTrackingPtr(Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> alertTrackingPtr)
 {
     _alertTrackingPtr = alertTrackingPtr;
     return;
 }
 
-Wt::Dbo::ptr<AlertTracking> ItookiSMSSender::getAlertTrackingPtr() const
+Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> ItookiSMSSender::getAlertTrackingPtr() const
 {
     return _alertTrackingPtr;
 }

@@ -19,10 +19,6 @@ CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-CriterionResource::CriterionResource(const CriterionResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 CriterionResource::~CriterionResource()
 {
 }
@@ -33,10 +29,10 @@ unsigned short CriterionResource::getCriteria(string &responseMsg)
     unsigned idx = 0;
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> > alertCriterias = _session.find<AlertCriteria>();
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> > alertCriterias = m_session.find<Echoes::Dbo::AlertCriteria>();
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> >::const_iterator i = alertCriterias.begin(); i != alertCriterias.end(); ++i)
         {
             i->modify()->setId(i->id());
             responseMsg += "\t" + i->get()->toJSON();
@@ -67,15 +63,15 @@ void CriterionResource::processGetRequest(Wt::Http::Response &response)
 
     if(!nextElement.compare(""))
     {
-        this->statusCode = getCriteria(responseMsg);
+        this->m_statusCode = getCriteria(responseMsg);
     }
     else
     {
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }

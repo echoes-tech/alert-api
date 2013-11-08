@@ -36,14 +36,7 @@
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
 
-//#include "SendSMS.h"
-//#include "SrReception.h"
-
 using namespace std;
-
-SessionPool* SessionPool::instance = 0;
-string SessionPool::credentials = "";
-boost::mutex SessionPool::mutex;
 
 /**
 Point d'entrée du programme.
@@ -80,12 +73,6 @@ int main(int argc, char **argv)
             RoleResource         roleResource;
             ItookiAckReceiver    itookiAckReceiver;
             ItookiAswReceiver    itookiAswReceiver;
-            // NetSize
-//            SrReception     receiveSr;
-//            SendSMS         sendSMS;
-            // Tests
-//            TestSrAPI       testAPI;
-//            FakeNetsize     fakeN;
 
             server.addResource(&searchTypeResource, "/search_types");
             server.addResource(&addonResource, "/addons");
@@ -102,14 +89,8 @@ int main(int argc, char **argv)
             server.addResource(&pluginResource, "/plugins");
             server.addResource(&itookiAckReceiver, "/itooki/ack");
             server.addResource(&itookiAswReceiver, "/itooki/asw");
-            // NetSize
-//            server.addResource(&receiveSr, "/netsize/sr");
-//            server.addResource(&sendSMS, "/netsize/send");
-            // Tests
-//            server.addResource(&testAPI, "/test");
-//            server.addResource(&fakeN, "/fake");
 
-            Session::configureAuth();
+            Echoes::Dbo::Session::configureAuth();
 
             // démarrage du serveur en arrière plan
             if (server.start())

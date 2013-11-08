@@ -20,12 +20,11 @@ class MediaResource : public PublicApiResource
 {
     public :
         MediaResource();
-        MediaResource(const MediaResource& orig);
         virtual ~MediaResource();
         
     protected :
         
-        Wt::WString mediaId;
+        Wt::WString m_mediaId;
       
         unsigned short getMedia(std::string &responseMsg);
         unsigned short getListValueForMedia(std::string &responseMsg);

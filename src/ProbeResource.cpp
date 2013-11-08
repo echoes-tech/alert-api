@@ -19,10 +19,6 @@ ProbeResource::ProbeResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-ProbeResource::ProbeResource(const ProbeResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 ProbeResource::~ProbeResource()
 {
 }
@@ -34,18 +30,18 @@ unsigned short ProbeResource::getProbesList(string &responseMsg)
     
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->_session.find<Asset> ()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> listAssets = this->m_session.find<Echoes::Dbo::Asset> ()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
                 .where("\"AST_DELETE\" IS NULL");
 
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>>::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
         {
-            Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe> ()
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> probe = this->m_session.find<Echoes::Dbo::Probe> ()
                 .where("\"PRB_ID\" = ?").bind(i->get()->probe.id())
                 .where("\"PRB_DELETE\" IS NULL");
-            if (Utils::checkId<Probe>(probe))
+            if (Utils::checkId<Echoes::Dbo::Probe>(probe))
             {
                 responseMsg += "\t{\n";
                 responseMsg += "\t\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
@@ -80,32 +76,32 @@ unsigned short ProbeResource::getProbe(string &responseMsg)
     
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe>()
-                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
-                .where("\"PRB_ID\" = ?").bind(this->vPathElements[1])
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> probe = this->m_session.find<Echoes::Dbo::Probe>()
+                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"PRB_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"PRB_DELETE\" IS NULL");
 
-        if (Utils::checkId<Probe>(probe)) 
+        if (Utils::checkId<Echoes::Dbo::Probe>(probe)) 
         {
             responseMsg += "{\n";
             responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(probe.id()) + ",\n";
             responseMsg += "\t\"name\": \"" + probe->name.toUTF8() + "\",\n";
 
             // Est-ce que les param pkg de cette probe existent ?
-            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->_session.find<ProbePackageParameter>()
+            Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> probePackageParameter = this->m_session.find<Echoes::Dbo::ProbePackageParameter>()
                     .where("\"PPP_ID\" = ?").bind(probe->probePackageParameter.id())
                     .where("\"PPP_DELETE\" IS NULL");
-            if (Utils::checkId<ProbePackageParameter>(probePackageParameter))
+            if (Utils::checkId<Echoes::Dbo::ProbePackageParameter>(probePackageParameter))
             {
                 responseMsg += "\t\"version\": \"" + probePackageParameter->probeVersion.toUTF8() + "\",\n";
                 responseMsg += "\t\"package\": {\n";
 
                 // Est-ce que le pkg de cette probe existent ?
-                Wt::Dbo::ptr<ProbePackage> probePackage = this->_session.find<ProbePackage>()
+                Wt::Dbo::ptr<Echoes::Dbo::ProbePackage> probePackage = this->m_session.find<Echoes::Dbo::ProbePackage>()
                         .where("\"PPA_ID\" = ?").bind(probePackageParameter->probePackage.id())
                         .where("\"PPA_DELETE\" IS NULL");
-                if (Utils::checkId<ProbePackage>(probePackage))
+                if (Utils::checkId<Echoes::Dbo::ProbePackage>(probePackage))
                 {
                     ifstream ifs("/var/www/wt/probe/" + probePackageParameter->probePackage->filename.toUTF8());
                     string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
@@ -159,7 +155,7 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = getProbesList(responseMsg);
+        this->m_statusCode = getProbesList(responseMsg);
     }
     else
     {
@@ -171,22 +167,22 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
 
             if(!nextElement.compare(""))
             {
-                this->statusCode = getProbe(responseMsg);
+                this->m_statusCode = getProbe(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }

@@ -19,26 +19,22 @@ RoleResource::RoleResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-RoleResource::RoleResource(const RoleResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 RoleResource::~RoleResource()
 {
 }
 
 unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
 {
-    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
     try
     {        
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<UserRole>> userRoles = _session.find<UserRole>().where("\"URO_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization);
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> userRoles = m_session.find<Echoes::Dbo::UserRole>().where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization);
         if (userRoles.size() > 0)
         {
             unsigned int idx = 0;
             responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<UserRole> >::const_iterator uro = userRoles.begin() ; uro != userRoles.end(); uro++)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole> >::const_iterator uro = userRoles.begin() ; uro != userRoles.end(); uro++)
             {
                 idx++;
                 uro->modify()->setId(uro->id());
@@ -54,15 +50,15 @@ unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
         else
         {
             responseMsg = "{\"message\":\"Role not found\"}";
-            res = Enums::NOT_FOUND;
+            res = Echoes::Dbo::Enums::NOT_FOUND;
         }
-        res = Enums::OK;
+        res = Echoes::Dbo::Enums::OK;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Enums::SERVICE_UNAVAILABLE;
+        res = Echoes::Dbo::Enums::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
@@ -76,15 +72,15 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = getRoleForUser(responseMsg);
+        this->m_statusCode = getRoleForUser(responseMsg);
     }
     else
     {
-        this->statusCode = Enums::BAD_REQUEST;
+        this->m_statusCode = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }

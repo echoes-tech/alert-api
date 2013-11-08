@@ -19,10 +19,6 @@ AssetResource::AssetResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-AssetResource::AssetResource(const AssetResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 AssetResource::~AssetResource()
 {
 }
@@ -34,13 +30,13 @@ unsigned short AssetResource::getAssetsList(string &responseMsg)
     
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Asset>> listAssets = this->_session.find<Asset> ()
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> listAssets = this->m_session.find<Echoes::Dbo::Asset> ()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->_session.user()->currentOrganization.id());
+                .bind(this->m_session.user()->currentOrganization.id());
 
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Asset> >::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset> >::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
         {
             responseMsg += "\t{\n";
             responseMsg += "\t\t\"id\": " + boost::lexical_cast<string, long long>(i->id()) + ",\n";
@@ -73,22 +69,22 @@ unsigned short AssetResource::getAsset(string &responseMsg)
     
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->_session.user()->currentOrganization.id())
-                .bind(this->vPathElements[1]);
+                .bind(this->m_session.user()->currentOrganization.id())
+                .bind(this->m_pathElements[1]);
         
 
-        if (Utils::checkId<Asset>(asset)) 
+        if (Utils::checkId<Echoes::Dbo::Asset>(asset)) 
         {
             responseMsg += "{\n";
             responseMsg += "\t\"id\": " + boost::lexical_cast<string, long long>(asset.id()) + ",\n";
             responseMsg += "\t\"name\": \"" + asset->name.toUTF8() + "\",\n";
-            Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->_session.find<AssetArchitecture> ()
+            Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> assetArchitecture = this->m_session.find<Echoes::Dbo::AssetArchitecture> ()
                 .where("\"ASA_ID\" = ? AND \"ASA_DELETE\" IS NULL")
                 .bind(asset->assetArchitecture.id());
-            if (Utils::checkId<AssetArchitecture>(assetArchitecture)) 
+            if (Utils::checkId<Echoes::Dbo::AssetArchitecture>(assetArchitecture)) 
             {
                 responseMsg += "\t\"architecture\": \"" + assetArchitecture->name.toUTF8() + "\",\n";
             }
@@ -97,10 +93,10 @@ unsigned short AssetResource::getAsset(string &responseMsg)
                 responseMsg += "\t\"architecture\": \"Unknown\",\n";
             }
             responseMsg += "\t\"distribution\": {\n";
-            Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->_session.find<AssetDistribution> ()
+            Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> assetDistribution = this->m_session.find<Echoes::Dbo::AssetDistribution> ()
                 .where("\"ASD_ID\" = ? AND \"ASD_DELETE\" IS NULL")
                 .bind(asset->assetDistribution.id());
-            if (Utils::checkId<AssetDistribution>(assetDistribution)) 
+            if (Utils::checkId<Echoes::Dbo::AssetDistribution>(assetDistribution)) 
             {
                 responseMsg += "\t\t\"name\": \"" + assetDistribution->name.toUTF8() + "\",\n";
             }
@@ -108,10 +104,10 @@ unsigned short AssetResource::getAsset(string &responseMsg)
             {
                 responseMsg += "\t\t\"name\": \"Unknown\",\n";
             }
-            Wt::Dbo::ptr<AssetRelease> assetRelease = this->_session.find<AssetRelease> ()
+            Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> assetRelease = this->m_session.find<Echoes::Dbo::AssetRelease> ()
                 .where("\"ASR_ID\" = ? AND \"ASR_DELETE\" IS NULL")
                 .bind(asset->assetRelease.id());
-            if (Utils::checkId<AssetRelease>(assetRelease)) 
+            if (Utils::checkId<Echoes::Dbo::AssetRelease>(assetRelease)) 
             {
                 responseMsg += "\t\t\"release\": \"" + assetRelease->name.toUTF8() + "\"\n";
             }
@@ -142,76 +138,76 @@ unsigned short AssetResource::getAsset(string &responseMsg)
     return res;
 }
 
-
-unsigned short AssetResource::getKeyValueForInformation(string &responseMsg)
-{
-    unsigned short res = 500;
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(_session);
-
-        Wt::Dbo::ptr<Information2> ptrInfoKey = _session.find<Information2>()
-                .where("\"SRC_ID\" = ?").bind(this->vPathElements[5])
-                .where("\"SEA_ID\" = ?").bind(this->vPathElements[7])
-                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->vPathElements[3])
-                .where("\"INF_VALUE_NUM\" = ?").bind(this->vPathElements[9])
-                .limit(1);
-
-        if (!ptrInfoKey)
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Information not found\"}";
-            return res;
-        }
-
-        string queryString = 
-        "SELECT iva FROM \"T_INFORMATION_VALUE_IVA\" iva WHERE \"IVA_ID\" IN ( SELECT \"IVA_ID\" FROM"
-        "("
-        "SELECT DISTINCT ON (\"IVA_VALUE\") \"IVA_VALUE\", \"IVA_ID\" FROM"
-        "(" "SELECT iva.\"IVA_VALUE\", iva.\"IVA_ID\" FROM \"T_INFORMATION_VALUE_IVA\" iva"
-        " WHERE \"SEA_ID\" = " + boost::lexical_cast<string>(this->vPathElements[7]) + 
-        " AND \"SRC_ID\" = " + boost::lexical_cast<string>(this->vPathElements[5]) + 
-        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string>(this->vPathElements[3]) + 
-        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<string>(this->vPathElements[9]) + 
-        " AND \"IVA_AST_AST_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) +
-        " ORDER BY \"IVA_ID\" DESC LIMIT 50) sr"
-        " ) sr_sr"
-        ")";
-
-        Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue>> collPtrIva = _session.query<Wt::Dbo::ptr<InformationValue>>(queryString);
-
-        if(collPtrIva.size() > 0)
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
-            { 
-                i->modify()->setId(i->id());
-                responseMsg += i->get()->toJSON();
-                 ++idx;
-                if(collPtrIva.size()-idx > 0)
-                {
-                    responseMsg.replace(responseMsg.size()-1, 1, "");
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "]\n";
-            res = 200;
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Information value not found\"}";
-        }
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
-}
+// TSA FPO : still looking where it is used ????
+//unsigned short AssetResource::getKeyValueForInformation(string &responseMsg)
+//{
+//    unsigned short res = 500;
+//    unsigned idx = 0;
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(m_session);
+//
+//        Wt::Dbo::ptr<Echoes::Dbo::Information> ptrInfoKey = m_session.find<Echoes::Dbo::Information>()
+//                .where("\"SRC_ID\" = ?").bind(this->m_pathElements[5])
+//                .where("\"SEA_ID\" = ?").bind(this->m_pathElements[7])
+//                .where("\"PLG_ID_PLG_ID\" = ?").bind(this->m_pathElements[3])
+//                .where("\"INF_VALUE_NUM\" = ?").bind(this->m_pathElements[9])
+//                .limit(1);
+//
+//        if (!ptrInfoKey)
+//        {
+//            res = 404;
+//            responseMsg = "{\"message\":\"Information not found\"}";
+//            return res;
+//        }
+//
+//        string queryString = 
+//        "SELECT iva FROM \"T_INFORMATION_VALUE_IVA\" iva WHERE \"IVA_ID\" IN ( SELECT \"IVA_ID\" FROM"
+//        "("
+//        "SELECT DISTINCT ON (\"IVA_VALUE\") \"IVA_VALUE\", \"IVA_ID\" FROM"
+//        "(" "SELECT iva.\"IVA_VALUE\", iva.\"IVA_ID\" FROM \"T_INFORMATION_VALUE_IVA\" iva"
+//        " WHERE \"SEA_ID\" = " + boost::lexical_cast<string>(this->m_pathElements[7]) + 
+//        " AND \"SRC_ID\" = " + boost::lexical_cast<string>(this->m_pathElements[5]) + 
+//        " AND \"PLG_ID_PLG_ID\" = " + boost::lexical_cast<string>(this->m_pathElements[3]) + 
+//        " AND \"INF_VALUE_NUM\" = " + boost::lexical_cast<string>(this->m_pathElements[9]) + 
+//        " AND \"IVA_AST_AST_ID\" = " + boost::lexical_cast<string>(this->m_pathElements[1]) +
+//        " ORDER BY \"IVA_ID\" DESC LIMIT 50) sr"
+//        " ) sr_sr"
+//        ")";
+//
+//        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> collPtrIva = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>>(queryString);
+//
+//        if(collPtrIva.size() > 0)
+//        {
+//            responseMsg = "[\n";
+//            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = collPtrIva.begin(); i != collPtrIva.end(); i++)
+//            { 
+//                i->modify()->setId(i->id());
+//                responseMsg += i->get()->toJSON();
+//                 ++idx;
+//                if(collPtrIva.size()-idx > 0)
+//                {
+//                    responseMsg.replace(responseMsg.size()-1, 1, "");
+//                    responseMsg += ",\n";
+//                }
+//            }
+//            responseMsg += "]\n";
+//            res = 200;
+//        }
+//        else
+//        {
+//            res = 404;
+//            responseMsg = "{\"message\":\"Information value not found\"}";
+//        }
+//    }
+//    catch (Wt::Dbo::Exception const &e)
+//    {
+//        Wt::log("error") << e.what();
+//        res = 503;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//    }
+//    return res;
+//}
 
 
 unsigned short AssetResource::getPluginsListForAsset(string &responseMsg)
@@ -220,13 +216,13 @@ unsigned short AssetResource::getPluginsListForAsset(string &responseMsg)
     
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
-                .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
 
-        if (Utils::checkId<Asset>(asset)) 
+        if (Utils::checkId<Echoes::Dbo::Asset>(asset)) 
         {
             responseMsg = "[\n";
             responseMsg += "\t{\n";
@@ -260,18 +256,18 @@ unsigned short AssetResource::getProbesListForAsset(string &responseMsg)
 
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
-                .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
 
-        if (Utils::checkId<Asset>(asset)) 
+        if (Utils::checkId<Echoes::Dbo::Asset>(asset)) 
         {
-            Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe> ()
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> probe = this->m_session.find<Echoes::Dbo::Probe> ()
                 .where("\"PRB_ID\" = ?").bind(asset->probe.id())
                 .where("\"PRB_DELETE\" IS NULL");
-            if (Utils::checkId<Probe>(probe)) 
+            if (Utils::checkId<Echoes::Dbo::Probe>(probe)) 
             {
                 responseMsg += "[\n";
                 responseMsg += "\t{\n";
@@ -313,7 +309,7 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = getAssetsList(responseMsg);
+        this->m_statusCode = getAssetsList(responseMsg);
     }
     else
     {
@@ -324,79 +320,79 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             nextElement = getNextElementFromPath();
             if(!nextElement.compare(""))
             {
-                this->statusCode = getAsset(responseMsg);
+                this->m_statusCode = getAsset(responseMsg);
             }
             else if(!nextElement.compare("plugins"))
             {
                 nextElement = getNextElementFromPath();
                 if(!nextElement.compare(""))
                 {
-                    this->statusCode = getPluginsListForAsset(responseMsg);
+                    this->m_statusCode = getPluginsListForAsset(responseMsg);
                 }
                 else
                 {
-                    boost::lexical_cast<unsigned long long>(nextElement);
-
-                    nextElement = getNextElementFromPath();
-                    if (!nextElement.compare("sources"))
-                    {
-                        nextElement = getNextElementFromPath();
-                      
-                        boost::lexical_cast<unsigned long long>(nextElement);
-                        nextElement = getNextElementFromPath();
-                        if (!nextElement.compare("searches"))
-                        {
-                            nextElement = getNextElementFromPath();
-                           
-                            boost::lexical_cast<unsigned long long>(nextElement);
-                            nextElement = getNextElementFromPath();
-                            if (!nextElement.compare("inf_values"))
-                            {
-                                nextElement = getNextElementFromPath();
-                                boost::lexical_cast<unsigned long long>(nextElement);
-                                nextElement = getNextElementFromPath();
-
-                                if (!nextElement.compare("informations"))
-                                {
-                                    this->statusCode = getKeyValueForInformation(responseMsg);
-                                }
-                                else
-                                {
-                                    this->statusCode = 400;
-                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                                }
-                            }
-                            else
-                            {
-                                this->statusCode = 400;
+//                    boost::lexical_cast<unsigned long long>(nextElement);
+//
+//                    nextElement = getNextElementFromPath();
+//                    if (!nextElement.compare("sources"))
+//                    {
+//                        nextElement = getNextElementFromPath();
+//                      
+//                        boost::lexical_cast<unsigned long long>(nextElement);
+//                        nextElement = getNextElementFromPath();
+//                        if (!nextElement.compare("searches"))
+//                        {
+//                            nextElement = getNextElementFromPath();
+//                           
+//                            boost::lexical_cast<unsigned long long>(nextElement);
+//                            nextElement = getNextElementFromPath();
+//                            if (!nextElement.compare("inf_values"))
+//                            {
+//                                nextElement = getNextElementFromPath();
+//                                boost::lexical_cast<unsigned long long>(nextElement);
+//                                nextElement = getNextElementFromPath();
+//
+//                                if (!nextElement.compare("informations"))
+//                                {
+//                                    this->m_statusCode = getKeyValueForInformation(responseMsg);
+//                                }
+//                                else
+//                                {
+//                                    this->m_statusCode = 400;
+//                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+//                                }
+//                            }
+//                            else
+//                            {
+                                this->m_statusCode = 400;
                                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                            }
-                        }   
-                    }
+//                            }
+//                        }   
+//                    }
                 }
             }
             else if(!nextElement.compare("probes"))
             {
-                this->statusCode = getProbesListForAsset(responseMsg);
+                this->m_statusCode = getProbesListForAsset(responseMsg);
             }
             else if(!nextElement.compare("alias"))
             {
-                this->statusCode = getAliasForAsset(responseMsg);
+                this->m_statusCode = getAliasForAsset(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -407,35 +403,34 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
 
         // Est-ce que l'asset existe ?
-        Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
-                .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
-        if (Utils::checkId<Asset>(asset))
+        if (Utils::checkId<Echoes::Dbo::Asset>(asset))
         {
-            Wt::WString probeName = "Probe_" + this->_session.user()->lastName + "_" + asset->name;
+            Wt::WString probeName = "Probe_" + this->m_session.user()->lastName + "_" + asset->name;
 
             responseMsg += "{\n";
             // Est-ce que la probe existe pour cet asset ?
-            Wt::Dbo::ptr<Probe> probe = this->_session.find<Probe>()
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> probe = this->m_session.find<Echoes::Dbo::Probe>()
                 .where("\"PRB_ID\" = ?").bind(asset->probe.id())
                 .where("\"PRB_DELETE\" IS NULL");
-            if (!Utils::checkId<Probe>(probe))
+            if (!Utils::checkId<Echoes::Dbo::Probe>(probe))
             {
-                Probe *newProbe = new Probe();
+                Echoes::Dbo::Probe *newProbe = new Echoes::Dbo::Probe();
                 newProbe->name = probeName;
-                newProbe->organization = this->_session.user()->currentOrganization;
-                asset.modify()->probe = this->_session.add<Probe>(newProbe);
+                asset.modify()->probe = this->m_session.add<Echoes::Dbo::Probe>(newProbe);
             }
             else
             {
                 asset->probe.modify()->name = probeName;
             }
 
-            Wt::Dbo::ptr<ProbePackageParameter> probePackageParameter = this->_session.find<ProbePackageParameter>()
+            Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> probePackageParameter = this->m_session.find<Echoes::Dbo::ProbePackageParameter>()
                     .where("\"PPP_ASA_ASA_ID\" = ?").bind(asset->assetArchitecture.id())
                     .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                     .where("\"PPP_ASR_ASR_ID\" = ?").bind(asset->assetRelease.id())
@@ -444,12 +439,12 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
                     .limit(1);
 
             bool releaseChecked = false;
-            Wt::Dbo::ptr<AssetRelease> ptrAssetRelease;
-            if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
+            Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> ptrAssetRelease;
+            if (!Utils::checkId<Echoes::Dbo::ProbePackageParameter>(probePackageParameter))
             {
                 string wildcardRelease = asset->assetRelease->name.toUTF8().substr(0,asset->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
-                ptrAssetRelease = this->_session.find<AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
-                probePackageParameter = this->_session.find<ProbePackageParameter>()
+                ptrAssetRelease = this->m_session.find<Echoes::Dbo::AssetRelease>().where("\"ASR_NAME\" = ?").bind(wildcardRelease);
+                probePackageParameter = this->m_session.find<Echoes::Dbo::ProbePackageParameter>()
                     .where("\"PPP_ASA_ASA_ID\" = ?").bind(asset->assetArchitecture.id())
                     .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                     .where("\"PPP_ASR_ASR_ID\" = ?").bind(ptrAssetRelease.id())
@@ -461,14 +456,14 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 
 
             bool architectureChecked = false;
-            Wt::Dbo::ptr<AssetArchitecture> ptrAssetArchitecture;
-            if (!Utils::checkId<ProbePackageParameter>(probePackageParameter))
+            Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> ptrAssetArchitecture;
+            if (!Utils::checkId<Echoes::Dbo::ProbePackageParameter>(probePackageParameter))
             {
                 if( (boost::starts_with(asset->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(asset->assetArchitecture->name.toUTF8(), "86")) )
                 {
                     string wildcardArchitecture = "i*86";
-                    ptrAssetArchitecture = this->_session.find<AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
-                    probePackageParameter = this->_session.find<ProbePackageParameter>()
+                    ptrAssetArchitecture = this->m_session.find<Echoes::Dbo::AssetArchitecture>().where("\"ASA_NAME\" = ?").bind(wildcardArchitecture);
+                    probePackageParameter = this->m_session.find<Echoes::Dbo::ProbePackageParameter>()
                             .where("\"PPP_ASA_ASA_ID\" = ?").bind(ptrAssetArchitecture.id())
                             .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                             .where("\"PPP_ASR_ASR_ID\" = ?").bind(asset->assetRelease.id())
@@ -481,10 +476,10 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 
             if (releaseChecked
                 && architectureChecked
-                && !Utils::checkId<ProbePackageParameter>(probePackageParameter)
+                && !Utils::checkId<Echoes::Dbo::ProbePackageParameter>(probePackageParameter)
                )
             {
-                probePackageParameter = this->_session.find<ProbePackageParameter>()
+                probePackageParameter = this->m_session.find<Echoes::Dbo::ProbePackageParameter>()
                     .where("\"PPP_ASA_ASA_ID\" = ?").bind(ptrAssetArchitecture.id())
                     .where("\"PPP_ASD_ASD_ID\" = ?").bind(asset->assetDistribution.id())
                     .where("\"PPP_ASR_ASR_ID\" = ?").bind(ptrAssetRelease.id())
@@ -501,12 +496,12 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
             responseMsg += "\t\"name\": \"" + asset->probe->name.toUTF8() + "\",\n";
 
             // Est-ce que les param pkg de cette probe existent ?
-            if (Utils::checkId<ProbePackageParameter>(asset->probe->probePackageParameter))
+            if (Utils::checkId<Echoes::Dbo::ProbePackageParameter>(asset->probe->probePackageParameter))
             {
                 responseMsg += "\t\"version\": \"" + asset->probe->probePackageParameter->probeVersion.toUTF8() + "\",\n";
                 responseMsg += "\t\"package\": {\n";
                 // Est-ce que le pkg de cette probe existent ?
-                if (Utils::checkId<ProbePackage>(asset->probe->probePackageParameter->probePackage))
+                if (Utils::checkId<Echoes::Dbo::ProbePackage>(asset->probe->probePackageParameter->probePackage))
                 {
                     ifstream ifs("/var/www/wt/probe/" + asset->probe->probePackageParameter->probePackage->filename.toUTF8());
                     string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
@@ -555,14 +550,14 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg)
 {
     unsigned short res = 500;
-    if (this->role.empty())
+    if (this->m_role.empty())
     {
         res = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         return res;
     }
 
-    if (this->media.empty())
+    if (this->m_media.empty())
     {
         res = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
@@ -571,12 +566,12 @@ unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg)
     
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<AlertMessageAliasAsset> aliasAsset = this->_session.find<AlertMessageAliasAsset>()
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aliasAsset = this->m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                 .where("\"AAA_DELETE\" IS NULL")
-                .where("\"URO_ID_URO_ID\" = ?").bind(this->role)
-                .where("\"MED_ID_MED_ID\" = ?").bind(this->media)
-                .where("\"AST_ID_AST_ID\" = ?").bind(this->vPathElements[1]);
+                .where("\"URO_ID_URO_ID\" = ?").bind(this->m_role)
+                .where("\"MED_ID_MED_ID\" = ?").bind(this->m_media)
+                .where("\"AST_ID_AST_ID\" = ?").bind(this->m_pathElements[1]);
         if (aliasAsset)
         {
             responseMsg = aliasAsset->toJSON();
@@ -610,7 +605,7 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     else
@@ -623,22 +618,22 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
 
             if(!nextElement.compare("probes"))
             {
-                this->statusCode = postProbeForAsset(responseMsg, sRequest);
+                this->m_statusCode = postProbeForAsset(responseMsg, sRequest);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -685,43 +680,43 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
     {
         try 
         {
-            Wt::Dbo::Transaction transaction(_session);
-            Wt::Dbo::ptr<Asset> asset = this->_session.find<Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
-                    .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset> ()
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                    .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                     .where("\"AST_DELETE\" IS NULL");
 
-            if (Utils::checkId<Asset>(asset)) 
+            if (Utils::checkId<Echoes::Dbo::Asset>(asset)) 
             {
-                Wt::Dbo::ptr<AssetArchitecture> assetArchitecture = this->_session.find<AssetArchitecture>()
+                Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> assetArchitecture = this->m_session.find<Echoes::Dbo::AssetArchitecture>()
                         .where("\"ASA_NAME\" = ?").bind(arch);
-                if (!Utils::checkId<AssetArchitecture> (assetArchitecture)) 
+                if (!Utils::checkId<Echoes::Dbo::AssetArchitecture> (assetArchitecture)) 
                 {
-                    AssetArchitecture *newAssetArchitecture = new AssetArchitecture();
+                    Echoes::Dbo::AssetArchitecture *newAssetArchitecture = new Echoes::Dbo::AssetArchitecture();
                     newAssetArchitecture->name = arch;
-                    assetArchitecture = this->_session.add<AssetArchitecture>(newAssetArchitecture);
+                    assetArchitecture = this->m_session.add<Echoes::Dbo::AssetArchitecture>(newAssetArchitecture);
                     assetArchitecture.flush();
                 }
                 asset.modify()->assetArchitecture = assetArchitecture;
                 
-                Wt::Dbo::ptr<AssetDistribution> assetDistribution = this->_session.find<AssetDistribution>()
+                Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> assetDistribution = this->m_session.find<Echoes::Dbo::AssetDistribution>()
                         .where("\"ASD_NAME\" = ?").bind(distribName);
-                if (!Utils::checkId<AssetDistribution> (assetDistribution)) 
+                if (!Utils::checkId<Echoes::Dbo::AssetDistribution> (assetDistribution)) 
                 {
-                    AssetDistribution *newAssetDistribution = new AssetDistribution();
+                    Echoes::Dbo::AssetDistribution *newAssetDistribution = new Echoes::Dbo::AssetDistribution();
                     newAssetDistribution->name = distribName;
-                    assetDistribution = this->_session.add<AssetDistribution>(newAssetDistribution);
+                    assetDistribution = this->m_session.add<Echoes::Dbo::AssetDistribution>(newAssetDistribution);
                     assetDistribution.flush();
                 }
                 asset.modify()->assetDistribution = assetDistribution;
                 
-                Wt::Dbo::ptr<AssetRelease> assetRelease = this->_session.find<AssetRelease>()
+                Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> assetRelease = this->m_session.find<Echoes::Dbo::AssetRelease>()
                         .where("\"ASR_NAME\" = ?").bind(distribRelease);
-                if (!Utils::checkId<AssetRelease> (assetRelease)) 
+                if (!Utils::checkId<Echoes::Dbo::AssetRelease> (assetRelease)) 
                 {
-                    AssetRelease *newAssetRelease = new AssetRelease();
+                    Echoes::Dbo::AssetRelease *newAssetRelease = new Echoes::Dbo::AssetRelease();
                     newAssetRelease->name = distribRelease;
-                    assetRelease = this->_session.add<AssetRelease>(newAssetRelease);
+                    assetRelease = this->m_session.add<Echoes::Dbo::AssetRelease>(newAssetRelease);
                     assetRelease.flush();
                 }
                 asset.modify()->assetRelease = assetRelease;
@@ -789,15 +784,15 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
     {
         try 
         {
-            Wt::Dbo::Transaction transaction(_session);
-            Wt::Dbo::ptr<Asset> ptrAsset = this->_session.find<Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->_session.user()->currentOrganization.id())
-                    .where("\"AST_ID\" = ?").bind(this->vPathElements[1])
+            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> ptrAsset = this->m_session.find<Echoes::Dbo::Asset> ()
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                    .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                     .where("\"AST_DELETE\" IS NULL");
 
-            if (Utils::checkId<Asset>(ptrAsset)) 
+            if (Utils::checkId<Echoes::Dbo::Asset>(ptrAsset)) 
             {
-                Wt::Dbo::ptr<UserRole> ptrRole = this->_session.find<UserRole>()
+                Wt::Dbo::ptr<Echoes::Dbo::UserRole> ptrRole = this->m_session.find<Echoes::Dbo::UserRole>()
                         .where("\"URO_ID\" = ?").bind(sRole)
                         .where("\"URO_DELETE\" IS NULL");
                 
@@ -808,7 +803,7 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
                     return res;
                 }
                 
-                Wt::Dbo::ptr<Media> ptrMedia = this->_session.find<Media>()
+                Wt::Dbo::ptr<Echoes::Dbo::Media> ptrMedia = this->m_session.find<Echoes::Dbo::Media>()
                         .where("\"MED_ID\" = ?").bind(sMedia)
                         .where("\"MED_DELETE\" IS NULL");
                 
@@ -820,7 +815,7 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
                 }
                 
                  
-                Wt::Dbo::ptr<AlertMessageAliasAsset> ptrAssetAlias = this->_session.find<AlertMessageAliasAsset>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> ptrAssetAlias = this->m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                         .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
                         .where("\"AST_ID_AST_ID\" = ?").bind(ptrAsset.id())
                         .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
@@ -830,12 +825,12 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
                 }
                 else
                 {
-                    AlertMessageAliasAsset *newAssetAlias = new AlertMessageAliasAsset();
+                    Echoes::Dbo::AlertMessageAliasAsset *newAssetAlias = new Echoes::Dbo::AlertMessageAliasAsset();
                     newAssetAlias->pk.asset = ptrAsset;
                     newAssetAlias->pk.userRole = ptrRole;
                     newAssetAlias->pk.media = ptrMedia;
                     newAssetAlias->alias = sValue;
-                    ptrAssetAlias = this->_session.add<AlertMessageAliasAsset>(newAssetAlias);
+                    ptrAssetAlias = this->m_session.add<Echoes::Dbo::AlertMessageAliasAsset>(newAssetAlias);
                 }
                 res = 200;
             } 
@@ -865,7 +860,7 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
+        this->m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     else
@@ -878,26 +873,26 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
 
             if(!nextElement.compare(""))
             {
-                this->statusCode = putAsset(responseMsg, sRequest);
+                this->m_statusCode = putAsset(responseMsg, sRequest);
             }
             else if(!nextElement.compare("alias"))
             {
-                this->statusCode = putAlias(responseMsg, sRequest);
+                this->m_statusCode = putAlias(responseMsg, sRequest);
             }
             else
             {
-                this->statusCode = 400;
+                this->m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            this->m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -910,16 +905,16 @@ void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
 void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    this->role = "";
-    this->media = "";
+    this->m_role = "";
+    this->m_media = "";
     if (!request.getParameterValues("role").empty())
     {
-        this->role = request.getParameterValues("role")[0];
+        this->m_role = request.getParameterValues("role")[0];
     }
     
     if (!request.getParameterValues("media").empty())
     {
-        this->media = request.getParameterValues("media")[0];
+        this->m_media = request.getParameterValues("media")[0];
     }
     PublicApiResource::handleRequest(request, response);
     return;

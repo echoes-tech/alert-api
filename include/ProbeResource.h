@@ -20,7 +20,6 @@ class ProbeResource : public PublicApiResource
 {
     public:
         ProbeResource();
-        ProbeResource(const ProbeResource& orig);
         virtual ~ProbeResource();
 
     protected:

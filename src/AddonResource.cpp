@@ -13,15 +13,9 @@
 
 #include "AddonResource.h"
 
-Wt::Json::Array Wt::Json::Array::Empty;
-
 using namespace std;
 
 AddonResource::AddonResource() : PublicApiResource::PublicApiResource()
-{
-}
-
-AddonResource::AddonResource(const AddonResource& orig) : PublicApiResource::PublicApiResource(orig)
 {
 }
 
@@ -35,21 +29,21 @@ unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
         string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
                                " WHERE \"STY_ID\" IN"
                                 "("
                                     "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
-                                    "WHERE \"T_ADDON_ADO_ADO_ID\" = " + boost::lexical_cast<string>(this->vPathElements[1]) +
+                                    "WHERE \"T_ADDON_ADO_ADO_ID\" = " + m_pathElements[1] +
                                 ")";
-        Wt::Dbo::Query<Wt::Dbo::ptr<SearchType> > queryRes = _session.query<Wt::Dbo::ptr<SearchType> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchType> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchType> >(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> > seaTypePtr = queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType> > seaTypePtr = queryRes.resultList();
         
         if(seaTypePtr.size() != 0)
         {
             responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->get()->toJSON();
@@ -85,23 +79,23 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg)
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
 
         
         string queryStr = "SELECT srp FROM \"T_SOURCE_PARAMETER_SRP\" srp"
                 " WHERE \"SRP_ID\" IN "
                 "("
                 "SELECT \"T_SOURCE_PARAMETER_SRP_SRP_ID\" FROM \"TJ_ADO_SRP\" WHERE \"T_ADDON_ADO_ADO_ID\" ="
-                + this->vPathElements[1]
+                + m_pathElements[1]
                 + " )";
        
-        Wt::Dbo::Query<Wt::Dbo::ptr<SourceParameter>> queryRes = _session.query<Wt::Dbo::ptr<SourceParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter>> srcParamPtr = queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srcParamPtr = queryRes.resultList();
         if(srcParamPtr.size() > 0)
         {
             responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<SourceParameter> >::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> >::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
             {
                 i->modify()->setId(i->id());
                 responseMsg += "\t" + i->get()->toJSON();
@@ -137,10 +131,10 @@ unsigned short AddonResource::getAddonList(string& responseMsg)
     unsigned idx = 0;
     try 
     {
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Addon> > addonPtr = _session.find<Addon>();
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon> > addonPtr = m_session.find<Echoes::Dbo::Addon>();
         responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Addon> >::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
+        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon> >::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
         {
             i->modify()->setId(i->id());
             responseMsg += "\t" + i->get()->toJSON();
@@ -172,7 +166,7 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
 
     if(!nextElement.compare(""))
     {
-        this->statusCode = getAddonList(responseMsg);
+        m_statusCode = getAddonList(responseMsg);
     }
     else
     {
@@ -183,26 +177,26 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
 
             if(!nextElement.compare("parameters"))
             {
-                this->statusCode = getParameterForAddon(responseMsg);
+                m_statusCode = getParameterForAddon(responseMsg);
             }
             else if(!nextElement.compare("search_types"))
             {
-                this->statusCode = getSearchTypeForAddon(responseMsg);
+                m_statusCode = getSearchTypeForAddon(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }             
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -223,10 +217,10 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
         
         try
         {
-            Wt::Dbo::Transaction transaction(_session);
-            Addon *addon = new Addon;
+            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::Addon *addon = new Echoes::Dbo::Addon;
             addon->name = name;
-            Wt::Dbo::ptr<Addon> addonPtr = _session.add<Addon>(addon);
+            Wt::Dbo::ptr<Echoes::Dbo::Addon> addonPtr = m_session.add<Echoes::Dbo::Addon>(addon);
 
             if(parameter.size() > 0)
             {
@@ -237,15 +231,15 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
                     Wt::WString formatPar = tmp.get("format");
 
                     //verif si le param exit déjà en base sinon on l'ajoute
-                    Wt::Dbo::ptr<SourceParameter> srcParamPtr = _session.find<SourceParameter>()
+                    Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> srcParamPtr = m_session.find<Echoes::Dbo::SourceParameter>()
                             .where("\"SRP_NAME\" = ?").bind(namePar)
                             .where("\"SRP_FORMAT\" = ?").bind(formatPar);
                     if (!srcParamPtr)
                     {
-                        SourceParameter *sourceParameter = new SourceParameter;
+                        Echoes::Dbo::SourceParameter *sourceParameter = new Echoes::Dbo::SourceParameter;
                         sourceParameter->name = namePar;
                         sourceParameter->format = formatPar;
-                        Wt::Dbo::ptr<SourceParameter> srcParamPtr1 = _session.add<SourceParameter>(sourceParameter);
+                        Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> srcParamPtr1 = m_session.add<Echoes::Dbo::SourceParameter>(sourceParameter);
                         addonPtr.modify()->sourceParameters.insert(srcParamPtr1);
                     }
                     else
@@ -258,7 +252,7 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
                 for (Wt::Json::Array::const_iterator idx2 = searchType.begin(); idx2 < searchType.end(); idx2++)
                 {
                     Wt::WString tmp2 = idx2->toString();
-                    Wt::Dbo::ptr<SearchType> seaTypePtr = _session.find<SearchType>().where("\"STY_ID\" = ?").bind(tmp2);
+                    Wt::Dbo::ptr<Echoes::Dbo::SearchType> seaTypePtr = m_session.find<Echoes::Dbo::SearchType>().where("\"STY_ID\" = ?").bind(tmp2);
                     if (seaTypePtr)
                     {
                         addonPtr.modify()->searchTypes.insert(seaTypePtr);
@@ -313,15 +307,15 @@ void AddonResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = postAddon(responseMsg, sRequest);
+        m_statusCode = postAddon(responseMsg, sRequest);
     }
     else
     {        
-        this->statusCode = 400;
+        m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
     return ;
 }
@@ -341,12 +335,12 @@ unsigned short AddonResource::deleteAddon(string& responseMsg)
     unsigned short res = 500;
     try 
     {  
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<Addon> addonPtr = _session.find<Addon>().where("\"ADO_ID\" = ?").bind(this->vPathElements[1]);                                                             
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Addon> addonPtr = m_session.find<Echoes::Dbo::Addon>().where("\"ADO_ID\" = ?").bind(m_pathElements[1]);                                                             
         //verif si l'addon existe
         if(addonPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Source>> srcCollec = _session.find<Source>().where("\"SRC_ADO_ADO_ID\" = ?").bind(this->vPathElements[1]);
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcCollec = m_session.find<Echoes::Dbo::Source>().where("\"SRC_ADO_ADO_ID\" = ?").bind(m_pathElements[1]);
             //verif si l'addon n'est pas utilisée
             if(srcCollec.size() == 0)
             {
@@ -385,7 +379,7 @@ void AddonResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = 400;
+        m_statusCode = 400;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -398,22 +392,22 @@ void AddonResource::processDeleteRequest(const Wt::Http::Request &request, Wt::H
 
             if(!nextElement.compare(""))
             {
-                this->statusCode = deleteAddon(responseMsg);
+                m_statusCode = deleteAddon(responseMsg);
             }
             else
             {
-                this->statusCode = 400;
+                m_statusCode = 400;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->statusCode = 400;
+            m_statusCode = 400;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
     return;
 }

@@ -15,16 +15,8 @@
 
 using namespace std;
 
-PublicApiResource::PublicApiResource() : Wt::WResource(), _session(), indexPathElement(1), statusCode(500)
+PublicApiResource::PublicApiResource() : Wt::WResource(), m_session(), m_indexPathElement(1), m_statusCode(500)
 {
-}
-
-PublicApiResource::PublicApiResource(const PublicApiResource& orig) : Wt::WResource(), _session(conf.getSessConnectParams())
-{
-    this->authentified = orig.authentified;
-    this->statusCode = orig.statusCode;
-    this->indexPathElement = orig.indexPathElement;
-    this->vPathElements =  orig.vPathElements;
 }
 
 PublicApiResource::~PublicApiResource()
@@ -58,7 +50,7 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method
 
 void PublicApiResource::setPathElementsVector(const string &path)
 {
-    boost::split(this->vPathElements, path, boost::is_any_of("/"), boost::token_compress_on);
+    boost::split(m_pathElements, path, boost::is_any_of("/"), boost::token_compress_on);
 
     return;
 }
@@ -67,9 +59,9 @@ string PublicApiResource::getNextElementFromPath()
 {
     string res = "";
     
-    if (this->vPathElements.size() > this->indexPathElement)
+    if (m_pathElements.size() > m_indexPathElement)
     {
-        res =  vPathElements[this->indexPathElement++];
+        res =  m_pathElements[m_indexPathElement++];
     }
     
     return res;
@@ -133,7 +125,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     Wt::log("info") << "[PUBLIC API] Identifying";
 
     // default : not authentified
-    this->authentified = false;
+    m_authentified = false;
     bool notAllowed = false;
     
     string login = "", password = "", token = "", eno_token = "";
@@ -162,19 +154,19 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     else
         Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
 
-    _session.initConnection(conf.getSessConnectParams());
+    m_session.initConnection(conf.getSessConnectParams());
     if (login.compare("") != 0)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(_session);
+            Wt::Dbo::Transaction transaction(m_session);
 
             // check whether the user exists
-            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = _session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
+            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = m_session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
             if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
             {
                 // find the user from his login
-                Wt::Auth::User user = _session.users().findWithIdentity(Wt::Auth::Identity::LoginName,login);
+                Wt::Auth::User user = m_session.users().findWithIdentity(Wt::Auth::Identity::LoginName,login);
 
                 if (user.isValid()) 
                 {
@@ -183,13 +175,13 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                         /*******************************
                          ** TO DO: find problem cause **
                          *******************************/
-                        _session.rereadAll();
+                        m_session.rereadAll();
                         // verify
-                        switch (_session.passwordAuth().verifyPassword(user, password))
+                        switch (m_session.passwordAuth().verifyPassword(user, password))
                         {
                             case Wt::Auth::PasswordValid:
-                                _session.login().login(user);
-                                this->authentified = true;
+                                m_session.login().login(user);
+                                m_authentified = true;
                                 Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
                                 break;
                             case Wt::Auth::LoginThrottling:
@@ -204,14 +196,14 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     }
                     else if (token.compare(""))
                     {
-                        Wt::Dbo::ptr<User> userPtr = _session.find<User>()
+                        Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session.find<Echoes::Dbo::User>()
                                 .where("\"USR_MAIL\" = ?").bind(login)
                                 .where("\"USR_TOKEN\" = ?").bind(token)
                                 .limit(1);
                         if(userPtr)
                         {
-                            _session.login().login(user);
-                            this->authentified = true;
+                            m_session.login().login(user);
+                            m_authentified = true;
                         }
                         else
                             Wt::log("error") << "[PUBLIC API] Bad Token";
@@ -236,22 +228,22 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         try
         {
-            Wt::Dbo::Transaction transaction(_session);
-            Wt::Dbo::ptr<Engine> enginePtr = _session.find<Engine>()
+            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Engine> enginePtr = m_session.find<Echoes::Dbo::Engine>()
                     .where("\"ENG_FQDN\" = ?").bind(request.clientAddress())
                     .where("\"ENG_DELETE\" IS NULL")
                     .limit(1);
 
             if(enginePtr)
             {
-                Wt::Dbo::ptr<EngOrg> engOrgPtr = _session.find<EngOrg>()
+                Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
                         .where("\"ENG_ID_ENG_ID\" = ?").bind(enginePtr.id())
                         .where("\"ENO_TOKEN\" = ?").bind(eno_token)
                         .where("\"ENO_DELETE\" IS NULL")
                         .limit(1);
                 if(engOrgPtr)
                 {
-                    this->authentified = true;
+                    m_authentified = true;
                 }
                 else
                     Wt::log("error") << "[PUBLIC API] Bad eno_token";
@@ -273,7 +265,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
 
-    if (this->authentified) {
+    if (m_authentified) {
         setPathElementsVector(request.pathInfo());
 
         switch(retrieveCurrentHttpMethod(request.method()))
@@ -308,7 +300,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
     }
 
-    this->indexPathElement = 1;
-    this->statusCode = 500;
+    m_indexPathElement = 1;
+    m_statusCode = 500;
 }
         

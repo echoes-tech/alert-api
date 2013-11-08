@@ -26,7 +26,7 @@ class ItookiAswReceiver : public Wt::WResource
         
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
         {
-            Session session(conf.getSessConnectParams());
+            Echoes::Dbo::Session session(conf.getSessConnectParams());
 
             Wt::log("notice") << "[ASW] Query string : " << request.queryString();
             
@@ -47,10 +47,10 @@ class ItookiAswReceiver : public Wt::WResource
             try
             {
                 Wt::Dbo::Transaction transaction(session);
-                UserHistoricalAction *uha = new UserHistoricalAction;
+                Echoes::Dbo::UserHistoricalAction *uha = new Echoes::Dbo::UserHistoricalAction;
                 uha->dateTime = Wt::WDateTime::currentDateTime();
                 uha->tableObject = this->number + " : " + this->message;
-                session.add<UserHistoricalAction>(uha);
+                session.add<Echoes::Dbo::UserHistoricalAction>(uha);
             }
             catch(Wt::Dbo::Exception const& e)
             {

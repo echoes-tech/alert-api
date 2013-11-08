@@ -19,21 +19,17 @@ UserResource::UserResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-UserResource::UserResource(const UserResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 UserResource::~UserResource()
 {
 }
 
 unsigned short UserResource::getInformationForUser(std::string &responseMsg)
 {
-    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
     try
     {        
-        Wt::Dbo::Transaction transaction(_session);
-        Wt::Dbo::ptr<User> user = _session.find<User>().where("\"USR_ID\" = ?").bind(this->_session.user().id());
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::User> user = m_session.find<Echoes::Dbo::User>().where("\"USR_ID\" = ?").bind(this->m_session.user().id());
       
         if(user)
         {
@@ -44,7 +40,7 @@ unsigned short UserResource::getInformationForUser(std::string &responseMsg)
         else
         {
             responseMsg = "{\"message\":\"User not found\"}";
-            res = Enums::NOT_FOUND;
+            res = Echoes::Dbo::Enums::NOT_FOUND;
         }
     }
     catch (Wt::Dbo::Exception e)
@@ -64,22 +60,22 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = getInformationForUser(responseMsg);
+        this->m_statusCode = getInformationForUser(responseMsg);
     }
     else
     {
-        this->statusCode = Enums::BAD_REQUEST;
+        this->m_statusCode = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }
 
 unsigned short UserResource::postActionForUser(std::string &responseMsg, const std::string &sRequest)
 {
-    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
     Wt::WString tableObject;
     int actionAfter, actionBefore, actionRelative;
     long long uacId, tableObjectId;
@@ -99,31 +95,31 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = Enums::BAD_REQUEST;
+        res = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = Enums::BAD_REQUEST;
+        res = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
     }
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<UserAction> ptrUserAction = _session.find<UserAction>().where("\"UAC_ID\" = ?").bind(uacId);
+        Wt::Dbo::ptr<Echoes::Dbo::UserAction> ptrUserAction = m_session.find<Echoes::Dbo::UserAction>().where("\"UAC_ID\" = ?").bind(uacId);
 
-        UserHistoricalAction *userHistoricalAction = new UserHistoricalAction();
+        Echoes::Dbo::UserHistoricalAction *userHistoricalAction = new Echoes::Dbo::UserHistoricalAction();
         userHistoricalAction->tableObject = tableObject;
         userHistoricalAction->tableObjectId = boost::lexical_cast<long long>(tableObjectId);
 
-        Wt::Dbo::ptr<UserHistoricalAction> ptrUserHistoricalAction = _session.add<UserHistoricalAction>(userHistoricalAction);
+        Wt::Dbo::ptr<Echoes::Dbo::UserHistoricalAction> ptrUserHistoricalAction = m_session.add<Echoes::Dbo::UserHistoricalAction>(userHistoricalAction);
         ptrUserHistoricalAction.modify()->userAction = ptrUserAction;
-        ptrUserHistoricalAction.modify()->user = _session.user();
+        ptrUserHistoricalAction.modify()->user = m_session.user();
         ptrUserHistoricalAction.modify()->dateTime = Wt::WDateTime::currentDateTime();
         ptrUserHistoricalAction.modify()->actionAfter = boost::lexical_cast<int>(actionAfter);
         ptrUserHistoricalAction.modify()->actionBefore = boost::lexical_cast<int>(actionBefore);
@@ -138,13 +134,13 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Enums::SERVICE_UNAVAILABLE;
+        res = Echoes::Dbo::Enums::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     catch(boost::bad_lexical_cast &)
     {
-        res = Enums::BAD_REQUEST;
+        res = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     return res;
@@ -152,7 +148,7 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
 
 unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std::string &sRequest)
 {
-    unsigned short res = Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
     long long uroId;
     try
     {
@@ -165,49 +161,49 @@ unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = Enums::BAD_REQUEST;
+        res = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[User Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = Enums::BAD_REQUEST;
+        res = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[User Ressource] Problems parsing JSON.:" << sRequest;
         return res;
     }
     try
     {
-        Wt::Dbo::Transaction transaction(_session);
+        Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<UserRole> ptrUserRole = _session.find<UserRole>().where("\"URO_ID\" = ?").bind(uroId);
-        Wt::Dbo::ptr<Organization> currentOrg = _session.user()->currentOrganization;
+        Wt::Dbo::ptr<Echoes::Dbo::UserRole> ptrUserRole = m_session.find<Echoes::Dbo::UserRole>().where("\"URO_ID\" = ?").bind(uroId);
+        Wt::Dbo::ptr<Echoes::Dbo::Organization> currentOrg = m_session.user()->currentOrganization;
         
         if (currentOrg.id() != ptrUserRole->organization.id())
         {
-            res = Enums::FORBIDDEN;
+            res = Echoes::Dbo::Enums::FORBIDDEN;
             responseMsg = "{\"message\":\"This role doesn't belong to the current organization of the current user.\"}";
             transaction.commit();
             return res;
         }
         else
         {
-            _session.user().modify()->userRole = ptrUserRole;
-            res = Enums::OK;
+            m_session.user().modify()->userRole = ptrUserRole;
+            res = Echoes::Dbo::Enums::OK;
             transaction.commit();
         }
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Enums::SERVICE_UNAVAILABLE;
+        res = Echoes::Dbo::Enums::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     catch(boost::bad_lexical_cast &)
     {
-        res = Enums::BAD_REQUEST;
+        res = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     return res;
@@ -221,27 +217,27 @@ void UserResource::processPostRequest(const Wt::Http::Request &request, Wt::Http
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->statusCode = Enums::BAD_REQUEST;
+        this->m_statusCode = Echoes::Dbo::Enums::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     else
     {   
             if(!nextElement.compare("action"))
             {
-                this->statusCode = postActionForUser(responseMsg, sRequest);
+                this->m_statusCode = postActionForUser(responseMsg, sRequest);
             }
             else if (!nextElement.compare("role"))
             {
-                this->statusCode = postRoleForUser(responseMsg, sRequest);
+                this->m_statusCode = postRoleForUser(responseMsg, sRequest);
             }
             else
             {
-                this->statusCode = Enums::BAD_REQUEST;
+                this->m_statusCode = Echoes::Dbo::Enums::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
     }
 
-    response.setStatus(this->statusCode);
+    response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
 }

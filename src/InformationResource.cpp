@@ -19,10 +19,6 @@ InformationResource::InformationResource() : PublicApiResource::PublicApiResourc
 {
 }
 
-InformationResource::InformationResource(const InformationResource& orig) : PublicApiResource::PublicApiResource(orig)
-{
-}
-
 InformationResource::~InformationResource()
 {
 }

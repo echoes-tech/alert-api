@@ -20,7 +20,6 @@ class OrganizationResource : public PublicApiResource
 {
     public :
         OrganizationResource();
-        OrganizationResource(const OrganizationResource& orig);
         virtual ~OrganizationResource();
         
     protected :

@@ -20,7 +20,6 @@ class RoleResource : public PublicApiResource
 {
     public :
         RoleResource();
-        RoleResource(const RoleResource& orig);
         virtual ~RoleResource();
         
     protected :

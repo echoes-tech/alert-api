@@ -20,7 +20,6 @@ class UnitResource : public PublicApiResource
 {
     public :
         UnitResource();
-        UnitResource(const UnitResource& orig);
         virtual ~UnitResource();
         
     protected :
