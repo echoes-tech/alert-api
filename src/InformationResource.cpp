@@ -29,26 +29,26 @@ void InformationResource::processGetRequest(Wt::Http::Response &response)
 }
 
 
-void InformationResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void InformationResource::processPostRequest(Wt::Http::Response &response)
 {   
     return ;
 }
 
 
-void InformationResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void InformationResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void InformationResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void InformationResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
 
-void InformationResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void InformationResource::processDeleteRequest(Wt::Http::Response &response)
 {    
     return;
 }

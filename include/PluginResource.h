@@ -47,9 +47,9 @@ class PluginResource : public PublicApiResource
 //        unsigned short postSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
         unsigned short postSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
         unsigned short postPlugin(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
 
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
 //        unsigned short putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
 //        unsigned short putAliasForCriterion(std::string &responseMsg, const std::string &sRequest);
         unsigned short putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
@@ -64,7 +64,7 @@ class PluginResource : public PublicApiResource
 //        unsigned short deleteSearchForSourceAndPlugin(std::string &responseMsg);
         unsigned short deleteSourceForPlugin(std::string &responseMsg);
         unsigned short deletePlugin(std::string &responseMsg);
-        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
        

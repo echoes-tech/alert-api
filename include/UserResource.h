@@ -30,13 +30,13 @@ class UserResource : public PublicApiResource
         unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);
         unsigned short postRoleForUser(std::string &responseMsg, const std::string &sRequest);
         
-        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
 
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
         
-        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPatchRequest(Wt::Http::Response &response);
 
-        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };

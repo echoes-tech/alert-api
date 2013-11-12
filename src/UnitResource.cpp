@@ -358,15 +358,14 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
     return res;
 }
 
-void UnitResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UnitResource::processPostRequest(Wt::Http::Response &response)
 {   
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = postUnit(responseMsg, sRequest);
+        this->m_statusCode = postUnit(responseMsg, m_requestData);
     }
     else
     {
@@ -380,13 +379,13 @@ void UnitResource::processPostRequest(const Wt::Http::Request &request, Wt::Http
 }
 
 
-void UnitResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UnitResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void UnitResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UnitResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -432,9 +431,9 @@ unsigned short UnitResource::deleteUnit(string& responseMsg)
     return res;
 }
 
-void UnitResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UnitResource::processDeleteRequest(Wt::Http::Response &response)
 {    
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

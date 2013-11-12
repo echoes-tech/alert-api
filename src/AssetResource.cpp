@@ -597,11 +597,10 @@ unsigned short AssetResource::getAliasForAsset(std::string  &responseMsg)
     return res;
 }
 
-void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPostRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
@@ -618,7 +617,7 @@ void AssetResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
 
             if(!nextElement.compare("probes"))
             {
-                this->m_statusCode = postProbeForAsset(responseMsg, sRequest);
+                this->m_statusCode = postProbeForAsset(responseMsg, m_requestData);
             }
             else
             {
@@ -852,11 +851,10 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
     return res;
 }
 
-void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processPutRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
@@ -873,11 +871,11 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
 
             if(!nextElement.compare(""))
             {
-                this->m_statusCode = putAsset(responseMsg, sRequest);
+                this->m_statusCode = putAsset(responseMsg, m_requestData);
             }
             else if(!nextElement.compare("alias"))
             {
-                this->m_statusCode = putAlias(responseMsg, sRequest);
+                this->m_statusCode = putAlias(responseMsg, m_requestData);
             }
             else
             {
@@ -897,7 +895,7 @@ void AssetResource::processPutRequest(const Wt::Http::Request &request, Wt::Http
     return;
 }
 
-void AssetResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AssetResource::processDeleteRequest(Wt::Http::Response &response)
 {
     return;
 }

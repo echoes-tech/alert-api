@@ -35,13 +35,13 @@ class AssetResource : public PublicApiResource
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postProbeForAsset(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
         
         unsigned short putAsset(std::string &responseMsg, const std::string &sRequest);
         unsigned short putAlias(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
 
-        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         

@@ -11,6 +11,8 @@
  * 
  */
 
+#ifndef main
+
 #include <signal.h>
 
 #include <tools/SessionPool.h>
@@ -36,6 +38,8 @@
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
 
+#endif
+
 using namespace std;
 
 /**
@@ -45,8 +49,9 @@ Point d'entrée du programme.
 */
 int main(int argc, char **argv)
 {
+    #ifndef main
     int res = EXIT_FAILURE;
-
+    
     try
     {
         // use argv[0] as the application name to match a suitable entry
@@ -119,6 +124,10 @@ int main(int argc, char **argv)
     {
         cerr << "exception: " << e.what() << endl;
     }
-
     return res;
+    
+    #else
+    return 0;
+    #endif
 }
+

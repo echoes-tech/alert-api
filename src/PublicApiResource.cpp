@@ -55,6 +55,12 @@ void PublicApiResource::setPathElementsVector(const string &path)
     return;
 }
 
+void PublicApiResource::setRequestData(const Wt::Http::Request &request)
+{
+    m_requestData = request2string(request);
+    return;
+}
+
 string PublicApiResource::getNextElementFromPath()
 {
     string res = "";
@@ -105,17 +111,17 @@ void PublicApiResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-void PublicApiResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PublicApiResource::processPostRequest(Wt::Http::Response &response)
 {
     return;
 }
 
-void PublicApiResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PublicApiResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
-void PublicApiResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PublicApiResource::processDeleteRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -172,9 +178,8 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 {
                     if (password.compare(""))
                     {
-                        /*******************************
-                         ** TO DO: find problem cause **
-                         *******************************/
+                        
+                        // ToDo: find problem cause : why rereadAll ??
                         m_session.rereadAll();
                         // verify
                         switch (m_session.passwordAuth().verifyPassword(user, password))
@@ -267,6 +272,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     if (m_authentified) {
         setPathElementsVector(request.pathInfo());
+        setRequestData(request);
 
         switch(retrieveCurrentHttpMethod(request.method()))
         {
@@ -275,13 +281,13 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 break;
             case Wt::Http::Post:
                 
-                processPostRequest(request, response);
+                processPostRequest(response);
                 break;
             case Wt::Http::Put:
-                processPutRequest(request, response);
+                processPutRequest(response);
                 break;
             case Wt::Http::Delete:
-                processDeleteRequest(request, response);
+                processDeleteRequest(response);
                 break;
             default:
                 response.setStatus(405);
@@ -300,6 +306,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
     }
 
+    m_requestData = "";
     m_indexPathElement = 1;
     m_statusCode = 500;
 }

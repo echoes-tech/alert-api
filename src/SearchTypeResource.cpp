@@ -280,15 +280,14 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
     return res;
 }
 
-void SearchTypeResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void SearchTypeResource::processPostRequest(Wt::Http::Response &response)
 {   
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = postSearchType(responseMsg, sRequest);
+        this->m_statusCode = postSearchType(responseMsg, m_requestData);
     }
     else
     {  
@@ -301,13 +300,13 @@ void SearchTypeResource::processPostRequest(const Wt::Http::Request &request, Wt
 }
 
 
-void SearchTypeResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void SearchTypeResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void SearchTypeResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void SearchTypeResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -356,9 +355,9 @@ unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
     return res;
 }
 
-void SearchTypeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void SearchTypeResource::processDeleteRequest(Wt::Http::Response &response)
 {    
- string responseMsg = "", nextElement = "", sRequest = "";
+ string responseMsg = "", nextElement = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

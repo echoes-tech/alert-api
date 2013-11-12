@@ -85,26 +85,26 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-void RoleResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void RoleResource::processPostRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void RoleResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void RoleResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void RoleResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void RoleResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
 
-void RoleResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void RoleResource::processDeleteRequest(Wt::Http::Response &response)
 {
     return;
 }

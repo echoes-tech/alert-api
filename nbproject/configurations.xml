@@ -63,6 +63,12 @@
                    displayName="Test Files"
                    projectFiles="false"
                    kind="TEST_LOGICAL_FOLDER">
+      <logicalFolder name="f2"
+                     displayName="New C++ Simple Test 1"
+                     projectFiles="true"
+                     kind="TEST">
+        <itemPath>src/tests/newsimpletest1.cpp</itemPath>
+      </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -85,17 +91,25 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+          <commandLine>`cppunit-config --cflags`</commandLine>
+        </cTool>
         <ccTool>
           <standard>8</standard>
-          <commandlineTool>DISTCC_FALLBACK=0 distcc</commandlineTool>
+          <commandlineTool>DISTCC_FALLBACK=0 distcc g++-4.7</commandlineTool>
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
+            <pElem>.</pElem>
+            <pElem>../wt-3.3.1-rc2/src/web</pElem>
           </incDir>
-          <commandLine>-pedantic</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
+          <output>${TESTDIR}/TestFiles/f1</output>
           <linkerAddLib>
             <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
@@ -104,14 +118,41 @@
             <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
-            <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>boost_system</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
             <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>stdc++</linkerLibLibItem>
           </linkerLibItems>
+          <commandLine>-lwthttp</commandLine>
         </linkerTool>
       </compileType>
+      <folder path="TestFiles">
+        <ccTool>
+          <commandLine>-DBOOST_TEST_MAIN</commandLine>
+        </ccTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibLibItem>wttest</linkerLibLibItem>
+            <linkerLibLibItem>boost_unit_test_framework</linkerLibLibItem>
+            <linkerLibLibItem>boost_thread</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </folder>
+      <folder path="TestFiles/f2">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <output>${TESTDIR}/TestFiles/f2</output>
+        </linkerTool>
+      </folder>
       <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AlertResource.h" ex="false" tool="3" flavor2="0">
@@ -188,6 +229,8 @@
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/tests/newsimpletest1.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="wt_config.xml.erb" ex="false" tool="3" flavor2="0">
@@ -201,6 +244,12 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+          <commandLine>`cppunit-config --cflags`</commandLine>
+        </cTool>
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
@@ -209,10 +258,11 @@
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
             <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
+            <pElem>.</pElem>
           </incDir>
-          <commandLine>-std=c++0x</commandLine>
         </ccTool>
         <linkerTool>
+          <output>${TESTDIR}/TestFiles/f1</output>
           <linkerAddLib>
             <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
@@ -231,6 +281,21 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <folder path="TestFiles/f2">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <output>${TESTDIR}/TestFiles/f2</output>
+        </linkerTool>
+      </folder>
       <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AlertResource.h" ex="false" tool="3" flavor2="0">
@@ -306,6 +371,8 @@
       <item path="src/UserResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/tests/newsimpletest1.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
       </item>

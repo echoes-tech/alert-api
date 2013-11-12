@@ -1341,15 +1341,14 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //    return res; 
 //}
 
-void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PluginResource::processPostRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        m_statusCode = postPlugin(responseMsg, sRequest);
+        m_statusCode = postPlugin(responseMsg, m_requestData);
     }
     else
     {       
@@ -1363,7 +1362,7 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
                 nextElement = getNextElementFromPath();
                 if (!nextElement.compare(""))
                 {
-                    m_statusCode = postSourceForPlugin(responseMsg, sRequest);
+                    m_statusCode = postSourceForPlugin(responseMsg, m_requestData);
                 }
                 else
                 {
@@ -1456,10 +1455,9 @@ void PluginResource::processPostRequest(const Wt::Http::Request &request, Wt::Ht
 }
 
 
-void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PluginResource::processPutRequest(Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
-    string sRequest = request2string(request);
     
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
@@ -1542,7 +1540,7 @@ void PluginResource::processPutRequest(const Wt::Http::Request &request, Wt::Htt
 //            else 
             if (!nextElement.compare("alias"))
             {
-                m_statusCode = putAliasForPlugin(responseMsg,sRequest);
+                m_statusCode = putAliasForPlugin(responseMsg,m_requestData);
             }
             else
             {
@@ -2159,7 +2157,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //    return res;
 //}
 
-//void PluginResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+//void PluginResource::processPatchRequest(Wt::Http::Response &response)
 //{
 //   string responseMsg = "", nextElement = "", sRequest = "";
 //    
@@ -2391,9 +2389,9 @@ unsigned short PluginResource::deleteSourceForPlugin(string& responseMsg)
     return res; 
 }
 
-void PluginResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void PluginResource::processDeleteRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

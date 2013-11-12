@@ -97,15 +97,15 @@ class AlertResource : public PublicApiResource
         
         unsigned short postAlert(std::string &responseMsg, const std::string &sRequest);
         unsigned short postAlertTracking(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
 
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
         
 
-        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPatchRequest(Wt::Http::Response &response);
 
         unsigned short deleteAlert(std::string &responseMsg);
-        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
         

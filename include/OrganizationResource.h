@@ -33,13 +33,13 @@ class OrganizationResource : public PublicApiResource
         unsigned short getQuotasAsset(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
 
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
         
-        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPatchRequest(Wt::Http::Response &response);
 
-        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };

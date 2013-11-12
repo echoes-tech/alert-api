@@ -426,27 +426,27 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
 }
 
 
-void OrganizationResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void OrganizationResource::processPostRequest(Wt::Http::Response &response)
 {
 
     return ;
 }
 
 
-void OrganizationResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void OrganizationResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void OrganizationResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void OrganizationResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
 
-void OrganizationResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void OrganizationResource::processDeleteRequest(Wt::Http::Response &response)
 {
     return;
 }

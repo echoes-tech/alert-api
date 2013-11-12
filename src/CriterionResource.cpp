@@ -77,26 +77,26 @@ void CriterionResource::processGetRequest(Wt::Http::Response &response)
 }
 
 
-void CriterionResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processPostRequest(Wt::Http::Response &response)
 {   
     return ;
 }
 
 
-void CriterionResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void CriterionResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
 
-void CriterionResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void CriterionResource::processDeleteRequest(Wt::Http::Response &response)
 {    
     return;
 }

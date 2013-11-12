@@ -46,25 +46,32 @@ class PublicApiResource : public Wt::WResource {
     public:
         PublicApiResource();
         virtual ~PublicApiResource();
+        #ifdef main
+        void setPathElementsVector(const std::string &path);
+        void setRequestData(const Wt::Http::Request &request);
+        #endif
 
     protected:
         Echoes::Dbo::Session m_session;
         bool m_authentified;
+        std::string m_requestData;
         std::vector<std::string> m_pathElements;
         unsigned short m_indexPathElement;
         unsigned short m_statusCode;
 
         unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
-
+        #ifndef main
         void setPathElementsVector(const std::string &path);
+        void setRequestData(const Wt::Http::Request &request);
+        #endif
         std::string getNextElementFromPath();
 
         std::string request2string(const Wt::Http::Request &request);
 
         virtual void processGetRequest(Wt::Http::Response &response);
-        virtual void processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        virtual void processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        virtual void processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
         
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };

@@ -209,11 +209,10 @@ unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std
     return res;
 }
 
-void UserResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UserResource::processPostRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "", sRequest = "";
+    std::string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
@@ -224,11 +223,11 @@ void UserResource::processPostRequest(const Wt::Http::Request &request, Wt::Http
     {   
             if(!nextElement.compare("action"))
             {
-                this->m_statusCode = postActionForUser(responseMsg, sRequest);
+                this->m_statusCode = postActionForUser(responseMsg, m_requestData);
             }
             else if (!nextElement.compare("role"))
             {
-                this->m_statusCode = postRoleForUser(responseMsg, sRequest);
+                this->m_statusCode = postRoleForUser(responseMsg, m_requestData);
             }
             else
             {
@@ -243,20 +242,20 @@ void UserResource::processPostRequest(const Wt::Http::Request &request, Wt::Http
 }
 
 
-void UserResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UserResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void UserResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UserResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
 
-void UserResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void UserResource::processDeleteRequest(Wt::Http::Response &response)
 {
     return;
 }

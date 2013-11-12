@@ -187,17 +187,17 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-void ProbeResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processPostRequest(Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
-void ProbeResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ProbeResource::processDeleteRequest(Wt::Http::Response &response)
 {
     return;
 }

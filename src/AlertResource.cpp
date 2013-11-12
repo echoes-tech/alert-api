@@ -1296,15 +1296,14 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
 }
 
 
-void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processPostRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        m_statusCode = postAlert(responseMsg, sRequest);
+        m_statusCode = postAlert(responseMsg, m_requestData);
     }
     else
     {
@@ -1315,7 +1314,7 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
             nextElement = getNextElementFromPath();
             if(!nextElement.compare("trackings"))
             {
-                m_statusCode = postAlertTracking(responseMsg, sRequest);
+                m_statusCode = postAlertTracking(responseMsg, m_requestData);
             }
             else
             {
@@ -1335,12 +1334,12 @@ void AlertResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     return ;
 }
 
-void AlertResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
-void AlertResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -1390,9 +1389,9 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
     return res;
 }
 
-void AlertResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AlertResource::processDeleteRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))

@@ -355,22 +355,21 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
     return res;
 }
 
-void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void MediaResource::processPostRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = postMedia(responseMsg, sRequest);
+        this->m_statusCode = postMedia(responseMsg, m_requestData);
     }
     else if (!nextElement.compare("specializations"))
     {
          nextElement = getNextElementFromPath();
         if (!nextElement.compare(""))
         {
-            this->m_statusCode = postMediaSpecialization(responseMsg, sRequest);
+            this->m_statusCode = postMediaSpecialization(responseMsg, m_requestData);
         }
         else
         {
@@ -393,7 +392,7 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
                 nextElement = getNextElementFromPath();
                 if(!nextElement.compare("validate"))
                 {
-                        this->m_statusCode = postMediaValidation(responseMsg, sRequest);
+                        this->m_statusCode = postMediaValidation(responseMsg, m_requestData);
                 }
                 else
                 {
@@ -419,13 +418,13 @@ void MediaResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
 }
 
 
-void MediaResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void MediaResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
 
-void MediaResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void MediaResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -528,11 +527,10 @@ unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
     return res;
 }
 
-void MediaResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void MediaResource::processDeleteRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
 
     if (!nextElement.compare("specializations"))

@@ -299,15 +299,14 @@ unsigned short AddonResource::postAddon(string& responseMsg, const string& sRequ
     return res;
 }
 
-void AddonResource::processPostRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AddonResource::processPostRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "", sRequest = "";
+    string responseMsg = "", nextElement = "";
 
-    sRequest = request2string(request);
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        m_statusCode = postAddon(responseMsg, sRequest);
+        m_statusCode = postAddon(responseMsg, m_requestData);
     }
     else
     {        
@@ -320,12 +319,12 @@ void AddonResource::processPostRequest(const Wt::Http::Request &request, Wt::Htt
     return ;
 }
 
-void AddonResource::processPutRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AddonResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
 
-void AddonResource::processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AddonResource::processPatchRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -372,7 +371,7 @@ unsigned short AddonResource::deleteAddon(string& responseMsg)
     return res;
 }
 
-void AddonResource::processDeleteRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void AddonResource::processDeleteRequest( Wt::Http::Response &response)
 {    
     string responseMsg = "", nextElement = "", sRequest = "";
 
