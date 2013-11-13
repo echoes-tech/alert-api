@@ -10,7 +10,6 @@
  * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
-
 #include "PublicApiResource.h"
 
 using namespace std;
@@ -310,4 +309,4 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     m_indexPathElement = 1;
     m_statusCode = 500;
 }
-        
+

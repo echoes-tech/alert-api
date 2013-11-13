@@ -21,23 +21,20 @@ class AddonResource : public PublicApiResource
     public :
         AddonResource();
         virtual ~AddonResource();
-        
+     
     protected :
+        virtual void processGetRequest(Wt::Http::Response &response);
+        virtual void processPostRequest(Wt::Http::Response &response);
+        virtual void processPutRequest(Wt::Http::Response &response);
+        virtual void processPatchRequest(Wt::Http::Response &response);
+        virtual void processDeleteRequest(Wt::Http::Response &response);
         
         unsigned short getSearchTypeForAddon(std::string &responseMsg);    
         unsigned short getParameterForAddon(std::string &responseMsg);    
-        unsigned short getAddonList(std::string &responseMsg);       
-        virtual void processGetRequest(Wt::Http::Response &response);
-
+        unsigned short getAddonList(std::string &responseMsg);  
         unsigned short postAddon(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
-
-        virtual void processPutRequest(Wt::Http::Response &response);
         
-        virtual void processPatchRequest(Wt::Http::Response &response);
-
         unsigned short deleteAddon(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
             

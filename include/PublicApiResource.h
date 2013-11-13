@@ -46,11 +46,7 @@ class PublicApiResource : public Wt::WResource {
     public:
         PublicApiResource();
         virtual ~PublicApiResource();
-        #ifdef main
-        void setPathElementsVector(const std::string &path);
-        void setRequestData(const Wt::Http::Request &request);
-        #endif
-
+       
     protected:
         Echoes::Dbo::Session m_session;
         bool m_authentified;
@@ -60,12 +56,10 @@ class PublicApiResource : public Wt::WResource {
         unsigned short m_statusCode;
 
         unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
-        #ifndef main
         void setPathElementsVector(const std::string &path);
         void setRequestData(const Wt::Http::Request &request);
-        #endif
-        std::string getNextElementFromPath();
 
+        std::string getNextElementFromPath();
         std::string request2string(const Wt::Http::Request &request);
 
         virtual void processGetRequest(Wt::Http::Response &response);
