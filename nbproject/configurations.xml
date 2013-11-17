@@ -71,13 +71,8 @@
                      displayName="AddonResourceTest"
                      projectFiles="true"
                      kind="TEST">
-        <itemPath>src/tests/AddonResourceTest.cpp</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f3"
-                     displayName="AlertResourceTest"
-                     projectFiles="true"
-                     kind="TEST">
-        <itemPath>src/tests/AlertResourceTest.cpp</itemPath>
+        <itemPath>tests/AddonResourceTest/AddonResourceTest.cpp</itemPath>
+        <itemPath>tests/AddonResourceTest/addons.json</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -141,6 +136,9 @@
       </compileType>
       <folder path="TestFiles">
         <ccTool>
+          <incDir>
+            <pElem>tests/include</pElem>
+          </incDir>
           <commandLine>-DBOOST_TEST_MAIN</commandLine>
         </ccTool>
         <linkerTool>
@@ -265,9 +263,15 @@
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/tests/AddonResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
-      <item path="src/tests/AlertResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      <item path="tests/AddonResourceTest/addons.json"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -434,9 +438,15 @@
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/tests/AddonResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
-      <item path="src/tests/AlertResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      <item path="tests/AddonResourceTest/addons.json"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
       </item>

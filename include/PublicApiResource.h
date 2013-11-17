@@ -97,6 +97,55 @@ protected:
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
     template<class C>
+    EReturnCode serialize(C &obj, std::string &responseMsg)
+    {
+        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+        responseMsg = this->httpCodeToJSON(res,obj);    
+        return res;
+    }
+    template<class C>
+    EReturnCode serialize(Wt::Dbo::ptr<C> &obj, std::string &responseMsg)
+    {
+        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+        if(obj)
+        {
+            responseMsg += this->serializeToJSON(obj);
+            res = EReturnCode::OK;
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = this->httpCodeToJSON(res,obj);    
+        }
+        return res;
+    }
+    template<class C>
+    EReturnCode serialize(Wt::Dbo::collection<Wt::Dbo::ptr<C>> &obj, std::string &responseMsg)
+    {
+        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+        if(obj.size() > 0)
+        {
+            responseMsg += this->serializeToJSON(obj);
+            res = EReturnCode::OK;
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = this->httpCodeToJSON(res,obj);    
+        }
+        return res;
+    }
+
+    template<class C>
+    std::string serializeToJSON(C &obj) {
+        std::string responseMsg;
+        Wt::Dbo::JsonSerializer jsonSerializer(m_session);
+        jsonSerializer.serialize(obj);
+        responseMsg = jsonSerializer.getResult();
+        return responseMsg;
+    }
+    
+    template<class C>
     std::string getTableName(C)
     {
         return "";
@@ -253,54 +302,6 @@ protected:
         return ss.str();
     }
     
-    template<class C>
-    EReturnCode serialize(C &obj, std::string &responseMsg)
-    {
-        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-        responseMsg = this->httpCodeToJSON(res,obj);    
-        return res;
-    }
-    template<class C>
-    EReturnCode serialize(Wt::Dbo::ptr<C> &obj, std::string &responseMsg)
-    {
-        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-        if(obj)
-        {
-            responseMsg += this->serializeToJSON(obj);
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = this->httpCodeToJSON(res,obj);    
-        }
-        return res;
-    }
-    template<class C>
-    EReturnCode serialize(Wt::Dbo::collection<Wt::Dbo::ptr<C>> &obj, std::string &responseMsg)
-    {
-        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-        if(obj.size() > 0)
-        {
-            responseMsg += this->serializeToJSON(obj);
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = this->httpCodeToJSON(res,obj);    
-        }
-        return res;
-    }
-
-    template<class C>
-    std::string serializeToJSON(C &obj) {
-        std::string responseMsg;
-        Wt::Dbo::JsonSerializer jsonSerializer(m_session);
-        jsonSerializer.serialize(obj);
-        responseMsg = jsonSerializer.getResult();
-        return responseMsg;
-    }
 };
 
 

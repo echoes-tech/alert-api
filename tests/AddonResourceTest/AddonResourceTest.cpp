@@ -11,109 +11,28 @@
 #define protected public
 #include "AddonResource.h"
 
+#include "tests.h"
+
 #define unused __attribute__((unused)) static const 
 
 using namespace std;
 
-static const unsigned short CALL_RESULT_OK = EReturnCode::OK;
-static const unsigned short CALL_RESULT_SERVICE_UNAVAILABLE = EReturnCode::SERVICE_UNAVAILABLE;
-static const unsigned short ADDONS_NUMBER = 5;
-static const unsigned short ADDON_JSON_PROPERTIES_NUMBER = 6;
-// JSON properties for addon resource
-static const string ADDON_ID = "id";
-static const string ADDON_NAME = "name";
-static const string ADDON_DELETE = "delete";
-static const string ADDON_SOURCES = "sources";
-static const string ADDON_SEARCH_TYPES = "search_types";
-static const string ADDON_SOURCES_PARAMETERS = "sources_parameters";
-static const string NOT_OVERRIDEN = "should_be_overriden";
-static const string MESSAGE_KEY = "message";
-static const string MESSAGE_EXPECTED = "Service Unavailable";
+static const string ADDONS_JSON_FILE_NAME =  "tests/AddonResourceTest/addons.json";
 
 BOOST_AUTO_TEST_SUITE (test_get_addon_resource)
 
 BOOST_AUTO_TEST_CASE(test_get_addons)
 {
-    Wt::Test::WTestEnvironment environment("/","wt_config.xml");
     AddonResource addonResource;
-
-    conf.readProperties(*(environment.server()));
-    addonResource.m_session.initConnection(conf.getSessConnectParams());
-
-    string responseMsg = "";
-    unsigned short result = addonResource.getAddonList(responseMsg);
     
-    BOOST_CHECK_EQUAL( result, CALL_RESULT_OK);
-
-    try
-    {              
-        Wt::Json::Value resValue ;
-        Wt::Json::Array addons;
-        Wt::Json::parse(responseMsg, resValue);
-  
-        addons = resValue;
-        
-        BOOST_CHECK_EQUAL( addons.size(), ADDONS_NUMBER );
-        
-        for (Wt::Json::Array::const_iterator idx1 = addons.begin() ; idx1 < addons.end(); idx1++)
-        {
-            Wt::Json::Object tmp = *idx1;
-            BOOST_CHECK_EQUAL( tmp.size(), ADDON_JSON_PROPERTIES_NUMBER );
-            BOOST_CHECK_EQUAL( tmp.contains(ADDON_ID), true );
-            BOOST_CHECK_EQUAL( tmp.contains(ADDON_NAME), true );
-            BOOST_CHECK_EQUAL( tmp.contains(ADDON_DELETE), true );
-            BOOST_CHECK_EQUAL( tmp.contains(ADDON_SOURCES), true );
-            BOOST_CHECK_EQUAL( tmp.contains(ADDON_SEARCH_TYPES), true );
-            BOOST_CHECK_EQUAL( tmp.contains(ADDON_SOURCES_PARAMETERS), true );
-            BOOST_CHECK_EQUAL( tmp.contains(NOT_OVERRIDEN), false );
-            unused long long unitId = tmp.get(ADDON_ID);
-            unused Wt::WString name = tmp.get(ADDON_NAME);
-            unused Wt::WString sDelete = tmp.get(ADDON_DELETE);
-            unused int sourcesNumber = tmp.get(ADDON_SOURCES);
-            unused int searchTypes = tmp.get(ADDON_SEARCH_TYPES);
-            unused int sourcesParameters = tmp.get(ADDON_SOURCES_PARAMETERS);
-        }
-    }   
-    catch (Wt::Json::ParseError const& e)
-    {
-        BOOST_ERROR("Parse error: " << e.what());
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        BOOST_ERROR("Type error: " << e.what());
-    }   
+    test(addonResource, boost::bind(&AddonResource::getAddonList, &addonResource, _1), ADDONS_JSON_FILE_NAME);
 }
 
 BOOST_AUTO_TEST_CASE(test_get_addons_no_base)
 {
-    Wt::Test::WTestEnvironment environment("/","src/tests/wt_config_tests.xml");
     AddonResource addonResource;
 
-    conf.readProperties(*(environment.server()));
-    addonResource.m_session.initConnection(conf.getSessConnectParams());
-
-    string responseMsg = "";
-    unsigned short result = addonResource.getAddonList(responseMsg);
-    
-    BOOST_CHECK_EQUAL(result, CALL_RESULT_SERVICE_UNAVAILABLE);
-
-    try
-    {              
-        Wt::Json::Object resObject;
-        Wt::Json::parse(responseMsg, resObject);
-        
-        BOOST_CHECK_EQUAL( resObject.contains(MESSAGE_KEY), true );
-        const Wt::WString message = resObject.get(MESSAGE_KEY);
-        BOOST_CHECK_EQUAL( message, MESSAGE_EXPECTED );
-    }   
-    catch (Wt::Json::ParseError const& e)
-    {
-        BOOST_ERROR("Parse error: " << e.what());
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        BOOST_ERROR("Type error: " << e.what());
-    }   
+    testNoBase(addonResource, boost::bind(&AddonResource::getAddonList, &addonResource, _1));
 }
 
 //BOOST_AUTO_TEST_CASE(test_get_addon)

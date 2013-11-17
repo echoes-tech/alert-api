@@ -1,0 +1,42 @@
+[
+{
+    "id": 1,
+    "name": "system(non exist)",
+    "delete": "Null",
+    "sources": 0,
+    "source_parameters": 0,
+    "search_types": 0
+},
+{
+    "id": 2,
+    "name": "file",
+    "delete": "Null",
+    "sources": 0,
+    "source_parameters": 1,
+    "search_types": 1
+},
+{
+    "id": 3,
+    "name": "log",
+    "delete": "Null",
+    "sources": 0,
+    "source_parameters": 0,
+    "search_types": 1
+},
+{
+    "id": 4,
+    "name": "mysql",
+    "delete": "Null",
+    "sources": 0,
+    "source_parameters": 5,
+    "search_types": 1
+},
+{
+    "id": 5,
+    "name": "snmp",
+    "delete": "Null",
+    "sources": 0,
+    "source_parameters": 8,
+    "search_types": 2
+}
+]

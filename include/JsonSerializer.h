@@ -94,7 +94,7 @@ namespace Wt
                     }
                 }
             }
-            m_currentElem->put<long long>(transformTableName(m_session.tableName<V>()), i);
+            m_currentElem->put<long long>(transformTableName(m_session.tableName<V>()) + "s", i);
         }
         template<class S>
         void actCollection(const Wt::Dbo::CollectionRef< Wt::Auth::Dbo::AuthInfo<S>> &collec) {

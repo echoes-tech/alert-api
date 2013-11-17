@@ -59,8 +59,7 @@ TESTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tests
 
 # Test Files
 TESTFILES= \
-	${TESTDIR}/TestFiles/f2 \
-	${TESTDIR}/TestFiles/f3
+	${TESTDIR}/TestFiles/f2
 
 # C Compiler Flags
 CFLAGS=`cppunit-config --cflags` 
@@ -181,25 +180,15 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp
 
 # Build Test Targets
 .build-tests-conf: .build-conf ${TESTFILES}
-${TESTDIR}/TestFiles/f2: ${TESTDIR}/src/tests/AddonResourceTest.o ${OBJECTFILES:%.o=%_nomain.o}
+${TESTDIR}/TestFiles/f2: ${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o ${OBJECTFILES:%.o=%_nomain.o}
 	${MKDIR} -p ${TESTDIR}/TestFiles
 	${LINK.cc}   -o ${TESTDIR}/TestFiles/f2 $^ ${LDLIBSOPTIONS} 
 
-${TESTDIR}/TestFiles/f3: ${TESTDIR}/src/tests/AlertResourceTest.o ${OBJECTFILES:%.o=%_nomain.o}
-	${MKDIR} -p ${TESTDIR}/TestFiles
-	${LINK.cc}   -o ${TESTDIR}/TestFiles/f3 $^ ${LDLIBSOPTIONS} 
 
-
-${TESTDIR}/src/tests/AddonResourceTest.o: src/tests/AddonResourceTest.cpp 
-	${MKDIR} -p ${TESTDIR}/src/tests
+${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o: tests/AddonResourceTest/AddonResourceTest.cpp 
+	${MKDIR} -p ${TESTDIR}/tests/AddonResourceTest
 	${RM} $@.d
-	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -I. -I. -I. -MMD -MP -MF $@.d -o ${TESTDIR}/src/tests/AddonResourceTest.o src/tests/AddonResourceTest.cpp
-
-
-${TESTDIR}/src/tests/AlertResourceTest.o: src/tests/AlertResourceTest.cpp 
-	${MKDIR} -p ${TESTDIR}/src/tests
-	${RM} $@.d
-	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -I. -I. -I. -MMD -MP -MF $@.d -o ${TESTDIR}/src/tests/AlertResourceTest.o src/tests/AlertResourceTest.cpp
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -I. -I. -I. -MMD -MP -MF $@.d -o ${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o tests/AddonResourceTest/AddonResourceTest.cpp
 
 
 ${OBJECTDIR}/main_nomain.o: ${OBJECTDIR}/main.o main.cpp 
@@ -441,7 +430,6 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o: ${OBJECTDIR}/src/itooki/Itooki
 	@if [ "${TEST}" = "" ]; \
 	then  \
 	    ${TESTDIR}/TestFiles/f2 || true; \
-	    ${TESTDIR}/TestFiles/f3 || true; \
 	else  \
 	    ./${TEST} || true; \
 	fi
