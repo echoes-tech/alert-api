@@ -25,7 +25,7 @@ RoleResource::~RoleResource()
 
 unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
+    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {        
         Wt::Dbo::Transaction transaction(m_session);
@@ -50,15 +50,15 @@ unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
         else
         {
             responseMsg = "{\"message\":\"Role not found\"}";
-            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
+            res = EReturnCode::NOT_FOUND;
         }
-        res = Echoes::Dbo::EReturnCode::OK;
+        res = EReturnCode::OK;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
@@ -76,7 +76,7 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
     }
     else
     {
-        this->m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        this->m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 

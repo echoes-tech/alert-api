@@ -27,7 +27,7 @@ class AddonResource : public PublicApiResource
         
         unsigned short getSearchTypeForAddon(std::string &responseMsg);    
         unsigned short getParameterForAddon(std::string &responseMsg);    
-        unsigned short getAddonList(std::string &responseMsg);  
+        EReturnCode getAddonList(std::string &responseMsg);  
             
 };
 

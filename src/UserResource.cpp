@@ -11,7 +11,6 @@
  * 
  */
 
-#include "tools/JsonSerializer.h"
 #include "UserResource.h"
 
 using namespace std;
@@ -24,40 +23,23 @@ UserResource::~UserResource()
 {
 }
 
-unsigned short UserResource::getInformationForUser(std::string &responseMsg)
+EReturnCode UserResource::getInformationForUser(std::string &responseMsg)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {        
         Wt::Dbo::Transaction transaction(m_session);
-//        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> user = m_session.find<Echoes::Dbo::User>();
-//        responseMsg += this->toJSON(user);
-       
+
         Wt::Dbo::ptr<Echoes::Dbo::User> user = m_session.find<Echoes::Dbo::User>().where("\"USR_ID\" = ?").bind(this->m_session.user().id());
       
-        if(user)
-        {
-//            user.modify()->setId(user.id());
-            responseMsg += this->toJSON(user);
-//            Wt::Dbo::JsonSerializer jsonSerializer(m_session);
-//            jsonSerializer.Serialize(user);
-//            responseMsg += jsonSerializer.getResult();
-//            Wt::Dbo::XmlSerializer xmlSerializer(std::cout, m_session);
-//            xmlSerializer.Serialize(user);
+        res = this->serialize(user,responseMsg);
 
-            res = 200;
-        }
-        else
-        {
-            responseMsg = "{\"message\":\"User not found\"}";
-            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
-        }
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
@@ -71,11 +53,11 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = getInformationForUser(responseMsg);
+        this->m_statusCode = (unsigned short)getInformationForUser(responseMsg);
     }
     else
     {
-        this->m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        this->m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
@@ -86,7 +68,7 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
 
 unsigned short UserResource::postActionForUser(std::string &responseMsg, const std::string &sRequest)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
+    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString tableObject;
     int actionAfter, actionBefore, actionRelative;
     long long uacId, tableObjectId;
@@ -106,14 +88,14 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
@@ -145,13 +127,13 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     catch(boost::bad_lexical_cast &)
     {
-        res = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     return res;
@@ -159,7 +141,7 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
 
 unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std::string &sRequest)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
+    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
     try
     {
@@ -172,14 +154,14 @@ unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[User Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[User Ressource] Problems parsing JSON.:" << sRequest;
         return res;
@@ -193,7 +175,7 @@ unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std
         
         if (orgPtr.id() != ptrUserRole->organization.id())
         {
-            res = Echoes::Dbo::EReturnCode::FORBIDDEN;
+            res = EReturnCode::FORBIDDEN;
             responseMsg = "{\"message\":\"This role doesn't belong to the current organization of the current user.\"}";
             transaction.commit();
             return res;
@@ -201,20 +183,20 @@ unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std
         else
         {
             m_session.user().modify()->userRole = ptrUserRole;
-            res = Echoes::Dbo::EReturnCode::OK;
+            res = EReturnCode::OK;
             transaction.commit();
         }
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
     catch(boost::bad_lexical_cast &)
     {
-        res = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     return res;
@@ -227,7 +209,7 @@ void UserResource::processPostRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+        this->m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     else
@@ -242,7 +224,7 @@ void UserResource::processPostRequest(Wt::Http::Response &response)
             }
             else
             {
-                this->m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+                this->m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
     }

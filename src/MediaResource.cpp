@@ -10,7 +10,6 @@
  * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
-#include "tools/JsonSerializer.h"
 #include "MediaResource.h"
 
 using namespace std;
@@ -36,7 +35,7 @@ unsigned short MediaResource::getListValueForMedia(string &responseMsg)
                 .where("\"MEV_DELETE\" is NULL");
         if (medias.size() > 0)
         {
-            responseMsg += this->toJSON(medias);
+            responseMsg += this->serializeToJSON(medias);
             res = 200;
         }
         else
@@ -77,7 +76,7 @@ unsigned short MediaResource::getMedia(string &responseMsg)
         
         if (media.size() > 0)
         {
-            responseMsg += this->toJSON(media);
+            responseMsg += this->serializeToJSON(media);
             res = 200;
         }
         else 

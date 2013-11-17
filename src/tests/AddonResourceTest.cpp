@@ -15,8 +15,8 @@
 
 using namespace std;
 
-static const unsigned short CALL_RESULT_OK = Echoes::Dbo::EReturnCode::OK;
-static const unsigned short CALL_RESULT_SERVICE_UNAVAILABLE = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
+static const unsigned short CALL_RESULT_OK = EReturnCode::OK;
+static const unsigned short CALL_RESULT_SERVICE_UNAVAILABLE = EReturnCode::SERVICE_UNAVAILABLE;
 static const unsigned short ADDONS_NUMBER = 5;
 static const unsigned short ADDON_JSON_PROPERTIES_NUMBER = 6;
 // JSON properties for addon resource

@@ -14,7 +14,9 @@
       <itemPath>include/AssetResource.h</itemPath>
       <itemPath>include/Conf.h</itemPath>
       <itemPath>include/CriterionResource.h</itemPath>
+      <itemPath>include/Enums.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
+      <itemPath>include/JsonSerializer.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
       <itemPath>include/OrganizationResource.h</itemPath>
       <itemPath>include/PluginResource.h</itemPath>
@@ -27,6 +29,7 @@
       <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
+      <itemPath>include/XmlSerializer.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -47,6 +50,7 @@
         <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/CriterionResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
+        <itemPath>src/JsonSerializer.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
         <itemPath>src/OrganizationResource.cpp</itemPath>
         <itemPath>src/PluginResource.cpp</itemPath>
@@ -187,11 +191,15 @@
       </item>
       <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Enums.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/JsonSerializer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -217,6 +225,8 @@
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/XmlSerializer.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -232,6 +242,8 @@
       <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/JsonSerializer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -348,11 +360,15 @@
       </item>
       <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Enums.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/JsonSerializer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -378,6 +394,8 @@
       </item>
       <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/XmlSerializer.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -393,6 +411,8 @@
       <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/JsonSerializer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

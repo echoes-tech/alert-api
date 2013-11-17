@@ -1,3 +1,16 @@
+/* 
+ * API Resource
+ * @author ECHOES Technologies (TSA)
+ * @date 10/02/2013
+ * 
+ * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
+ * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
+ * COMPANY AUTHORIZATION.
+ * 
+ * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
+ * 
+ */
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -5,6 +18,7 @@ namespace boost
 {
   namespace property_tree
   {
+
      // the write_json_helper template specialization to remove the quotes " " 
     // added to every json values, strings or not
     namespace json_parser
@@ -64,22 +78,16 @@ namespace boost
   }
 }
 
-
-/* 
- * API Resource
- * @author ECHOES Technologies (TSA)
- * @date 10/02/2013
- * 
- * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
- * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
- * COMPANY AUTHORIZATION.
- * 
- * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
- * 
- */
 #include "PublicApiResource.h"
 
 using namespace std;
+
+template<>
+std::string PublicApiResource::getTableName(Wt::Dbo::Exception const e)
+{
+    Wt::log("error") << e.what();
+    return "";
+}
 
 PublicApiResource::PublicApiResource() : Wt::WResource(), m_session(), m_indexPathElement(1), m_statusCode(500)
 {
@@ -174,28 +182,28 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
 
 void PublicApiResource::processGetRequest(Wt::Http::Response &response)
 {
-    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.setStatus(EReturnCode::BAD_REQUEST);
     response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 
 void PublicApiResource::processPostRequest(Wt::Http::Response &response)
 {
-    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.setStatus(EReturnCode::BAD_REQUEST);
     response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 
 void PublicApiResource::processPutRequest(Wt::Http::Response &response)
 {
-    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.setStatus(EReturnCode::BAD_REQUEST);
     response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 
 void PublicApiResource::processDeleteRequest(Wt::Http::Response &response)
 {
-    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.setStatus(EReturnCode::BAD_REQUEST);
     response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }

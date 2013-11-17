@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/CriterionResource.o \
 	${OBJECTDIR}/src/InformationResource.o \
+	${OBJECTDIR}/src/JsonSerializer.o \
 	${OBJECTDIR}/src/MediaResource.o \
 	${OBJECTDIR}/src/OrganizationResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
@@ -119,6 +120,11 @@ ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp
+
+${OBJECTDIR}/src/JsonSerializer.o: src/JsonSerializer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JsonSerializer.o src/JsonSerializer.cpp
 
 ${OBJECTDIR}/src/MediaResource.o: src/MediaResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -285,6 +291,19 @@ ${OBJECTDIR}/src/InformationResource_nomain.o: ${OBJECTDIR}/src/InformationResou
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource_nomain.o src/InformationResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/InformationResource.o ${OBJECTDIR}/src/InformationResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/JsonSerializer_nomain.o: ${OBJECTDIR}/src/JsonSerializer.o src/JsonSerializer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/JsonSerializer.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} $@.d;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JsonSerializer_nomain.o src/JsonSerializer.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/JsonSerializer.o ${OBJECTDIR}/src/JsonSerializer_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/MediaResource_nomain.o: ${OBJECTDIR}/src/MediaResource.o src/MediaResource.cpp 

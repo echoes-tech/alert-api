@@ -24,7 +24,7 @@ class UserResource : public PublicApiResource
         
     protected :
 
-        unsigned short getInformationForUser(std::string &response);
+        EReturnCode getInformationForUser(std::string &response);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);

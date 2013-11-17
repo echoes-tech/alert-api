@@ -25,7 +25,7 @@ AddonResource::~AddonResource()
 
 unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
+    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try
     {
@@ -54,11 +54,11 @@ unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
                 }
             }
             responseMsg += "]\n";
-            res = Echoes::Dbo::EReturnCode::OK;
+            res = EReturnCode::OK;
         }
         else
         {
-            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Search parameter not found\"}";
         }
         transaction.commit();
@@ -66,7 +66,7 @@ unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
     catch (Wt::Dbo::Exception const& e)
     {
         Wt::log("error") << e.what();
-        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
 
@@ -75,7 +75,7 @@ unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
 
 unsigned short AddonResource::getParameterForAddon(string& responseMsg)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
+    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try
     {
@@ -106,11 +106,11 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg)
                 }
             }
             responseMsg += "]\n";
-            res = Echoes::Dbo::EReturnCode::OK;
+            res = EReturnCode::OK;
         }
         else
         {
-            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Source parameter not found\"}";
         }
         transaction.commit();
@@ -118,41 +118,30 @@ unsigned short AddonResource::getParameterForAddon(string& responseMsg)
     catch (Wt::Dbo::Exception const& e)
     {
         Wt::log("error") << e.what();
-        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
 
     return res;
 }
 
-unsigned short AddonResource::getAddonList(string& responseMsg)
+EReturnCode AddonResource::getAddonList(string& responseMsg)
 {
-    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon> > addonPtr = m_session.find<Echoes::Dbo::Addon>();
-        responseMsg = "[\n";
-        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon> >::const_iterator i = addonPtr.begin(); i != addonPtr.end(); ++i)
-        {
-            i->modify()->setId(i->id());
-            responseMsg += "\t" + i->get()->toJSON();
-            ++idx;
-            if (addonPtr.size() - idx > 0)
-            {
-                responseMsg += ",\n";
-            }
-        }
-        responseMsg += "]\n";
-        res = Echoes::Dbo::EReturnCode::OK;
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoCol = m_session.find<Echoes::Dbo::Addon>().orderBy(QUOTE(TRIGRAM_ADDON ID));
+        
+        res = this->serialize(adoCol, responseMsg);
+
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
-        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = this->httpCodeToJSON(res, e);
     }
 
     return res;
@@ -166,7 +155,7 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
 
     if (!nextElement.compare(""))
     {
-        m_statusCode = getAddonList(responseMsg);
+        m_statusCode = (unsigned short) getAddonList(responseMsg);
     }
     else
     {
@@ -185,13 +174,13 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
             }
             else
             {
-                m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch (boost::bad_lexical_cast &)
         {
-            m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
