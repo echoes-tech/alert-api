@@ -38,6 +38,7 @@
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
 #include <tools/Enums.h>
+#include <tools/JsonSerializer.h>
 
 #include "Conf.h"
 #include "Utils.h"
@@ -46,6 +47,16 @@ class PublicApiResource : public Wt::WResource {
     public:
         PublicApiResource();
         virtual ~PublicApiResource();
+        
+        template<class C>
+        std::string toJSON(C &obj)
+        {
+            std::string responseMsg;
+            Wt::Dbo::JsonSerializer jsonSerializer(m_session);
+            jsonSerializer.serialize(obj);
+            responseMsg += jsonSerializer.getResult();
+            return responseMsg;
+        }
        
     protected:
         Echoes::Dbo::Session m_session;

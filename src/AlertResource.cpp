@@ -11,7 +11,7 @@
  * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
-
+#include "tools/XmlSerializer.h"
 #include "AlertResource.h"
 
 using namespace std;
@@ -26,7 +26,7 @@ AlertResource::~AlertResource()
 
 unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
 {
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try 
     {
@@ -39,7 +39,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
                     " AND mev.\"MEV_USR_USR_ID\" IN" 
                  "( Select \"T_USER_USR_USR_ID\" "
                  "FROM \"TJ_USR_ORG\" "
-                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->currentOrganization.id()) +
+                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->organization.id()) +
                  ")";
 
         Wt::Dbo::Query
@@ -83,11 +83,11 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
                 
             }
             responseMsg += "]";
-            res = 200; 
+            res = Echoes::Dbo::EReturnCode::OK; 
         } 
         else 
         {
-            res = 404;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Alert not found\"}";
         }
         transaction.commit();
@@ -95,7 +95,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -104,7 +104,7 @@ unsigned short AlertResource::getRecipientsForAlert(string &responseMsg)
 unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
 {
     responseMsg="";
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     int idx = 0;
     
     try 
@@ -132,12 +132,12 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;
+            res = Echoes::Dbo::EReturnCode::OK;
 
         }
         else
         {
-            res = 404;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Not found\"}";
         }
 
@@ -147,7 +147,7 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -156,7 +156,7 @@ unsigned short AlertResource::getTrackingAlertMessage(std::string &responseMsg)
 unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
 {
     responseMsg="";
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     int idx = 0;
     try
     {
@@ -168,7 +168,7 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
             " AND mev.\"MEV_USR_USR_ID\" IN"
             "("
                 "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
-                + boost::lexical_cast<string>(m_session.user()->currentOrganization.id()) + " "
+                + boost::lexical_cast<string>(m_session.user()->organization.id()) + " "
             ")"
             " order by \"ATR_SEND_DATE\" desc "
             " limit 50";
@@ -222,12 +222,12 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;
+            res = Echoes::Dbo::EReturnCode::OK;
 
         }
         else
         {
-            res = 404;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Tracking alert not found\"}";
         }
 
@@ -236,7 +236,7 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -244,7 +244,7 @@ unsigned short AlertResource::getTrackingAlertList(string &responseMsg)
 
 unsigned short AlertResource::getAlerts(string &responseMsg)
 {
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     int idx = 0;
     try 
     {
@@ -260,7 +260,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
                 " SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  IN"
                 " ( SELECT \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->organization.id()) +
                 " )"
                 " )"
                 " ) "
@@ -323,6 +323,9 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
                 responseMsg += ",\n\"alert_value\" :" + aleVal->toJSON();
                 responseMsg += ",\n\"information_unit\" :" + info->toJSON();
                 responseMsg += "\n}";
+                
+                Wt::Dbo::XmlSerializer serializer(std::cout, m_session);
+                serializer.Serialize(ale);
 
 
                 ++idx;
@@ -333,11 +336,11 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
 
             }
             responseMsg += "\n]";
-            res = 200; 
+            res = Echoes::Dbo::EReturnCode::OK; 
         } 
         else 
         {
-            res = 404;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Alert not found\"}";
         }
         transaction.commit();
@@ -345,7 +348,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -353,7 +356,7 @@ unsigned short AlertResource::getAlerts(string &responseMsg)
 
 unsigned short AlertResource::getAlert(std::string &responseMsg)
 {
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     try 
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -368,7 +371,7 @@ unsigned short AlertResource::getAlert(std::string &responseMsg)
                 " SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" WHERE \"MEV_USR_USR_ID\"  IN"
                 " ( SELECT \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->organization.id()) +
                 " )"
                 " )"
                 " AND \"AMS_ALE_ALE_ID\" = " + m_pathElements[1] +
@@ -424,11 +427,11 @@ unsigned short AlertResource::getAlert(std::string &responseMsg)
             responseMsg += ",\n\"alert_value\" :" + aleVal->toJSON();
             responseMsg += ",\n\"information_unit\" :" + info->toJSON();
             responseMsg += "\n}";
-            res = 200; 
+            res = Echoes::Dbo::EReturnCode::OK; 
         } 
         else 
         {
-            res = 404;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Alert not found\"}";
         }
         transaction.commit();
@@ -436,7 +439,7 @@ unsigned short AlertResource::getAlert(std::string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -462,7 +465,7 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
                 }
                 else
                 {
-                   m_statusCode = 400;
+                   m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
         }
@@ -480,13 +483,13 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
                  }
                  else
                 {
-                 m_statusCode = 400;
+                 m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                  responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {
-               m_statusCode = 400;
+               m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
@@ -507,13 +510,13 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
                 }
                 else
                 {
-                    m_statusCode = 400;
+                    m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             catch (boost::bad_lexical_cast &)
             {
-                m_statusCode = 400;
+                m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
@@ -527,7 +530,7 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
 
 unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequest)
 {
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString alertName, keyVal, alertValue;
     long long astId, infId, plgId, acrId;
     int threadSleep;
@@ -627,7 +630,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                 {
                     Wt::log("info") << "alert_media_specialization not found or not available";
                 }
-                res = 404;
+                res = Echoes::Dbo::EReturnCode::NOT_FOUND;
                 responseMsg = "{\"message\":\"Not found\"}";
                 return res; 
             }
@@ -637,7 +640,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << "[AlertResource]" << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable.\"}";
         return res;
     }
@@ -677,7 +680,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
             if(!uroPtr)
             {
                 Wt::log("info") << "user_role not found or not available";
-                res = 404;
+                res = Echoes::Dbo::EReturnCode::NOT_FOUND;
                 responseMsg = "{\"message\":\"Role not found\"}";
                 return res;
             }
@@ -718,7 +721,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     
             switch (amsPtr->mediaValue->media.id())
             {
-                case Echoes::Dbo::Enums::SMS:
+                case Echoes::Dbo::EMedia::SMS:
                     amd->message = "[EA][%detection-time%] : ";
 
                     //TODO: à revoir pour les alertes complexes !!
@@ -794,7 +797,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
                     }
 //                    }
                     break;
-                case Echoes::Dbo::Enums::MAIL:
+                case Echoes::Dbo::EMedia::MAIL:
                     amd->message = "[EA][%detection-time%] : <br />";
 
                     //TODO: à revoir pour les alertes complexes !!
@@ -871,7 +874,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
 
                     amd->message += "Plus d'informations sur https://alert.echoes-tech.com";
                     break;
-                case 3://Enums::MOBILEAPP :
+            case Echoes::Dbo::EMedia::MOBILE_APP:
 //                    amd->message = "[EA][%detection-time%] : ";
 
                     //TODO: à revoir pour les alertes complexes !!
@@ -962,7 +965,7 @@ unsigned short AlertResource::postAlert(string &responseMsg, const string &sRequ
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
@@ -979,7 +982,7 @@ unsigned short AlertResource::sendMAIL
  bool overSMSQuota
 )
 {
-    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
 
     Wt::WString mailRecipient;
     const Wt::WString mailRecipientName = amsPtr->mediaValue->user->firstName + " " + amsPtr->mediaValue->user->lastName ;
@@ -1027,7 +1030,7 @@ unsigned short AlertResource::sendMAIL
     atrPtr.modify()->sendDate = now;
     atrPtr.modify()->content = mailBody;
 
-    res = Echoes::Dbo::Enums::OK;
+    res = Echoes::Dbo::EReturnCode::OK;
 
     return res;
 }
@@ -1041,7 +1044,7 @@ unsigned short AlertResource::sendSMS
  Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
 )
 {
-    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
     string sms = amdPtr->message.toUTF8();
@@ -1065,7 +1068,7 @@ unsigned short AlertResource::sendSMS
     if(!itookiSMSSender.send())
     {
         amsPtr.modify()->lastSend = now;
-        res = Echoes::Dbo::Enums::OK;
+        res = Echoes::Dbo::EReturnCode::OK;
     }
 
     return res;
@@ -1080,7 +1083,7 @@ unsigned short AlertResource::sendMobileApp
  Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
 )
 {
-    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
     string mobileApp = amdPtr->message.toUTF8();
@@ -1101,7 +1104,7 @@ unsigned short AlertResource::sendMobileApp
     atrPtr.modify()->sendDate = now;
     
     amsPtr.modify()->lastSend = now;
-    res = Echoes::Dbo::Enums::OK;
+    res = Echoes::Dbo::EReturnCode::OK;
     
 
     return res;
@@ -1109,7 +1112,7 @@ unsigned short AlertResource::sendMobileApp
 
 unsigned short AlertResource::postAlertTracking(string &responseMsg, const string &sRequest)
 {
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     string ivaIDWhereString = "";
     Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection;
 
@@ -1211,14 +1214,14 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                         {
                             switch (medID)
                             {
-                                case Echoes::Dbo::Enums::SMS:
+                                case Echoes::Dbo::EMedia::SMS:
                                 {
                                     Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
 
                                     // Verifying the quota of sms
                                     Wt::Dbo::ptr<Echoes::Dbo::OptionValue> optionValuePtr = m_session.find<Echoes::Dbo::OptionValue>()
-                                            .where("\"OPT_ID_OPT_ID\" = ?").bind(Echoes::Dbo::Enums::QUOTA_SMS)
-                                            .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->currentOrganization.id())
+                                            .where("\"OPT_ID_OPT_ID\" = ?").bind(Echoes::Dbo::EOption::QUOTA_SMS)
+                                            .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->organization.id())
                                             .limit(1);
 
                                     try
@@ -1242,16 +1245,16 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
                                     }
                                     catch(boost::bad_lexical_cast &)
                                     {
-                                        res = 503;
+                                        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
                                         responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
                                     }
                                     break;
                                 }
-                                case Echoes::Dbo::Enums::MAIL:
+                                case Echoes::Dbo::EMedia::MAIL:
                                     Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;
                                     sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
                                     break;
-                                case 3://Enums::MOBILEAPP:
+                                case Echoes::Dbo::EMedia::MOBILE_APP:
                                 Wt::log("info") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alertPtr->name;
                                 sendMobileApp(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
                                 break;
@@ -1279,7 +1282,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
             else 
             {
                 responseMsg = "{\n\t\"message\":\"Alert not found\"\n}";
-                res = 404;
+                res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             }
 
             transaction.commit();
@@ -1287,7 +1290,7 @@ unsigned short AlertResource::postAlertTracking(string &responseMsg, const strin
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << e.what();
-            res = 503;
+            res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }
@@ -1318,13 +1321,13 @@ void AlertResource::processPostRequest(Wt::Http::Response &response)
             }
             else
             {
-                m_statusCode = 400;
+                m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            m_statusCode = 400;
+            m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
@@ -1346,7 +1349,7 @@ void AlertResource::processPatchRequest(Wt::Http::Response &response)
 
 unsigned short AlertResource::deleteAlert(string &responseMsg)
 {
-    unsigned short res = 500;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     try 
     {
 
@@ -1359,7 +1362,7 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " ( Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
                 " )))"
                 " AND \"ALE_ID\" = " + m_pathElements[1];
         
@@ -1376,14 +1379,14 @@ unsigned short AlertResource::deleteAlert(string &responseMsg)
         }
         else
         {
-            res = 404;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\" : \"Alert not found\" }";
         }
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -1396,7 +1399,7 @@ void AlertResource::processDeleteRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        m_statusCode = 400;
+        m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -1413,13 +1416,13 @@ void AlertResource::processDeleteRequest(Wt::Http::Response &response)
             }
             else
             {
-                m_statusCode = 400;
+                m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            m_statusCode = 400;
+            m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }

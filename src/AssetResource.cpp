@@ -33,7 +33,7 @@ unsigned short AssetResource::getAssetsList(string &responseMsg)
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> listAssets = this->m_session.find<Echoes::Dbo::Asset> ()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->m_session.user()->currentOrganization.id());
+                .bind(this->m_session.user()->organization.id());
 
         responseMsg = "[\n";
         for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset> >::const_iterator i = listAssets.begin(); i != listAssets.end(); ++i)
@@ -72,7 +72,7 @@ unsigned short AssetResource::getAsset(string &responseMsg)
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
                 .where("\"AST_ORG_ORG_ID\" = ? AND \"AST_ID\" = ? AND \"AST_DELETE\" IS NULL")
-                .bind(this->m_session.user()->currentOrganization.id())
+                .bind(this->m_session.user()->organization.id())
                 .bind(this->m_pathElements[1]);
         
 
@@ -218,7 +218,7 @@ unsigned short AssetResource::getPluginsListForAsset(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                 .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
 
@@ -258,7 +258,7 @@ unsigned short AssetResource::getProbesListForAsset(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                 .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
 
@@ -407,7 +407,7 @@ unsigned short AssetResource::postProbeForAsset(string &responseMsg, const strin
 
         // Est-ce que l'asset existe ?
         Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset>()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                 .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"AST_DELETE\" IS NULL");
         if (Utils::checkId<Echoes::Dbo::Asset>(asset))
@@ -681,7 +681,7 @@ unsigned short AssetResource::putAsset(string &responseMsg, const string &sReque
         {
             Wt::Dbo::Transaction transaction(m_session);
             Wt::Dbo::ptr<Echoes::Dbo::Asset> asset = this->m_session.find<Echoes::Dbo::Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                     .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                     .where("\"AST_DELETE\" IS NULL");
 
@@ -785,7 +785,7 @@ unsigned short AssetResource::putAlias(string &responseMsg, const string &sReque
         {
             Wt::Dbo::Transaction transaction(m_session);
             Wt::Dbo::ptr<Echoes::Dbo::Asset> ptrAsset = this->m_session.find<Echoes::Dbo::Asset> ()
-                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                    .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                     .where("\"AST_ID\" = ?").bind(this->m_pathElements[1])
                     .where("\"AST_DELETE\" IS NULL");
 

@@ -17,8 +17,6 @@
 #include <Wt/Mail/Client>
 #include <Wt/Mail/Message>
 
-#include <tools/Enums.h>
-
 #include "Conf.h"
 #include "PublicApiResource.h"
 #include "itooki/ItookiSMSSender.h"

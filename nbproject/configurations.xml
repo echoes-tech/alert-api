@@ -69,6 +69,12 @@
                      kind="TEST">
         <itemPath>src/tests/AddonResourceTest.cpp</itemPath>
       </logicalFolder>
+      <logicalFolder name="f3"
+                     displayName="AlertResourceTest"
+                     projectFiles="true"
+                     kind="TEST">
+        <itemPath>src/tests/AlertResourceTest.cpp</itemPath>
+      </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -95,6 +101,7 @@
           <incDir>
             <pElem>.</pElem>
             <pElem>.</pElem>
+            <pElem>.</pElem>
           </incDir>
           <commandLine>`cppunit-config --cflags`</commandLine>
         </cTool>
@@ -107,11 +114,11 @@
             <pElem>.</pElem>
             <pElem>../wt-3.3.1-rc2/src/web</pElem>
             <pElem>.</pElem>
+            <pElem>.</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
-          <output>${TESTDIR}/TestFiles/f1</output>
           <linkerAddLib>
             <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
@@ -155,137 +162,7 @@
           <output>${TESTDIR}/TestFiles/f2</output>
         </linkerTool>
       </folder>
-      <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/AlertResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/AssetResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/Conf.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ProbeResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/SrReception.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/UnitResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="main.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/AlertResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/AssetResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/UnitResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/UserResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/tests/AddonResourceTest.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="wt_config.xml.erb" ex="false" tool="3" flavor2="0">
-      </item>
-    </conf>
-    <conf name="Release" type="1">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>default</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <incDir>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-          </incDir>
-          <commandLine>`cppunit-config --cflags`</commandLine>
-        </cTool>
-        <ccTool>
-          <developmentMode>6</developmentMode>
-          <stripSymbols>true</stripSymbols>
-          <commandlineTool>g++</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>../dbo/include</pElem>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-          </incDir>
-        </ccTool>
-        <linkerTool>
-          <output>${TESTDIR}/TestFiles/f1</output>
-          <linkerAddLib>
-            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
-            <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
-          </linkerAddLib>
-          <stripSymbols>true</stripSymbols>
-          <commandlineTool>g++</commandlineTool>
-          <linkerLibItems>
-            <linkerLibLibItem>wt</linkerLibLibItem>
-            <linkerLibLibItem>wtdbo</linkerLibLibItem>
-            <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
-            <linkerLibLibItem>wtfcgi</linkerLibLibItem>
-            <linkerLibLibItem>dbo</linkerLibLibItem>
-            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
-            <linkerLibLibItem>boost_signals</linkerLibLibItem>
-            <linkerLibLibItem>boost_system</linkerLibLibItem>
-          </linkerLibItems>
-        </linkerTool>
-      </compileType>
-      <folder path="TestFiles/f2">
+      <folder path="TestFiles/f3">
         <cTool>
           <incDir>
             <pElem>.</pElem>
@@ -297,7 +174,7 @@
           </incDir>
         </ccTool>
         <linkerTool>
-          <output>${TESTDIR}/TestFiles/f2</output>
+          <output>${TESTDIR}/TestFiles/f3</output>
         </linkerTool>
       </folder>
       <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
@@ -377,6 +254,169 @@
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/tests/AddonResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/tests/AlertResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="wt_config.xml.erb" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <commandLine>`cppunit-config --cflags`</commandLine>
+        </cTool>
+        <ccTool>
+          <developmentMode>6</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../dbo/include</pElem>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
+            <pElem>.</pElem>
+            <pElem>.</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
+            <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
+          </linkerAddLib>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibLibItem>wt</linkerLibLibItem>
+            <linkerLibLibItem>wtdbo</linkerLibLibItem>
+            <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
+            <linkerLibLibItem>wtfcgi</linkerLibLibItem>
+            <linkerLibLibItem>dbo</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibLibItem>boost_signals</linkerLibLibItem>
+            <linkerLibLibItem>boost_system</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <folder path="TestFiles/f2">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <output>${TESTDIR}/TestFiles/f2</output>
+        </linkerTool>
+      </folder>
+      <folder path="TestFiles/f3">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <output>${TESTDIR}/TestFiles/f3</output>
+        </linkerTool>
+      </folder>
+      <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AlertResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AssetResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Conf.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CriterionResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ProbeResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SrReception.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/UnitResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/UserResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AlertResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AssetResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/UnitResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/UserResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/tests/AddonResourceTest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/tests/AlertResourceTest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
       </item>

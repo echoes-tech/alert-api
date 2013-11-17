@@ -58,7 +58,8 @@ TESTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tests
 
 # Test Files
 TESTFILES= \
-	${TESTDIR}/TestFiles/f2
+	${TESTDIR}/TestFiles/f2 \
+	${TESTDIR}/TestFiles/f3
 
 # C Compiler Flags
 CFLAGS=`cppunit-config --cflags` 
@@ -78,11 +79,11 @@ LDLIBSOPTIONS=-L/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Re
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${TESTDIR}/TestFiles/f1
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api
 
-${TESTDIR}/TestFiles/f1: ${OBJECTFILES}
-	${MKDIR} -p ${TESTDIR}/TestFiles
-	g++ -o ${TESTDIR}/TestFiles/f1 ${OBJECTFILES} ${LDLIBSOPTIONS} -s
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api: ${OBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api ${OBJECTFILES} ${LDLIBSOPTIONS} -s
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -178,11 +179,21 @@ ${TESTDIR}/TestFiles/f2: ${TESTDIR}/src/tests/AddonResourceTest.o ${OBJECTFILES:
 	${MKDIR} -p ${TESTDIR}/TestFiles
 	${LINK.cc}   -o ${TESTDIR}/TestFiles/f2 $^ ${LDLIBSOPTIONS} 
 
+${TESTDIR}/TestFiles/f3: ${TESTDIR}/src/tests/AlertResourceTest.o ${OBJECTFILES:%.o=%_nomain.o}
+	${MKDIR} -p ${TESTDIR}/TestFiles
+	${LINK.cc}   -o ${TESTDIR}/TestFiles/f3 $^ ${LDLIBSOPTIONS} 
+
 
 ${TESTDIR}/src/tests/AddonResourceTest.o: src/tests/AddonResourceTest.cpp 
 	${MKDIR} -p ${TESTDIR}/src/tests
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -I. -I. -I. -MMD -MP -MF $@.d -o ${TESTDIR}/src/tests/AddonResourceTest.o src/tests/AddonResourceTest.cpp
+
+
+${TESTDIR}/src/tests/AlertResourceTest.o: src/tests/AlertResourceTest.cpp 
+	${MKDIR} -p ${TESTDIR}/src/tests
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -I. -I. -I. -MMD -MP -MF $@.d -o ${TESTDIR}/src/tests/AlertResourceTest.o src/tests/AlertResourceTest.cpp
 
 
 ${OBJECTDIR}/main_nomain.o: ${OBJECTDIR}/main.o main.cpp 
@@ -411,6 +422,7 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o: ${OBJECTDIR}/src/itooki/Itooki
 	@if [ "${TEST}" = "" ]; \
 	then  \
 	    ${TESTDIR}/TestFiles/f2 || true; \
+	    ${TESTDIR}/TestFiles/f3 || true; \
 	else  \
 	    ./${TEST} || true; \
 	fi
@@ -418,7 +430,7 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o: ${OBJECTDIR}/src/itooki/Itooki
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${TESTDIR}/TestFiles/f1
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api
 
 # Subprojects
 .clean-subprojects:

@@ -10,7 +10,7 @@
  * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
-
+#include "tools/JsonSerializer.h"
 #include "MediaResource.h"
 
 using namespace std;
@@ -26,7 +26,7 @@ MediaResource::~MediaResource()
 unsigned short MediaResource::getListValueForMedia(string &responseMsg)
 {
     unsigned short res = 500;
-    unsigned idx = 0;
+//    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -36,18 +36,7 @@ unsigned short MediaResource::getListValueForMedia(string &responseMsg)
                 .where("\"MEV_DELETE\" is NULL");
         if (medias.size() > 0)
         {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::MediaValue> >::const_iterator i = medias.begin(); i != medias.end(); ++i)
-            {
-                i->modify()->setId(i->id());                
-                responseMsg += i->get()->toJSON();
-                 ++idx;
-                if(medias.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
+            responseMsg += this->toJSON(medias);
             res = 200;
         }
         else
@@ -70,11 +59,11 @@ unsigned short MediaResource::getListValueForMedia(string &responseMsg)
 unsigned short MediaResource::getMedia(string &responseMsg)
 {
     unsigned short res = 500;
-    unsigned idx = 0;
+//    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
+        string queryStr = "SELECT med FROM \"TR_MEDIA_MED\" med where \"MED_ID\" IN"
                 " ("
                 " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
                 " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(this->m_session.user().id()) +
@@ -88,19 +77,7 @@ unsigned short MediaResource::getMedia(string &responseMsg)
         
         if (media.size() > 0)
         {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
-            {
-                i->modify()->setId(i->id());
-                responseMsg += "\t" + i->get()->toJSON();
-                ++idx;
-                if(media.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";               
-
+            responseMsg += this->toJSON(media);
             res = 200;
         }
         else 
@@ -461,7 +438,7 @@ unsigned short MediaResource::deleteMedia(string &responseMsg)
                 " WHERE \"MEV_USR_USR_ID\" IN "
                 " (Select \"T_USER_USR_USR_ID\" "
                 " FROM \"TJ_USR_ORG\" " 
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user()->currentOrganization.id()) +
+                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
                 " )"
                 "and \"MEV_ID\" = " + this->m_pathElements[1];
 

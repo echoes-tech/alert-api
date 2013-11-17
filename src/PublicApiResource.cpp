@@ -1,3 +1,70 @@
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+namespace boost
+{
+  namespace property_tree
+  {
+     // the write_json_helper template specialization to remove the quotes " " 
+    // added to every json values, strings or not
+    namespace json_parser
+    {
+
+      template<>
+      void write_json_helper<ptree>(std::basic_ostream<typename ptree::key_type::value_type> &stream,
+              const ptree &pt,
+              int indent, bool pretty) {
+
+          typedef typename ptree::key_type::value_type Ch;
+          typedef typename std::basic_string<Ch> Str;
+
+          // Value or object or array
+          if (indent > 0 && pt.empty()) {
+              // Write value
+              stream << pt.get_value<Str>();
+
+          } else if (indent > 0 && pt.count(Str()) == pt.size()) {
+              // Write array
+              stream << Ch('[');
+              if (pretty) stream << Ch('\n');
+              typename ptree::const_iterator it = pt.begin();
+              for (; it != pt.end(); ++it) {
+                  if (pretty) stream << Str(4 * (indent + 1), Ch(' '));
+                  write_json_helper(stream, it->second, indent + 1, pretty);
+                  if (boost::next(it) != pt.end())
+                      stream << Ch(',');
+                  if (pretty) stream << Ch('\n');
+              }
+              stream << Str(4 * indent, Ch(' ')) << Ch(']');
+
+          } else {
+              // Write object
+              stream << Ch('{');
+              if (pretty) stream << Ch('\n');
+              typename ptree::const_iterator it = pt.begin();
+              for (; it != pt.end(); ++it) {
+                  if (pretty) stream << Str(4 * (indent + 1), Ch(' '));
+                  stream << Ch('"') << create_escapes(it->first) << Ch('"') << Ch(':');
+                  if (pretty) {
+                      if (it->second.empty())
+                          stream << Ch(' ');
+                      else
+                          stream << Ch('\n') << Str(4 * (indent + 1), Ch(' '));
+                  }
+                  write_json_helper(stream, it->second, indent + 1, pretty);
+                  if (boost::next(it) != pt.end())
+                      stream << Ch(',');
+                  if (pretty) stream << Ch('\n');
+              }
+              if (pretty) stream << Str(4 * indent, Ch(' '));
+              stream << Ch('}');
+          }
+      }
+    }
+  }
+}
+
+
 /* 
  * API Resource
  * @author ECHOES Technologies (TSA)
@@ -107,21 +174,29 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
 
 void PublicApiResource::processGetRequest(Wt::Http::Response &response)
 {
+    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 
 void PublicApiResource::processPostRequest(Wt::Http::Response &response)
 {
+    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 
 void PublicApiResource::processPutRequest(Wt::Http::Response &response)
 {
+    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 
 void PublicApiResource::processDeleteRequest(Wt::Http::Response &response)
 {
+    response.setStatus(Echoes::Dbo::EReturnCode::BAD_REQUEST);
+    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
     return;
 }
 

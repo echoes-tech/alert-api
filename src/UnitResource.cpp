@@ -152,7 +152,7 @@ unsigned short UnitResource::getUnit(string &responseMsg)
 unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
 {
     unsigned short res = 500;
-    unsigned idx = 0;
+//    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -168,31 +168,33 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
         }
         else
         {
-             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> > infoSubUnit = m_session.find<Echoes::Dbo::InformationSubUnit>()
-                    .where("\"ISU_INU_INU_ID\" = ?").bind(this->m_pathElements[1])
-                    .where("\"ISU_DELETE\" IS NULL");
-
-            if(infoSubUnit.size() > 0)
+            //FIXME
+//             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> > infoSubUnit = m_session.find<Echoes::Dbo::InformationSubUnit>()
+//                    .where("\"ISU_INU_INU_ID\" = ?").bind(this->m_pathElements[1])
+//                    .where("\"ISU_DELETE\" IS NULL");
+//
+//            if(infoSubUnit.size() > 0)
             {
                 responseMsg = "[\n";
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
-                {
-                    i->modify()->setId(i->id());
-                    responseMsg += i->get()->toJSON();
-                    ++idx;
-                    if(infoSubUnit.size()-idx > 0)
-                    {
-                        responseMsg += ",\n";
-                    }
-                }  
-                responseMsg += "\n]\n";
+                //FIXME
+//                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
+//                {
+//                    i->modify()->setId(i->id());
+//                    responseMsg += i->get()->toJSON();
+//                    ++idx;
+//                    if(infoSubUnit.size()-idx > 0)
+//                    {
+//                        responseMsg += ",\n";
+//                    }
+//                }  
+//                responseMsg += "\n]\n";
                 res = 200;
             }
-            else 
-            {
-                res = 404;
-                responseMsg = "{\"message\":\"Subunit not found\"}";
-            }
+//            else 
+//            {
+//                res = 404;
+//                responseMsg = "{\"message\":\"Subunit not found\"}";
+//            }
         }
         transaction.commit();
     }

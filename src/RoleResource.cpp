@@ -25,11 +25,11 @@ RoleResource::~RoleResource()
 
 unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
 {
-    unsigned short res = Echoes::Dbo::Enums::INTERNAL_SERVER_ERROR;
+    unsigned short res = Echoes::Dbo::EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {        
         Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> userRoles = m_session.find<Echoes::Dbo::UserRole>().where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> userRoles = m_session.find<Echoes::Dbo::UserRole>().where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization);
         if (userRoles.size() > 0)
         {
             unsigned int idx = 0;
@@ -50,15 +50,15 @@ unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
         else
         {
             responseMsg = "{\"message\":\"Role not found\"}";
-            res = Echoes::Dbo::Enums::NOT_FOUND;
+            res = Echoes::Dbo::EReturnCode::NOT_FOUND;
         }
-        res = Echoes::Dbo::Enums::OK;
+        res = Echoes::Dbo::EReturnCode::OK;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = Echoes::Dbo::Enums::SERVICE_UNAVAILABLE;
+        res = Echoes::Dbo::EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
@@ -76,7 +76,7 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
     }
     else
     {
-        this->m_statusCode = Echoes::Dbo::Enums::BAD_REQUEST;
+        this->m_statusCode = Echoes::Dbo::EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 

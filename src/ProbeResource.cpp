@@ -32,7 +32,7 @@ unsigned short ProbeResource::getProbesList(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> listAssets = this->m_session.find<Echoes::Dbo::Asset> ()
-                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"AST_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                 .where("\"AST_DELETE\" IS NULL");
 
         responseMsg = "[\n";
@@ -78,7 +78,7 @@ unsigned short ProbeResource::getProbe(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::ptr<Echoes::Dbo::Probe> probe = this->m_session.find<Echoes::Dbo::Probe>()
-                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                .where("\"PRB_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                 .where("\"PRB_ID\" = ?").bind(this->m_pathElements[1])
                 .where("\"PRB_DELETE\" IS NULL");
 

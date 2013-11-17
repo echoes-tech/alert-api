@@ -27,7 +27,7 @@ unsigned short OrganizationResource::getOrganization(std::string &responseMsg)
 {
      unsigned short res = 500;
      Wt::Dbo::Transaction transaction(m_session);
-     Wt::Dbo::ptr<Echoes::Dbo::Organization> organization = m_session.find<Echoes::Dbo::Organization>().where("\"ORG_ID\" = ?").bind(this->m_session.user().get()->currentOrganization.id());
+     Wt::Dbo::ptr<Echoes::Dbo::Organization> organization = m_session.find<Echoes::Dbo::Organization>().where("\"ORG_ID\" = ?").bind(this->m_session.user().get()->organization.id());
     try
     {
         if(organization)
@@ -116,10 +116,10 @@ unsigned short OrganizationResource::getRolesForOrganization(std::string &respon
         Wt::Dbo::Transaction transaction(m_session);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole> > userRoles = m_session.find<Echoes::Dbo::UserRole>()
-                .where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user().get()->currentOrganization.id())
+                .where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user().get()->organization.id())
                 .where("\"URO_DELETE\" IS NULL");
 
-        std::cout << this->m_session.user().get()->currentOrganization.id() << std::endl;
+        std::cout << this->m_session.user().get()->organization.id() << std::endl;
         if (userRoles.size() > 0)
         {
             responseMsg = "[\n";
@@ -160,7 +160,7 @@ unsigned short OrganizationResource::getRolesForOrganization(std::string &respon
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = "SELECT med FROM \"T_MEDIA_MED\" med where \"MED_ID\" IN"
+        string queryStr = "SELECT med FROM \"TR_MEDIA_MED\" med where \"MED_ID\" IN"
                 " ("
                 " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
                 " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(m_pathElements[2]) +
@@ -214,7 +214,7 @@ unsigned short OrganizationResource::getMediasValuesForUserForOrganization(std::
     {
         Wt::Dbo::Transaction transaction(m_session);
         Wt::Dbo::ptr<Echoes::Dbo::User> user = m_session.find<Echoes::Dbo::User>().where("\"USR_ID\" = ?").bind(m_pathElements[2])
-                                                         .where("\"CURRENT_ORG_ID\" = ?").bind(m_session.user().get()->currentOrganization.id())
+                                                         .where("\"CURRENT_ORG_ID\" = ?").bind(m_session.user().get()->organization.id())
                                                         .where("\"USR_DELETE\" is NULL");
         if(user)
         {
@@ -268,14 +268,14 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg)
         Wt::Dbo::Transaction transaction(m_session);
         
         Wt::Dbo::ptr<Echoes::Dbo::PackOption> ptrPackOption = m_session.find<Echoes::Dbo::PackOption>()
-                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->currentOrganization->pack.id())
+                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->organization->pack.id())
                 .where("\"POP_OPT_OPT_ID\" = 1")
                 .limit(1);
         if (ptrPackOption.get())
         {
             Wt::Dbo::ptr<Echoes::Dbo::OptionValue> ptrOptionValue = m_session.find<Echoes::Dbo::OptionValue>()
                     .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption->pk.option.id())
-                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                     .limit(1);
             if (ptrOptionValue.get())
             {
@@ -313,14 +313,14 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg)
         Wt::Dbo::Transaction transaction(m_session);
 
         Wt::Dbo::ptr<Echoes::Dbo::PackOption> ptrPackOption = m_session.find<Echoes::Dbo::PackOption>()
-                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->currentOrganization->pack.id())
+                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->organization->pack.id())
                 .where("\"POP_OPT_OPT_ID\" = 2")
                 .limit(1);
         if (ptrPackOption.get())
         {
             Wt::Dbo::ptr<Echoes::Dbo::OptionValue> ptrOptionValue = m_session.find<Echoes::Dbo::OptionValue>()
                     .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
-                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->currentOrganization.id())
+                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
                     .limit(1);
             if (ptrOptionValue.get())
             {

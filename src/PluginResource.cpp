@@ -39,7 +39,7 @@ PluginResource::~PluginResource(){
                                    "wHERE \"T_ASSET_AST_AST_ID\" IN "
                                         "("
                                         "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->currentOrganization.id()) +
+                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->organization.id()) +
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                     "AND \"T_PLUGIN_PLG_PLG_ID\" = " + boost::lexical_cast<string>(m_pathElements[1]) + 
@@ -81,7 +81,7 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg)
                                    "wHERE \"T_ASSET_AST_AST_ID\" IN "
                                         "("
                                         "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->currentOrganization.id()) +
+                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->organization.id()) +
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                     "AND \"T_PLUGIN_PLG_PLG_ID\" = " + boost::lexical_cast<string>(m_pathElements[1]) + 
@@ -195,7 +195,7 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
                                    "wHERE \"T_ASSET_AST_AST_ID\" IN "
                                         "("
                                         "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->currentOrganization.id()) +
+                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->organization.id()) +
                                         " AND \"AST_DELETE\" IS NULL "
                                         ")"
                                 ") "
