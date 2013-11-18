@@ -4,13 +4,16 @@ namespace Wt
 {
     namespace Dbo
     {
+        unsigned short JsonSerializer::m_rank = 0;
+        std::vector<std::string> JsonSerializer::m_joinTableContainer;
+        
         JsonSerializer::JsonSerializer(Session& s) :
         m_out(std::cout),
-        m_isCollection(false),
-        m_isPtr(false),
         m_session(s),
         m_result(""),
-        m_currentElem(&m_root)    
+        m_currentElem(&m_root),
+        m_maxRank(2),
+        m_isCollection(false)
         {
         }
         

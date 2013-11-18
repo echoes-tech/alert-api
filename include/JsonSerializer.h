@@ -37,6 +37,7 @@ namespace Wt
 {
   namespace Dbo
   {
+
     class JsonSerializer {
     public:
 
@@ -46,121 +47,217 @@ namespace Wt
         static std::string transformTableName(const std::string& fieldTable);
 
         template <class V>
-        void act(Wt::Dbo::FieldRef< V> field)
-        {
+        void act(Wt::Dbo::FieldRef< V> field) {
+            std::cout << "In act(Wt::Dbo::FieldRef< V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
             m_currentElem->put(transformFieldName(field.name()), field.value());
+            std::cout << "Out act(Wt::Dbo::FieldRef< V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
         // When the field is WDateTime or WString, field added as std::string to add quotes " " in json
-        void act(Wt::Dbo::FieldRef< Wt::WDateTime> field)
-        {
+
+        void act(Wt::Dbo::FieldRef< Wt::WDateTime> field) {
+            std::cout << "In act(Wt::Dbo::FieldRef< Wt::WDateTime> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
             m_currentElem->put<std::string>(transformFieldName(field.name()), field.value().toString().toUTF8());
+            std::cout << "Out act(Wt::Dbo::FieldRef< Wt::WDateTime> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
-        void act(Wt::Dbo::FieldRef< Wt::WString> field)
-        {
+
+        void act(Wt::Dbo::FieldRef< Wt::WString> field) {
+            std::cout << "In act(Wt::Dbo::FieldRef< Wt::WString> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
             m_currentElem->put<std::string>(transformFieldName(field.name()), field.value().toUTF8());
+            std::cout << "Out act(Wt::Dbo::FieldRef< Wt::WString> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
 
         template <class V>
-        void actPtr(Wt::Dbo::PtrRef< V> field)
-        {
-            boost::property_tree::ptree elem;
-            m_currentElem = &elem;
-            if (field.id() > 0) {
-                if (field.value().get()->deleteTag.isNull())
-                {
-                    elem.put("id", field.id());
-                    const_cast<V&> (*field.value().get()).persist(*this);
-                    m_currentElem->put_child(transformTableName(m_session.tableName<V>()), elem);
-                }
+        void actId(V& value, const std::string& name, int& size) {
+            field(*this, value, name, size);
+        }
+
+        template <class V>
+        void actPtr(Wt::Dbo::PtrRef< V> field) {
+            std::cout << "In actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+
+            if (m_rank <= m_maxRank) {
+                m_rank++;
+                processSerialize(field.value());
+                m_rank--;
             }
-            m_currentElem = &m_root;
+
+            std::cout << "Out actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
+
         template<class S>
-        void actPtr(Wt::Dbo::PtrRef< Wt::Auth::Dbo::AuthInfo<S>> field)
-        {
+        void actPtr(Wt::Dbo::PtrRef< Wt::Auth::Dbo::AuthInfo<S >> field) {
 
         }
 
         template <class V>
-        void actCollection(const Wt::Dbo::CollectionRef< V> & collec)
+        void actWeakPtr(WeakPtrRef<V> field) {
+
+        }
+
+        template <class V>
+        void actCollection(const Wt::Dbo::CollectionRef< V> & collec) 
         {
-            long long i = 0;
-            for (Wt::Dbo::ptr<V> &field : collec.value())
+            std::cout << "In actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+            // FIXME i'm famous !
+            // Si cette méthode est appelée de manière récursive, m_joinTableContainer est partargé.
+            // Ceci a pour conséquence, que si un objet apparait dans une collection de rang > 0
+            // il ne sera présent que dans le 1er objet de la collection.
+            if (std::find(m_joinTableContainer.begin(), m_joinTableContainer.end(), collec.joinName()) == m_joinTableContainer.end()) 
             {
-                if (field) {
-                    if (field.get()->deleteTag.isNull())
+                m_joinTableContainer.push_back(collec.joinName());
+                long unsigned int i = 0;
+                boost::property_tree::ptree arr;
+                m_rank++;
+                for (Wt::Dbo::ptr<V> &field : collec.value()) 
+                {
+                    if (field) 
                     {
-                        i++;
+                        if (field.get()->deleteTag.isNull()) 
+                        {
+                            if ((m_currentElem != &m_root && m_rank >= m_maxRank) || m_isCollection) 
+                            {
+                                i++;
+                            } 
+                            else 
+                            {
+                                boost::property_tree::ptree *previousElem = m_currentElem;
+                                boost::property_tree::ptree elem;
+                                m_currentElem = &elem;
+                                m_currentElem->put("id", field.id());
+                                const_cast<V&> (*field).persist(*this);
+                                // processSerialize(field);
+                                m_currentElem = previousElem;
+                                arr.push_back(std::make_pair("", elem));
+                            }
+                        }
                     }
                 }
+
+                if ((m_currentElem != &m_root && m_rank >= m_maxRank) || m_isCollection) {
+                    m_currentElem->put<long long>(transformTableName(m_session.tableName<V>()) + "s", i);
+                } else {
+                    if (arr.size() == 0) {
+                        m_currentElem->put(transformTableName(m_session.tableName<V>()) + "s", "[]");
+                    } else {
+                        m_currentElem->put_child(transformTableName(m_session.tableName<V>()) + "s", arr);
+                    }
+                }
+                m_rank--;
             }
-            m_currentElem->put<long long>(transformTableName(m_session.tableName<V>()) + "s", i);
+            std::cout << "Out actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
+
         template<class S>
-        void actCollection(const Wt::Dbo::CollectionRef< Wt::Auth::Dbo::AuthInfo<S>> &collec) {
+        void actCollection(const Wt::Dbo::CollectionRef< Wt::Auth::Dbo::AuthInfo<S >> &collec) {
 
         }
 
         template <class C>
-        void serialize(C& c)
-        {
-            const_cast<C&>(c).persist(*this);
-            if ((!m_isPtr) && (!m_isCollection))
-            {
-                boost::property_tree::json_parser::write_json(m_ss, m_root);
-                m_result = m_ss.str();
-            }
+        void processSerialize(C& c) {
+            std::cout << "In processSerialize(C& c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+            const_cast<C&> (c).persist(*this);
+            std::cout << "Out processSerialize(C& c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
 
         template <class C>
-        void serialize(Wt::Dbo::ptr< C> & c)
-        {
-            m_isPtr = true;
-            if (c->deleteTag.isNull())
-            {
-                m_currentElem->put("id", c.id());
-                const_cast<C&> (*c).persist(*this);
+        void processSerialize(Wt::Dbo::ptr< C> & c) {
+            std::cout << "In processSerialize(Wt::Dbo::ptr< C> & c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+            if (m_rank <= m_maxRank) {
+                if (c.id() > 0) {
+                    if (c->deleteTag.isNull()) {
+                        boost::property_tree::ptree elem;
+                        boost::property_tree::ptree *previousElem;
+                        if (m_currentElem != &m_root || m_rank > 0) {
+                            if(!m_isCollection)
+                            {
+                                previousElem = m_currentElem;
+                                m_currentElem = &elem;
+                            }
+                        }
+                        m_rank++;
+                        m_currentElem->put("id", c.id());
+                        const_cast<C&> (*c).persist(*this);
+                        m_rank--;
+                        if (m_currentElem != &m_root || m_rank > 0) {
+                            if(!m_isCollection)
+                            {
+                                m_currentElem = previousElem;
+                                m_currentElem->put_child(transformTableName(m_session.tableName<C>()), elem);
+                            }
+                        }
+                    } else {
+    //                    m_currentElem->put(transformTableName(m_session.tableName<C>()), "{}");
+                    }
+                } else {
+                    m_currentElem->put(transformTableName(m_session.tableName<C>()), "{}");
+                }
             }
-
-            boost::property_tree::json_parser::write_json(m_ss, m_root);
-
-            if (!m_isCollection)
-            {
-                m_result = m_ss.str();
-            }
+            std::cout << "Out processSerialize(Wt::Dbo::ptr< C> & c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
+
         template<class S>
-        void serialize(Wt::Dbo::ptr< Wt::Auth::Dbo::AuthInfo<S>> &c)
-        {
+        void processSerialize(Wt::Dbo::ptr< Wt::Auth::Dbo::AuthInfo<S >> &c) {
 
         }
 
+        // WARNING: hack to create an array on root of JSON
+        // boost::property_tree::json_parser::write_json doesn't handle array for root
+        // boost version: 1.53
+
         template <class C>
-        void serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs)
-        {
+        void processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) {
+            std::cout << "In processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
             long unsigned int i = 0;
-            m_isCollection = true;
             m_ss << "[\n";
-            for (auto& c : cs)
-            {
-                serialize(c);
-                if (i < cs.size() - 1)
-                {
+            m_rank++;
+            for (auto& c : cs) {
+                processSerialize(c);
+                boost::property_tree::json_parser::write_json(m_ss, *m_currentElem);
+                m_currentElem->clear();
+                m_result = m_ss.str();
+                if (i < cs.size() - 1) {
                     std::string tmp = m_ss.str().erase(m_ss.str().size() - 1);
                     m_ss.str("");
                     m_ss.clear();
                     m_ss << tmp;
                     m_ss << ",\n";
                 }
+                m_joinTableContainer.clear();
                 i++;
             }
-//            out_ << ss.str() << "]\n";
-            m_result = m_ss.str() + "]\n";
+            m_rank--;
+            m_ss << "]\n";
+            std::cout << "Out processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
-        template<class S>
-        void serialize(Wt::Dbo::collection< Wt::Dbo::ptr< Wt::Auth::Dbo::AuthInfo<S>> >& cs)
-        {
 
+        template<class S>
+        void processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< Wt::Auth::Dbo::AuthInfo<S >> >& cs) {
+
+        }
+
+        template <class C>
+        void serialize(C& c) {
+            m_rank = 0;
+            std::cout << "In serialize(C& c) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+            m_joinTableContainer.clear();
+            processSerialize(c);
+            boost::property_tree::json_parser::write_json(m_ss, m_root);
+            m_result = m_ss.str();
+            std::cout << "Out serialize(C& c) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+        }
+        // WARNING: hack to create an array on root of JSON
+        // boost::property_tree::json_parser::write_json doesn't handle array for root
+        // boost version: 1.53
+
+        template <class C>
+        void serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) {
+            m_rank = 0;
+            m_isCollection = true;
+            std::cout << "In serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+            m_joinTableContainer.clear();
+            processSerialize(cs);
+            m_result = m_ss.str();
+            std::cout << "Out serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         }
 
         std::string getResult();
@@ -170,11 +267,13 @@ namespace Wt
 
         std::ostream& m_out;
         std::stringstream m_ss;
-        bool m_isCollection;
-        bool m_isPtr;
         Session& m_session;
         std::string m_result;
         boost::property_tree::ptree m_root, *m_currentElem;
+        const unsigned short m_maxRank;
+        bool m_isCollection;
+        static std::vector<std::string> m_joinTableContainer;
+        static unsigned short m_rank;
     };
 
   }

@@ -101,6 +101,7 @@
             <pElem>.</pElem>
             <pElem>.</pElem>
             <pElem>.</pElem>
+            <pElem>.</pElem>
           </incDir>
           <commandLine>`cppunit-config --cflags`</commandLine>
         </cTool>
@@ -112,6 +113,7 @@
             <pElem>../dbo/include</pElem>
             <pElem>.</pElem>
             <pElem>../wt-3.3.1-rc2/src/web</pElem>
+            <pElem>.</pElem>
             <pElem>.</pElem>
             <pElem>.</pElem>
           </incDir>
@@ -162,21 +164,6 @@
         </ccTool>
         <linkerTool>
           <output>${TESTDIR}/TestFiles/f2</output>
-        </linkerTool>
-      </folder>
-      <folder path="TestFiles/f3">
-        <cTool>
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
-        </cTool>
-        <ccTool>
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
-        </ccTool>
-        <linkerTool>
-          <output>${TESTDIR}/TestFiles/f3</output>
         </linkerTool>
       </folder>
       <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">
@@ -290,6 +277,7 @@
           <incDir>
             <pElem>.</pElem>
             <pElem>.</pElem>
+            <pElem>.</pElem>
           </incDir>
           <commandLine>`cppunit-config --cflags`</commandLine>
         </cTool>
@@ -301,6 +289,7 @@
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
             <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
+            <pElem>.</pElem>
             <pElem>.</pElem>
             <pElem>.</pElem>
           </incDir>
@@ -337,21 +326,6 @@
         </ccTool>
         <linkerTool>
           <output>${TESTDIR}/TestFiles/f2</output>
-        </linkerTool>
-      </folder>
-      <folder path="TestFiles/f3">
-        <cTool>
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
-        </cTool>
-        <ccTool>
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
-        </ccTool>
-        <linkerTool>
-          <output>${TESTDIR}/TestFiles/f3</output>
         </linkerTool>
       </folder>
       <item path="include/AddonResource.h" ex="false" tool="3" flavor2="0">

@@ -147,6 +147,27 @@ EReturnCode AddonResource::getAddonList(string& responseMsg)
     return res;
 }
 
+EReturnCode AddonResource::getAddon(string& responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session
+                .find<Echoes::Dbo::Addon>()
+                .where(QUOTE(TRIGRAM_ADDON ID) " = ?")
+                .bind(m_pathElements[1]);
+        res = this->serialize(adoPtr, responseMsg);
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = this->httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void AddonResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
@@ -163,8 +184,11 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
             nextElement = getNextElementFromPath();
-
-            if (!nextElement.compare("parameters"))
+            if (nextElement.empty())
+            {
+                m_statusCode = getAddon(responseMsg);
+            }
+            else if (!nextElement.compare("parameters"))
             {
                 m_statusCode = getParameterForAddon(responseMsg);
             }

@@ -88,92 +88,92 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/AddonResource.o: src/AddonResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource.o src/AddonResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource.o src/AddonResource.cpp
 
 ${OBJECTDIR}/src/AlertResource.o: src/AlertResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource.o src/AlertResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource.o src/AlertResource.cpp
 
 ${OBJECTDIR}/src/AssetResource.o: src/AssetResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource.o src/AssetResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource.o src/AssetResource.cpp
 
 ${OBJECTDIR}/src/Conf.o: src/Conf.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf.o src/Conf.cpp
 
 ${OBJECTDIR}/src/CriterionResource.o: src/CriterionResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource.o src/CriterionResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource.o src/CriterionResource.cpp
 
 ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp
 
 ${OBJECTDIR}/src/JsonSerializer.o: src/JsonSerializer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JsonSerializer.o src/JsonSerializer.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JsonSerializer.o src/JsonSerializer.cpp
 
 ${OBJECTDIR}/src/MediaResource.o: src/MediaResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaResource.o src/MediaResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaResource.o src/MediaResource.cpp
 
 ${OBJECTDIR}/src/OrganizationResource.o: src/OrganizationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
 
 ${OBJECTDIR}/src/PluginResource.o: src/PluginResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginResource.o src/PluginResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginResource.o src/PluginResource.cpp
 
 ${OBJECTDIR}/src/ProbeResource.o: src/ProbeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeResource.o src/ProbeResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeResource.o src/ProbeResource.cpp
 
 ${OBJECTDIR}/src/PublicApiResource.o: src/PublicApiResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
 
 ${OBJECTDIR}/src/RoleResource.o: src/RoleResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource.o src/RoleResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource.o src/RoleResource.cpp
 
 ${OBJECTDIR}/src/SearchTypeResource.o: src/SearchTypeResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
 
 ${OBJECTDIR}/src/UnitResource.o: src/UnitResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource.o src/UnitResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource.o src/UnitResource.cpp
 
 ${OBJECTDIR}/src/UserResource.o: src/UserResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
 
 ${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src/itooki
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
 
 # Subprojects
 .build-subprojects:
@@ -188,7 +188,7 @@ ${TESTDIR}/TestFiles/f2: ${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o 
 ${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o: tests/AddonResourceTest/AddonResourceTest.cpp 
 	${MKDIR} -p ${TESTDIR}/tests/AddonResourceTest
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -Itests/include -I. -std=c++11 -DBOOST_TEST_MAIN -MMD -MP -MF $@.d -o ${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o tests/AddonResourceTest/AddonResourceTest.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -Itests/include -I. -std=c++11 -DBOOST_TEST_MAIN -MMD -MP -MF $@.d -o ${TESTDIR}/tests/AddonResourceTest/AddonResourceTest.o tests/AddonResourceTest/AddonResourceTest.cpp
 
 
 ${OBJECTDIR}/main_nomain.o: ${OBJECTDIR}/main.o main.cpp 
@@ -199,7 +199,7 @@ ${OBJECTDIR}/main_nomain.o: ${OBJECTDIR}/main.o main.cpp
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/main_nomain.o main.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/main_nomain.o main.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/main.o ${OBJECTDIR}/main_nomain.o;\
 	fi
@@ -212,7 +212,7 @@ ${OBJECTDIR}/src/AddonResource_nomain.o: ${OBJECTDIR}/src/AddonResource.o src/Ad
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource_nomain.o src/AddonResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AddonResource_nomain.o src/AddonResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/AddonResource.o ${OBJECTDIR}/src/AddonResource_nomain.o;\
 	fi
@@ -225,7 +225,7 @@ ${OBJECTDIR}/src/AlertResource_nomain.o: ${OBJECTDIR}/src/AlertResource.o src/Al
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource_nomain.o src/AlertResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AlertResource_nomain.o src/AlertResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/AlertResource.o ${OBJECTDIR}/src/AlertResource_nomain.o;\
 	fi
@@ -238,7 +238,7 @@ ${OBJECTDIR}/src/AssetResource_nomain.o: ${OBJECTDIR}/src/AssetResource.o src/As
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource_nomain.o src/AssetResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AssetResource_nomain.o src/AssetResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/AssetResource.o ${OBJECTDIR}/src/AssetResource_nomain.o;\
 	fi
@@ -251,7 +251,7 @@ ${OBJECTDIR}/src/Conf_nomain.o: ${OBJECTDIR}/src/Conf.o src/Conf.cpp
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf_nomain.o src/Conf.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Conf_nomain.o src/Conf.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/Conf.o ${OBJECTDIR}/src/Conf_nomain.o;\
 	fi
@@ -264,7 +264,7 @@ ${OBJECTDIR}/src/CriterionResource_nomain.o: ${OBJECTDIR}/src/CriterionResource.
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource_nomain.o src/CriterionResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource_nomain.o src/CriterionResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/CriterionResource.o ${OBJECTDIR}/src/CriterionResource_nomain.o;\
 	fi
@@ -277,7 +277,7 @@ ${OBJECTDIR}/src/InformationResource_nomain.o: ${OBJECTDIR}/src/InformationResou
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource_nomain.o src/InformationResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationResource_nomain.o src/InformationResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/InformationResource.o ${OBJECTDIR}/src/InformationResource_nomain.o;\
 	fi
@@ -290,7 +290,7 @@ ${OBJECTDIR}/src/JsonSerializer_nomain.o: ${OBJECTDIR}/src/JsonSerializer.o src/
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JsonSerializer_nomain.o src/JsonSerializer.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JsonSerializer_nomain.o src/JsonSerializer.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/JsonSerializer.o ${OBJECTDIR}/src/JsonSerializer_nomain.o;\
 	fi
@@ -303,7 +303,7 @@ ${OBJECTDIR}/src/MediaResource_nomain.o: ${OBJECTDIR}/src/MediaResource.o src/Me
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaResource_nomain.o src/MediaResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MediaResource_nomain.o src/MediaResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/MediaResource.o ${OBJECTDIR}/src/MediaResource_nomain.o;\
 	fi
@@ -316,7 +316,7 @@ ${OBJECTDIR}/src/OrganizationResource_nomain.o: ${OBJECTDIR}/src/OrganizationRes
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource_nomain.o src/OrganizationResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/OrganizationResource_nomain.o src/OrganizationResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/OrganizationResource.o ${OBJECTDIR}/src/OrganizationResource_nomain.o;\
 	fi
@@ -329,7 +329,7 @@ ${OBJECTDIR}/src/PluginResource_nomain.o: ${OBJECTDIR}/src/PluginResource.o src/
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginResource_nomain.o src/PluginResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PluginResource_nomain.o src/PluginResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/PluginResource.o ${OBJECTDIR}/src/PluginResource_nomain.o;\
 	fi
@@ -342,7 +342,7 @@ ${OBJECTDIR}/src/ProbeResource_nomain.o: ${OBJECTDIR}/src/ProbeResource.o src/Pr
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeResource_nomain.o src/ProbeResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ProbeResource_nomain.o src/ProbeResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/ProbeResource.o ${OBJECTDIR}/src/ProbeResource_nomain.o;\
 	fi
@@ -355,7 +355,7 @@ ${OBJECTDIR}/src/PublicApiResource_nomain.o: ${OBJECTDIR}/src/PublicApiResource.
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource_nomain.o src/PublicApiResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/PublicApiResource_nomain.o src/PublicApiResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/PublicApiResource.o ${OBJECTDIR}/src/PublicApiResource_nomain.o;\
 	fi
@@ -368,7 +368,7 @@ ${OBJECTDIR}/src/RoleResource_nomain.o: ${OBJECTDIR}/src/RoleResource.o src/Role
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource_nomain.o src/RoleResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource_nomain.o src/RoleResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/RoleResource.o ${OBJECTDIR}/src/RoleResource_nomain.o;\
 	fi
@@ -381,7 +381,7 @@ ${OBJECTDIR}/src/SearchTypeResource_nomain.o: ${OBJECTDIR}/src/SearchTypeResourc
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource_nomain.o src/SearchTypeResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource_nomain.o src/SearchTypeResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/SearchTypeResource.o ${OBJECTDIR}/src/SearchTypeResource_nomain.o;\
 	fi
@@ -394,7 +394,7 @@ ${OBJECTDIR}/src/UnitResource_nomain.o: ${OBJECTDIR}/src/UnitResource.o src/Unit
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource_nomain.o src/UnitResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UnitResource_nomain.o src/UnitResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/UnitResource.o ${OBJECTDIR}/src/UnitResource_nomain.o;\
 	fi
@@ -407,7 +407,7 @@ ${OBJECTDIR}/src/UserResource_nomain.o: ${OBJECTDIR}/src/UserResource.o src/User
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource_nomain.o src/UserResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource_nomain.o src/UserResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/UserResource.o ${OBJECTDIR}/src/UserResource_nomain.o;\
 	fi
@@ -420,7 +420,7 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o: ${OBJECTDIR}/src/itooki/Itooki
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o src/itooki/ItookiSMSSender.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -I../wt-3.3.1-rc2/src/web -I. -I. -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o src/itooki/ItookiSMSSender.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/itooki/ItookiSMSSender.o ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o;\
 	fi
