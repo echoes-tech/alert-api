@@ -1,7 +1,7 @@
 /* 
- * API CriterionResource
- * @author ECHOES Technologies (GDR)
- * @date 21/02/2013
+ * API Option Resource
+ * @author ECHOES Technologies (FPO)
+ * @date 29/11/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,30 +11,31 @@
  * 
  */
 
-#include "CriterionResource.h"
+#include "OptionResource.h"
 
 using namespace std;
 
-CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
+OptionResource::OptionResource()
 {
 }
 
-CriterionResource::~CriterionResource()
+OptionResource::~OptionResource()
 {
 }
 
-EReturnCode CriterionResource::getCriteriaList(string &responseMsg)
+EReturnCode OptionResource::getOptionsList(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria>> acrPtrCol = m_session.find<Echoes::Dbo::AlertCriteria>()
-                .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_ALERT_CRITERIA ID));
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol = m_session.find<Echoes::Dbo::Option>()
+                .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .orderBy(QUOTE(TRIGRAM_OPTION_VALUE ID));
 
-        res = serialize(acrPtrCol, responseMsg);
+        res = serialize(optPtrCol, responseMsg);
 
         transaction.commit();
     }
@@ -46,18 +47,19 @@ EReturnCode CriterionResource::getCriteriaList(string &responseMsg)
     return res;
 }
 
-EReturnCode CriterionResource::getCriterion(string &responseMsg)
+EReturnCode OptionResource::getOption(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
-                .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
+        Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
+                .where(QUOTE(TRIGRAM_OPTION ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
 
-        res = serialize(acrPtr, responseMsg);
+        res = serialize(optPtr, responseMsg);
 
         transaction.commit();
     }
@@ -69,7 +71,7 @@ EReturnCode CriterionResource::getCriterion(string &responseMsg)
     return res;
 }
 
-void CriterionResource::processGetRequest(Wt::Http::Response &response)
+void OptionResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
     string nextElement = "";
@@ -77,7 +79,7 @@ void CriterionResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(nextElement.empty())
     {
-        m_statusCode = getCriteriaList(responseMsg);
+        m_statusCode = getOptionsList(responseMsg);
     }
     else
     {
@@ -88,7 +90,7 @@ void CriterionResource::processGetRequest(Wt::Http::Response &response)
             nextElement = getNextElementFromPath();
             if(nextElement.empty())
             {
-                m_statusCode = getCriterion(responseMsg);
+                m_statusCode = getOption(responseMsg);
             }
             else
             {

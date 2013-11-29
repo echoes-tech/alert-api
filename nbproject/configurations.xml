@@ -18,6 +18,7 @@
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/JsonSerializer.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
+      <itemPath>include/OptionResource.h</itemPath>
       <itemPath>include/OrganizationResource.h</itemPath>
       <itemPath>include/PluginResource.h</itemPath>
       <itemPath>include/ProbeResource.h</itemPath>
@@ -52,6 +53,7 @@
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/JsonSerializer.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
+        <itemPath>src/OptionResource.cpp</itemPath>
         <itemPath>src/OrganizationResource.cpp</itemPath>
         <itemPath>src/PluginResource.cpp</itemPath>
         <itemPath>src/ProbeResource.cpp</itemPath>
@@ -72,6 +74,7 @@
                      projectFiles="true"
                      kind="TEST">
         <itemPath>tests/AddonResourceTest/AddonResourceTest.cpp</itemPath>
+        <itemPath>tests/AddonResourceTest/addon.json</itemPath>
         <itemPath>tests/AddonResourceTest/addons.json</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -96,25 +99,13 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
-        <cTool>
-          <incDir>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-          </incDir>
-          <commandLine>`cppunit-config --cflags`</commandLine>
-        </cTool>
         <ccTool>
           <standard>8</standard>
           <commandlineTool>DISTCC_FALLBACK=0 distcc g++-4.7</commandlineTool>
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>.</pElem>
             <pElem>../wt-3.3.1-rc2/src/web</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
             <pElem>.</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -188,6 +179,8 @@
       </item>
       <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/OptionResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
@@ -232,6 +225,8 @@
       </item>
       <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/OptionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
@@ -255,6 +250,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="tests/AddonResourceTest/addon.json" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="tests/AddonResourceTest/addons.json"
             ex="false"
             tool="3"
@@ -273,14 +270,6 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
-        <cTool>
-          <incDir>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-          </incDir>
-          <commandLine>`cppunit-config --cflags`</commandLine>
-        </cTool>
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
@@ -289,12 +278,10 @@
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
             <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
-            <pElem>.</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api</output>
           <linkerAddLib>
             <pElem>/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/default/dist/Release_SharedObject/GNU-Linux-x86</pElem>
             <pElem>../dbo/dist/Release_SharedObject/GNU-Linux-x86</pElem>
@@ -350,6 +337,8 @@
       </item>
       <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/OptionResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
@@ -394,6 +383,8 @@
       </item>
       <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/OptionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
@@ -416,6 +407,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="tests/AddonResourceTest/addon.json" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/addons.json"
             ex="false"

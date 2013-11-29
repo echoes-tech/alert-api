@@ -1,8 +1,25 @@
 {
-    "id": 1,
-    "name": "system(non exist)",
+    "id": 2,
+    "name": "file",
     "delete": "Null",
-    "sources": 0,
-    "source_parameters": 0,
-    "search_types": 0
+    "sources": [],
+    "source_parameters":
+    [
+        {
+            "id": 1,
+            "format": "text",
+            "name": "path",
+            "delete": "Null"
+        }
+    ],
+    "search_types":
+    [
+        {
+            "id": 1,
+            "name": "regex",
+            "delete": "Null",
+            "searchs": 0,
+            "search_parameters": 0
+        }
+    ]
 }

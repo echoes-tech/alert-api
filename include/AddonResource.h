@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API AddonResource
+ * Header of API AddonResource
  * @author ECHOES Technologies (GDR)
  * @date 06/03/2013
  * 
@@ -23,13 +23,9 @@ class AddonResource : public PublicApiResource
         virtual ~AddonResource();
      
     protected :
-        virtual void processGetRequest(Wt::Http::Response &response);
-        
-        unsigned short getSearchTypeForAddon(std::string &responseMsg);    
-        unsigned short getParameterForAddon(std::string &responseMsg);    
-        EReturnCode getAddonList(std::string &responseMsg);
+        EReturnCode getAddonsList(std::string &responseMsg);
         EReturnCode getAddon(std::string &responseMsg);
-            
+        virtual void processGetRequest(Wt::Http::Response &response);
 };
 
 #endif	/* ADDONRESOURCE_H */

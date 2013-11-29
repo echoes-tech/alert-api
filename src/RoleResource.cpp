@@ -23,9 +23,9 @@ RoleResource::~RoleResource()
 {
 }
 
-unsigned short RoleResource::getRoleForUser(std::string &responseMsg)
+EReturnCode RoleResource::getRoleForUser(std::string &responseMsg)
 {
-    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {        
         Wt::Dbo::Transaction transaction(m_session);

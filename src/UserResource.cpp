@@ -53,7 +53,7 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = (unsigned short)getInformationForUser(responseMsg);
+        m_statusCode = getInformationForUser(responseMsg);
     }
     else
     {
@@ -66,9 +66,9 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short UserResource::postActionForUser(std::string &responseMsg, const std::string &sRequest)
+EReturnCode UserResource::postActionForUser(std::string &responseMsg, const std::string &sRequest)
 {
-    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString tableObject;
     int actionAfter, actionBefore, actionRelative;
     long long uacId, tableObjectId;
@@ -121,7 +121,7 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
         ptrUserHistoricalAction.flush();
         ptrUserHistoricalAction.modify()->setId(ptrUserHistoricalAction.id());
         responseMsg = ptrUserHistoricalAction->toJSON();    
-        res = 200;
+        res = EReturnCode::OK;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception e)
@@ -139,9 +139,9 @@ unsigned short UserResource::postActionForUser(std::string &responseMsg, const s
     return res;
 }
 
-unsigned short UserResource::postRoleForUser(std::string &responseMsg, const std::string &sRequest)
+EReturnCode UserResource::postRoleForUser(std::string &responseMsg, const std::string &sRequest)
 {
-    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
     try
     {

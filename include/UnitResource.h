@@ -24,21 +24,21 @@ class UnitResource : public PublicApiResource
         
     protected :
 
-        unsigned short getTypeOfUnits(std::string &responseMsg);
-        unsigned short getTypeForUnit(std::string &responseMsg);
-        unsigned short getSubUnitsForUnit(std::string &responseMsg);
-        unsigned short getListUnits(std::string &responseMsg);
-        unsigned short getUnit(std::string &responseMsg);
+        EReturnCode getTypeOfUnits(std::string &responseMsg);
+        EReturnCode getTypeForUnit(std::string &responseMsg);
+        EReturnCode getSubUnitsForUnit(std::string &responseMsg);
+        EReturnCode getListUnits(std::string &responseMsg);
+        EReturnCode getUnit(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postUnit(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postUnit(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
         
         virtual void processPatchRequest(Wt::Http::Response &response);
 
-        unsigned short deleteUnit(std::string &responseMsg);
+        EReturnCode deleteUnit(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          

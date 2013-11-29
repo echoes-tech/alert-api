@@ -23,127 +23,26 @@ AddonResource::~AddonResource()
 {
 }
 
-unsigned short AddonResource::getSearchTypeForAddon(string &responseMsg)
-{
-    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = "SELECT set FROM \"T_SEARCH_TYPE_STY\" set "
-                " WHERE \"STY_ID\" IN"
-                "("
-                "SELECT \"T_SEARCH_TYPE_STY_STY_ID\" FROM \"TJ_ADO_STY\" "
-                "WHERE \"T_ADDON_ADO_ADO_ID\" = " + m_pathElements[1] +
-                ")";
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchType> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchType> >(queryStr);
-
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType> > seaTypePtr = queryRes.resultList();
-
-        if (seaTypePtr.size() != 0)
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType> >::const_iterator i = seaTypePtr.begin(); i != seaTypePtr.end(); ++i)
-            {
-                i->modify()->setId(i->id());
-                responseMsg += "\t" + i->get()->toJSON();
-                ++idx;
-                if (seaTypePtr.size() - idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "]\n";
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Search parameter not found\"}";
-        }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e)
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-
-    return res;
-}
-
-unsigned short AddonResource::getParameterForAddon(string& responseMsg)
-{
-    unsigned short res = EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-
-
-        string queryStr = "SELECT srp FROM \"T_SOURCE_PARAMETER_SRP\" srp"
-                " WHERE \"SRP_ID\" IN "
-                "("
-                "SELECT \"T_SOURCE_PARAMETER_SRP_SRP_ID\" FROM \"TJ_ADO_SRP\" WHERE \"T_ADDON_ADO_ADO_ID\" ="
-                + m_pathElements[1]
-                + " )";
-
-        Wt::Dbo::Query < Wt::Dbo::ptr < Echoes::Dbo::SourceParameter >> queryRes = m_session.query < Wt::Dbo::ptr < Echoes::Dbo::SourceParameter >> (queryStr);
-
-        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::SourceParameter >> srcParamPtr = queryRes.resultList();
-        if (srcParamPtr.size() > 0)
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> >::const_iterator i = srcParamPtr.begin(); i != srcParamPtr.end(); ++i)
-            {
-                i->modify()->setId(i->id());
-                responseMsg += "\t" + i->get()->toJSON();
-                ++idx;
-                if (srcParamPtr.size() - idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "]\n";
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Source parameter not found\"}";
-        }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e)
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-
-    return res;
-}
-
-EReturnCode AddonResource::getAddonList(string& responseMsg)
+EReturnCode AddonResource::getAddonsList(string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoCol = m_session.find<Echoes::Dbo::Addon>().orderBy(QUOTE(TRIGRAM_ADDON ID));
-        
-        res = this->serialize(adoCol, responseMsg);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoPtrCol = m_session.find<Echoes::Dbo::Addon>()
+                .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_ADDON ID));
+
+        res = serialize(adoPtrCol, responseMsg);
 
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e)
     {
         res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = this->httpCodeToJSON(res, e);
+        responseMsg = httpCodeToJSON(res, e);
     }
-
     return res;
 }
 
@@ -153,30 +52,33 @@ EReturnCode AddonResource::getAddon(string& responseMsg)
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session
-                .find<Echoes::Dbo::Addon>()
-                .where(QUOTE(TRIGRAM_ADDON ID) " = ?")
-                .bind(m_pathElements[1]);
-        res = this->serialize(adoPtr, responseMsg);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session.find<Echoes::Dbo::Addon>()
+                .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL");
+
+        res = serialize(adoPtr, responseMsg);
+
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e)
     {
         res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = this->httpCodeToJSON(res, e);
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
 
 void AddonResource::processGetRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    string responseMsg = "";
+    string nextElement = "";
 
     nextElement = getNextElementFromPath();
 
-    if (!nextElement.compare(""))
+    if (nextElement.empty())
     {
-        m_statusCode = (unsigned short) getAddonList(responseMsg);
+        m_statusCode = getAddonsList(responseMsg);
     }
     else
     {
@@ -188,24 +90,16 @@ void AddonResource::processGetRequest(Wt::Http::Response &response)
             {
                 m_statusCode = getAddon(responseMsg);
             }
-            else if (!nextElement.compare("parameters"))
-            {
-                m_statusCode = getParameterForAddon(responseMsg);
-            }
-            else if (!nextElement.compare("search_types"))
-            {
-                m_statusCode = getSearchTypeForAddon(responseMsg);
-            }
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch (boost::bad_lexical_cast &)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            responseMsg = httpCodeToJSON(m_statusCode, e);
         }
     }
 

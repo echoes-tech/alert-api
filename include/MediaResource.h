@@ -26,21 +26,21 @@ class MediaResource : public PublicApiResource
         
         Wt::WString m_mediaId;
       
-        unsigned short getMedia(std::string &responseMsg);
-        unsigned short getListValueForMedia(std::string &responseMsg);
+        EReturnCode getMedia(std::string &responseMsg);
+        EReturnCode getMediasList(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postMediaSpecialization(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postMedia(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postMediaValidation(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postMediaSpecialization(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postMedia(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postMediaValidation(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
         
         virtual void processPatchRequest(Wt::Http::Response &response);
 
-        unsigned short deleteMediaSpecialization(std::string &responseMsg);
-        unsigned short deleteMedia(std::string &responseMsg);
+        EReturnCode deleteMediaSpecialization(std::string &responseMsg);
+        EReturnCode deleteMedia(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

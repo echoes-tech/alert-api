@@ -23,9 +23,9 @@ SearchTypeResource::~SearchTypeResource()
 {
 }
 
-unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg)
+EReturnCode SearchTypeResource::getSearchTypeList(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try 
     {
@@ -49,11 +49,11 @@ unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg)
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;
+            res = EReturnCode::OK;
         }
         else
         {        
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Search type not found\"}";
         }
         transaction.commit();
@@ -61,16 +61,16 @@ unsigned short SearchTypeResource::getSearchTypeList(string& responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
     return res;
 }
 
-unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg)
+EReturnCode SearchTypeResource::getParameterForSearchType(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try 
     {
@@ -105,11 +105,11 @@ unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;    
+            res = EReturnCode::OK;    
         }
         else
         {        
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Search parameter not found\"}";
         }
         transaction.commit(); 
@@ -117,7 +117,7 @@ unsigned short SearchTypeResource::getParameterForSearchType(string &responseMsg
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
@@ -150,19 +150,19 @@ void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
                 }
                 else
                 {
-                    this->m_statusCode = 400;
+                    m_statusCode = EReturnCode::BAD_REQUEST;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {
-                this->m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
@@ -172,9 +172,9 @@ void SearchTypeResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short SearchTypeResource::postSearchType(string &responseMsg, const string &sRequest)
+EReturnCode SearchTypeResource::postSearchType(string &responseMsg, const string &sRequest)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
     Wt::Json::Array& parameter = Wt::Json::Array::Empty;
     Wt::Json::Array& addonsId = Wt::Json::Array::Empty;
@@ -205,7 +205,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
                     }
                     else
                     {
-                        res = 404;
+                        res = EReturnCode::NOT_FOUND;
                         responseMsg = "{\"message\":\"Addon not found\"}";
                         return res;
                     }
@@ -213,7 +213,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
             }
              else
             {
-                res = 400;
+                res = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request.\"\n}";
                 return res;
             }
@@ -246,7 +246,7 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
             }
             else
             {
-                res = 400;
+                res = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request.\"\n}";
                 return res;
             }
@@ -254,25 +254,25 @@ unsigned short SearchTypeResource::postSearchType(string &responseMsg, const str
             seaTypePtr.modify()->setId(seaTypePtr.id());
             responseMsg = seaTypePtr->toJSON();
             transaction.commit();
-            res = 200;
+            res = EReturnCode::OK;
         }
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << e.what();
-            res = 503;
+            res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
     }   
@@ -291,7 +291,7 @@ void SearchTypeResource::processPostRequest(Wt::Http::Response &response)
     }
     else
     {  
-        this->m_statusCode = 400;
+        m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     response.setStatus(this->m_statusCode);
@@ -311,9 +311,9 @@ void SearchTypeResource::processPatchRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
+EReturnCode SearchTypeResource::deleteSearchType(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try 
     {  
         Wt::Dbo::Transaction transaction(m_session);
@@ -329,17 +329,17 @@ unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
                 
                 seaTypePtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
                 responseMsg = "";
-                res = 204;
+                res = EReturnCode::NO_CONTENT;
             }
             else
             {
-                res = 409;
+                res = EReturnCode::CONFLICT;
                 responseMsg = "{\"message\":\"Conflict, an search use this search type\"}";
             }
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Search type not found\"}";
         }
 
@@ -348,7 +348,7 @@ unsigned short SearchTypeResource::deleteSearchType(string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
 
@@ -362,7 +362,7 @@ void SearchTypeResource::processDeleteRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = 400;
+        m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -377,13 +377,13 @@ void SearchTypeResource::processDeleteRequest(Wt::Http::Response &response)
             }
             else
             {
-                this->m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }

@@ -26,44 +26,44 @@ class PluginResource : public PublicApiResource
         std::string m_role;
         std::string m_media;
         
-        unsigned short pluginIsAccessible(std::string& responseMsg);
+        EReturnCode pluginIsAccessible(std::string& responseMsg);
         
-        unsigned short getPluginJSON(std::string &responseMsg);
-        unsigned short getPlugin(std::string &responseMsg);
-//        unsigned short getParameterValueForSearch(std::string &responseMsg);
-//        unsigned short getParameterValueForSource(std::string &responseMsg);
-//        unsigned short getInformationForSeaSrcAndPlg(std::string &responseMsg);
-//        unsigned short getSearchForSourceAndPlugin(std::string &responseMsg);
-//        unsigned short getSearchForSearchIdForSourceAndPlugin(std::string &responseMsg);
-        unsigned short getSourceForPlugin(std::string &responseMsg);
-        unsigned short getInformationListForPlugin(std::string &responseMsg);
-//        unsigned short getAliasForInformation(std::string &responseMsg);
-//        unsigned short getAliasForCriteria(std::string &responseMsg);
-//        unsigned short getCriteriaForInformation(std::string &responseMsg);
-        unsigned short getAliasForPlugin(std::string &responseMsg);
+        EReturnCode getPluginJSON(std::string &responseMsg);
+        EReturnCode getPlugin(std::string &responseMsg);
+//        EReturnCode getParameterValueForSearch(std::string &responseMsg);
+//        EReturnCode getParameterValueForSource(std::string &responseMsg);
+//        EReturnCode getInformationForSeaSrcAndPlg(std::string &responseMsg);
+//        EReturnCode getSearchForSourceAndPlugin(std::string &responseMsg);
+//        EReturnCode getSearchForSearchIdForSourceAndPlugin(std::string &responseMsg);
+        EReturnCode getSourceForPlugin(std::string &responseMsg);
+        EReturnCode getInformationListForPlugin(std::string &responseMsg);
+//        EReturnCode getAliasForInformation(std::string &responseMsg);
+//        EReturnCode getAliasForCriteria(std::string &responseMsg);
+//        EReturnCode getCriteriaForInformation(std::string &responseMsg);
+        EReturnCode getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-//        unsigned short postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
-//        unsigned short postSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postPlugin(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode postSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
-//        unsigned short putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
-//        unsigned short putAliasForCriterion(std::string &responseMsg, const std::string &sRequest);
-        unsigned short putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode putAliasForCriterion(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
         
         
-//        unsigned short patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
-//        unsigned short patchSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
-//        unsigned short patchParametersSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode patchSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
+//        EReturnCode patchParametersSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
 //        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
-//        unsigned short deleteInformationForSeaSrcAndPlg(std::string &responseMsg);
-//        unsigned short deleteSearchForSourceAndPlugin(std::string &responseMsg);
-        unsigned short deleteSourceForPlugin(std::string &responseMsg);
-        unsigned short deletePlugin(std::string &responseMsg);
+//        EReturnCode deleteInformationForSeaSrcAndPlg(std::string &responseMsg);
+//        EReturnCode deleteSearchForSourceAndPlugin(std::string &responseMsg);
+        EReturnCode deleteSourceForPlugin(std::string &responseMsg);
+        EReturnCode deletePlugin(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

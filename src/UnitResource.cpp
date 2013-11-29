@@ -23,9 +23,9 @@ UnitResource::~UnitResource()
 {
 }
 
-unsigned short UnitResource::getTypeOfUnits(string &responseMsg)
+EReturnCode UnitResource::getTypeOfUnits(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try
     {
@@ -49,11 +49,11 @@ unsigned short UnitResource::getTypeOfUnits(string &responseMsg)
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;
+            res = EReturnCode::OK;
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"UnitType not found\"}";
         }
 
@@ -62,15 +62,15 @@ unsigned short UnitResource::getTypeOfUnits(string &responseMsg)
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
 
-unsigned short UnitResource::getListUnits(string& responseMsg)
+EReturnCode UnitResource::getListUnits(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     int idx = 0;
     try
     {
@@ -96,11 +96,11 @@ unsigned short UnitResource::getListUnits(string& responseMsg)
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;
+            res = EReturnCode::OK;
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Unit not found\"}";
         }
 
@@ -109,15 +109,15 @@ unsigned short UnitResource::getListUnits(string& responseMsg)
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
 
-unsigned short UnitResource::getUnit(string &responseMsg)
+EReturnCode UnitResource::getUnit(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -128,14 +128,14 @@ unsigned short UnitResource::getUnit(string &responseMsg)
 
         if (!informationUnit)
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Unit not found\"}";
         }
         else
         {
             informationUnit.modify()->setId(informationUnit.id());
             responseMsg = informationUnit->toJSON();
-            res = 200;
+            res = EReturnCode::OK;
         }
 
         transaction.commit();
@@ -143,15 +143,15 @@ unsigned short UnitResource::getUnit(string &responseMsg)
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
 
-unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
+EReturnCode UnitResource::getSubUnitsForUnit(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    unsigned idx = 0;
     try
     {
@@ -163,7 +163,7 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
 
         if (!informationUnit)
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Unit not found\"}";
         }
         else
@@ -188,11 +188,11 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
 //                    }
 //                }  
 //                responseMsg += "\n]\n";
-                res = 200;
+                res = EReturnCode::OK;
             }
 //            else 
 //            {
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //                responseMsg = "{\"message\":\"Subunit not found\"}";
 //            }
         }
@@ -201,15 +201,15 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
 
- unsigned short UnitResource::getTypeForUnit(std::string &responseMsg)
+ EReturnCode UnitResource::getTypeForUnit(std::string &responseMsg)
  {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -227,11 +227,11 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
                 informationUnit.get()->unitType.modify()->setId(informationUnit.get()->unitType.id());                
                 responseMsg += informationUnit.get()->unitType.modify()->toJSON();
 
-            res = 200;
+            res = EReturnCode::OK;
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Unit not found\"}";
         }
 
@@ -240,7 +240,7 @@ unsigned short UnitResource::getSubUnitsForUnit(string &responseMsg)
     catch (Wt::Dbo::Exception const &e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -281,13 +281,13 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
             }
             else
             {
-                this->m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }      
     }
@@ -296,9 +296,9 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short UnitResource::postUnit(string& responseMsg, const string& sRequest)
+EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
     int typeId;
       
@@ -313,14 +313,14 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
@@ -341,11 +341,11 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
             unitPtr.flush();
             unitPtr.modify()->setId(unitPtr.id());
             responseMsg = unitPtr->toJSON();
-            res = 200;
+            res = EReturnCode::OK;
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"UnitType not found\"}";
         }
         transaction.commit();
@@ -354,7 +354,7 @@ unsigned short UnitResource::postUnit(string& responseMsg, const string& sReques
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -371,7 +371,7 @@ void UnitResource::processPostRequest(Wt::Http::Response &response)
     }
     else
     {
-        this->m_statusCode = 400;
+        m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
 
@@ -392,9 +392,9 @@ void UnitResource::processPatchRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short UnitResource::deleteUnit(string& responseMsg)
+EReturnCode UnitResource::deleteUnit(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try 
     {  
         Wt::Dbo::Transaction transaction(m_session);
@@ -409,25 +409,25 @@ unsigned short UnitResource::deleteUnit(string& responseMsg)
             {                
                 //supprime l'info
                 informationUnitPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-                res = 204;
+                res = EReturnCode::NO_CONTENT;
                 transaction.commit();   
             }
             else
             {
-                res = 409;
+                res = EReturnCode::CONFLICT;
                 responseMsg = "{\"message\":\"Conflict, an information use this unit\"}";
             } 
         }
         else
         {
             responseMsg = "{\"message\":\"Unit Not Found\"}";
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
         }            
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
@@ -440,7 +440,7 @@ void UnitResource::processDeleteRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        this->m_statusCode = 400;
+        m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -453,17 +453,17 @@ void UnitResource::processDeleteRequest(Wt::Http::Response &response)
 
             if(!nextElement.compare(""))
             {
-                this->m_statusCode = deleteUnit(responseMsg);
+                m_statusCode = deleteUnit(responseMsg);
             }
             else
             {
-                this->m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }

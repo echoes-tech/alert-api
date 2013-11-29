@@ -23,7 +23,6 @@ class InformationResource : public PublicApiResource
         virtual ~InformationResource();
         
     protected :
-        
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(Wt::Http::Response &response);

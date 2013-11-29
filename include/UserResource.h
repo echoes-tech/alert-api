@@ -27,8 +27,8 @@ class UserResource : public PublicApiResource
         EReturnCode getInformationForUser(std::string &response);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postActionForUser(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postRoleForUser(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postActionForUser(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postRoleForUser(std::string &responseMsg, const std::string &sRequest);
         
         virtual void processPostRequest(Wt::Http::Response &response);
 

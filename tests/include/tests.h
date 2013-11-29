@@ -14,6 +14,10 @@
 #ifndef TEST_H
 #define	TEST_H
 
+#include <Wt/Test/WTestEnvironment>
+#include <Wt/Json/Array>
+#include <Wt/Json/Value>
+
 static const EReturnCode CALL_RESULT_OK = EReturnCode::OK;
 static const EReturnCode CALL_RESULT_SERVICE_UNAVAILABLE = EReturnCode::SERVICE_UNAVAILABLE;
 
@@ -23,14 +27,14 @@ static const std::string MESSAGE_EXPECTED = "Service Unavailable";
 template<class C>
 void testGet(C &obj, boost::function<EReturnCode (std::string&)> func, const std::string& filename)
 {
-    Wt::Test::WTestEnvironment environment("/","wt_config.xml");
+    Wt::Test::WTestEnvironment environment("/", "wt_config.xml");
 
     conf.readProperties(*(environment.server()));
     obj.m_session.initConnection(conf.getSessConnectParams());
 
     std::string responseMsg = "";
     EReturnCode result = func(responseMsg);
-    
+
     std::ifstream file(filename);
     if (file.is_open())
     {
@@ -43,31 +47,31 @@ void testGet(C &obj, boost::function<EReturnCode (std::string&)> func, const std
         BOOST_ERROR(filename + " not found");
     }
 
-    BOOST_CHECK_EQUAL( result, CALL_RESULT_OK);
+    BOOST_CHECK_EQUAL(result, CALL_RESULT_OK);
 }
 
 template<class C>
 void testNoBase(C &obj, boost::function<EReturnCode (std::string&)> func )
 {
-    Wt::Test::WTestEnvironment environment("/","tests/wt_config_tests.xml");
+    Wt::Test::WTestEnvironment environment("/", "tests/wt_config_tests.xml");
 
     conf.readProperties(*(environment.server()));
     obj.m_session.initConnection(conf.getSessConnectParams());
 
     std::string responseMsg = "";
     EReturnCode result = func(responseMsg);
-    
+
     BOOST_CHECK_EQUAL(result, CALL_RESULT_SERVICE_UNAVAILABLE);
 
     try
-    {              
+    {
         Wt::Json::Object resObject;
         Wt::Json::parse(responseMsg, resObject);
-        
-        BOOST_CHECK_EQUAL( resObject.contains(MESSAGE_KEY), true );
+
+        BOOST_CHECK_EQUAL(resObject.contains(MESSAGE_KEY), true);
         const Wt::WString message = resObject.get(MESSAGE_KEY);
-        BOOST_CHECK_EQUAL( message, MESSAGE_EXPECTED );
-    }   
+        BOOST_CHECK_EQUAL(message, MESSAGE_EXPECTED);
+    }
     catch (Wt::Json::ParseError const& e)
     {
         BOOST_ERROR("Parse error: " << e.what());

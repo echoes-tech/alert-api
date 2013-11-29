@@ -23,14 +23,10 @@ class OrganizationResource : public PublicApiResource
         virtual ~OrganizationResource();
         
     protected :
-        
-        unsigned short getOrganization(std::string &responseMsg);
-        unsigned short getUsersForOrganization(std::string &responseMsg);
-        unsigned short getRolesForOrganization(std::string &responseMsg);
-        unsigned short getMediasForUserForOrganization(std::string &responseMsg);
-        unsigned short getMediasValuesForUserForOrganization(std::string &responseMsg);
-        unsigned short getQuotasSms(std::string &responseMsg);
-        unsigned short getQuotasAsset(std::string &responseMsg);
+        EReturnCode getOrganizationsList(std::string &responseMsg);
+        EReturnCode getOrganization(std::string &responseMsg);
+        EReturnCode getQuotasSms(std::string &responseMsg);
+        EReturnCode getQuotasAsset(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(Wt::Http::Response &response);

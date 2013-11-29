@@ -22,111 +22,110 @@ MediaResource::~MediaResource()
 {
 }
 
-unsigned short MediaResource::getListValueForMedia(string &responseMsg)
+EReturnCode MediaResource::getMediasList(string &responseMsg)
 {
-    unsigned short res = 500;
-//    unsigned idx = 0;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::MediaValue> > medias = m_session.find<Echoes::Dbo::MediaValue>()
-                .where("\"MEV_USR_USR_ID\" = ?").bind(boost::lexical_cast<string>(this->m_session.user().id()))
-                .where("\"MEV_MED_MED_ID\" = ?").bind(this->m_pathElements[1])
-                .where("\"MEV_DELETE\" is NULL");
-        if (medias.size() > 0)
-        {
-            responseMsg += this->serializeToJSON(medias);
-            res = 200;
-        }
-        else
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Media not found\"}";
-        }
+        string queryStr = 
+" SELECT med"
+"   FROM " QUOTE("TR_MEDIA_MED") " med"
+"   WHERE"
+"     " QUOTE(TRIGRAM_USER ID) " IN"
+"       ("
+"         SELECT " QUOTE(TRIGRAM_USER ID)
+"           FROM " QUOTE("T_USER_USR")
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(this->m_session.user()->organization.id()) +
+"             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
+"       )"
+"     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL";
+ 
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media> > medPtrCol = queryRes.resultList();
+
+        res = serialize(medPtrCol, responseMsg);
 
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception const& e) 
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
 
-unsigned short MediaResource::getMedia(string &responseMsg)
+EReturnCode MediaResource::getMedia(string &responseMsg)
 {
-    unsigned short res = 500;
-//    unsigned idx = 0;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = "SELECT med FROM \"TR_MEDIA_MED\" med where \"MED_ID\" IN"
-                " ("
-                " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
-                " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<string>(this->m_session.user().id()) +
-                " AND \"MEV_DELETE\" IS NULL"
-                " )"
-                " AND \"MED_DELETE\" IS NULL";
+        string queryStr = 
+" SELECT med"
+"   FROM " QUOTE("TR_MEDIA_MED") " med"
+"   WHERE"
+"     " QUOTE(TRIGRAM_MEDIA ID) " = " + m_pathElements[1] +
+"     AND " QUOTE(TRIGRAM_USER ID) " IN"
+"       ("
+"         SELECT " QUOTE(TRIGRAM_USER ID)
+"           FROM " QUOTE("T_USER_USR")
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(this->m_session.user()->organization.id()) +
+"             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
+"       )"
+"     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL";
  
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media> >(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media> > media = queryRes.resultList();
-        
-        if (media.size() > 0)
-        {
-            responseMsg += this->serializeToJSON(media);
-            res = 200;
-        }
-        else 
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Media not found\"}";
-        }
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media> > medPtrCol = queryRes.resultList();
+
+        res = serialize(medPtrCol, responseMsg);
 
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception const& e) 
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
 
 void MediaResource::processGetRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
-    
+    string responseMsg = "";
+    string nextElement = "";
+
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if(nextElement.empty())
     {
-        this->m_statusCode = getMedia(responseMsg);
+        m_statusCode = getMediasList(responseMsg);
     }
     else
     {
         try
         {
-            boost::lexical_cast<unsigned int>(nextElement);
+            boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-
-            if(!nextElement.compare(""))
+            if(nextElement.empty())
             {
-                this->m_statusCode = getListValueForMedia(responseMsg);
+                m_statusCode = getMedia(responseMsg);
             }
             else
             {
-                this->m_statusCode = 400;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast &)
+        catch (boost::bad_lexical_cast const& e)
         {
-            this->m_statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
         }
     }
 
@@ -135,10 +134,10 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequest)
+EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest)
 {
      Wt::log("info") << "[Alert Ressource] JSON received:" << sRequest; //TODO :: test pour l'appli mobile à retirer
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString mevValue;
     long long medId;
     try
@@ -153,14 +152,14 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Media Ressource] " << e.what();
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Media Ressource] " << e.what();
         return res;
@@ -172,7 +171,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
 
         if(!media)
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Media not found\"}";
             return res; 
         }
@@ -189,22 +188,22 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
         
         transaction.commit();
 
-        res = 200;
+        res = EReturnCode::OK;
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
     return res;
 }
 
- unsigned short MediaResource::postMediaValidation(std::string &responseMsg, const std::string &sRequest)
+ EReturnCode MediaResource::postMediaValidation(std::string &responseMsg, const std::string &sRequest)
  {
      Wt::log("info") << "[Alert Ressource] JSON received:" << sRequest ; //TODO :: test pour l'appli mobile à retirer
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString mevToken;
     bool mevValidate;
     try
@@ -219,14 +218,14 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Media Ressource]  " << e.what();
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Media Ressource] " << e.what();
         return res;
@@ -241,7 +240,7 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
 
         if(!mev)
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Media value Not found\"}";
         }
         else
@@ -253,22 +252,22 @@ unsigned short MediaResource::postMedia(string &responseMsg, const string &sRequ
         
         transaction.commit();
 
-        res = 200;
+        res = EReturnCode::OK;
         }
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
     return res;
  }
 
-unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const string &sRequest)
+EReturnCode MediaResource::postMediaSpecialization(string &responseMsg, const string &sRequest)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long mevId;
     int snooze;
     try
@@ -283,14 +282,14 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
 
     catch (Wt::Json::ParseError const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
         return res;
@@ -312,11 +311,11 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
             amsPtr.flush();
             amsPtr.modify()->setId(amsPtr.id());
             responseMsg = amsPtr->toJSON();
-            res = 200;
+            res = EReturnCode::OK;
         }
         else 
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Media Value not found\"}";
         }
         transaction.commit();
@@ -324,7 +323,7 @@ unsigned short MediaResource::postMediaSpecialization(string &responseMsg, const
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     
@@ -349,7 +348,7 @@ void MediaResource::processPostRequest(Wt::Http::Response &response)
         }
         else
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
@@ -372,18 +371,18 @@ void MediaResource::processPostRequest(Wt::Http::Response &response)
                 }
                 else
                 {
-                     this->m_statusCode = 400;
+                     m_statusCode = EReturnCode::BAD_REQUEST;
                      responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {
-                 this->m_statusCode = 400;
+                 m_statusCode = EReturnCode::BAD_REQUEST;
                  responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }            
     }
@@ -405,9 +404,9 @@ void MediaResource::processPatchRequest(Wt::Http::Response &response)
     return;
 }
 
-unsigned short MediaResource::deleteMedia(string &responseMsg)
+EReturnCode MediaResource::deleteMedia(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
@@ -424,7 +423,7 @@ unsigned short MediaResource::deleteMedia(string &responseMsg)
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
@@ -447,12 +446,12 @@ unsigned short MediaResource::deleteMedia(string &responseMsg)
         if(mediaValPtr)
         {
             mediaValPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-            res = 204;
+            res = EReturnCode::NO_CONTENT;
             responseMsg = "";
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Media not found\"}";
         }
         
@@ -461,15 +460,15 @@ unsigned short MediaResource::deleteMedia(string &responseMsg)
     catch (Wt::Dbo::Exception e)
     {
         Wt::log("error") << e.what();
-        res = 409;
+        res = EReturnCode::CONFLICT;
         responseMsg = "{\"message\":\"Conflict, an alert use this media\"}";
     }
     return res;
 }
 
-unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
+EReturnCode MediaResource::deleteMediaSpecialization(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try 
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -479,7 +478,7 @@ unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
 
         if(!amsPtr)
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Media not found\"}";
             return res; 
         }
@@ -490,13 +489,13 @@ unsigned short MediaResource::deleteMediaSpecialization(string &responseMsg)
         m_session.execute(executeString);
         transaction.commit();
 
-        res = 204;
+        res = EReturnCode::NO_CONTENT;
         responseMsg = "";
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
         return res;
     }
@@ -522,13 +521,13 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
             }
             else
             {
-                this->m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
@@ -545,13 +544,13 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
             }
             else
             {
-                this->m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            this->m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }

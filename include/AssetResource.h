@@ -7,7 +7,7 @@
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
  * COMPANY AUTHORIZATION.
  * 
- * COPYRIGHT 2012 BY ECHOES TECHNOLGIES SAS
+ * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
 
@@ -26,26 +26,23 @@ class AssetResource : public PublicApiResource
         std::string m_role;
         std::string m_media;
         
-        unsigned short getKeyValueForInformation(std::string &responseMsg);
-        unsigned short getAssetsList(std::string &responseMsg);
-        unsigned short getAsset(std::string &responseMsg);
-        unsigned short getPluginsListForAsset(std::string &responseMsg);
-        unsigned short getProbesListForAsset(std::string  &responseMsg);
-        unsigned short getAliasForAsset(std::string  &responseMsg);
+        EReturnCode getAssetsList(std::string &responseMsg);
+        EReturnCode getAsset(std::string &responseMsg);
+        EReturnCode getProbesListForAsset(std::string  &responseMsg);
+        EReturnCode getAliasForAsset(std::string  &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postProbeForAsset(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postAsset(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
         
-        unsigned short putAsset(std::string &responseMsg, const std::string &sRequest);
-        unsigned short putAlias(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode putAsset(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode putAliasForAsset(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
 
+        EReturnCode deleteAsset(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        
-        
 };
 
 

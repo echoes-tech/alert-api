@@ -24,7 +24,7 @@ class RoleResource : public PublicApiResource
         
     protected :
 
-        unsigned short getRoleForUser(std::string &response);
+        EReturnCode getRoleForUser(std::string &response);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(Wt::Http::Response &response);

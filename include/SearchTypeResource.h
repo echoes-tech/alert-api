@@ -25,18 +25,18 @@ class SearchTypeResource : public PublicApiResource
         
     protected :
        
-        unsigned short getSearchTypeList(std::string &responseMsg); 
-        unsigned short getParameterForSearchType(std::string &responseMsg);
+        EReturnCode getSearchTypeList(std::string &responseMsg); 
+        EReturnCode getParameterForSearchType(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        unsigned short postSearchType(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postSearchType(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
         
         virtual void processPatchRequest(Wt::Http::Response &response);
 
-        unsigned short deleteSearchType(std::string &responseMsg);
+        EReturnCode deleteSearchType(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

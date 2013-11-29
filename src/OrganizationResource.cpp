@@ -23,246 +23,57 @@ OrganizationResource::~OrganizationResource()
 {
 }
 
-unsigned short OrganizationResource::getOrganization(std::string &responseMsg)
+EReturnCode OrganizationResource::getOrganizationsList(string &responseMsg)
 {
-     unsigned short res = 500;
-     Wt::Dbo::Transaction transaction(m_session);
-     Wt::Dbo::ptr<Echoes::Dbo::Organization> organization = m_session.find<Echoes::Dbo::Organization>().where("\"ORG_ID\" = ?").bind(this->m_session.user().get()->organization.id());
-    try
-    {
-        if(organization)
-        {
-            organization.modify()->setId(organization.id());
-            responseMsg = organization->toJSON();
-            res = 200;
-        }
-        else 
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Organization not found\"}";
-        }
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
-}
-
-unsigned short OrganizationResource::getUsersForOrganization(std::string &responseMsg)
-{
-    unsigned short res = 500;
-    unsigned idx = 0;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        std::string queryStr =  "SELECT usr FROM \"T_USER_USR\" usr where \"USR_ID\" IN"
-            "("
-                "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" where \"T_ORGANIZATION_ORG_ORG_ID\" IN "
-                "("
-                    "SELECT \"T_ORGANIZATION_ORG_ORG_ID\" from \"TJ_USR_ORG\" where \"T_USER_USR_USR_ID\" = " + boost::lexical_cast<std::string > (this->m_session.user().id()) +
-                ")"
-            ")"
-            "AND \"USR_DELETE\" IS NULL";
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session.find<Echoes::Dbo::Organization>()
+                .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .orderBy(QUOTE(TRIGRAM_ORGANIZATION ID));
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::User> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::User> >(queryStr);
-
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User> > user = queryRes.resultList();
-
-        if (user.size() > 0)
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User> >::const_iterator i = user.begin(); i != user.end(); i++) 
-            {
-                i->modify()->setId(i->id());
-                responseMsg += "\t" + i->get()->toJSON();
-                ++idx;
-                if(user.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
-            res = 200;
-        }
-        else 
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"User not found\"}";
-        }
+        res = serialize(orgPtrCol, responseMsg);
 
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception const& e) 
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
 
-unsigned short OrganizationResource::getRolesForOrganization(std::string &responseMsg)
+EReturnCode OrganizationResource::getOrganization(std::string &responseMsg)
 {
-    unsigned short res = 500;
-    unsigned idx = 0;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole> > userRoles = m_session.find<Echoes::Dbo::UserRole>()
-                .where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user().get()->organization.id())
-                .where("\"URO_DELETE\" IS NULL");
+        Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
+                .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
 
-        std::cout << this->m_session.user().get()->organization.id() << std::endl;
-        if (userRoles.size() > 0)
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole> >::const_iterator i = userRoles.begin(); i != userRoles.end(); i++) 
-            {
-                i->modify()->setId(i->id());
-                responseMsg += "\t" + i->get()->toJSON();
-                ++idx;
-                if(userRoles.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
-            res = 200;
-        }
-        else 
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Roles not found\"}";
-        }
+        res = serialize(orgPtr, responseMsg);
 
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception const& e) 
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
 
- unsigned short OrganizationResource::getMediasForUserForOrganization(std::string &responseMsg)
- {
- unsigned short res = 500;
-    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = "SELECT med FROM \"TR_MEDIA_MED\" med where \"MED_ID\" IN"
-                " ("
-                " SELECT \"MEV_MED_MED_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
-                " WHERE \"MEV_USR_USR_ID\" = " + boost::lexical_cast<std::string>(m_pathElements[2]) +
-                " AND \"MEV_DELETE\" IS NULL"
-                " )"
-                " AND \"MED_DELETE\" IS NULL";
- 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media> >(queryStr);
-
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media> > media = queryRes.resultList();
-        
-        if (media.size() > 0)
-        {
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media> >::const_iterator i = media.begin(); i != media.end(); i++) 
-            {
-                i->modify()->setId(i->id());
-                responseMsg += "\t" + i->modify()->toJSON();
-                ++idx;
-                if(media.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";               
-
-            res = 200;
-        }
-        else 
-        {
-            res = 404;
-            responseMsg = "{\"message\":\"Media not found\"}";
-        }
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
- }
- 
-unsigned short OrganizationResource::getMediasValuesForUserForOrganization(std::string &responseMsg)
+EReturnCode OrganizationResource::getQuotasAsset(std::string &responseMsg)
 {
-    unsigned short res = 500;
-    int idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::ptr<Echoes::Dbo::User> user = m_session.find<Echoes::Dbo::User>().where("\"USR_ID\" = ?").bind(m_pathElements[2])
-                                                         .where("\"CURRENT_ORG_ID\" = ?").bind(m_session.user().get()->organization.id())
-                                                        .where("\"USR_DELETE\" is NULL");
-        if(user)
-        {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::MediaValue>> mediaValues = m_session.find<Echoes::Dbo::MediaValue>().where("\"MEV_USR_USR_ID\" = ?").bind(user.id())
-                                                                                                   .where("\"MEV_MED_MED_ID\" = ?").bind(m_pathElements[4])
-                                                                                                   .where("\"MEV_DELETE\" is NULL");
-            responseMsg = "[\n";
-            if(mediaValues.size() > 0)
-            {
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::MediaValue> >::const_iterator i = mediaValues.begin(); i != mediaValues.end(); i++) 
-                {
-                    i->modify()->setId(i->id());
-                    responseMsg += "\t" + i->modify()->toJSON();
-                    ++idx;
-                    if(mediaValues.size()-idx > 0)
-                    {
-                        responseMsg += ",\n";
-                    }
-                }
-                responseMsg += "\n]\n";
-                res = 200;
-            }
-            else
-            {
-                responseMsg = "{\"message\":\"Media value not found\"}";
-                 res = 404;
-            }
-        }
-        else 
-        {
-             responseMsg = "{\"message\":\"User not found\"}";
-             res = 404;
-        }
-        
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = 503;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
-}
-
-unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg)
-{
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -280,18 +91,18 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg)
             if (ptrOptionValue.get())
             {
                 responseMsg += ptrOptionValue->toJSON();
-                res = 200;
+                res = EReturnCode::OK;
             }
             else
             {
                 responseMsg = "{\"message\":\"Option not found\"}";
-                res = 404;
+                res = EReturnCode::NOT_FOUND;
             }
         }
         else
         {
             responseMsg = "{\"message\":\"Option not found\"}";
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
         }
 
         transaction.commit();
@@ -299,15 +110,15 @@ unsigned short OrganizationResource::getQuotasAsset(std::string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     } 
     return res;
 }
 
-unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg)
+EReturnCode OrganizationResource::getQuotasSms(std::string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -325,7 +136,7 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg)
             if (ptrOptionValue.get())
             {
                 responseMsg += ptrOptionValue->toJSON();
-                res = 200;
+                res = EReturnCode::OK;
             }
         }
                
@@ -334,7 +145,7 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     } 
     return res;
@@ -342,81 +153,43 @@ unsigned short OrganizationResource::getQuotasSms(std::string &responseMsg)
 
 void OrganizationResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
-    
+    string responseMsg = "";
+    string nextElement = "";
+
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if(nextElement.empty())
     {
-        this->m_statusCode = getOrganization(responseMsg);
+        m_statusCode = getOrganizationsList(responseMsg);
     }
     else
     {
-        if(!nextElement.compare("quotas_sms"))
+        try
         {
-            this->m_statusCode = getQuotasSms(responseMsg);
-        }
-        else if(!nextElement.compare("quotas_assets"))
-        {
-            this->m_statusCode = getQuotasAsset(responseMsg);
-        }
-        else if(!nextElement.compare("users"))
-        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
             nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
+            if(nextElement.empty())
             {
-            this->m_statusCode = getUsersForOrganization(responseMsg);
+                m_statusCode = getOrganization(responseMsg);
+            }
+            else if(!nextElement.compare("quotas_sms"))
+            {
+                this->m_statusCode = getQuotasSms(responseMsg);
+            }
+            else if(!nextElement.compare("quotas_assets"))
+            {
+                this->m_statusCode = getQuotasAsset(responseMsg);
             }
             else
             {
-                try
-                {
-                    boost::lexical_cast<unsigned long long>(nextElement);
-
-                    nextElement = getNextElementFromPath();
-
-                    if(!nextElement.compare("medias"))
-                    {
-                        nextElement = getNextElementFromPath();
-                        if(!nextElement.compare(""))
-                        {
-                            this->m_statusCode =  getMediasForUserForOrganization(responseMsg);
-                        }
-                        else
-                        {
-                            boost::lexical_cast<unsigned long long>(nextElement);
-                            nextElement = getNextElementFromPath();
-                            if(!nextElement.compare(""))
-                            {
-                                this->m_statusCode = getMediasValuesForUserForOrganization(responseMsg);
-                            }
-                            else
-                            {
-                                this->m_statusCode = 400;
-                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        this->m_statusCode = 400;
-                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                    }
-                }
-                catch(boost::bad_lexical_cast &)
-                {
-                    this->m_statusCode = 400;
-                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                }             
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
-        else if(!nextElement.compare("roles"))
+        catch(boost::bad_lexical_cast const& e)
         {
-            this->m_statusCode = getRolesForOrganization(responseMsg);
-        }
-        else
-        {
-            this->m_statusCode = 400;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
         }
     }
 

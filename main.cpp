@@ -7,7 +7,7 @@
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
  * COMPANY AUTHORIZATION.
  * 
- * COPYRIGHT 2012 BY ECHOES TECHNOLGIES SAS
+ * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
 
@@ -15,25 +15,24 @@
 
 #include <signal.h>
 
-#include <tools/SessionPool.h>
-
 #include "Conf.h"
 
 #include "PublicApiResource.h"
 
-#include "SearchTypeResource.h"
 #include "AddonResource.h"
-#include "CriterionResource.h"
-#include "UnitResource.h"
+#include "AlertResource.h"
 #include "AssetResource.h"
-#include "ProbeResource.h"
+#include "CriterionResource.h"
 #include "InformationResource.h"
 #include "MediaResource.h"
-#include "PluginResource.h"
-#include "UserResource.h"
-#include "RoleResource.h"
-#include "AlertResource.h"
+#include "OptionResource.h"
 #include "OrganizationResource.h"
+#include "PluginResource.h"
+#include "ProbeResource.h"
+#include "RoleResource.h"
+#include "SearchTypeResource.h"
+#include "UnitResource.h"
+#include "UserResource.h"
 
 #include "ItookiAckReceiver.h"
 #include "ItookiAswReceiver.h"
@@ -43,10 +42,11 @@
 using namespace std;
 
 /**
-Point d'entrée du programme.
-@param argc : TBC
-@param argv : TBC
-*/
+ * Main function
+ * @param argc Number of arguments passed to the program
+ * @param argv Array of arguments passed to the program
+ * @return Exit status
+ */
 int main(int argc, char **argv)
 {
     #ifndef main
@@ -69,6 +69,7 @@ int main(int argc, char **argv)
             CriterionResource    criteriaResource;
             InformationResource  informationRessource;
             MediaResource        mediaResource;
+            OptionResource       optionRessource;
             OrganizationResource organizationRessource;
             PluginResource       pluginResource;
             ProbeResource        probeResource;
@@ -79,21 +80,22 @@ int main(int argc, char **argv)
             ItookiAckReceiver    itookiAckReceiver;
             ItookiAswReceiver    itookiAswReceiver;
 
-            server.addResource(&searchTypeResource, "/search_types");
-            server.addResource(&addonResource, "/addons");
-            server.addResource(&criteriaResource, "/criteria");
-            server.addResource(&unitResource, "/units");
+            server.addResource(&addonResource,         "/addons");
+            server.addResource(&alertResource,         "/alerts");
+            server.addResource(&assetResource,         "/assets");
+            server.addResource(&criteriaResource,      "/criteria");
+            server.addResource(&informationRessource,  "/informations");
+            server.addResource(&mediaResource,         "/medias");
+            server.addResource(&optionRessource,       "/options");
             server.addResource(&organizationRessource, "/organizations");
-            server.addResource(&informationRessource, "/informations");
-            server.addResource(&mediaResource, "/medias");
-            server.addResource(&userResource, "/users");
-            server.addResource(&roleResource, "/roles");
-            server.addResource(&alertResource, "/alerts");
-            server.addResource(&assetResource, "/assets");
-            server.addResource(&probeResource, "/probes");
-            server.addResource(&pluginResource, "/plugins");
-            server.addResource(&itookiAckReceiver, "/itooki/ack");
-            server.addResource(&itookiAswReceiver, "/itooki/asw");
+            server.addResource(&pluginResource,        "/plugins");
+            server.addResource(&probeResource,         "/probes");
+            server.addResource(&roleResource,          "/roles");
+            server.addResource(&searchTypeResource,    "/search_types");
+            server.addResource(&unitResource,          "/units");
+            server.addResource(&userResource,          "/users");
+            server.addResource(&itookiAckReceiver,     "/itooki/ack");
+            server.addResource(&itookiAswReceiver,     "/itooki/asw");
 
             Echoes::Dbo::Session::configureAuth();
 

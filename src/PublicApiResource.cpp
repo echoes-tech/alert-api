@@ -83,13 +83,34 @@ namespace boost
 using namespace std;
 
 template<>
-std::string PublicApiResource::getTableName(Wt::Dbo::Exception const e)
+std::string PublicApiResource::getTableName(boost::bad_lexical_cast const& e)
+{
+    Wt::log("error") << e.what();
+    return "";
+}
+template<>
+std::string PublicApiResource::getTableName(Wt::Dbo::Exception const& e)
+{
+    Wt::log("error") << e.what();
+    return "";
+}
+template<>
+std::string PublicApiResource::getTableName(Wt::Json::ParseError const& e)
+{
+    Wt::log("error") << e.what();
+    return "";
+}
+template<>
+std::string PublicApiResource::getTableName(Wt::Json::TypeException const& e)
 {
     Wt::log("error") << e.what();
     return "";
 }
 
-PublicApiResource::PublicApiResource() : Wt::WResource(), m_session(), m_indexPathElement(1), m_statusCode(500)
+PublicApiResource::PublicApiResource() : Wt::WResource(),
+m_session(),
+m_indexPathElement(1),
+m_statusCode(EReturnCode::INTERNAL_SERVER_ERROR)
 {
 }
 
@@ -362,7 +383,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 processGetRequest(response);
                 break;
             case Wt::Http::Post:
-                
                 processPostRequest(response);
                 break;
             case Wt::Http::Put:
@@ -390,6 +410,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     m_requestData = "";
     m_indexPathElement = 1;
-    m_statusCode = 500;
+    m_statusCode = EReturnCode::INTERNAL_SERVER_ERROR;
 }
 

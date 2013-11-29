@@ -22,10 +22,10 @@ PluginResource::PluginResource() : PublicApiResource::PublicApiResource()
 PluginResource::~PluginResource(){
 }
 
- unsigned short PluginResource::pluginIsAccessible(string& responseMsg)
+ EReturnCode PluginResource::pluginIsAccessible(string& responseMsg)
 {
      
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr;
     try
     {
@@ -49,26 +49,26 @@ PluginResource::~PluginResource(){
          Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
 
          plgPtr = queryRes;
-         res = 200;
+         res = EReturnCode::OK;
          transaction.commit();
          if(!plgPtr)
          {
              responseMsg = "{\"message\":\" Not found\"}";
-             res = 404;
+             res = EReturnCode::NOT_FOUND;
          }
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
 
-unsigned short PluginResource::getPluginJSON(string& responseMsg)
+EReturnCode PluginResource::getPluginJSON(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
@@ -161,27 +161,27 @@ unsigned short PluginResource::getPluginJSON(string& responseMsg)
                 responseMsg.replace(responseMsg.size()-2, 1, "");
             }
             responseMsg += "\t]\n}";               
-            res = 200;
+            res = EReturnCode::OK;
             transaction.commit();
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Plugin not found\"}";
         }
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;  
 }
 
-unsigned short PluginResource::getPlugin(string& responseMsg)
+EReturnCode PluginResource::getPlugin(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     try
     {
@@ -221,38 +221,38 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
                 }
             }
             responseMsg += "\n]\n";
-            res = 200;
+            res = EReturnCode::OK;
             transaction.commit();
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\"message\":\"Plugin not found\"}";
         }
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << "[PluginResource]" << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;  
 }
 
 // FIXME : MOVE OUT
-//unsigned short PluginResource::getAliasForInformation(string &responseMsg)
+//EReturnCode PluginResource::getAliasForInformation(string &responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if (m_role.empty())
 //    {
-//        res = 400;
+//        res = EReturnCode::BAD_REQUEST;
 //        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //        return res;
 //    }
 //
 //    if (m_media.empty())
 //    {
-//        res = 400;
+//        res = EReturnCode::BAD_REQUEST;
 //        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //        return res;
 //    }
@@ -272,12 +272,12 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //        if (aliasInformation)
 //        {
 //            responseMsg = aliasInformation->toJSON();
-//            res = 200;
+//            res = EReturnCode::OK;
 //            transaction.commit();
 //        }
 //        else
 //        {
-//            res = 404;
+//            res = EReturnCode::NOT_FOUND;
 //            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
 //        }
 //        
@@ -286,7 +286,7 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //    catch (Wt::Dbo::Exception const& e) 
 //    {
 //        Wt::log("error") << "[Plugin Ressource] " << e.what();
-//        res = 503;
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
 //        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
 //    }
 //    
@@ -294,19 +294,19 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //    return res;
 //}
 //
-//unsigned short PluginResource::getAliasForCriteria(string &responseMsg)
+//EReturnCode PluginResource::getAliasForCriteria(string &responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if (m_role.empty())
 //    {
-//        res = 400;
+//        res = EReturnCode::BAD_REQUEST;
 //        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //        return res;
 //    }
 //
 //    if (m_media.empty())
 //    {
-//        res = 400;
+//        res = EReturnCode::BAD_REQUEST;
 //        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //        return res;
 //    }
@@ -327,12 +327,12 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //        if (aliasCriteria)
 //        {
 //            responseMsg = aliasCriteria->toJSON();
-//            res = 200;
+//            res = EReturnCode::OK;
 //            transaction.commit();
 //        }
 //        else
 //        {
-//            res = 404;
+//            res = EReturnCode::NOT_FOUND;
 //            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
 //        }
 //        
@@ -341,7 +341,7 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //    catch (Wt::Dbo::Exception const& e) 
 //    {
 //        Wt::log("error") << "[Plugin Ressource] " << e.what();
-//        res = 503;
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
 //        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
 //    }
 //    
@@ -349,9 +349,9 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //    return res;
 //}
 //
-//unsigned short PluginResource::getCriteriaForInformation(string &responseMsg)
+//EReturnCode PluginResource::getCriteriaForInformation(string &responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    unsigned idx = 0;
 //    try 
 //    {
@@ -374,11 +374,11 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //                }
 //            }
 //            responseMsg += "\n]\n";
-//            res = 200;
+//            res = EReturnCode::OK;
 //        }
 //        else
 //        {
-//            res = 404;
+//            res = EReturnCode::NOT_FOUND;
 //            responseMsg = "{\"message\":\"Criteria not found\"}";
 //        }
 //        transaction.commit();
@@ -386,25 +386,25 @@ unsigned short PluginResource::getPlugin(string& responseMsg)
 //    catch (Wt::Dbo::Exception const& e) 
 //    {
 //        Wt::log("error") << "[Plugin Ressource] " << e.what();
-//        res = 503;
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
 //        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
 //    }
 //    return res;
 //}
 
-unsigned short PluginResource::getAliasForPlugin(string &responseMsg)
+EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     if (m_role.empty())
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         return res;
     }
 
     if (m_media.empty())
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         return res;
     }
@@ -420,12 +420,12 @@ unsigned short PluginResource::getAliasForPlugin(string &responseMsg)
         if (aliasPlugin)
         {
             responseMsg = aliasPlugin->toJSON();
-            res = 200;
+            res = EReturnCode::OK;
             transaction.commit();
         }
         else
         {
-            res = 404;
+            res = EReturnCode::NOT_FOUND;
             responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
         }
         
@@ -434,7 +434,7 @@ unsigned short PluginResource::getAliasForPlugin(string &responseMsg)
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << "[Plugin Ressource] " << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
     }
     
@@ -442,9 +442,9 @@ unsigned short PluginResource::getAliasForPlugin(string &responseMsg)
     return res;
 }
 
-unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
+EReturnCode PluginResource::getInformationListForPlugin(string &responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     unsigned idx = 0;
     if((res = pluginIsAccessible(responseMsg)) == 200)
     {
@@ -471,11 +471,11 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
                     }
                 }
                 responseMsg += "\n]\n";
-                res = 200;
+                res = EReturnCode::OK;
             }
             else
             {
-                res = 404;
+                res = EReturnCode::NOT_FOUND;
                 responseMsg = "{\"message\":\"Information not found\"}";
             }
             transaction.commit();
@@ -483,7 +483,7 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << e.what();
-            res = 503;
+            res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }
@@ -491,9 +491,9 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 }
 
 //FIXME : MOVE OUT
-//unsigned short PluginResource::getSearchForSourceAndPlugin(string& responseMsg)
+//EReturnCode PluginResource::getSearchForSourceAndPlugin(string& responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        unsigned idx = 0;
@@ -519,11 +519,11 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //                }
 //                responseMsg += "\n]\n";               
 //
-//                res = 200;
+//                res = EReturnCode::OK;
 //            }
 //            else 
 //            {
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //                responseMsg = "{\"message\":\"Search not found\"}";
 //            }
 //            transaction.commit();
@@ -531,16 +531,16 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //        catch (Wt::Dbo::Exception const &e)
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }
 //    return res;
 //}
 //
-//unsigned short PluginResource::getSearchForSearchIdForSourceAndPlugin(string& responseMsg)
+//EReturnCode PluginResource::getSearchForSearchIdForSourceAndPlugin(string& responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        try
@@ -556,11 +556,11 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //            {
 //                responseMsg = "\t" + seaCollec.modify()->toJSON();             
 //
-//                res = 200;
+//                res = EReturnCode::OK;
 //            }
 //            else 
 //            {
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //                responseMsg = "{\"message\":\"Search not found\"}";
 //            }
 //            transaction.commit();
@@ -568,7 +568,7 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //        catch (Wt::Dbo::Exception const &e)
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }
@@ -576,9 +576,9 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //}
 //
 //
-//unsigned short PluginResource::getParameterValueForSearch(string &responseMsg)
+//EReturnCode PluginResource::getParameterValueForSearch(string &responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        unsigned idx = 0;
@@ -603,11 +603,11 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //                }
 //                responseMsg += "]\n";               
 //
-//                res = 200;
+//                res = EReturnCode::OK;
 //            }
 //            else 
 //            {
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //                responseMsg = "{\"message\":\"Parameter not found\"}";
 //            }
 //            transaction.commit();
@@ -615,16 +615,16 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //        catch (Wt::Dbo::Exception const &e)
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }
 //    return res;
 //}
 //
-//unsigned short PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg)
+//EReturnCode PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        unsigned idx = 0;
@@ -652,11 +652,11 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //                }
 //                responseMsg += "\n]\n";               
 //
-//                res = 200;
+//                res = EReturnCode::OK;
 //            }
 //            else 
 //            {
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //                responseMsg = "{\"message\":\"Information not found\"}";
 //            }
 //            transaction.commit();
@@ -664,16 +664,16 @@ unsigned short PluginResource::getInformationListForPlugin(string &responseMsg)
 //        catch (Wt::Dbo::Exception const &e)
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }
 //    return res;
 //}
 
-unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
+EReturnCode PluginResource::getSourceForPlugin(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         unsigned idx = 0;
@@ -699,11 +699,11 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
                 }
                 responseMsg += "\n]\n";               
 
-                res = 200;
+                res = EReturnCode::OK;
             }
             else 
             {
-                res = 404;
+                res = EReturnCode::NOT_FOUND;
                 responseMsg = "{\"message\":\"Source not found\"}";
             }
             transaction.commit();
@@ -711,7 +711,7 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
         catch (Wt::Dbo::Exception const &e)
         {
             Wt::log("error") << e.what();
-            res = 503;
+            res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }
@@ -719,9 +719,9 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
 }
 
 //FIXME: MOVE OUT
-//unsigned short PluginResource::getParameterValueForSource(string& responseMsg)
+//EReturnCode PluginResource::getParameterValueForSource(string& responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        unsigned idx = 0;
@@ -746,11 +746,11 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
 //                }
 //                responseMsg += "\n]\n";               
 //
-//                res = 200;
+//                res = EReturnCode::OK;
 //            }
 //            else 
 //            {
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //                responseMsg = "{\"message\":\"Parameter not found\"}";
 //            }
 //            transaction.commit();
@@ -758,7 +758,7 @@ unsigned short PluginResource::getSourceForPlugin(string& responseMsg)
 //        catch (Wt::Dbo::Exception const &e)
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }
@@ -799,7 +799,7 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
                 }
                 else
                 {
-                    m_statusCode = 400;
+                    m_statusCode = EReturnCode::BAD_REQUEST;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
@@ -846,7 +846,7 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
 //                                }
 //                                else
 //                                {
-//                                    m_statusCode = 400;
+//                                    m_statusCode = EReturnCode::BAD_REQUEST;
 //                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                                }
 //                                
@@ -882,48 +882,48 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
 //                                            }
 //                                            else
 //                                            {
-//                                                m_statusCode = 400;
+//                                                m_statusCode = EReturnCode::BAD_REQUEST;
 //                                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                                            }
 //                                        }
 //                                    }
 //                                    else
 //                                    {
-//                                        m_statusCode = 400;
+//                                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                                    }
 //                                }
 //                                else
 //                                {
-//                                    m_statusCode = 400;
+//                                    m_statusCode = EReturnCode::BAD_REQUEST;
 //                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                                }
 //                            }   
 //                            else
 //                            {
-//                                m_statusCode = 400;
+//                                m_statusCode = EReturnCode::BAD_REQUEST;
 //                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                            }
 //                        }
 //                    }
 //                    else
 //                    {
-//                        m_statusCode = 400;
+//                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                    }
-                    m_statusCode = 400;
+                    m_statusCode = EReturnCode::BAD_REQUEST;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {
-                m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
@@ -934,9 +934,9 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
 }
 
 
-unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRequest)
+EReturnCode PluginResource::postPlugin(string& responseMsg, const string& sRequest)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString plgName = "", plgDesc = "";
     try
     {
@@ -948,14 +948,14 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
     }
     catch (Wt::Json::ParseError const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON\"}";
         Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         return res;
     }
     catch (Wt::Json::TypeException const& e)
     {
-        res = 400;
+        res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
         Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
         return res;
@@ -974,20 +974,20 @@ unsigned short PluginResource::postPlugin(string& responseMsg, const string& sRe
         responseMsg = plgPtr->toJSON();
         
         transaction.commit();
-        res = 200;
+        res = EReturnCode::OK;
     }
     catch (Wt::Dbo::Exception const& e) 
     {
         Wt::log("error") << e.what();
-        res = 503;
+        res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = "{\"message\":\"Service Unavailable\"}";
     }
     return res;
 }
 
-unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const string& sRequest)
+EReturnCode PluginResource::postSourceForPlugin(string& responseMsg, const string& sRequest)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         long long addonId;
@@ -1044,26 +1044,26 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
                     sourceParameterValue->pk.source = srcPtr;
                     m_session.add<Echoes::Dbo::SourceParameterValue>(sourceParameterValue);
                 }
-                res = 200;
+                res = EReturnCode::OK;
                 responseMsg = srcPtr->toJSON();
                 transaction.commit();
             }
             catch (Wt::Dbo::Exception const& e) 
             {
                 Wt::log("error") << e.what();
-                res = 503;
+                res = EReturnCode::SERVICE_UNAVAILABLE;
                 responseMsg = "{\"message\":\"Service Unavailable\"}";
             }
         }
         catch (Wt::Json::ParseError const& e)
         {
-            res = 400;
+            res = EReturnCode::BAD_REQUEST;
             responseMsg = "{\"message\":\"Problems parsing JSON\"}";
             Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
         catch (Wt::Json::TypeException const& e)
         {
-            res = 400;
+            res = EReturnCode::BAD_REQUEST;
             responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
             Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
         }   
@@ -1071,9 +1071,9 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
     return res;
 }
 
-//unsigned short PluginResource::postSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
+//EReturnCode PluginResource::postSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        long long styId;
@@ -1120,7 +1120,7 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //
 //                    if(seaTypePtr.size() == 0)
 //                    {
-//                            res = 404;
+//                            res = EReturnCode::NOT_FOUND;
 //                            responseMsg = "{\"message\":\"Search Type not found.\"}";
 //                            return res;
 //                    }
@@ -1195,23 +1195,23 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //                                else
 //                                {
 //                                    Wt::log("info") << "[Plugin Ressource] info non trouvée ou valNum non autorisée";
-//                                    res = 400;
+//                                    res = EReturnCode::BAD_REQUEST;
 //                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
 //                                    return res;
 //                                }
 //                            }
 //                            responseMsg = seaPtr->toJSON();
-//                            res = 200;
+//                            res = EReturnCode::OK;
 //                        }
 //                        else
 //                        {
-//                            res = 404;
+//                            res = EReturnCode::NOT_FOUND;
 //                            responseMsg = "{\"message\":\"Search Type not found\"}";
 //                        }
 //                    }
 //                    else
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\"message\":\"Source not found\"}";
 //                    }
 //                    transaction.commit();
@@ -1219,26 +1219,26 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //                catch (Wt::Dbo::Exception const& e) 
 //                {
 //                    Wt::log("error") << e.what();
-//                    res = 503;
+//                    res = EReturnCode::SERVICE_UNAVAILABLE;
 //                    responseMsg = "{\"message\":\"Service Unavailable\"}";
 //                }
 //            }
 //            else
 //            {
 //                 Wt::log("info") << "[Plugin Ressource] unité sur val_num non declarée";
-//                 m_statusCode = 400;
+//                 m_statusCode = EReturnCode::BAD_REQUEST;
 //                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";  
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[PluginRessource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -1246,9 +1246,9 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //    return res;
 //}
 //
-//unsigned short PluginResource::postInformationForSeaSrcAndPlg(string& responseMsg, const string& sRequest)
+//EReturnCode PluginResource::postInformationForSeaSrcAndPlg(string& responseMsg, const string& sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        Wt::WString infName, infCalculate;
@@ -1303,17 +1303,17 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //                        Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.add<Echoes::Dbo::Information>(information);
 //                        infPtr.flush();
 //                        responseMsg = infPtr->toJSON();
-//                        res = 200;
+//                        res = EReturnCode::OK;
 //                    }
 //                    else
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\"message\":\"Information not found\"}";
 //                    }
 //                }
 //                else
 //                {
-//                    res = 404;
+//                    res = EReturnCode::NOT_FOUND;
 //                    responseMsg = "{\"message\":\"Search not found\"}";
 //                }
 //                transaction.commit();
@@ -1321,19 +1321,19 @@ unsigned short PluginResource::postSourceForPlugin(string& responseMsg, const st
 //            catch (Wt::Dbo::Exception const& e) 
 //            {
 //                Wt::log("error") << e.what();
-//                res = 503;
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
 //                responseMsg = "{\"message\":\"Service Unavailable\"}";
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -1414,7 +1414,7 @@ void PluginResource::processPostRequest(Wt::Http::Response &response)
 //                                    }
 //                                    else
 //                                    {
-//                                        m_statusCode = 400;
+//                                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                                    }
 //                                    ///patch
@@ -1422,29 +1422,29 @@ void PluginResource::processPostRequest(Wt::Http::Response &response)
 //                            }
 //                            else
 //                            {
-//                                m_statusCode = 400;
+//                                m_statusCode = EReturnCode::BAD_REQUEST;
 //                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                            }
 //                        }
 //                    }
 //                    else
 //                    {
-//                        m_statusCode = 400;
+//                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                    }
-                    m_statusCode = 400;
+                    m_statusCode = EReturnCode::BAD_REQUEST;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {  
-                m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }             
     }
@@ -1462,7 +1462,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        m_statusCode = 400;
+        m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
     }
     else
@@ -1504,7 +1504,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //                                }
 //                                else
 //                                {
-//                                    m_statusCode = 400;
+//                                    m_statusCode = EReturnCode::BAD_REQUEST;
 //                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                                }
 //                            }
@@ -1514,25 +1514,25 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //                            }
 //                            else
 //                            {
-//                                m_statusCode = 400;
+//                                m_statusCode = EReturnCode::BAD_REQUEST;
 //                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                            }
 //                        }
 //                        else
 //                        {
-//                            m_statusCode = 400;
+//                            m_statusCode = EReturnCode::BAD_REQUEST;
 //                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                        }
 //                    }
 //                    else
 //                    {
-//                        m_statusCode = 400;
+//                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                    }
 //                }
 //                else
 //                {
-//                    m_statusCode = 400;
+//                    m_statusCode = EReturnCode::BAD_REQUEST;
 //                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                }
 //
@@ -1544,13 +1544,13 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
             }
             else
             {
-                m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }
@@ -1560,9 +1560,9 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
     return;
 }
 
-//unsigned short PluginResource::putAliasForInformation(string &responseMsg, const string &sRequest)
+//EReturnCode PluginResource::putAliasForInformation(string &responseMsg, const string &sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    Wt::WString sRole;
 //    Wt::WString sMedia;
 //    Wt::WString sValue;
@@ -1601,7 +1601,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 ////                
 ////                    if (!ptrRole)
 ////                    {
-////                        res = 404;
+////                        res = EReturnCode::NOT_FOUND;
 ////                        responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
 ////                        return res;
 ////                    }
@@ -1612,7 +1612,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 ////
 ////                    if (!ptrMedia)
 ////                    {
-////                        res = 404;
+////                        res = EReturnCode::NOT_FOUND;
 ////                        responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
 ////                        return res;
 ////                    }
@@ -1639,11 +1639,11 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 ////                        newInformationAlias->alias = sValue;
 ////                        ptrInformationAlias = _session.add<Echoes::Dbo::AlertMessageAliasInformation>(newInformationAlias);
 ////                    }
-////                    res = 200;
+////                    res = EReturnCode::OK;
 ////                }
 ////                else
 ////                {
-////                    res = 404;
+////                    res = EReturnCode::NOT_FOUND;
 ////                    responseMsg = "{\"message\":\"Information not found\"}";
 ////                }
 //
@@ -1652,19 +1652,19 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //            catch (Wt::Dbo::Exception const& e) 
 //            {
 //                Wt::log("error") << e.what();
-//                res = 503;
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
 //                responseMsg = "{\"message\":\"Service Unavailable\"}";
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -1672,9 +1672,9 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //    return res; 
 //}
 //
-//unsigned short PluginResource::putAliasForCriterion(string &responseMsg, const string &sRequest)
+//EReturnCode PluginResource::putAliasForCriterion(string &responseMsg, const string &sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    Wt::WString sRole;
 //    Wt::WString sMedia;
 //    Wt::WString sValue;
@@ -1713,7 +1713,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //                
 //                    if (!ptrRole)
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
 //                        return res;
 //                    }
@@ -1724,7 +1724,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //
 //                    if (!ptrMedia)
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
 //                        return res;
 //                    }
@@ -1735,7 +1735,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //
 //                    if (!ptrCriterion)
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\n\t\"message\":\"Criterion not found\"\n}";
 //                        return res;
 //                    }
@@ -1764,11 +1764,11 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 ////                        newInformationCriteriaAlias->alias = sValue;
 ////                        ptrInformationCriteriaAlias = _session.add<Echoes::Dbo::AlertMessageAliasInformationCriteria>(newInformationCriteriaAlias);
 ////                    }
-//                    res = 200;
+//                    res = EReturnCode::OK;
 //                }
 //                else
 //                {
-//                    res = 404;
+//                    res = EReturnCode::NOT_FOUND;
 //                    responseMsg = "{\"message\":\"Information not found\"}";
 //                }
 //
@@ -1777,19 +1777,19 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //            catch (Wt::Dbo::Exception const& e) 
 //            {
 //                Wt::log("error") << e.what();
-//                res = 503;
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
 //                responseMsg = "{\"message\":\"Service Unavailable\"}";
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -1797,9 +1797,9 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //    return res; 
 //}
 
-unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const string &sRequest)
+EReturnCode PluginResource::putAliasForPlugin(string &responseMsg, const string &sRequest)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString sRole;
     Wt::WString sMedia;
     Wt::WString sValue;
@@ -1835,7 +1835,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
                 
                     if (!ptrRole)
                     {
-                        res = 404;
+                        res = EReturnCode::NOT_FOUND;
                         responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
                         return res;
                     }
@@ -1846,7 +1846,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 
                     if (!ptrMedia)
                     {
-                        res = 404;
+                        res = EReturnCode::NOT_FOUND;
                         responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
                         return res;
                     }
@@ -1869,11 +1869,11 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
                         newPluginAlias->alias = sValue;
                         ptrPluginAlias = m_session.add<Echoes::Dbo::AlertMessageAliasPlugin>(newPluginAlias);
                     }
-                    res = 200;
+                    res = EReturnCode::OK;
                 }
                 else
                 {
-                    res = 404;
+                    res = EReturnCode::NOT_FOUND;
                     responseMsg = "{\"message\":\"Information not found\"}";
                 }
 
@@ -1882,19 +1882,19 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
             catch (Wt::Dbo::Exception const& e) 
             {
                 Wt::log("error") << e.what();
-                res = 503;
+                res = EReturnCode::SERVICE_UNAVAILABLE;
                 responseMsg = "{\"message\":\"Service Unavailable\"}";
             }
         }
         catch (Wt::Json::ParseError const& e)
         {
-            res = 400;
+            res = EReturnCode::BAD_REQUEST;
             responseMsg = "{\"message\":\"Problems parsing JSON\"}";
             Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
         }
         catch (Wt::Json::TypeException const& e)
         {
-            res = 400;
+            res = EReturnCode::BAD_REQUEST;
             responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
             Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
         }   
@@ -1902,9 +1902,9 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
     return res; 
 }
 
-//unsigned short PluginResource::patchInformationForSeaSrcAndPlg(string &responseMsg, const string &sRequest)
+//EReturnCode PluginResource::patchInformationForSeaSrcAndPlg(string &responseMsg, const string &sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        Wt::WString infName, infCalculate;
@@ -1948,17 +1948,17 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //                        infPtr.modify()->display = infDisplay;
 //                        infPtr.modify()->calculate = infCalculate;
 //                        responseMsg = infPtr->toJSON();
-//                        res = 200;
+//                        res = EReturnCode::OK;
 //                    }
 //                    else
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\"message\":\"Unit not found\"}";
 //                    }
 //                }
 //                else
 //                {
-//                    res = 404;
+//                    res = EReturnCode::NOT_FOUND;
 //                    responseMsg = "{\"message\":\"Information not found\"}";
 //                }
 //
@@ -1967,19 +1967,19 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //            catch (Wt::Dbo::Exception const& e) 
 //            {
 //                Wt::log("error") << e.what();
-//                res = 503;
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
 //                responseMsg = "{\"message\":\"Service Unavailable\"}";
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -1987,9 +1987,9 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //    return res; 
 //}
 //
-//unsigned short PluginResource::patchSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
+//EReturnCode PluginResource::patchSearchForSourceAndPlugin(string& responseMsg, const string& sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        bool seaIsStatic;
@@ -2040,18 +2040,18 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //
 //                            searchParameterValuePtr.modify()->value = tmp;
 //                        }
-//                        res = 200;
+//                        res = EReturnCode::OK;
 //                        responseMsg = seaPtr->toJSON();
 //                    }
 //                    else
 //                    {
-//                        res = 404;
+//                        res = EReturnCode::NOT_FOUND;
 //                        responseMsg = "{\"message\":\"Search Type not found\"}";
 //                    }
 //                }
 //                else
 //                {
-//                    res = 404;
+//                    res = EReturnCode::NOT_FOUND;
 //                    responseMsg = "{\"message\":\"Search not found\"}";
 //                }
 //                transaction.commit();
@@ -2059,19 +2059,19 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //            catch (Wt::Dbo::Exception const& e) 
 //            {
 //                Wt::log("error") << e.what();
-//                res = 503;
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
 //                responseMsg = "{\"message\":\"Service Unavailable\"}";
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -2079,9 +2079,9 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //    return res;
 //}
 //
-//unsigned short PluginResource::patchParametersSourceForPlugin(string &responseMsg, const string &sRequest)
+//EReturnCode PluginResource::patchParametersSourceForPlugin(string &responseMsg, const string &sRequest)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        Wt::Json::Array& parameters = Wt::Json::Array::Empty;
@@ -2119,17 +2119,17 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //                        }
 //                        else
 //                        {
-//                            res = 404;
+//                            res = EReturnCode::NOT_FOUND;
 //                            responseMsg = "{\"message\":\"Parameter not found\"}";
 //                            return res;
 //                        }
 //                        responseMsg += srcParamValPtr->toJSON();
-//                        res = 200;
+//                        res = EReturnCode::OK;
 //                    }
 //                }
 //                else
 //                {
-//                    res = 404;
+//                    res = EReturnCode::NOT_FOUND;
 //                    responseMsg = "{\"message\":\"Source not found\"}";
 //                }
 //                transaction.commit();
@@ -2137,19 +2137,19 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //            catch (Wt::Dbo::Exception const& e) 
 //            {
 //                Wt::log("error") << e.what();
-//                res = 503;
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
 //                responseMsg = "{\"message\":\"Service Unavailable\"}";
 //            }
 //        }
 //        catch (Wt::Json::ParseError const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
 //        }
 //        catch (Wt::Json::TypeException const& e)
 //        {
-//            res = 400;
+//            res = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
 //            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
 //        }   
@@ -2164,7 +2164,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //    nextElement = getNextElementFromPath();
 //    if(!nextElement.compare(""))
 //    {
-//        m_statusCode = 400;
+//        m_statusCode = EReturnCode::BAD_REQUEST;
 //        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //    }
 //    else
@@ -2180,7 +2180,7 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //                nextElement = getNextElementFromPath();
 //                if(!nextElement.compare(""))
 //                {
-//                    m_statusCode = 400;
+//                    m_statusCode = EReturnCode::BAD_REQUEST;
 //                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                }
 //                else
@@ -2193,20 +2193,20 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //                    }
 //                    else
 //                    {
-//                        m_statusCode = 400;
+//                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                    }
 //                }
 //            }
 //            else
 //            {
-//                m_statusCode = 400;
+//                m_statusCode = EReturnCode::BAD_REQUEST;
 //                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //            }
 //        }
 //        catch(boost::bad_lexical_cast &)
 //        {
-//            m_statusCode = 400;
+//            m_statusCode = EReturnCode::BAD_REQUEST;
 //            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //        }
 //    }
@@ -2216,9 +2216,9 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //    return;
 //}
 
-//unsigned short PluginResource::deleteInformationForSeaSrcAndPlg(string& responseMsg)
+//EReturnCode PluginResource::deleteInformationForSeaSrcAndPlg(string& responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        try 
@@ -2248,18 +2248,18 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //
 //                    informationPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
 //
-//                    res = 204;
+//                    res = EReturnCode::NO_CONTENT;
 //                }
 //                else
 //                {
-//                    res = 409;
+//                    res = EReturnCode::CONFLICT;
 //                    responseMsg = "{\"message\":\"Conflict, an alert use this information\"}";
 //                }
 //            }
 //            else
 //            {
 //                responseMsg = "{\"message\":\"Information Not Found\"}";
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //            }
 //
 //            transaction.commit();               
@@ -2267,16 +2267,16 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //        catch (Wt::Dbo::Exception const& e) 
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }    
 //    return res;
 //}
 
-//unsigned short PluginResource::deleteSearchForSourceAndPlugin(string& responseMsg)
+//EReturnCode PluginResource::deleteSearchForSourceAndPlugin(string& responseMsg)
 //{
-//    unsigned short res = 500;
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    if((res = pluginIsAccessible(responseMsg)) == 200)
 //    {
 //        try 
@@ -2305,26 +2305,26 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 ////                    res = deleteInformationForSeaSrcAndPlg(responseMsg);
 ////                    if( res != 204)
 ////                    {
-////                        res = 409;
+////                        res = EReturnCode::CONFLICT;
 ////                        responseMsg = "{\"message\":\"Conflict, an alert use this search\"}";
 ////                        return res;
 ////                    }
 ////                }           
 //
 //                seaPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-//                res = 204;   
+//                res = EReturnCode::NO_CONTENT;   
 //            }
 //            else
 //            {
 //                responseMsg = "{\"message\":\"Search Not Found\"}";
-//                res = 404;
+//                res = EReturnCode::NOT_FOUND;
 //            }
 //            transaction.commit();               
 //        }
 //        catch (Wt::Dbo::Exception const& e) 
 //        {
 //            Wt::log("error") << e.what();
-//            res = 503;
+//            res = EReturnCode::SERVICE_UNAVAILABLE;
 //            responseMsg = "{\"message\":\"Service Unavailable\"}";
 //        }
 //    }    
@@ -2332,9 +2332,9 @@ unsigned short PluginResource::putAliasForPlugin(string &responseMsg, const stri
 //    
 //}
 
-unsigned short PluginResource::deletePlugin(string& responseMsg)
+EReturnCode PluginResource::deletePlugin(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try 
@@ -2345,11 +2345,11 @@ unsigned short PluginResource::deletePlugin(string& responseMsg)
             if(plgPtr)
             {
                 plgPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-                res = 204;
+                res = EReturnCode::NO_CONTENT;
             }
             else
             {
-                res = 404;
+                res = EReturnCode::NOT_FOUND;
                 responseMsg = "{\"message\":\"Plugin not found\"}";
             }
             transaction.commit();               
@@ -2357,16 +2357,16 @@ unsigned short PluginResource::deletePlugin(string& responseMsg)
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << e.what();
-            res = 503;
+            res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }    
     return res;
 }
 
-unsigned short PluginResource::deleteSourceForPlugin(string& responseMsg)
+EReturnCode PluginResource::deleteSourceForPlugin(string& responseMsg)
 {
-    unsigned short res = 500;
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     if((res = pluginIsAccessible(responseMsg)) == 200)
     {
         try 
@@ -2382,7 +2382,7 @@ unsigned short PluginResource::deleteSourceForPlugin(string& responseMsg)
         catch (Wt::Dbo::Exception const& e) 
         {
             Wt::log("error") << e.what();
-            res = 503;
+            res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = "{\"message\":\"Service Unavailable\"}";
         }
     }
@@ -2396,7 +2396,7 @@ void PluginResource::processDeleteRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if(!nextElement.compare(""))
     {
-        m_statusCode = 400;
+        m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
     }
     else
@@ -2447,37 +2447,37 @@ void PluginResource::processDeleteRequest(Wt::Http::Response &response)
 //                            }
 //                            else
 //                            {
-//                                m_statusCode = 400;
+//                                m_statusCode = EReturnCode::BAD_REQUEST;
 //                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                            }
 //                        }
 //                        else
 //                        {
-//                            m_statusCode = 400;
+//                            m_statusCode = EReturnCode::BAD_REQUEST;
 //                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                        }
 //                    }
 //                    else
 //                    {
-//                        m_statusCode = 400;
+//                        m_statusCode = EReturnCode::BAD_REQUEST;
 //                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
 //                    }
 //                }
                 else
                 {
-                    m_statusCode = 400;
+                    m_statusCode = EReturnCode::BAD_REQUEST;
                     responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
                 }
             }
             else
             {
-                m_statusCode = 400;
+                m_statusCode = EReturnCode::BAD_REQUEST;
                 responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
             }
         }
         catch(boost::bad_lexical_cast &)
         {
-            m_statusCode = 400;
+            m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
         }
     }

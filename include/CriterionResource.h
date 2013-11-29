@@ -23,19 +23,9 @@ class CriterionResource : public PublicApiResource
         virtual ~CriterionResource();
         
     protected :
-
-        unsigned short getCriteria(std::string &responseMsg);
+        EReturnCode getCriteriaList(std::string &responseMsg);
+        EReturnCode getCriterion(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
-
-        virtual void processPostRequest(Wt::Http::Response &response);
-
-        virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
-
-        virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
 #endif	/* CRITERIONRESOURCE_H */

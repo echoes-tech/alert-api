@@ -30,28 +30,26 @@ class AlertResource : public PublicApiResource
     protected:
         std::string m_media;
         
-        unsigned short getRecipientsForAlert(std::string &responseMsg);       
-        unsigned short getTrackingAlertMessage(std::string &responseMsg);
-        unsigned short getTrackingAlertList(std::string &responseMsg);
-        unsigned short getAlerts(std::string &responseMsg);
-        unsigned short getAlert(std::string &responseMsg);
+        EReturnCode getRecipientsForAlert(std::string &responseMsg);       
+        EReturnCode getTrackingAlertMessage(std::string &responseMsg);
+        EReturnCode getTrackingAlertList(std::string &responseMsg);
+        EReturnCode getAlerts(std::string &responseMsg);
+        EReturnCode getAlert(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         /**
          * method to send a MAIL 
          * @param collection of informations values that matches the alert
          * @param the alert
-         * @param the alert message
          * @param the alert tracking required and concerned by the sms
          * @param the media value concern by the alert
          * @param if the user as use all his sms, the value here is 1 if not it's 0
          * @return HTTP Code
          */
-        unsigned short sendMAIL
+        EReturnCode sendMAIL
         (
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
             Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
             bool overSMSQuota = false
@@ -61,16 +59,14 @@ class AlertResource : public PublicApiResource
          * method to send an SMS with the call of the API
          * @param collection of informations values that matches the alert
          * @param the alert
-         * @param the alert message
          * @param the alert tracking required and concerned by the sms
          * @param the media value concern by the alert
          * @return HTTP Code
          */
-        unsigned short sendSMS
+        EReturnCode sendSMS
         (
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
             Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
         );
@@ -79,22 +75,20 @@ class AlertResource : public PublicApiResource
          * method to put a date and content in Alertetracking table 
          * @param collection of informations values that matches the alert
          * @param the alert
-         * @param the alert message
          * @param the alert tracking required and concerned by the sms
          * @param the media value concern by the alert
          * @return HTTP Code
          */
-        unsigned short sendMobileApp
+        EReturnCode sendMobileApp
         (
          Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
          Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-         Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr,
          Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
          Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
         );
         
-        unsigned short postAlert(std::string &responseMsg, const std::string &sRequest);
-        unsigned short postAlertTracking(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postAlert(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postAlertTracking(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
@@ -102,7 +96,7 @@ class AlertResource : public PublicApiResource
 
         virtual void processPatchRequest(Wt::Http::Response &response);
 
-        unsigned short deleteAlert(std::string &responseMsg);
+        EReturnCode deleteAlert(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);

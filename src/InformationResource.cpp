@@ -47,7 +47,6 @@ void InformationResource::processPatchRequest(Wt::Http::Response &response)
 }
 
 
-
 void InformationResource::processDeleteRequest(Wt::Http::Response &response)
 {    
     return;
