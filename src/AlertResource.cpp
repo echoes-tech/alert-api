@@ -75,7 +75,7 @@ EReturnCode AlertResource::getAlertsList(string &responseMsg)
 " SELECT ale"
 "   FROM " QUOTE("T_ALERT_ALE") " ale"
 "   WHERE"
-"     " QUOTE(TRIGRAM_ALERT ID) " = "
+"     " QUOTE(TRIGRAM_ALERT ID) " IN"
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)
 "           FROM " QUOTE("T_ALERT_MEDIA_SPECIALIZATION_AMS")
@@ -97,7 +97,8 @@ EReturnCode AlertResource::getAlertsList(string &responseMsg)
 "               )"
 "             AND " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL";
+"     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL"
+"   ORDER BY " QUOTE(TRIGRAM_ALERT ID);
  
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
 

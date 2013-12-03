@@ -67,7 +67,8 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 "           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(this->m_session.user()->organization.id()) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL";
+"     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
+"   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
  
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
