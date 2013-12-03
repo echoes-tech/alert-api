@@ -34,7 +34,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
 "   FROM " QUOTE("T_MEDIA_MED") " med"
 "   WHERE"
 "     " QUOTE(TRIGRAM_MEDIA ID) " = " + medId +
-"     AND " QUOTE(TRIGRAM_USER ID) " IN"
+"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_USER SEP TRIGRAM_USER ID) " IN"
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
@@ -60,7 +60,7 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 " SELECT med"
 "   FROM " QUOTE("T_MEDIA_MED") " med"
 "   WHERE"
-"     " QUOTE(TRIGRAM_USER ID) " IN"
+"     " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_USER SEP TRIGRAM_USER ID) " IN"
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")

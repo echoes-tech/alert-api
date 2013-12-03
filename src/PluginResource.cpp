@@ -19,7 +19,8 @@ PluginResource::PluginResource() : PublicApiResource::PublicApiResource()
 {
 }
 
-PluginResource::~PluginResource(){
+PluginResource::~PluginResource()
+{
 }
 
  EReturnCode PluginResource::pluginIsAccessible(string& responseMsg)
