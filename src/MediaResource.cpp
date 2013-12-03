@@ -93,9 +93,9 @@ EReturnCode MediaResource::getMedia(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtrCol = selectMedia(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_session);
 
-        res = serialize(medPtrCol, responseMsg);
+        res = serialize(medPtr, responseMsg);
 
         transaction.commit();
     }
@@ -396,17 +396,20 @@ EReturnCode MediaResource::deleteMedia(string &responseMsg)
         if (medPtr) 
         {
             medPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+            res = EReturnCode::NO_CONTENT;
         } 
         else 
         {
             res = EReturnCode::NOT_FOUND;
             responseMsg = httpCodeToJSON(res, medPtr);
         }
+
+        transaction.commit();
     }
     catch(boost::bad_lexical_cast const& e)
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, e);
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, e);
     }
 
     return res;

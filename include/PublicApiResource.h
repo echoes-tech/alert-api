@@ -144,7 +144,7 @@ protected:
         responseMsg = jsonSerializer.getResult();
         return responseMsg;
     }
-    
+
     template<class C>
     std::string getTableName(C)
     {

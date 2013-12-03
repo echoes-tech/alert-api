@@ -47,7 +47,7 @@ class AlertResource : public PublicApiResource
         EReturnCode getRecipientsForAlert(std::string &responseMsg);       
         EReturnCode getTrackingAlertMessage(std::string &responseMsg);
         EReturnCode getTrackingAlertList(std::string &responseMsg);
-        EReturnCode getAlerts(std::string &responseMsg);
+        EReturnCode getAlertsList(std::string &responseMsg);
         EReturnCode getAlert(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
@@ -95,7 +95,7 @@ class AlertResource : public PublicApiResource
          */
         EReturnCode sendMobileApp
         (
-         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
+         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
          Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
          Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
          Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
