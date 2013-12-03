@@ -21,29 +21,33 @@ class MediaResource : public PublicApiResource
     public :
         MediaResource();
         virtual ~MediaResource();
-        
+
+        /**
+         * Select a Media
+         * @param medId Identifier of Media
+         * @return Media Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const long long &medId, Echoes::Dbo::Session &session);
+        /**
+         * Select a Media with a ID string
+         * @param medId String of Identifier of Media
+         * @return Media Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const std::string &medId, Echoes::Dbo::Session &session);
+
     protected :
-        
-        Wt::WString m_mediaId;
-      
         EReturnCode getMedia(std::string &responseMsg);
         EReturnCode getMediasList(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-        EReturnCode postMediaSpecialization(std::string &responseMsg, const std::string &sRequest);
         EReturnCode postMedia(std::string &responseMsg, const std::string &sRequest);
-        EReturnCode postMediaValidation(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
+        EReturnCode putMedia(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
 
-        EReturnCode deleteMediaSpecialization(std::string &responseMsg);
         EReturnCode deleteMedia(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };
 
 #endif	/* MEDIARESOURCE_H */

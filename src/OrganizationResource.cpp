@@ -71,83 +71,85 @@ EReturnCode OrganizationResource::getOrganization(std::string &responseMsg)
     return res;
 }
 
+// FIXME
 EReturnCode OrganizationResource::getQuotasAsset(std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        
-        Wt::Dbo::ptr<Echoes::Dbo::PackOption> ptrPackOption = m_session.find<Echoes::Dbo::PackOption>()
-                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->organization->pack.id())
-                .where("\"POP_OPT_OPT_ID\" = 1")
-                .limit(1);
-        if (ptrPackOption.get())
-        {
-            Wt::Dbo::ptr<Echoes::Dbo::OptionValue> ptrOptionValue = m_session.find<Echoes::Dbo::OptionValue>()
-                    .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption->pk.option.id())
-                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
-                    .limit(1);
-            if (ptrOptionValue.get())
-            {
-                responseMsg += ptrOptionValue->toJSON();
-                res = EReturnCode::OK;
-            }
-            else
-            {
-                responseMsg = "{\"message\":\"Option not found\"}";
-                res = EReturnCode::NOT_FOUND;
-            }
-        }
-        else
-        {
-            responseMsg = "{\"message\":\"Option not found\"}";
-            res = EReturnCode::NOT_FOUND;
-        }
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    } 
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(m_session);
+//        
+//        Wt::Dbo::ptr<Echoes::Dbo::PackOption> ptrPackOption = m_session.find<Echoes::Dbo::PackOption>()
+//                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->organization->pack.id())
+//                .where("\"POP_OPT_OPT_ID\" = 1")
+//                .limit(1);
+//        if (ptrPackOption.get())
+//        {
+//            Wt::Dbo::ptr<Echoes::Dbo::OptionValue> ptrOptionValue = m_session.find<Echoes::Dbo::OptionValue>()
+//                    .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption->pk.option.id())
+//                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
+//                    .limit(1);
+//            if (ptrOptionValue.get())
+//            {
+//                responseMsg += ptrOptionValue->toJSON();
+//                res = EReturnCode::OK;
+//            }
+//            else
+//            {
+//                responseMsg = "{\"message\":\"Option not found\"}";
+//                res = EReturnCode::NOT_FOUND;
+//            }
+//        }
+//        else
+//        {
+//            responseMsg = "{\"message\":\"Option not found\"}";
+//            res = EReturnCode::NOT_FOUND;
+//        }
+//
+//        transaction.commit();
+//    }
+//    catch (Wt::Dbo::Exception const& e) 
+//    {
+//        Wt::log("error") << e.what();
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//    } 
     return res;
 }
 
+// FIXME
 EReturnCode OrganizationResource::getQuotasSms(std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-
-        Wt::Dbo::ptr<Echoes::Dbo::PackOption> ptrPackOption = m_session.find<Echoes::Dbo::PackOption>()
-                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->organization->pack.id())
-                .where("\"POP_OPT_OPT_ID\" = 2")
-                .limit(1);
-        if (ptrPackOption.get())
-        {
-            Wt::Dbo::ptr<Echoes::Dbo::OptionValue> ptrOptionValue = m_session.find<Echoes::Dbo::OptionValue>()
-                    .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
-                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
-                    .limit(1);
-            if (ptrOptionValue.get())
-            {
-                responseMsg += ptrOptionValue->toJSON();
-                res = EReturnCode::OK;
-            }
-        }
-               
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    } 
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(m_session);
+//
+//        Wt::Dbo::ptr<Echoes::Dbo::PackOption> ptrPackOption = m_session.find<Echoes::Dbo::PackOption>()
+//                .where("\"POP_PCK_PCK_ID\" = ?").bind(this->m_session.user()->organization->pack.id())
+//                .where("\"POP_OPT_OPT_ID\" = 2")
+//                .limit(1);
+//        if (ptrPackOption.get())
+//        {
+//            Wt::Dbo::ptr<Echoes::Dbo::OptionValue> ptrOptionValue = m_session.find<Echoes::Dbo::OptionValue>()
+//                    .where("\"OPT_ID_OPT_ID\" = ?").bind(ptrPackOption.get()->pk.option.id())
+//                    .where("\"ORG_ID_ORG_ID\" = ?").bind(this->m_session.user()->organization.id())
+//                    .limit(1);
+//            if (ptrOptionValue.get())
+//            {
+//                responseMsg += ptrOptionValue->toJSON();
+//                res = EReturnCode::OK;
+//            }
+//        }
+//               
+//        transaction.commit();
+//    }
+//    catch (Wt::Dbo::Exception const& e) 
+//    {
+//        Wt::log("error") << e.what();
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//    } 
     return res;
 }
 

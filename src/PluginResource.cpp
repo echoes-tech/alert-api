@@ -1606,7 +1606,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 ////                        return res;
 ////                    }
 ////
-////                    Wt::Dbo::ptr<Echoes::Dbo::Media> ptrMedia = _session.find<Echoes::Dbo::Media>()
+////                    Wt::Dbo::ptr<Echoes::Dbo::MediaType> ptrMedia = _session.find<Echoes::Dbo::MediaType>()
 ////                            .where("\"MED_ID\" = ?").bind(sMedia)
 ////                            .where("\"MED_DELETE\" IS NULL");
 ////
@@ -1718,7 +1718,7 @@ void PluginResource::processPutRequest(Wt::Http::Response &response)
 //                        return res;
 //                    }
 //
-//                    Wt::Dbo::ptr<Echoes::Dbo::Media> ptrMedia = m_session.find<Echoes::Dbo::Media>()
+//                    Wt::Dbo::ptr<Echoes::Dbo::MediaType> ptrMedia = m_session.find<Echoes::Dbo::MediaType>()
 //                            .where("\"MED_ID\" = ?").bind(sMedia)
 //                            .where("\"MED_DELETE\" IS NULL");
 //
@@ -1840,11 +1840,11 @@ EReturnCode PluginResource::putAliasForPlugin(string &responseMsg, const string 
                         return res;
                     }
 
-                    Wt::Dbo::ptr<Echoes::Dbo::Media> ptrMedia = m_session.find<Echoes::Dbo::Media>()
+                    Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
                             .where("\"MED_ID\" = ?").bind(sMedia)
                             .where("\"MED_DELETE\" IS NULL");
 
-                    if (!ptrMedia)
+                    if (!mtyPtr)
                     {
                         res = EReturnCode::NOT_FOUND;
                         responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
@@ -1865,7 +1865,7 @@ EReturnCode PluginResource::putAliasForPlugin(string &responseMsg, const string 
                         Echoes::Dbo::AlertMessageAliasPlugin *newPluginAlias = new Echoes::Dbo::AlertMessageAliasPlugin();
                         newPluginAlias->pk.plugin = infPlg;
                         newPluginAlias->pk.userRole = ptrRole;
-                        newPluginAlias->pk.media = ptrMedia;
+                        newPluginAlias->pk.mediaType = mtyPtr;
                         newPluginAlias->alias = sValue;
                         ptrPluginAlias = m_session.add<Echoes::Dbo::AlertMessageAliasPlugin>(newPluginAlias);
                     }

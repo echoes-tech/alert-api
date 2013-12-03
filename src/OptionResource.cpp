@@ -33,7 +33,7 @@ EReturnCode OptionResource::getOptionsList(string &responseMsg)
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
-                .orderBy(QUOTE(TRIGRAM_OPTION_VALUE ID));
+                .orderBy(QUOTE(TRIGRAM_OPTION ID));
 
         res = serialize(optPtrCol, responseMsg);
 

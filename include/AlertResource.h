@@ -19,6 +19,7 @@
 
 #include "Conf.h"
 #include "PublicApiResource.h"
+#include "MediaResource.h"
 #include "itooki/ItookiSMSSender.h"
 
 class AlertResource : public PublicApiResource
@@ -26,7 +27,20 @@ class AlertResource : public PublicApiResource
     public :
         AlertResource();
         virtual ~AlertResource();
-        
+
+        /**
+         * Select an Alert
+         * @param aleId Identifier of Alert
+         * @return Alert Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const long long &aleId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Alert with a ID string
+         * @param aleId String of Identifier of Alert
+         * @return Alert Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, Echoes::Dbo::Session &session);
+
     protected:
         std::string m_media;
         
@@ -48,7 +62,7 @@ class AlertResource : public PublicApiResource
          */
         EReturnCode sendMAIL
         (
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
             Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
@@ -65,7 +79,7 @@ class AlertResource : public PublicApiResource
          */
         EReturnCode sendSMS
         (
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
             Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
             Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
@@ -81,7 +95,7 @@ class AlertResource : public PublicApiResource
          */
         EReturnCode sendMobileApp
         (
-         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
          Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
          Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
          Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
@@ -92,9 +106,6 @@ class AlertResource : public PublicApiResource
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-
-        virtual void processPatchRequest(Wt::Http::Response &response);
 
         EReturnCode deleteAlert(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);

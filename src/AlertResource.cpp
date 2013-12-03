@@ -22,80 +22,123 @@ AlertResource::~AlertResource()
 {
 }
 
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const long long &aleId, Echoes::Dbo::Session &session)
+{
+    return selectAlert(boost::lexical_cast<string>(aleId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, Echoes::Dbo::Session &session)
+{
+    string queryStr =
+" SELECT ale"
+"   FROM " QUOTE("T_ALERT_ALE") " ale"
+"   WHERE"
+"     " QUOTE(TRIGRAM_ALERT ID) " = "
+"       ("
+"         SELECT " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)
+"           FROM " QUOTE("T_ALERT_MEDIA_SPECIALIZATION_AMS")
+"           WHERE"
+"             " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID) " IN"
+"               ("
+"                 SELECT " QUOTE(TRIGRAM_MEDIA ID)
+"                   FROM " QUOTE(TRIGRAM_MEDIA SEP "VALUE")
+"                   WHERE"
+"                     " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_USER SEP TRIGRAM_USER ID) " IN"
+"                       ("
+"                         SELECT " QUOTE(TRIGRAM_USER ID)
+"                           FROM " QUOTE("T_USER_USR")
+"                           WHERE"
+"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
+"                       )"
+"                     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
+"               )"
+"             AND " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION  SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = " + aleId +
+"             AND " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL"
+"           LIMIT 1"
+"       )"
+"     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL";
+ 
+    Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
+
+    return queryRes.resultValue();
+}
+
+// FIXME
 EReturnCode AlertResource::getRecipientsForAlert(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
-    try 
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        
-         string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
-                    " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
-                    "WHERE ams.\"AMS_ALE_ALE_ID\" = " + m_pathElements[1] +
-                    " AND ams.\"AMS_MEV_MEV_ID\" = mev.\"MEV_ID\" "
-                    " AND mev.\"MEV_USR_USR_ID\" IN" 
-                 "( Select \"T_USER_USR_USR_ID\" "
-                 "FROM \"TJ_USR_ORG\" "
-                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->organization.id()) +
-                 ")";
-
-        Wt::Dbo::Query
-                <
-                boost::tuple
-                <
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>
-                >
-                , Wt::Dbo::DynamicBinding
-                > resQuery = m_session.query
-                <
-                boost::tuple
-                <
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>
-                >, Wt::Dbo::DynamicBinding
-                > (queryString);
-
-        Wt::Dbo::collection<boost::tuple<
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> > > listTuples = resQuery.resultList();
-        if (listTuples.size() > 0) 
-        {
-            responseMsg = "[";
-            for (Wt::Dbo::collection<boost::tuple<
-                    Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
-            {
-                i->get<0>().modify()->setId(i->get<0>().id());
-                i->get<1>().modify()->setId(i->get<1>().id());
-                responseMsg += "\n{\n";
-                responseMsg += "media_value :" + i->get<0>()->toJSON();
-                responseMsg += ",\nmedia_specialization :" + i->get<1>()->toJSON();
-                responseMsg += "\n}";
-                 ++idx;
-                if(listTuples.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-                
-            }
-            responseMsg += "]";
-            res = EReturnCode::OK; 
-        } 
-        else 
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Alert not found\"}";
-        }
-        transaction.commit();
-    }                    
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
+//    unsigned idx = 0;
+//    try 
+//    {
+//        Wt::Dbo::Transaction transaction(m_session);
+//        
+//         string queryString = "SELECT mev, ams FROM \"T_MEDIA_VALUE_MEV\" mev," 
+//                    " \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" ams "
+//                    "WHERE ams.\"AMS_ALE_ALE_ID\" = " + m_pathElements[1] +
+//                    " AND ams.\"AMS_MEV_MEV_ID\" = mev.\"MEV_ID\" "
+//                    " AND mev.\"MEV_USR_USR_ID\" IN" 
+//                 "( Select \"T_USER_USR_USR_ID\" "
+//                 "FROM \"TJ_USR_ORG\" "
+//                "WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string > (m_session.user()->organization.id()) +
+//                 ")";
+//
+//        Wt::Dbo::Query
+//                <
+//                boost::tuple
+//                <
+//                Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>
+//                >
+//                , Wt::Dbo::DynamicBinding
+//                > resQuery = m_session.query
+//                <
+//                boost::tuple
+//                <
+//                Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>
+//                >, Wt::Dbo::DynamicBinding
+//                > (queryString);
+//
+//        Wt::Dbo::collection<boost::tuple<
+//                Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> > > listTuples = resQuery.resultList();
+//        if (listTuples.size() > 0) 
+//        {
+//            responseMsg = "[";
+//            for (Wt::Dbo::collection<boost::tuple<
+//                    Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                    Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
+//            {
+//                i->get<0>().modify()->setId(i->get<0>().id());
+//                i->get<1>().modify()->setId(i->get<1>().id());
+//                responseMsg += "\n{\n";
+//                responseMsg += "media_value :" + i->get<0>()->toJSON();
+//                responseMsg += ",\nmedia_specialization :" + i->get<1>()->toJSON();
+//                responseMsg += "\n}";
+//                 ++idx;
+//                if(listTuples.size()-idx > 0)
+//                {
+//                    responseMsg += ",\n";
+//                }
+//                
+//            }
+//            responseMsg += "]";
+//            res = EReturnCode::OK; 
+//        } 
+//        else 
+//        {
+//            res = EReturnCode::NOT_FOUND;
+//            responseMsg = "{\"message\":\"Alert not found\"}";
+//        }
+//        transaction.commit();
+//    }                    
+//    catch (Wt::Dbo::Exception const& e) 
+//    {
+//        Wt::log("error") << e.what();
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//    }
     return res;
 }
 
@@ -151,92 +194,93 @@ EReturnCode AlertResource::getTrackingAlertMessage(std::string &responseMsg)
     return res;
 }
 
+// FIXME
 EReturnCode AlertResource::getTrackingAlertList(string &responseMsg)
 {
     responseMsg="";
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    int idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-
-        string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
-            " WHERE atr.\"ATR_ALE_ALE_ID\" = ale.\"ALE_ID\" "
-            " AND atr.\"ATR_MEV_MEV_ID\" = mev.\"MEV_ID\" "
-            " AND mev.\"MEV_USR_USR_ID\" IN"
-            "("
-                "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
-                + boost::lexical_cast<string>(m_session.user()->organization.id()) + " "
-            ")"
-            " order by \"ATR_SEND_DATE\" desc "
-            " limit 50";
-        Wt::Dbo::Query
-                <
-                boost::tuple
-                <
-                Wt::Dbo::ptr<Echoes::Dbo::Alert>,
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> 
-                >
-                ,Wt::Dbo::DynamicBinding
-                >resQuery = m_session.query
-                <
-                boost::tuple
-                <
-                Wt::Dbo::ptr<Echoes::Dbo::Alert>,
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> 
-                >
-                ,Wt::Dbo::DynamicBinding>(queryString);
-
-        Wt::Dbo::collection<boost::tuple
-                <
-                Wt::Dbo::ptr<Echoes::Dbo::Alert>,
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> 
-                > > listTuples = resQuery.resultList();
-
-        if (listTuples.size() > 0)
-        {
-            responseMsg = "[";
-            for (Wt::Dbo::collection<boost::tuple<
-                 Wt::Dbo::ptr<Echoes::Dbo::Alert>,
-                 Wt::Dbo::ptr<Echoes::Dbo::MediaValue>,
-                 Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
-            {
-                i->get<0>().modify()->setId(i->get<0>().id());
-                i->get<1>().modify()->setId(i->get<1>().id());
-                i->get<2>().modify()->setId(i->get<2>().id());
-                
-                responseMsg += "\n{\n";
-                responseMsg +="\"alert\" :" + i->get<0>()->toJSON();
-                responseMsg +=",\n\"media_value\" :" + i->get<1>()->toJSON();
-                responseMsg +=",\n\"alert_tracking\" :" + i->get<2>()->toJSON();
-                responseMsg += "\n}";
-                 ++idx;
-                if(listTuples.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
-            res = EReturnCode::OK;
-
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Tracking alert not found\"}";
-        }
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
+//    int idx = 0;
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(m_session);
+//
+//        string queryString = "SELECT ale, mev, atr FROM \"T_ALERT_TRACKING_ATR\" atr, \"T_ALERT_ALE\" ale , \"T_MEDIA_VALUE_MEV\" mev "
+//            " WHERE atr.\"ATR_ALE_ALE_ID\" = ale.\"ALE_ID\" "
+//            " AND atr.\"ATR_MEV_MEV_ID\" = mev.\"MEV_ID\" "
+//            " AND mev.\"MEV_USR_USR_ID\" IN"
+//            "("
+//                "SELECT \"T_USER_USR_USR_ID\" FROM \"TJ_USR_ORG\" WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " 
+//                + boost::lexical_cast<string>(m_session.user()->organization.id()) + " "
+//            ")"
+//            " order by \"ATR_SEND_DATE\" desc "
+//            " limit 50";
+//        Wt::Dbo::Query
+//                <
+//                boost::tuple
+//                <
+//                Wt::Dbo::ptr<Echoes::Dbo::Alert>,
+//                Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> 
+//                >
+//                ,Wt::Dbo::DynamicBinding
+//                >resQuery = m_session.query
+//                <
+//                boost::tuple
+//                <
+//                Wt::Dbo::ptr<Echoes::Dbo::Alert>,
+//                Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> 
+//                >
+//                ,Wt::Dbo::DynamicBinding>(queryString);
+//
+//        Wt::Dbo::collection<boost::tuple
+//                <
+//                Wt::Dbo::ptr<Echoes::Dbo::Alert>,
+//                Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> 
+//                > > listTuples = resQuery.resultList();
+//
+//        if (listTuples.size() > 0)
+//        {
+//            responseMsg = "[";
+//            for (Wt::Dbo::collection<boost::tuple<
+//                 Wt::Dbo::ptr<Echoes::Dbo::Alert>,
+//                 Wt::Dbo::ptr<Echoes::Dbo::Media>,
+//                 Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> > >::const_iterator i = listTuples.begin(); i != listTuples.end(); ++i) 
+//            {
+//                i->get<0>().modify()->setId(i->get<0>().id());
+//                i->get<1>().modify()->setId(i->get<1>().id());
+//                i->get<2>().modify()->setId(i->get<2>().id());
+//                
+//                responseMsg += "\n{\n";
+//                responseMsg +="\"alert\" :" + i->get<0>()->toJSON();
+//                responseMsg +=",\n\"media_value\" :" + i->get<1>()->toJSON();
+//                responseMsg +=",\n\"alert_tracking\" :" + i->get<2>()->toJSON();
+//                responseMsg += "\n}";
+//                 ++idx;
+//                if(listTuples.size()-idx > 0)
+//                {
+//                    responseMsg += ",\n";
+//                }
+//            }
+//            responseMsg += "\n]\n";
+//            res = EReturnCode::OK;
+//
+//        }
+//        else
+//        {
+//            res = EReturnCode::NOT_FOUND;
+//            responseMsg = "{\"message\":\"Tracking alert not found\"}";
+//        }
+//
+//        transaction.commit();
+//    }
+//    catch (Wt::Dbo::Exception const& e) 
+//    {
+//        Wt::log("error") << e.what();
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//    }
     return res;
 }
 
@@ -375,9 +419,7 @@ EReturnCode AlertResource::getAlert(std::string &responseMsg)
                 " AND ale.\"ALE_DELETE\" IS NULL "
                 " AND ava.\"AVA_ACR_ACR_ID\" = acr.\"ACR_ID\" "
                 " AND inu.\"INU_ID\" = ava.\"INU_ID_INU_ID\" ";
-                
-         
-        
+
         Wt::Dbo::Query
                 <
                 boost::tuple
@@ -539,13 +581,11 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
 
     // AMS attributs
     struct AmsStruct {
-        long long mevId;
+        long long medId;
         int snooze;
         Wt::WString message;
     };
     vector<AmsStruct> amsStructs;
-
-    long long plgId;
 
     if(!sRequest.empty())
     {
@@ -570,14 +610,12 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
                 Wt::Json::Object tmp = *it;
                 amsStructs.push_back(
                 {
-                    tmp.get("media_value_id"),
+                    tmp.get("media_id"),
                     tmp.get("snooze"),
                     tmp.get("message")
                 }
                 );
             }
-
-            plgId = result.get("plugin_id");
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -622,27 +660,17 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
                 return res;
             }
 
+            vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
             for (vector<AmsStruct>::const_iterator it = amsStructs.begin() ; it < amsStructs.end(); it++)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue> mevPtr = m_session.find<Echoes::Dbo::MediaValue>()
-                        .where(QUOTE(TRIGRAM_MEDIA_VALUE ID) " = ?").bind(it->mevId)
-                        .where(QUOTE(TRIGRAM_MEDIA_VALUE SEP "DELETE") " IS NULL");
-                if (!mevPtr)
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, m_session);
+                if (!medPtr)
                 {
                     res = EReturnCode::NOT_FOUND;
-                    responseMsg = httpCodeToJSON(res, mevPtr);
+                    responseMsg = httpCodeToJSON(res, medPtr);
                     return res;
                 }
-            }
-
-            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(plgId)
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
-            if (!plgPtr)
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, plgPtr);
-                return res;
+                medPtrVector.push_back(medPtr);
             }
 
             Echoes::Dbo::AlertValue *ava = new Echoes::Dbo::AlertValue();
@@ -664,14 +692,10 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
             Wt::Dbo::ptr<Echoes::Dbo::Alert> newAlePtr = m_session.add<Echoes::Dbo::Alert>(ale);
             newAlePtr.flush();
 
-            for (vector<AmsStruct>::const_iterator it = amsStructs.begin() ; it < amsStructs.end(); it++)
+            for (vector<AmsStruct>::iterator it = amsStructs.begin() ; it < amsStructs.end(); it++)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::MediaValue> mevPtr = m_session.find<Echoes::Dbo::MediaValue>()
-                        .where(QUOTE(TRIGRAM_MEDIA_VALUE ID) " = ?").bind(it->mevId)
-                        .where(QUOTE(TRIGRAM_MEDIA_VALUE SEP "DELETE") " IS NULL");
-
                 Echoes::Dbo::AlertMediaSpecialization *newAms = new Echoes::Dbo::AlertMediaSpecialization();
-                newAms->mediaValue = mevPtr;
+                newAms->media = medPtrVector[distance(amsStructs.begin(), it)];
                 newAms->alert = newAlePtr;
                 newAms->snoozeDuration = it->snooze;
                 newAms->notifEndOfAlert = false;
@@ -697,7 +721,7 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
 
 EReturnCode AlertResource::sendMAIL
 (
- Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+ vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
  Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
@@ -707,7 +731,7 @@ EReturnCode AlertResource::sendMAIL
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     Wt::WString mailRecipient;
-    const Wt::WString mailRecipientName = amsPtr->mediaValue->user->firstName + " " + amsPtr->mediaValue->user->lastName ;
+    const Wt::WString mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName ;
     string mailBody = "";
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
     Wt::Mail::Message mailMessage;
@@ -716,27 +740,28 @@ EReturnCode AlertResource::sendMAIL
     // Normal case
     if (overSMSQuota == 0)
     {
-        mailRecipient = amsPtr->mediaValue->value;
+        mailRecipient = amsPtr->media->value;
     }
     else if (overSMSQuota == 1)
     {
-        mailRecipient = amsPtr->mediaValue->user->eMail;
+        mailRecipient = amsPtr->media->user->eMail;
 
         mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
     }
 
     mailBody += amsPtr->message.toUTF8();
 
+    // FIXME
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
-    {
-        boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
-        boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
-        boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
-        boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
-        // FIXME
-//        boost::replace_all(mailBody, "%unit%", i->get()->information->informationUnit->name.toUTF8());
-    }
+//    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+//    {
+//        boost::replace_all(mailBody, "%value%", i->get()->value.toUTF8());
+//        boost::replace_all(mailBody, "%threshold%", alePtr->alertValue->value.toUTF8());
+//        boost::replace_all(mailBody, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+//        boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
+//        // FIXME
+////        boost::replace_all(mailBody, "%unit%", i->get()->information->informationUnit->name.toUTF8());
+//    }
 
     Wt::log("info") << " [Alert Resource] " << mailBody;
 
@@ -760,7 +785,7 @@ EReturnCode AlertResource::sendMAIL
 
 EReturnCode AlertResource::sendSMS
 (
- Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+ vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
  Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
@@ -771,18 +796,19 @@ EReturnCode AlertResource::sendSMS
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
     string sms = amsPtr->message.toUTF8();
 
+    //FIXME
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
-    {
-          boost::replace_all(sms, "%value%", i->get()->value.toUTF8());
-          boost::replace_all(sms, "%threshold%", alePtr->alertValue->value.toUTF8());
-          boost::replace_all(sms, "%detection-time%", i->get()->creationDate.toString().toUTF8());
-          boost::replace_all(sms, "%alerting-time%", now.toString().toUTF8());
-    }
+//    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+//    {
+//          boost::replace_all(sms, "%value%", i->get()->value.toUTF8());
+//          boost::replace_all(sms, "%threshold%", alePtr->alertValue->value.toUTF8());
+//          boost::replace_all(sms, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+//          boost::replace_all(sms, "%alerting-time%", now.toString().toUTF8());
+//    }
 
-    Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->mediaValue->value << " : " << sms;
+    Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
 
-    ItookiSMSSender itookiSMSSender(amsPtr->mediaValue->value.toUTF8(), sms, this);
+    ItookiSMSSender itookiSMSSender(amsPtr->media->value.toUTF8(), sms, this);
     itookiSMSSender.setAlertTrackingPtr(atrPtr);
     
     atrPtr.modify()->content = sms;
@@ -798,7 +824,7 @@ EReturnCode AlertResource::sendSMS
 
 EReturnCode AlertResource::sendMobileApp
 (
- Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection,
+ vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
  Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
@@ -809,18 +835,19 @@ EReturnCode AlertResource::sendMobileApp
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
     string mobileApp = amsPtr->message.toUTF8();
 
+    //FIXME
     //TODO: à revoir pour les alertes complexes !!
-    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
-    {
-          boost::replace_all(mobileApp, "%value%", i->get()->value.toUTF8());
-          boost::replace_all(mobileApp, "%threshold%", alePtr->alertValue->value.toUTF8());
-          boost::replace_all(mobileApp, "%detection-time%", i->get()->creationDate.toString().toUTF8());
-          boost::replace_all(mobileApp, "%alerting-time%", now.toString().toUTF8());
-          // FIXME
-//          boost::replace_all(mobileApp, "%unit%", i->get()->information->informationUnit->name.toUTF8());
-    }
+//    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator i = ivaPtrCollection.begin(); i != ivaPtrCollection.end(); ++i)
+//    {
+//          boost::replace_all(mobileApp, "%value%", i->get()->value.toUTF8());
+//          boost::replace_all(mobileApp, "%threshold%", alePtr->alertValue->value.toUTF8());
+//          boost::replace_all(mobileApp, "%detection-time%", i->get()->creationDate.toString().toUTF8());
+//          boost::replace_all(mobileApp, "%alerting-time%", now.toString().toUTF8());
+//          // FIXME
+////          boost::replace_all(mobileApp, "%unit%", i->get()->information->informationUnit->name.toUTF8());
+//    }
 
-    Wt::log("info") << " [Alert Resource] New Alerte for mobileApp : " << amsPtr->mediaValue->value << " : " << mobileApp;
+    Wt::log("info") << " [Alert Resource] New Alerte for mobileApp : " << amsPtr->media->value << " : " << mobileApp;
     
     atrPtr.modify()->content = mobileApp;
     atrPtr.modify()->sendDate = now;
@@ -835,185 +862,177 @@ EReturnCode AlertResource::sendMobileApp
 EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    string ivaIDWhereString = "";
-    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrCollection;
+    vector<long long> ivaIds;
 
-    if(sRequest.compare(""))
+    if(!sRequest.empty())
     {    
         try
         {
-            unsigned idx = 1;
-
             Wt::Json::Object result;
-
             Wt::Json::parse(sRequest, result);
             
-            Wt::Json::Array array = result.get("alert_ids"); 
-
-            for (Wt::Json::Array::const_iterator i = array.begin(); i != array.end(); ++i)
+            Wt::Json::Array array = result.get("information_value_ids"); 
+            for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
             {
-                long long id = i->toNumber();
-                
-                ivaIDWhereString += "\"IVA_ID\" = " + boost::lexical_cast<string>(id);
-                if(idx++ < array.size())
-                {
-                    ivaIDWhereString += " OR";
-                }
+                ivaIds.push_back(it->toNumber());
             }
-
         }
         catch (Wt::Json::ParseError const& e)
         {
-            Wt::log("warning") << "[Alert Ressource] Problems parsing JSON: " << sRequest;
             res = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+            responseMsg = httpCodeToJSON(res, e);
         }
         catch (Wt::Json::TypeException const& e)
         {
-            Wt::log("warning") << "[Alert Ressource] Problems parsing JSON: " << sRequest;
             res = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\": \"Problems parsing JSON\"\n}";
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        responseMsg = httpCodeToJSON(res, "");
     }
-    
-    if(!responseMsg.compare(""))
+
+    if(responseMsg.empty())
     {
         try
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            //TODO: check if this alert is set for the current user organisation
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alertPtr = m_session.find<Echoes::Dbo::Alert>()
-                    .where("\"ALE_ID\" = ?").bind(m_pathElements[1])
-                    .where("\"ALE_DELETE\" IS NULL");
-
-            if (alertPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_session);
+            if (!alePtr)
             {
-                Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, alePtr);
+                return res;
+            }
 
-                alertPtr.modify()->lastAttempt = now;
-
-                //TODO: verifier si les IVA correspondent bien aux INF de l'alerte
-                ivaPtrCollection = m_session.find<Echoes::Dbo::InformationValue>()
-                    .where(ivaIDWhereString)
-                    .where("\"IVA_DELETE\" IS NULL");
-
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> >::const_iterator i = alertPtr->alertMediaSpecializations.begin(); i != alertPtr->alertMediaSpecializations.end(); ++i)
+            vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
+            for (vector<long long>::const_iterator it = ivaIds.begin() ; it < ivaIds.end(); it++)
+            {
+                Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session.find<Echoes::Dbo::InformationValue>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
+                    .where(QUOTE(TRIGRAM_INFORMATION_VALUE SEP "DELETE") " IS NULL");
+                if (!ivaPtr)
                 {
-                    // it is the first time we send the alert there is no last send date filled
-                    // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
-                    if (!i->get()->lastSend.isValid() || i->get()->lastSend.secsTo(now) >= i->get()->snoozeDuration)
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, ivaPtr);
+                    return res;
+                }
+                ivaPtrVector.push_back(ivaPtr);
+            }
+
+            // Check whether the number and IDs of IVA concord with the alert definition
+            if (alePtr->alertSequence)
+            {
+                for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>>::const_iterator it = ivaPtrVector.begin() ; it < ivaPtrVector.end(); it++)
+                {
+                    //TODO(FPO): To Be Coded when we will implement the Alert Sequence
+                }
+            }
+            else
+            {
+                if (ivaPtrVector.size() != 1 || ivaPtrVector[0]->informationData != alePtr->alertValue->informationData)
+                {
+                    m_statusCode = EReturnCode::BAD_REQUEST;
+                    responseMsg = httpCodeToJSON(m_statusCode, "");
+                }
+            }
+
+            Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+
+            alePtr.modify()->lastAttempt = now;
+
+            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> >::const_iterator it = alePtr->alertMediaSpecializations.begin(); it != alePtr->alertMediaSpecializations.end(); ++it)
+            {
+                // it is the first time we send the alert there is no last send date filled
+                // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
+                if (!it->get()->lastSend.isValid() || it->get()->lastSend.secsTo(now) >= it->get()->snoozeDuration)
+                {
+                    const long long mtyID = it->get()->media->mediaType.id();
+                    Echoes::Dbo::AlertTracking *newAtr = new Echoes::Dbo::AlertTracking();
+
+                    newAtr->alert = alePtr;
+                    newAtr->media = it->get()->media;
+                    // WARNING : SendDate must be set by the API when the alert was sent, not before
+                    newAtr->sendDate = *(new Wt::WDateTime());
+
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> newAtrPtr = m_session.add<Echoes::Dbo::AlertTracking>(newAtr);
+                    newAtrPtr.flush();
+
+                    Wt::log("info") << " [Alert Ressource] " << "Alert tracking number creation : " << newAtrPtr.id();
+
+                    Wt::log("debug") << " [Alert Ressource] " << "snooze = " << it->get()->snoozeDuration;
+
+                    switch (mtyID)
                     {
-                        Echoes::Dbo::AlertTracking *newAlertTracking = new Echoes::Dbo::AlertTracking();
-                        long long medID = i->get()->mediaValue->media.id();
+                        case Echoes::Dbo::EMedia::SMS:
+                        {
+                            Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
 
-                        newAlertTracking->alert = alertPtr;
-                        newAlertTracking->mediaValue = i->get()->mediaValue;
+                            // Verifying the quota of sms
+                            Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOption::QUOTA_SMS)
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(it->get()->media->user->organization.id())
+                                    .limit(1);
 
-                        // WARNING : SendDate must be set by the API when the alert was sent, not before
-                        newAlertTracking->sendDate = *(new Wt::WDateTime());
+                            try
+                            {
+                                const int smsQuota = boost::lexical_cast<int>(optPtr->value); 
+                                if (smsQuota == 0)
+                                {
 
-                        Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> alertTrackingPtr = m_session.add<Echoes::Dbo::AlertTracking>(newAlertTracking);
-                        alertTrackingPtr.flush();
+                                    Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alePtr->name;
+                                    Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
 
-                        Wt::log("info") << " [Alert Ressource] " << "Alert tracking number creation : " << alertTrackingPtr.id();
-
-                        Wt::log("debug") << " [Alert Ressource] " << "snooze = " << i->get()->snoozeDuration;
-                        
-//                        Wt::Dbo::ptr<Echoes::Dbo::AlertMessageDefinition> amdPtr = m_session.find<Echoes::Dbo::AlertMessageDefinition>()
-//                                .where("\"ALE_ID_ALE_ID\" = ?").bind(alertPtr.id())
-//                                .where("\"URO_ID_URO_ID\" = ?").bind(i->get()->mediaValue->user->userRole.id())
-//                                .where("\"MED_ID_MED_ID\" = ?").bind(medID)
-//                                .where("\"AMD_DELETE\" IS NULL")
-//                                .limit(1);
-//
-//                        if (amdPtr)
-//                        {
-//                            switch (medID)
-//                            {
-//                                case Echoes::Dbo::EMedia::SMS:
-//                                {
-//                                    Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alertPtr->name;
-//
-//                                    // Verifying the quota of sms
-//                                    Wt::Dbo::ptr<Echoes::Dbo::OptionValue> optionValuePtr = m_session.find<Echoes::Dbo::OptionValue>()
-//                                            .where("\"OPT_ID_OPT_ID\" = ?").bind(Echoes::Dbo::EOption::QUOTA_SMS)
-//                                            .where("\"ORG_ID_ORG_ID\" = ?").bind(i->get()->mediaValue->user->organization.id())
-//                                            .limit(1);
-//
-//                                    try
-//                                    {
-//                                        int smsQuota = boost::lexical_cast<int>(optionValuePtr->value); 
-//                                        if (smsQuota == 0)
-//                                        {
-//
-//                                            Wt::log("info") << " [Alert Ressource] " << "SMS quota 0 for alert : " <<  alertPtr->name;
-//                                            Wt::log("info") << " [Alert Ressource] " << "Sending e-mail instead." ;
-//
-//                                            sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i, true);
-//                                        }
-//                                        else
-//                                        {
-//                                            Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
-//                                            optionValuePtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
-//                                            optionValuePtr.flush();                        
-//                                            sendSMS(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i); 
-//                                        }
-//                                    }
-//                                    catch(boost::bad_lexical_cast &)
-//                                    {
-//                                        res = EReturnCode::SERVICE_UNAVAILABLE;
-//                                        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
-//                                    }
-//                                    break;
-//                                }
-//                                case Echoes::Dbo::EMedia::MAIL:
-//                                    Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alertPtr->name;
-//                                    sendMAIL(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
-//                                    break;
-//                                case Echoes::Dbo::EMedia::MOBILE_APP:
-//                                Wt::log("info") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alertPtr->name;
-//                                sendMobileApp(ivaPtrCollection, alertPtr, amdPtr, alertTrackingPtr, *i);
-//                                break;
-//                                default:
-//                                    Wt::log("error") << "[Alert Resource] Unknown ID Media: " << medID;
-//                                    break;
-//                            }
-//                        }
-//                        else
-//                        {
-//                            Wt::log("debug") << "[Alert Resource] Undefined AlertMessageDefition";
-//                        }
-                    }
-                    else
-                    {
-                        Wt::log("debug") << "[Alert Resource] "
-                                << "Last time we send the alert : " << alertPtr->name
-                                << "was : " << i->get()->lastSend.toString()
-                                << "the snooze for the media " << i->get()->mediaValue->media->name
-                                << " is : " << i->get()->snoozeDuration << "secs,  it's not the time to send the alert";  
+                                    sendMAIL(ivaPtrVector, alePtr, newAtrPtr, *it, true);
+                                }
+                                else
+                                {
+                                    Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : "<< smsQuota;
+                                    optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
+                                    optPtr.flush();                   
+                                    sendSMS(ivaPtrVector, alePtr, newAtrPtr, *it); 
+                                }
+                            }
+                            catch(boost::bad_lexical_cast const& e)
+                            {
+                                res = EReturnCode::SERVICE_UNAVAILABLE;
+                                responseMsg = httpCodeToJSON(res, e);
+                            }
+                            break;
+                        }
+                        case Echoes::Dbo::EMedia::MAIL:
+                            Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
+                            sendMAIL(ivaPtrVector, alePtr, newAtrPtr, *it);
+                            break;
+                        case Echoes::Dbo::EMedia::MOBILE_APP:
+                        Wt::log("info") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
+                        sendMobileApp(ivaPtrVector, alePtr, newAtrPtr, *it);
+                        break;
+                        default:
+                            Wt::log("error") << "[Alert Resource] Unknown ID Media: " << mtyID;
+                            break;
                     }
                 }
-                res = EReturnCode::CREATED;
+                else
+                {
+                    Wt::log("debug") << "[Alert Resource] "
+                            << "Last time we send the alert : " << alePtr->name
+                            << "was : " << it->get()->lastSend.toString()
+                            << "the snooze for the media " << it->get()->media->mediaType->name
+                            << " is : " << it->get()->snoozeDuration << "secs,  it's not the time to send the alert";  
+                }
             }
-            else 
-            {
-                responseMsg = "{\n\t\"message\":\"Alert not found\"\n}";
-                res = EReturnCode::NOT_FOUND;
-            }
+            res = EReturnCode::CREATED;
 
             transaction.commit();
         }
         catch (Wt::Dbo::Exception const& e) 
         {
-            Wt::log("error") << e.what();
             res = EReturnCode::SERVICE_UNAVAILABLE;
-            responseMsg = "{\"message\":\"Service Unavailable\"}";
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
@@ -1038,7 +1057,7 @@ void AlertResource::processPostRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(!nextElement.compare("trackings"))
+            if(nextElement.compare("trackings") == 0)
             {
                 m_statusCode = postAlertTracking(responseMsg, m_requestData);
             }
@@ -1065,53 +1084,49 @@ void AlertResource::processPutRequest(Wt::Http::Response &response)
     return;
 }
 
-void AlertResource::processPatchRequest(Wt::Http::Response &response)
-{
-    return;
-}
-
+// FIXME
 EReturnCode AlertResource::deleteAlert(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    try 
-    {
-
-        Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale "
-                " WHERE \"ALE_ID\" IN"
-                " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
-                " WHERE \"AMS_MEV_MEV_ID\" IN "
-                " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
-                " WHERE \"MEV_USR_USR_ID\" IN "
-                " ( Select \"T_USER_USR_USR_ID\" "
-                " FROM \"TJ_USR_ORG\" "
-                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
-                " )))"
-                " AND \"ALE_ID\" = " + m_pathElements[1];
-        
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> resQuery = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alertPtr = resQuery.resultValue();
-       // Wt::Dbo::ptr<Alert> alertPtr = session.find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(vPathElements[1])); 
-        if (alertPtr)
-        {
-            alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-            transaction.commit();
-
-            res = EReturnCode::NO_CONTENT;
-            responseMsg = "";
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\" : \"Alert not found\" }";
-        }
-    }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
+//    try 
+//    {
+//
+//        Wt::Dbo::Transaction transaction(m_session);
+//        string queryStr = "SELECT ale FROM \"T_ALERT_ALE\" ale "
+//                " WHERE \"ALE_ID\" IN"
+//                " (SELECT \"AMS_ALE_ALE_ID\" FROM \"T_ALERT_MEDIA_SPECIALIZATION_AMS\" "
+//                " WHERE \"AMS_MEV_MEV_ID\" IN "
+//                " (SELECT \"MEV_ID\" FROM \"T_MEDIA_VALUE_MEV\" "
+//                " WHERE \"MEV_USR_USR_ID\" IN "
+//                " ( Select \"T_USER_USR_USR_ID\" "
+//                " FROM \"TJ_USR_ORG\" "
+//                " WHERE \"T_ORGANIZATION_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
+//                " )))"
+//                " AND \"ALE_ID\" = " + m_pathElements[1];
+//        
+//        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> resQuery = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
+//        Wt::Dbo::ptr<Echoes::Dbo::Alert> alertPtr = resQuery.resultValue();
+//       // Wt::Dbo::ptr<Alert> alertPtr = session.find<Alert>().where("\"ALE_ID\" = ?").bind(boost::lexical_cast<int>(vPathElements[1])); 
+//        if (alertPtr)
+//        {
+//            alertPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+//            transaction.commit();
+//
+//            res = EReturnCode::NO_CONTENT;
+//            responseMsg = "";
+//        }
+//        else
+//        {
+//            res = EReturnCode::NOT_FOUND;
+//            responseMsg = "{\"message\" : \"Alert not found\" }";
+//        }
+//    }
+//    catch (Wt::Dbo::Exception const& e) 
+//    {
+//        Wt::log("error") << e.what();
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = "{\"message\":\"Service Unavailable\"}";
+//    }
     return res;
 }
 

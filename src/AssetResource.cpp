@@ -101,7 +101,7 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (m_role.empty() || m_media.empty())
+    if (m_role.empty() || m_media_type.empty())
     {
         res = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(res, "");
@@ -116,7 +116,7 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
             Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                     .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_ASSET SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_role)
-                    .where(QUOTE(TRIGRAM_MEDIA ID SEP TRIGRAM_MEDIA ID) " = ?").bind(m_media)
+                    .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_media_type)
                     .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1]);
 
             res = serialize(aaaPtr, responseMsg);
@@ -455,7 +455,7 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
-    long long medId;
+    long long mtyId;
     Wt::WString value;
 
     if(!sRequest.empty())
@@ -468,7 +468,7 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
 
             Wt::Json::Object alias = result.get("alias");
             uroId = alias.get("role_id");
-            medId = alias.get("media_id");
+            mtyId = alias.get("media_type_id");
             value = alias.get("value");
         }
         catch (Wt::Json::ParseError const& e)
@@ -511,20 +511,20 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = m_session.find<Echoes::Dbo::Media>()
-                        .where(QUOTE(TRIGRAM_MEDIA ID) " = ?").bind(medId)
-                        .where(QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL");
-                if (!medPtr)
+                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
+                if (!mtyPtr)
                 {
                     res = EReturnCode::NOT_FOUND;
-                    responseMsg = httpCodeToJSON(res, medPtr);
+                    responseMsg = httpCodeToJSON(res, mtyPtr);
                     return res;
                 }
 
                 Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
-                        .where(QUOTE(TRIGRAM_MEDIA ID SEP TRIGRAM_MEDIA ID) " = ?").bind(medId);
+                        .where(QUOTE(TRIGRAM_MEDIA ID SEP TRIGRAM_MEDIA ID) " = ?").bind(mtyId);
                 if (aaaPtr) 
                 {
                     aaaPtr.modify()->alias = value;
@@ -534,7 +534,7 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
                     Echoes::Dbo::AlertMessageAliasAsset *newAaa = new Echoes::Dbo::AlertMessageAliasAsset();
                     newAaa->pk.asset = astPtr;
                     newAaa->pk.userRole = uroPtr;
-                    newAaa->pk.media = medPtr;
+                    newAaa->pk.mediaType = mtyPtr;
                     newAaa->alias = value;
                     aaaPtr = m_session.add<Echoes::Dbo::AlertMessageAliasAsset>(newAaa);
                 }
@@ -610,15 +610,15 @@ void AssetResource::processDeleteRequest(Wt::Http::Response &response)
 void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     m_role = "";
-    m_media = "";
+    m_media_type = "";
     if (!request.getParameterValues("role").empty())
     {
         m_role = request.getParameterValues("role")[0];
     }
     
-    if (!request.getParameterValues("media").empty())
+    if (!request.getParameterValues("media_type").empty())
     {
-        m_media = request.getParameterValues("media")[0];
+        m_media_type = request.getParameterValues("media_type")[0];
     }
     PublicApiResource::handleRequest(request, response);
     return;
