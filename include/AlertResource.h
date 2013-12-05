@@ -42,7 +42,7 @@ class AlertResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, Echoes::Dbo::Session &session);
 
     protected:
-        std::string m_media;
+        std::string m_media_type;
         
         EReturnCode getRecipientsForAlert(std::string &responseMsg);       
         EReturnCode getTrackingAlertMessage(std::string &responseMsg);

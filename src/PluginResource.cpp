@@ -403,7 +403,7 @@ EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
         return res;
     }
 
-    if (m_media.empty())
+    if (m_media_type.empty())
     {
         res = EReturnCode::BAD_REQUEST;
         responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
@@ -416,7 +416,7 @@ EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
         Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasPlugin> aliasPlugin = m_session.find<Echoes::Dbo::AlertMessageAliasPlugin>()
                 .where("\"AAP_DELETE\" IS NULL")
                 .where("\"URO_ID_URO_ID\" = ?").bind(m_role)
-                .where("\"MED_ID_MED_ID\" = ?").bind(m_media)
+                .where("\"MED_ID_MED_ID\" = ?").bind(m_media_type)
                 .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1]);
         if (aliasPlugin)
         {
@@ -2491,17 +2491,17 @@ void PluginResource::processDeleteRequest(Wt::Http::Response &response)
 void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     m_role = "";
-    m_media = "";
-    if (!request.getParameterValues("role").empty())
+    m_media_type = "";
+    if (request.getParameter("role") != 0)
     {
-        m_role = request.getParameterValues("role")[0];
+        m_role = *request.getParameter("role");
     }
     
-    if (!request.getParameterValues("media").empty())
+    if (request.getParameter("media_type") != 0)
     {
-        m_media = request.getParameterValues("media")[0];
+        m_media_type = *request.getParameter("media_type");
     }
-    // Create Session and Check auth
+
     PublicApiResource::handleRequest(request, response);
     return;
 }

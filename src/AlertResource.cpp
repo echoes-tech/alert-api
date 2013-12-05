@@ -765,13 +765,13 @@ void AlertResource::processDeleteRequest(Wt::Http::Response &response)
 
 void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    m_media = "";
+    m_media_type = "";
     
-    if (!request.getParameterValues("media").empty())
+    if (request.getParameter("media_type") != 0)
     {
-        m_media = request.getParameterValues("media")[0];
+        m_media_type = *request.getParameter("media_type");
     }
-    // Create Session and Check auth
+
     PublicApiResource::handleRequest(request, response);
     return;
 }

@@ -24,7 +24,7 @@ class PluginResource : public PublicApiResource
         
     protected :
         std::string m_role;
-        std::string m_media;
+        std::string m_media_type;
         
         EReturnCode pluginIsAccessible(std::string& responseMsg);
         

@@ -611,15 +611,16 @@ void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Re
 {
     m_role = "";
     m_media_type = "";
-    if (!request.getParameterValues("role").empty())
+    if (request.getParameter("role") != 0)
     {
-        m_role = request.getParameterValues("role")[0];
+        m_role = *request.getParameter("role");
     }
     
-    if (!request.getParameterValues("media_type").empty())
+    if (request.getParameter("media_type") != 0)
     {
-        m_media_type = request.getParameterValues("media_type")[0];
+        m_media_type = *request.getParameter("media_type");
     }
+
     PublicApiResource::handleRequest(request, response);
     return;
 }

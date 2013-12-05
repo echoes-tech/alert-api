@@ -237,34 +237,49 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     m_authentified = false;
     bool notAllowed = false;
     
-    string login = "", password = "", token = "", eno_token = "";
+    string login = "";
+    string password = "";
+    string token = "";
+    string eno_token = "";
 
-    if (!request.getParameterValues("login").empty())
+    if (request.getParameter("login") != 0)
     {
-        login = Wt::Utils::urlDecode(request.getParameterValues("login")[0]);
-        if (login.compare(""))
+        login = Wt::Utils::urlDecode(*request.getParameter("login"));
+        if (!login.empty())
         {
-            if (!request.getParameterValues("password").empty())
-                password = request.getParameterValues("password")[0];
-            else if (!request.getParameterValues("token").empty())
-                token = request.getParameterValues("token")[0];
+            if (request.getParameter("password") != 0)
+            {
+                password = *request.getParameter("password");
+            }
+            else if (request.getParameter("token") != 0)
+            {
+                token = *request.getParameter("token");
+            }
             else
+            {
                 Wt::log("error") << "[Public API Resource] No password or token parameter";
+            }
         }
         else
+        {
             Wt::log("error") << "[Public API Resource] login is empty";
+        }
     }
-    else if(!request.getParameterValues("eno_token").empty())
+    else if(request.getParameter("eno_token") != 0)
     {
-        eno_token = request.getParameterValues("eno_token")[0];
-        if (!eno_token.compare(""))
+        eno_token = *request.getParameter("eno_token");
+        if (eno_token.empty())
+        {
             Wt::log("error") << "[Public API Resource] org_token is empty";
+        }
     }
     else
+    {
         Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
+    }
 
     m_session.initConnection(conf.getSessConnectParams());
-    if (login.compare("") != 0)
+    if (!login.empty())
     {
         try
         {
@@ -279,9 +294,8 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
                 if (user.isValid()) 
                 {
-                    if (password.compare(""))
+                    if (!password.empty())
                     {
-                        
                         // ToDo: find problem cause : why rereadAll ??
                         m_session.rereadAll();
                         // verify
@@ -302,11 +316,12 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                                 break;
                         }
                     }
-                    else if (token.compare(""))
+                    else if (!token.empty())
                     {
                         Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session.find<Echoes::Dbo::User>()
-                                .where("\"USR_MAIL\" = ?").bind(login)
-                                .where("\"USR_TOKEN\" = ?").bind(token)
+                                .where(QUOTE(TRIGRAM_USER SEP "MAIL") " = ?").bind(login)
+                                .where(QUOTE(TRIGRAM_USER SEP "TOKEN") " = ?").bind(token)
+                                .where(QUOTE(TRIGRAM_USER SEP "DELETE" )" IS NULL")
                                 .limit(1);
                         if(userPtr)
                         {
@@ -314,16 +329,24 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                             m_authentified = true;
                         }
                         else
+                        {
                             Wt::log("error") << "[PUBLIC API] Bad Token";
+                        }
                     }
                     else
+                    {
                         Wt::log("error") << "[Public API Resource] Password or token is empty";
+                    }
                 }
                 else
+                {
                     Wt::log("info") << "[PUBLIC API] User invalid";
+                }
             }
-            else 
+            else
+            {
                 Wt::log("error") << "[PUBLIC API] User " << login << " not found";
+            }
 
             transaction.commit();
         }
@@ -332,29 +355,31 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
             Wt::log("error") << "[PUBLIC API] " << e.what();
         }
     }
-    else if (eno_token.compare("") != 0)
+    else if (!eno_token.empty())
     {
         try
         {
             Wt::Dbo::Transaction transaction(m_session);
             Wt::Dbo::ptr<Echoes::Dbo::Engine> enginePtr = m_session.find<Echoes::Dbo::Engine>()
-                    .where("\"ENG_FQDN\" = ?").bind(request.clientAddress())
-                    .where("\"ENG_DELETE\" IS NULL")
+                    .where(QUOTE(TRIGRAM_ENGINE SEP "FQDN") " = ?").bind(request.clientAddress())
+                    .where(QUOTE(TRIGRAM_ENGINE SEP "DELETE") " IS NULL")
                     .limit(1);
 
             if(enginePtr)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
-                        .where("\"ENG_ID_ENG_ID\" = ?").bind(enginePtr.id())
-                        .where("\"ENO_TOKEN\" = ?").bind(eno_token)
-                        .where("\"ENO_DELETE\" IS NULL")
+                        .where(QUOTE(TRIGRAM_ENGINE ID TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
+                        .where(QUOTE(TRIGRAM_ENG_ORG SEP "TOKEN") " = ?").bind(eno_token)
+                        .where(QUOTE(TRIGRAM_ENG_ORG SEP "DELETE") " IS NULL")
                         .limit(1);
                 if(engOrgPtr)
                 {
                     m_authentified = true;
                 }
                 else
+                {
                     Wt::log("error") << "[PUBLIC API] Bad eno_token";
+                }
             }
             else
             {
@@ -392,19 +417,19 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 processDeleteRequest(response);
                 break;
             default:
-                response.setStatus(405);
+                response.setStatus(EReturnCode::METHOD_NOT_ALLOWED);
                 response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
                 break;
         }
     }
     else if (notAllowed)
     {
-        response.setStatus(400);
-        response.out() << "{\n\t\"message\": \"Bad Request\"\n}";
+        response.setStatus(EReturnCode::BAD_REQUEST);
+        response.out() << httpCodeToJSON(EReturnCode::BAD_REQUEST, "");
     }
     else
     {
-        response.setStatus(401);
+        response.setStatus(EReturnCode::UNAUTHORIZED);
         response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
     }
 
