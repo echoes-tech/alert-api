@@ -156,6 +156,26 @@ void PublicApiResource::setRequestData(const Wt::Http::Request &request)
     return;
 }
 
+void PublicApiResource::setParameters(const Wt::Http::Request &request)
+{
+    for (map<std::string,long long>::iterator it = m_parameters.begin() ; it != m_parameters.end(); ++it)
+    {
+        if (request.getParameter(it->first) != 0)
+        {
+            try
+            {
+                it->second = boost::lexical_cast<unsigned long long>(*request.getParameter(it->first));
+            }
+            catch (boost::bad_lexical_cast const& e)
+            {
+                Wt::log("warning") << "[PUBLIC API] Bad URL parameter: " << e.what();
+            }
+        }
+    }
+
+    return;
+}
+
 string PublicApiResource::getNextElementFromPath()
 {
     string res = "";
@@ -199,6 +219,20 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
     }
 
     return s;
+}
+
+void PublicApiResource::resetAttributs()
+{
+    m_requestData = "";
+    m_indexPathElement = 1;
+    m_statusCode = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    for (map<std::string,long long>::iterator it = m_parameters.begin() ; it != m_parameters.end(); ++it)
+    {
+        it->second = 0;
+    }
+
+    return;
 }
 
 void PublicApiResource::processGetRequest(Wt::Http::Response &response)
@@ -398,11 +432,13 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
 
-    if (m_authentified) {
+    if (m_authentified)
+    {
         setPathElementsVector(request.pathInfo());
+        setParameters(request);
         setRequestData(request);
 
-        switch(retrieveCurrentHttpMethod(request.method()))
+        switch (retrieveCurrentHttpMethod(request.method()))
         {
             case Wt::Http::Get:
                 processGetRequest(response);
@@ -433,8 +469,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
     }
 
-    m_requestData = "";
-    m_indexPathElement = 1;
-    m_statusCode = EReturnCode::INTERNAL_SERVER_ERROR;
+    resetAttributs();
 }
 

@@ -16,6 +16,7 @@ using namespace std;
 
 MediaResource::MediaResource() : PublicApiResource::PublicApiResource()
 {
+    m_parameters["type"] = 0;
 }
 
 MediaResource::~MediaResource()
@@ -29,7 +30,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const long long &med
 
 Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, Echoes::Dbo::Session &session)
 {
-    string queryStr = 
+    const string queryStr = 
 " SELECT med"
 "   FROM " QUOTE("T_MEDIA_MED") " med"
 "   WHERE"
@@ -56,7 +57,7 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-        string queryStr = 
+        string queryStr =
 " SELECT med"
 "   FROM " QUOTE("T_MEDIA_MED") " med"
 "   WHERE"
@@ -66,7 +67,15 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 "           FROM " QUOTE("T_USER_USR")
 "           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(this->m_session.user()->organization.id()) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
-"       )"
+"       )";
+
+        if (m_parameters["type"] > 0)
+        {
+            queryStr +=
+"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = "  + boost::lexical_cast<string>(m_parameters["type"]);
+        }
+
+        queryStr +=
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
  

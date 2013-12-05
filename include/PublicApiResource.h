@@ -80,14 +80,18 @@ protected:
     std::string m_requestData;
     std::vector<std::string> m_pathElements;
     unsigned short m_indexPathElement;
+    std::map<std::string,long long> m_parameters;
     EReturnCode m_statusCode;
 
     unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
     void setPathElementsVector(const std::string &path);
     void setRequestData(const Wt::Http::Request &request);
+    void setParameters(const Wt::Http::Request &request);
 
     std::string getNextElementFromPath();
     std::string request2string(const Wt::Http::Request &request);
+
+    void resetAttributs();
 
     virtual void processGetRequest(Wt::Http::Response &response);
     virtual void processPostRequest(Wt::Http::Response &response);
@@ -302,7 +306,6 @@ protected:
     }
     
 };
-
 
 #endif	/* PUBLICAPIRESOURCE_H */
 
