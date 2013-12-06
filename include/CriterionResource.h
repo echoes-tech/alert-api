@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API CriterionResource
+ * Header of API CriterionResource
  * @author ECHOES Technologies (GDR)
  * @date 21/02/2013
  * 

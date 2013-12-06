@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API OrganizationResource
+ * Header of API OrganizationResource
  * @author ECHOES Technologies (GDR)
  * @date 18/02/2013
  * 
@@ -25,19 +25,13 @@ class OrganizationResource : public PublicApiResource
     protected :
         EReturnCode getOrganizationsList(std::string &responseMsg);
         EReturnCode getOrganization(std::string &responseMsg);
-        EReturnCode getQuotasSms(std::string &responseMsg);
-        EReturnCode getQuotasAsset(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
 
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
 #endif	/* ORGANIZATIONRESOURCE_H */

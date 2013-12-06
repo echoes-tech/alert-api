@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API UserResource
+ * Header of API UserResource
  * @author ECHOES Technologies (GDR)
  * @date 05/02/2013
  * 

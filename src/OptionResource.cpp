@@ -17,6 +17,7 @@ using namespace std;
 
 OptionResource::OptionResource()
 {
+   m_parameters["type"] = 0;
 }
 
 OptionResource::~OptionResource()
@@ -30,10 +31,19 @@ EReturnCode OptionResource::getOptionsList(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol = m_session.find<Echoes::Dbo::Option>()
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
                 .orderBy(QUOTE(TRIGRAM_OPTION ID));
+
+        if (m_parameters["type"] > 0 )
+        {
+            queryRes = queryRes.where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?");
+            // FPO: I don't know why but we have to bind every marker here to make the binding.
+            queryRes.bind(m_session.user()->organization.id()).bind(m_parameters["type"]);
+        }
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol =  queryRes.resultList();
 
         res = serialize(optPtrCol, responseMsg);
 

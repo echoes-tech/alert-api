@@ -52,12 +52,3 @@ void InformationResource::processDeleteRequest(Wt::Http::Response &response)
     return;
 }
 
-
-void InformationResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    // Create Session and Check auth
-    PublicApiResource::handleRequest(request, response);
-
-    return;
-}
-

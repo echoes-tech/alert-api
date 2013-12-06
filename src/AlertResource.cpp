@@ -16,6 +16,7 @@ using namespace std;
 
 AlertResource::AlertResource() : PublicApiResource::PublicApiResource()
 {
+    m_parameters["media_type"] = 0;
 }
 
 AlertResource::~AlertResource()
@@ -92,7 +93,15 @@ EReturnCode AlertResource::getAlertsList(string &responseMsg)
 "                           WHERE"
 "                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
 "                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
-"                       )"
+"                       )";
+
+        if (m_parameters["media_type"] > 0)
+        {
+            queryStr +=
+"                     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = "  + boost::lexical_cast<string>(m_parameters["media_type"]);
+        }
+
+        queryStr +=
 "                     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "               )"
 "             AND " QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL"
@@ -760,19 +769,6 @@ void AlertResource::processDeleteRequest(Wt::Http::Response &response)
 
     response.setStatus(m_statusCode);
     response.out() << responseMsg;
-    return;
-}
-
-void AlertResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    m_media_type = "";
-    
-    if (request.getParameter("media_type") != 0)
-    {
-        m_media_type = *request.getParameter("media_type");
-    }
-
-    PublicApiResource::handleRequest(request, response);
     return;
 }
 

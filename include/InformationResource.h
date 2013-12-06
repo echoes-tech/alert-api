@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API InformationResource
+ * Header of API InformationResource
  * @author ECHOES Technologies (GDR)
  * @date 13/02/2013
  * 
@@ -32,9 +32,6 @@ class InformationResource : public PublicApiResource
         virtual void processPatchRequest(Wt::Http::Response &response);
 
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-            
 };
 
 

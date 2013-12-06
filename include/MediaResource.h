@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API PluginResource
+ * Header of API PluginResource
  * @author ECHOES Technologies (GDR)
  * @date 11/02/2013
  * 

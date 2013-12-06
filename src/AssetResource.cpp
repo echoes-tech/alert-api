@@ -17,6 +17,8 @@ using namespace std;
 
 AssetResource::AssetResource() : PublicApiResource::PublicApiResource()
 {
+    m_parameters["media_type"] = 0;
+    m_parameters["role"] = 0;
 }
 
 AssetResource::~AssetResource()
@@ -101,7 +103,7 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (m_role.empty() || m_media_type.empty())
+    if (m_parameters["media_type"] <= 0 || m_parameters["role"] <= 0)
     {
         res = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(res, "");
@@ -115,8 +117,8 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
 
             Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                     .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_ASSET SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_role)
-                    .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_media_type)
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["role"])
+                    .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type"])
                     .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1]);
 
             res = serialize(aaaPtr, responseMsg);
@@ -604,24 +606,6 @@ void AssetResource::processPutRequest(Wt::Http::Response &response)
 
 void AssetResource::processDeleteRequest(Wt::Http::Response &response)
 {
-    return;
-}
-
-void AssetResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    m_role = "";
-    m_media_type = "";
-    if (request.getParameter("role") != 0)
-    {
-        m_role = *request.getParameter("role");
-    }
-    
-    if (request.getParameter("media_type") != 0)
-    {
-        m_media_type = *request.getParameter("media_type");
-    }
-
-    PublicApiResource::handleRequest(request, response);
     return;
 }
 

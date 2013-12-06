@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API SearchTypeResource
+ * Header of API SearchTypeResource
  * @author ECHOES Technologies (GDR)
  * @date 14/03/2013
  * 

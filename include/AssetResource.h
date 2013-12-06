@@ -41,8 +41,6 @@ class AssetResource : public PublicApiResource
 
         EReturnCode deleteAsset(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 };
 
 

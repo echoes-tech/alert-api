@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API RoleResource
+ * Header of API RoleResource
  * @author ECHOES Technologies (TSA)
  * @date 08/09/2013
  * 

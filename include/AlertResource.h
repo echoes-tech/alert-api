@@ -1,5 +1,5 @@
 /* 
- * HEADER OF API AlertResource
+ * Header of API AlertResource
  * @author ECHOES Technologies (GDR)
  * @date 05/02/2013
  * 
@@ -42,8 +42,6 @@ class AlertResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, Echoes::Dbo::Session &session);
 
     protected:
-        std::string m_media_type;
-        
         EReturnCode getRecipientsForAlert(std::string &responseMsg);       
         EReturnCode getTrackingAlertMessage(std::string &responseMsg);
         EReturnCode getTrackingAlertList(std::string &responseMsg);
@@ -109,10 +107,6 @@ class AlertResource : public PublicApiResource
 
         EReturnCode deleteAlert(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        
-        
 };
 #endif	/* ALERTRESOURCE_H */
 
