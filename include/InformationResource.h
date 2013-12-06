@@ -23,13 +23,13 @@ class InformationResource : public PublicApiResource
         virtual ~InformationResource();
         
     protected :
+        EReturnCode getInformationsList(std::string &responseMsg);
+        EReturnCode getInformation(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
 
         virtual void processDeleteRequest(Wt::Http::Response &response);
 };

@@ -92,14 +92,6 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
             {
                 m_statusCode = getOrganization(responseMsg);
             }
-            else if(!nextElement.compare("quotas_sms"))
-            {
-                this->m_statusCode = getQuotasSms(responseMsg);
-            }
-            else if(!nextElement.compare("quotas_assets"))
-            {
-                this->m_statusCode = getQuotasAsset(responseMsg);
-            }
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
