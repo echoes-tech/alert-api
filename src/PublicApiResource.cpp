@@ -402,7 +402,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
             if(enginePtr)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
-                        .where(QUOTE(TRIGRAM_ENGINE ID TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
+                        .where(QUOTE(TRIGRAM_ENGINE ID SEP TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "TOKEN") " = ?").bind(eno_token)
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "DELETE") " IS NULL")
                         .limit(1);
