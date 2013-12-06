@@ -37,8 +37,6 @@ class PluginResource : public PublicApiResource
 //        EReturnCode getSearchForSearchIdForSourceAndPlugin(std::string &responseMsg);
         EReturnCode getSourceForPlugin(std::string &responseMsg);
         EReturnCode getInformationListForPlugin(std::string &responseMsg);
-//        EReturnCode getAliasForInformation(std::string &responseMsg);
-//        EReturnCode getAliasForCriteria(std::string &responseMsg);
 //        EReturnCode getCriteriaForInformation(std::string &responseMsg);
         EReturnCode getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);

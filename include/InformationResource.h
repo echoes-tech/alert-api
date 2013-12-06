@@ -25,6 +25,7 @@ class InformationResource : public PublicApiResource
     protected :
         EReturnCode getInformationsList(std::string &responseMsg);
         EReturnCode getInformation(std::string &responseMsg);
+        EReturnCode getAliasForInformation(std::string  &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         virtual void processPostRequest(Wt::Http::Response &response);

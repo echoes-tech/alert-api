@@ -18,7 +18,7 @@ using namespace std;
 AssetResource::AssetResource() : PublicApiResource::PublicApiResource()
 {
     m_parameters["media_type"] = 0;
-    m_parameters["role"] = 0;
+    m_parameters["user_role"] = 0;
 }
 
 AssetResource::~AssetResource()
@@ -103,7 +103,7 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (m_parameters["media_type"] <= 0 || m_parameters["role"] <= 0)
+    if (m_parameters["media_type"] <= 0 || m_parameters["user_role"] <= 0)
     {
         res = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(res, "");
@@ -115,13 +115,25 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
-                    .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_ASSET SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["role"])
-                    .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type"])
-                    .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1]);
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
+            if (uroPtr)
+            {
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
+                        .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_ASSET SEP "DELETE") " IS NULL")
+                        .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type"])
+                        .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1]);
 
-            res = serialize(aaaPtr, responseMsg);
+                res = serialize(aaaPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, uroPtr);
+            }
 
             transaction.commit();
         } 

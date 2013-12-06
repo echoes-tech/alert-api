@@ -25,6 +25,7 @@ class CriterionResource : public PublicApiResource
     protected :
         EReturnCode getCriteriaList(std::string &responseMsg);
         EReturnCode getCriterion(std::string &responseMsg);
+        EReturnCode getAliasForCriterion(std::string  &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 };
 

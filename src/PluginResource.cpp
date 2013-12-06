@@ -156,7 +156,7 @@ EReturnCode PluginResource::getPluginJSON(string& responseMsg)
                     responseMsg.replace(responseMsg.size()-2, 1, "");
                 }
                 responseMsg += "\t\t]\n\t},\n";   
-            } 
+            }
             if(plgPtr->sources.size() != 0)
             {
                 responseMsg.replace(responseMsg.size()-2, 1, "");
@@ -241,115 +241,6 @@ EReturnCode PluginResource::getPlugin(string& responseMsg)
 }
 
 // FIXME : MOVE OUT
-//EReturnCode PluginResource::getAliasForInformation(string &responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    if (m_role.empty())
-//    {
-//        res = EReturnCode::BAD_REQUEST;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//        return res;
-//    }
-//
-//    if (m_media.empty())
-//    {
-//        res = EReturnCode::BAD_REQUEST;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//        return res;
-//    }
-//    
-//    try 
-//    {
-//        Wt::Dbo::Transaction transaction(m_session);
-//        Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> aliasInformation = m_session.find<Echoes::Dbo::AlertMessageAliasInformation>()
-//                .where("\"AAI_DELETE\" IS NULL")
-//                .where("\"URO_ID_URO_ID\" = ?").bind(m_role)
-//                .where("\"MED_ID_MED_ID\" = ?").bind(m_media)
-//                .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1])
-//                .where("\"SRC_ID\" = ?").bind(m_pathElements[3])
-//                .where("\"SEA_ID\" = ?").bind(m_pathElements[5])
-//                .where("\"INF_VALUE_NUM\" = ?").bind(m_pathElements[7])
-//                .where("\"INU_ID_INU_ID\" = ?").bind(m_pathElements[9]);
-//        if (aliasInformation)
-//        {
-//            responseMsg = aliasInformation->toJSON();
-//            res = EReturnCode::OK;
-//            transaction.commit();
-//        }
-//        else
-//        {
-//            res = EReturnCode::NOT_FOUND;
-//            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
-//        }
-//        
-//        
-//    } 
-//    catch (Wt::Dbo::Exception const& e) 
-//    {
-//        Wt::log("error") << "[Plugin Ressource] " << e.what();
-//        res = EReturnCode::SERVICE_UNAVAILABLE;
-//        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
-//    }
-//    
-//    
-//    return res;
-//}
-//
-//EReturnCode PluginResource::getAliasForCriteria(string &responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    if (m_role.empty())
-//    {
-//        res = EReturnCode::BAD_REQUEST;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//        return res;
-//    }
-//
-//    if (m_media.empty())
-//    {
-//        res = EReturnCode::BAD_REQUEST;
-//        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//        return res;
-//    }
-//    
-//    try 
-//    {
-//        Wt::Dbo::Transaction transaction(m_session);
-//        Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aliasCriteria = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
-//                .where("\"AIC_DELETE\" IS NULL")
-//                .where("\"URO_ID_URO_ID\" = ?").bind(m_role)
-//                .where("\"MED_ID_MED_ID\" = ?").bind(m_media)
-//                .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1])
-//                .where("\"SRC_ID\" = ?").bind(m_pathElements[3])
-//                .where("\"SEA_ID\" = ?").bind(m_pathElements[5])
-//                .where("\"INF_VALUE_NUM\" = ?").bind(m_pathElements[7])
-//                .where("\"INU_ID_INU_ID\" = ?").bind(m_pathElements[9])
-//                .where("\"ACR_ID_ACR_ID\" = ?").bind(m_pathElements[11]);
-//        if (aliasCriteria)
-//        {
-//            responseMsg = aliasCriteria->toJSON();
-//            res = EReturnCode::OK;
-//            transaction.commit();
-//        }
-//        else
-//        {
-//            res = EReturnCode::NOT_FOUND;
-//            responseMsg = "{\n\t\"message\":\"Alias not found\"\n}";
-//        }
-//        
-//        
-//    } 
-//    catch (Wt::Dbo::Exception const& e) 
-//    {
-//        Wt::log("error") << "[Plugin Ressource] " << e.what();
-//        res = EReturnCode::SERVICE_UNAVAILABLE;
-//        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
-//    }
-//    
-//    
-//    return res;
-//}
-//
 //EReturnCode PluginResource::getCriteriaForInformation(string &responseMsg)
 //{
 //    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;

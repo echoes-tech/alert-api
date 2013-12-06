@@ -17,6 +17,8 @@ using namespace std;
 
 InformationResource::InformationResource() : PublicApiResource::PublicApiResource()
 {
+    m_parameters["media_type"] = 0;
+    m_parameters["user_role"] = 0;
 }
 
 InformationResource::~InformationResource()
@@ -69,6 +71,54 @@ EReturnCode InformationResource::getInformation(string &responseMsg)
     return res;
 }
 
+EReturnCode InformationResource::getAliasForInformation(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    if (m_parameters["media_type"] <= 0 || m_parameters["user_role"] <= 0)
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, "");
+    }
+
+    if(responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+            
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
+            if (uroPtr)
+            {
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> aaiPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformation>()
+                        .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION SEP "DELETE") " IS NULL")
+                        .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type"])
+                        .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(m_pathElements[1]);
+
+                res = serialize(aaiPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, uroPtr);
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
+    return res;
+}
+
 void InformationResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -89,6 +139,10 @@ void InformationResource::processGetRequest(Wt::Http::Response &response)
             if(nextElement.empty())
             {
                 m_statusCode = getInformation(responseMsg);
+            }
+            else if(!nextElement.compare("alias"))
+            {
+                m_statusCode = getAliasForInformation(responseMsg);
             }
             else
             {
