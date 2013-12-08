@@ -23,22 +23,15 @@ class UserResource : public PublicApiResource
         virtual ~UserResource();
         
     protected :
-
-        EReturnCode getInformationForUser(std::string &response);
+        EReturnCode getUsersList(std::string &response);
+        EReturnCode getUser(std::string &response);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postActionForUser(std::string &responseMsg, const std::string &sRequest);
-        EReturnCode postRoleForUser(std::string &responseMsg, const std::string &sRequest);
-        
         virtual void processPostRequest(Wt::Http::Response &response);
 
+        EReturnCode putUser(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
-
-        virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
 #endif	/* USERRESOURCE_H */
