@@ -189,7 +189,7 @@ void UserResource::processPostRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "")
+        responseMsg = httpCodeToJSON(m_statusCode, "");
     }
     else
     {
