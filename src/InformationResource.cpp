@@ -81,12 +81,12 @@ EReturnCode InformationResource::getAliasForInformation(string &responseMsg)
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
+    if (responseMsg.empty())
     {
         try
         {
             Wt::Dbo::Transaction transaction(m_session);
-            
+
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
@@ -109,7 +109,7 @@ EReturnCode InformationResource::getAliasForInformation(string &responseMsg)
 
             transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Dbo::Exception const& e)
         {
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
@@ -125,7 +125,7 @@ void InformationResource::processGetRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = getInformationsList(responseMsg);
     }
@@ -136,11 +136,11 @@ void InformationResource::processGetRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = getInformation(responseMsg);
             }
-            else if(!nextElement.compare("alias"))
+            else if (!nextElement.compare("alias"))
             {
                 m_statusCode = getAliasForInformation(responseMsg);
             }
@@ -163,8 +163,8 @@ void InformationResource::processGetRequest(Wt::Http::Response &response)
 }
 
 void InformationResource::processPostRequest(Wt::Http::Response &response)
-{   
-    return ;
+{
+    return;
 }
 
 void InformationResource::processPutRequest(Wt::Http::Response &response)
@@ -173,7 +173,7 @@ void InformationResource::processPutRequest(Wt::Http::Response &response)
 }
 
 void InformationResource::processDeleteRequest(Wt::Http::Response &response)
-{    
+{
     return;
 }
 

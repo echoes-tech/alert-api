@@ -240,50 +240,6 @@ EReturnCode PluginResource::getPlugin(string& responseMsg)
     return res;  
 }
 
-// FIXME : MOVE OUT
-//EReturnCode PluginResource::getCriteriaForInformation(string &responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    unsigned idx = 0;
-//    try 
-//    {
-//        Wt::Dbo::Transaction transaction(m_session);
-//        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria>> informationAlertCriteria = m_session.find<Echoes::Dbo::AlertCriteria>()
-//                .where("\"ACR_DELETE\" IS NULL");
-//
-//        if(informationAlertCriteria.size() > 0 )
-//        {
-//            responseMsg = "[\n";
-//            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> >::const_iterator i = informationAlertCriteria.begin(); i != informationAlertCriteria.end(); i++) 
-//            { 
-//                Echoes::Dbo::AlertCriteria acr(*i->get());
-//                acr.setId(i->id());
-//                responseMsg +=  acr.toJSON();
-//                idx++;
-//                if(informationAlertCriteria.size()-idx > 0)
-//                {
-//                    responseMsg += ",\n";
-//                }
-//            }
-//            responseMsg += "\n]\n";
-//            res = EReturnCode::OK;
-//        }
-//        else
-//        {
-//            res = EReturnCode::NOT_FOUND;
-//            responseMsg = "{\"message\":\"Criteria not found\"}";
-//        }
-//        transaction.commit();
-//    } 
-//    catch (Wt::Dbo::Exception const& e) 
-//    {
-//        Wt::log("error") << "[Plugin Ressource] " << e.what();
-//        res = EReturnCode::SERVICE_UNAVAILABLE;
-//        responseMsg = "{\n\t\"message\": \"Service Unavailable\"\n}";
-//    }
-//    return res;
-//}
-
 EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;

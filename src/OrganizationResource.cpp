@@ -19,7 +19,7 @@ OrganizationResource::OrganizationResource() : PublicApiResource::PublicApiResou
 {
 }
 
-OrganizationResource::~OrganizationResource() 
+OrganizationResource::~OrganizationResource()
 {
 }
 
@@ -77,7 +77,7 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = getOrganizationsList(responseMsg);
     }
@@ -88,7 +88,7 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = getOrganization(responseMsg);
             }
@@ -98,7 +98,7 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
                 responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast const& e)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = httpCodeToJSON(m_statusCode, e);
@@ -113,7 +113,7 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
 void OrganizationResource::processPostRequest(Wt::Http::Response &response)
 {
 
-    return ;
+    return;
 }
 
 void OrganizationResource::processPutRequest(Wt::Http::Response &response)

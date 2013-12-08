@@ -15,6 +15,7 @@
 #define	ASSETRESOURCE_H
 
 #include "PublicApiResource.h"
+#include "ProbeResource.h"
 
 class AssetResource : public PublicApiResource
 {

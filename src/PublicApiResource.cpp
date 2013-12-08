@@ -19,7 +19,7 @@ namespace boost
   namespace property_tree
   {
 
-     // the write_json_helper template specialization to remove the quotes " " 
+    // the write_json_helper template specialization to remove the quotes " " 
     // added to every json values, strings or not
     namespace json_parser
     {
@@ -27,22 +27,26 @@ namespace boost
       template<>
       void write_json_helper<ptree>(std::basic_ostream<typename ptree::key_type::value_type> &stream,
               const ptree &pt,
-              int indent, bool pretty) {
-
+              int indent, bool pretty)
+      {
           typedef typename ptree::key_type::value_type Ch;
           typedef typename std::basic_string<Ch> Str;
 
           // Value or object or array
-          if (indent > 0 && pt.empty()) {
+          if (indent > 0 && pt.empty())
+          {
               // Write value
               stream << pt.get_value<Str>();
 
-          } else if (indent > 0 && pt.count(Str()) == pt.size()) {
+          }
+          else if (indent > 0 && pt.count(Str()) == pt.size())
+          {
               // Write array
               stream << Ch('[');
               if (pretty) stream << Ch('\n');
               typename ptree::const_iterator it = pt.begin();
-              for (; it != pt.end(); ++it) {
+              for (; it != pt.end(); ++it)
+              {
                   if (pretty) stream << Str(4 * (indent + 1), Ch(' '));
                   write_json_helper(stream, it->second, indent + 1, pretty);
                   if (boost::next(it) != pt.end())
@@ -51,15 +55,19 @@ namespace boost
               }
               stream << Str(4 * indent, Ch(' ')) << Ch(']');
 
-          } else {
+          }
+          else
+          {
               // Write object
               stream << Ch('{');
               if (pretty) stream << Ch('\n');
               typename ptree::const_iterator it = pt.begin();
-              for (; it != pt.end(); ++it) {
+              for (; it != pt.end(); ++it)
+              {
                   if (pretty) stream << Str(4 * (indent + 1), Ch(' '));
                   stream << Ch('"') << create_escapes(it->first) << Ch('"') << Ch(':');
-                  if (pretty) {
+                  if (pretty)
+                  {
                       if (it->second.empty())
                           stream << Ch(' ');
                       else
@@ -123,19 +131,19 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method
 {
     unsigned short res = 0;
 
-    if(!method.compare("GET"))
+    if (!method.compare("GET"))
     {
         res = Wt::Http::Get;
     }
-    else if(!method.compare("POST"))
+    else if (!method.compare("POST"))
     {
         res = Wt::Http::Post;
     }
-    else if(!method.compare("PUT"))
+    else if (!method.compare("PUT"))
     {
         res = Wt::Http::Put;
     }
-    else if(!method.compare("DELETE"))
+    else if (!method.compare("DELETE"))
     {
         res = Wt::Http::Delete;
     }
@@ -158,7 +166,7 @@ void PublicApiResource::setRequestData(const Wt::Http::Request &request)
 
 void PublicApiResource::setParameters(const Wt::Http::Request &request)
 {
-    for (map<std::string,long long>::iterator it = m_parameters.begin() ; it != m_parameters.end(); ++it)
+    for (map<std::string, long long>::iterator it = m_parameters.begin(); it != m_parameters.end(); ++it)
     {
         if (request.getParameter(it->first) != 0)
         {
@@ -179,12 +187,12 @@ void PublicApiResource::setParameters(const Wt::Http::Request &request)
 string PublicApiResource::getNextElementFromPath()
 {
     string res = "";
-    
+
     if (m_pathElements.size() > m_indexPathElement)
     {
-        res =  m_pathElements[m_indexPathElement++];
+        res = m_pathElements[m_indexPathElement++];
     }
-    
+
     return res;
 }
 
@@ -197,7 +205,7 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
     c = request.in().get();
     while (request.in())
     {
-        s.append(1,c);
+        s.append(1, c);
         c = request.in().get();
     }
 
@@ -227,7 +235,7 @@ void PublicApiResource::resetAttributs()
     m_indexPathElement = 1;
     m_statusCode = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    for (map<std::string,long long>::iterator it = m_parameters.begin() ; it != m_parameters.end(); ++it)
+    for (map<std::string, long long>::iterator it = m_parameters.begin(); it != m_parameters.end(); ++it)
     {
         it->second = 0;
     }
@@ -270,7 +278,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     // default : not authentified
     m_authentified = false;
     bool notAllowed = false;
-    
+
     string login = "";
     string password = "";
     string token = "";
@@ -299,7 +307,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
             Wt::log("error") << "[Public API Resource] login is empty";
         }
     }
-    else if(request.getParameter("eno_token") != 0)
+    else if (request.getParameter("eno_token") != 0)
     {
         eno_token = *request.getParameter("eno_token");
         if (eno_token.empty())
@@ -321,12 +329,12 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
             // check whether the user exists
             Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = m_session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
-            if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType)) 
+            if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType))
             {
                 // find the user from his login
-                Wt::Auth::User user = m_session.users().findWithIdentity(Wt::Auth::Identity::LoginName,login);
+                Wt::Auth::User user = m_session.users().findWithIdentity(Wt::Auth::Identity::LoginName, login);
 
-                if (user.isValid()) 
+                if (user.isValid())
                 {
                     if (!password.empty())
                     {
@@ -355,9 +363,9 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                         Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session.find<Echoes::Dbo::User>()
                                 .where(QUOTE(TRIGRAM_USER SEP "MAIL") " = ?").bind(login)
                                 .where(QUOTE(TRIGRAM_USER SEP "TOKEN") " = ?").bind(token)
-                                .where(QUOTE(TRIGRAM_USER SEP "DELETE" )" IS NULL")
+                                .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                                 .limit(1);
-                        if(userPtr)
+                        if (userPtr)
                         {
                             m_session.login().login(user);
                             m_authentified = true;
@@ -384,7 +392,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
             transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Dbo::Exception const& e)
         {
             Wt::log("error") << "[PUBLIC API] " << e.what();
         }
@@ -399,14 +407,14 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     .where(QUOTE(TRIGRAM_ENGINE SEP "DELETE") " IS NULL")
                     .limit(1);
 
-            if(enginePtr)
+            if (enginePtr)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
                         .where(QUOTE(TRIGRAM_ENGINE ID SEP TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "TOKEN") " = ?").bind(eno_token)
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "DELETE") " IS NULL")
                         .limit(1);
-                if(engOrgPtr)
+                if (engOrgPtr)
                 {
                     m_authentified = true;
                 }
@@ -423,12 +431,12 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
             transaction.commit();
         }
-        catch (Wt::Dbo::Exception const& e) 
+        catch (Wt::Dbo::Exception const& e)
         {
             Wt::log("error") << "[PUBLIC API] " << e.what();
         }
     }
-   
+
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
 
@@ -440,22 +448,22 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
         switch (retrieveCurrentHttpMethod(request.method()))
         {
-            case Wt::Http::Get:
-                processGetRequest(response);
-                break;
-            case Wt::Http::Post:
-                processPostRequest(response);
-                break;
-            case Wt::Http::Put:
-                processPutRequest(response);
-                break;
-            case Wt::Http::Delete:
-                processDeleteRequest(response);
-                break;
-            default:
-                response.setStatus(EReturnCode::METHOD_NOT_ALLOWED);
-                response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
-                break;
+        case Wt::Http::Get:
+            processGetRequest(response);
+            break;
+        case Wt::Http::Post:
+            processPostRequest(response);
+            break;
+        case Wt::Http::Put:
+            processPutRequest(response);
+            break;
+        case Wt::Http::Delete:
+            processDeleteRequest(response);
+            break;
+        default:
+            response.setStatus(EReturnCode::METHOD_NOT_ALLOWED);
+            response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
+            break;
         }
     }
     else if (notAllowed)

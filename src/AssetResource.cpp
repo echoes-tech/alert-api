@@ -1,4 +1,4 @@
- /* 
+/* 
  * API Asset Resource
  * @author ECHOES Technologies (FPO)
  * @date 02/11/2012
@@ -77,7 +77,7 @@ EReturnCode AssetResource::getProbesListForAsset(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    try 
+    try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
@@ -89,17 +89,17 @@ EReturnCode AssetResource::getProbesListForAsset(string &responseMsg)
         res = serialize(prbPtrCol, responseMsg);
 
         transaction.commit();
-    } 
-    catch (Wt::Dbo::Exception const& e) 
+    }
+    catch (Wt::Dbo::Exception const& e)
     {
         res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = httpCodeToJSON(res, e);
     }
-    
+
     return res;
 }
 
-EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
+EReturnCode AssetResource::getAliasForAsset(std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -109,9 +109,9 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
+    if (responseMsg.empty())
     {
-        try 
+        try
         {
             Wt::Dbo::Transaction transaction(m_session);
 
@@ -136,8 +136,8 @@ EReturnCode AssetResource::getAliasForAsset(std::string  &responseMsg)
             }
 
             transaction.commit();
-        } 
-        catch (Wt::Dbo::Exception const& e) 
+        }
+        catch (Wt::Dbo::Exception const& e)
         {
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
@@ -153,7 +153,7 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = getAssetsList(responseMsg);
     }
@@ -164,15 +164,15 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = getAsset(responseMsg);
             }
-            else if(!nextElement.compare("probes"))
+            else if (!nextElement.compare("probes"))
             {
                 m_statusCode = getProbesListForAsset(responseMsg);
             }
-            else if(!nextElement.compare("alias"))
+            else if (!nextElement.compare("alias"))
             {
                 m_statusCode = getAliasForAsset(responseMsg);
             }
@@ -202,7 +202,7 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
     Wt::WString distribution;
     Wt::WString release;
 
-    if(!sRequest.empty())
+    if (!sRequest.empty())
     {
         try
         {
@@ -210,15 +210,15 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
             Wt::Json::parse(sRequest, result);
 
             name = result.get("name");
-            if(result.contains("distribution"))
+            if (result.contains("distribution"))
             {
                 distribution = result.get("distribution");
             }
-            if(result.contains("architecture"))
+            if (result.contains("architecture"))
             {
                 architecture = result.get("architecture");
             }
-            if(result.contains("release"))
+            if (result.contains("release"))
             {
                 release = result.get("release");
             }
@@ -240,7 +240,7 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
+    if (responseMsg.empty())
     {
         try
         {
@@ -251,12 +251,12 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
             newAst->assetIsHost = false;
             newAst->organization = m_session.user()->organization;
 
-            if(!architecture.empty())
+            if (!architecture.empty())
             {
                 Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr = m_session.find<Echoes::Dbo::AssetArchitecture>()
                         .where(QUOTE(TRIGRAM_ASSET_ARCHITECTURE SEP "NAME") " = ?").bind(architecture)
                         .limit(1);
-                if (!asaPtr) 
+                if (!asaPtr)
                 {
                     Echoes::Dbo::AssetArchitecture *newAsa = new Echoes::Dbo::AssetArchitecture();
                     newAsa->name = architecture;
@@ -266,12 +266,12 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
                 newAst->assetArchitecture = asaPtr;
             }
 
-            if(!distribution.empty())
+            if (!distribution.empty())
             {
                 Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> asdPtr = m_session.find<Echoes::Dbo::AssetDistribution>()
                         .where(QUOTE(TRIGRAM_ASSET_DISTRIBUTION SEP "NAME") " = ?").bind(distribution)
                         .limit(1);
-                if (!asdPtr) 
+                if (!asdPtr)
                 {
                     Echoes::Dbo::AssetDistribution *newAsd = new Echoes::Dbo::AssetDistribution();
                     newAsd->name = distribution;
@@ -279,9 +279,9 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
                     asdPtr.flush();
                 }
                 newAst->assetDistribution = asdPtr;
-            }                
+            }
 
-            if(!distribution.empty())
+            if (!distribution.empty())
             {
                 Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr = m_session.find<Echoes::Dbo::AssetRelease>()
                         .where(QUOTE(TRIGRAM_ASSET_RELEASE SEP "NAME") " = ?").bind(release)
@@ -319,12 +319,12 @@ void AssetResource::processPostRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = postAsset(responseMsg, m_requestData);
     }
     else
-    {   
+    {
         m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(m_statusCode, "");
     }
@@ -342,26 +342,26 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
     Wt::WString distribution;
     Wt::WString release;
 
-    if(!sRequest.empty())
+    if (!sRequest.empty())
     {
         try
         {
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
 
-            if(result.contains("name"))
+            if (result.contains("name"))
             {
                 name = result.get("name");
             }
-            if(result.contains("distribution"))
+            if (result.contains("distribution"))
             {
                 distribution = result.get("distribution");
             }
-            if(result.contains("architecture"))
+            if (result.contains("architecture"))
             {
                 architecture = result.get("architecture");
             }
-            if(result.contains("release"))
+            if (result.contains("release"))
             {
                 release = result.get("release");
             }
@@ -383,9 +383,9 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
+    if (responseMsg.empty())
     {
-        try 
+        try
         {
             Wt::Dbo::Transaction transaction(m_session);
 
@@ -394,19 +394,19 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
                     .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
 
-            if (astPtr) 
+            if (astPtr)
             {
-                if(!name.empty())
+                if (!name.empty())
                 {
                     astPtr.modify()->name = name;
                 }
 
-                if(!architecture.empty())
+                if (!architecture.empty())
                 {
                     Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr = m_session.find<Echoes::Dbo::AssetArchitecture>()
                             .where(QUOTE(TRIGRAM_ASSET_ARCHITECTURE SEP "NAME") " = ?").bind(architecture)
                             .limit(1);
-                    if (!asaPtr) 
+                    if (!asaPtr)
                     {
                         Echoes::Dbo::AssetArchitecture *newAsa = new Echoes::Dbo::AssetArchitecture();
                         newAsa->name = architecture;
@@ -416,12 +416,12 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
                     astPtr.modify()->assetArchitecture = asaPtr;
                 }
 
-                if(!distribution.empty())
+                if (!distribution.empty())
                 {
                     Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> asdPtr = m_session.find<Echoes::Dbo::AssetDistribution>()
                             .where(QUOTE(TRIGRAM_ASSET_DISTRIBUTION SEP "NAME") " = ?").bind(distribution)
                             .limit(1);
-                    if (!asdPtr) 
+                    if (!asdPtr)
                     {
                         Echoes::Dbo::AssetDistribution *newAsd = new Echoes::Dbo::AssetDistribution();
                         newAsd->name = distribution;
@@ -429,9 +429,9 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
                         asdPtr.flush();
                     }
                     astPtr.modify()->assetDistribution = asdPtr;
-                }                
+                }
 
-                if(!distribution.empty())
+                if (!distribution.empty())
                 {
                     Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr = m_session.find<Echoes::Dbo::AssetRelease>()
                             .where(QUOTE(TRIGRAM_ASSET_RELEASE SEP "NAME") " = ?").bind(release)
@@ -445,23 +445,34 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
                     }
                     astPtr.modify()->assetRelease = asrPtr;
                 }
+                
+                if (!architecture.empty() || !distribution.empty() || !distribution.empty())
+                {
+                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe>> prbPtrCol = astPtr->probes.find()
+                            .where(QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL");
+
+                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe> >::const_iterator it = prbPtrCol.begin(); it != prbPtrCol.end(); ++it)
+                    {
+                        it->modify()->probePackageParameter = ProbeResource::selectProbePackageParameter(astPtr, m_session);
+                    }
+                }
 
                 res = serialize(astPtr, responseMsg);
-            } 
-            else 
+            }
+            else
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, astPtr);
             }
             transaction.commit();
-        } 
-        catch (Wt::Dbo::Exception const& e) 
+        }
+        catch (Wt::Dbo::Exception const& e)
         {
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
         }
     }
-    
+
     return res;
 }
 
@@ -472,8 +483,8 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
     long long mtyId;
     Wt::WString value;
 
-    if(!sRequest.empty())
-    {    
+    if (!sRequest.empty())
+    {
         try
         {
             Wt::Json::Object result;
@@ -502,9 +513,9 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
+    if (responseMsg.empty())
     {
-        try 
+        try
         {
             Wt::Dbo::Transaction transaction(m_session);
 
@@ -513,7 +524,7 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
                     .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
 
-            if (astPtr) 
+            if (astPtr)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
@@ -539,7 +550,7 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
                         .where(QUOTE(TRIGRAM_MEDIA ID SEP TRIGRAM_MEDIA ID) " = ?").bind(mtyId);
-                if (aaaPtr) 
+                if (aaaPtr)
                 {
                     aaaPtr.modify()->alias = value;
                 }
@@ -553,15 +564,15 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
                     aaaPtr = m_session.add<Echoes::Dbo::AlertMessageAliasAsset>(newAaa);
                 }
                 res = EReturnCode::OK;
-            } 
-            else 
+            }
+            else
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, astPtr);
             }
             transaction.commit();
-        } 
-        catch (Wt::Dbo::Exception const& e) 
+        }
+        catch (Wt::Dbo::Exception const& e)
         {
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
@@ -577,24 +588,24 @@ void AssetResource::processPutRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(m_statusCode, "");
     }
     else
-    {   
+    {
         try
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = putAsset(responseMsg, m_requestData);
             }
-            else if(!nextElement.compare("alias"))
+            else if (!nextElement.compare("alias"))
             {
                 m_statusCode = putAliasForAsset(responseMsg, m_requestData);
             }
@@ -604,7 +615,7 @@ void AssetResource::processPutRequest(Wt::Http::Response &response)
                 responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast const& e)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = httpCodeToJSON(m_statusCode, e);

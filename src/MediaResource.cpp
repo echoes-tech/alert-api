@@ -30,7 +30,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const long long &med
 
 Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, Echoes::Dbo::Session &session)
 {
-    const string queryStr = 
+    const string queryStr =
 " SELECT med"
 "   FROM " QUOTE("T_MEDIA_MED") " med"
 "   WHERE"
@@ -44,7 +44,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
 "       )"
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   LIMIT 1";
- 
+
     Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
     return queryRes.resultValue();
@@ -72,13 +72,13 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
         if (m_parameters["type"] > 0)
         {
             queryStr +=
-"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = "  + boost::lexical_cast<string>(m_parameters["type"]);
+"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = " + boost::lexical_cast<string>(m_parameters["type"]);
         }
 
         queryStr +=
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
- 
+
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrCol = queryRes.resultList();
@@ -123,7 +123,7 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = getMediasList(responseMsg);
     }
@@ -134,7 +134,7 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = getMedia(responseMsg);
             }
@@ -162,7 +162,7 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
     long long mtyId;
     Wt::WString value;
 
-    if(!sRequest.empty())
+    if (!sRequest.empty())
     {
         try
         {
@@ -189,8 +189,8 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
-    {        
+    if (responseMsg.empty())
+    {
         try
         {
             Wt::Dbo::Transaction transaction(m_session);
@@ -201,7 +201,7 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
             if (mtyPtr)
             {
                 Echoes::Dbo::Media *newMed = new Echoes::Dbo::Media();
-                newMed->user= m_session.user();
+                newMed->user = m_session.user();
                 newMed->mediaType = mtyPtr;
                 newMed->value = value;
                 newMed->token = Wt::WRandom::generateId(25);
@@ -234,12 +234,12 @@ void MediaResource::processPostRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = postMedia(responseMsg, m_requestData);
     }
     else
-    {   
+    {
         m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(m_statusCode, "");
     }
@@ -259,27 +259,27 @@ EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
     bool isDefault;
     bool isDefaultIsPresent = false;
 
-    if(!sRequest.empty())
+    if (!sRequest.empty())
     {
         try
         {
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
 
-            if(result.contains("token"))
+            if (result.contains("token"))
             {
                 token = result.get("token");
             }
-            if(result.contains("value"))
+            if (result.contains("value"))
             {
                 value = result.get("value");
             }
-            if(result.contains("is_confirmed"))
+            if (result.contains("is_confirmed"))
             {
                 isConfirmed = result.get("is_confirmed");
                 isConfirmedIsPresent = true;
             }
-            if(result.contains("is_default"))
+            if (result.contains("is_default"))
             {
                 isDefault = result.get("is_default");
                 isDefaultIsPresent = true;
@@ -302,47 +302,47 @@ EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
         responseMsg = httpCodeToJSON(res, "");
     }
 
-    if(responseMsg.empty())
+    if (responseMsg.empty())
     {
-        try 
+        try
         {
             Wt::Dbo::Transaction transaction(m_session);
 
             Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_session);
 
-            if (medPtr) 
+            if (medPtr)
             {
-                if(!token.empty())
+                if (!token.empty())
                 {
                     medPtr.modify()->token = token;
                 }
 
-                if(!value.empty())
+                if (!value.empty())
                 {
                     medPtr.modify()->value = value;
                 }
 
-                if(isConfirmedIsPresent)
+                if (isConfirmedIsPresent)
                 {
                     medPtr.modify()->isConfirmed = isConfirmed;
                 }
 
-                if(isDefaultIsPresent)
+                if (isDefaultIsPresent)
                 {
                     medPtr.modify()->isDefault = isDefault;
                 }
 
                 res = serialize(medPtr, responseMsg);
-            } 
-            else 
+            }
+            else
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, medPtr);
             }
 
             transaction.commit();
-        } 
-        catch (Wt::Dbo::Exception const& e) 
+        }
+        catch (Wt::Dbo::Exception const& e)
         {
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
@@ -358,20 +358,20 @@ void MediaResource::processPutRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(m_statusCode, "");
     }
     else
-    {   
+    {
         try
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = putMedia(responseMsg, m_requestData);
             }
@@ -381,7 +381,7 @@ void MediaResource::processPutRequest(Wt::Http::Response &response)
                 responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast const& e)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = httpCodeToJSON(m_statusCode, e);
@@ -397,18 +397,18 @@ EReturnCode MediaResource::deleteMedia(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    try 
+    try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
         Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_session);
 
-        if (medPtr) 
+        if (medPtr)
         {
             medPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
             res = EReturnCode::NO_CONTENT;
-        } 
-        else 
+        }
+        else
         {
             res = EReturnCode::NOT_FOUND;
             responseMsg = httpCodeToJSON(res, medPtr);
@@ -416,7 +416,7 @@ EReturnCode MediaResource::deleteMedia(string &responseMsg)
 
         transaction.commit();
     }
-    catch(boost::bad_lexical_cast const& e)
+    catch (boost::bad_lexical_cast const& e)
     {
         res = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(res, e);
@@ -431,20 +431,20 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
     string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(nextElement.empty())
+    if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(m_statusCode, "");
     }
     else
-    {   
+    {
         try
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
 
-            if(nextElement.empty())
+            if (nextElement.empty())
             {
                 m_statusCode = deleteMedia(responseMsg);
             }
@@ -454,7 +454,7 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
                 responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast const& e)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
             responseMsg = httpCodeToJSON(m_statusCode, e);
