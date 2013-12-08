@@ -169,7 +169,7 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
 
-            mtyId = result.get("media_type_id");
+            mtyId = result.get("type_id");
             value = result.get("value");
         }
         catch (Wt::Json::ParseError const& e)
@@ -405,8 +405,20 @@ EReturnCode MediaResource::deleteMedia(string &responseMsg)
 
         if (medPtr)
         {
-            medPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-            res = EReturnCode::NO_CONTENT;
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>> amsPtrCol = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
+                    .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
+
+            if (amsPtrCol.size() == 0)
+            {
+                medPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = EReturnCode::NO_CONTENT;
+            }
+            else
+            {
+                res = EReturnCode::CONFLICT;
+                responseMsg = httpCodeToJSON(res, medPtr);
+            } 
         }
         else
         {

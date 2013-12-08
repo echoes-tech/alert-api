@@ -23,11 +23,7 @@ class UnitResource : public PublicApiResource
         virtual ~UnitResource();
         
     protected :
-
-        EReturnCode getTypeOfUnits(std::string &responseMsg);
-        EReturnCode getTypeForUnit(std::string &responseMsg);
-        EReturnCode getSubUnitsForUnit(std::string &responseMsg);
-        EReturnCode getListUnits(std::string &responseMsg);
+        EReturnCode getUnitsList(std::string &responseMsg);
         EReturnCode getUnit(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
@@ -35,13 +31,9 @@ class UnitResource : public PublicApiResource
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
 
         EReturnCode deleteUnit(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
 

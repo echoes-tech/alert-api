@@ -23,94 +23,25 @@ UnitResource::~UnitResource()
 {
 }
 
-EReturnCode UnitResource::getTypeOfUnits(string &responseMsg)
+EReturnCode UnitResource::getUnitsList(string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-      
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType>> unitTypePtr = m_session.find<Echoes::Dbo::InformationUnitType>().where("\"IUT_DELETE\" IS NULL");
-                                                         
-        if (unitTypePtr.size() > 0)
-        {
-            
-            responseMsg = "[\n";
-            
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> >::const_iterator i = unitTypePtr.begin(); i != unitTypePtr.end(); ++i)
-            {
-                i->modify()->setId(i->id());                
-                responseMsg += i->get()->toJSON();
-                 ++idx;
-                if(unitTypePtr.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"UnitType not found\"}";
-        }
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrCol = m_session.find<Echoes::Dbo::InformationUnit>()
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_INFORMATION_UNIT ID));
+
+        res = serialize(inuPtrCol, responseMsg);
 
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception const &e)
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
         res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
-}
-
-EReturnCode UnitResource::getListUnits(string& responseMsg)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    int idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-      
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> unitCollec = m_session.find<Echoes::Dbo::InformationUnit>()
-                .where("\"INU_DELETE\" IS NULL")
-                .orderBy("\"INU_ID\"");
-
-        if (unitCollec.size() > 0)
-        {
-            
-            responseMsg = "[\n";
-            
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> >::const_iterator i = unitCollec.begin(); i != unitCollec.end(); ++i)
-            {
-                i->modify()->setId(i->id());                
-                responseMsg += i->get()->toJSON();
-                 ++idx;
-                if(unitCollec.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Unit not found\"}";
-        }
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
@@ -121,176 +52,57 @@ EReturnCode UnitResource::getUnit(string &responseMsg)
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
-      
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnit = m_session.find<Echoes::Dbo::InformationUnit>()
-                .where("\"INU_ID\" = ?").bind(this->m_pathElements[1])
-                .where("\"INU_DELETE\" IS NULL");
 
-        if (!informationUnit)
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Unit not found\"}";
-        }
-        else
-        {
-            informationUnit.modify()->setId(informationUnit.id());
-            responseMsg = informationUnit->toJSON();
-            res = EReturnCode::OK;
-        }
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
+
+        res = serialize(inuPtr, responseMsg);
 
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception const &e)
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
         res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
-
-EReturnCode UnitResource::getSubUnitsForUnit(string &responseMsg)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    unsigned idx = 0;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-      
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnit = m_session.find<Echoes::Dbo::InformationUnit>()
-                .where("\"INU_ID\" = ?").bind(this->m_pathElements[1])
-                .where("\"INU_DELETE\" IS NULL");
-
-        if (!informationUnit)
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Unit not found\"}";
-        }
-        else
-        {
-            //FIXME
-//             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> > infoSubUnit = m_session.find<Echoes::Dbo::InformationSubUnit>()
-//                    .where("\"ISU_INU_INU_ID\" = ?").bind(this->m_pathElements[1])
-//                    .where("\"ISU_DELETE\" IS NULL");
-//
-//            if(infoSubUnit.size() > 0)
-            {
-                responseMsg = "[\n";
-                //FIXME
-//                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationSubUnit> >::const_iterator i = infoSubUnit.begin(); i != infoSubUnit.end(); i++)
-//                {
-//                    i->modify()->setId(i->id());
-//                    responseMsg += i->get()->toJSON();
-//                    ++idx;
-//                    if(infoSubUnit.size()-idx > 0)
-//                    {
-//                        responseMsg += ",\n";
-//                    }
-//                }  
-//                responseMsg += "\n]\n";
-                res = EReturnCode::OK;
-            }
-//            else 
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = "{\"message\":\"Subunit not found\"}";
-//            }
-        }
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
-}
-
- EReturnCode UnitResource::getTypeForUnit(std::string &responseMsg)
- {
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-      
-         Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnit = m_session.find<Echoes::Dbo::InformationUnit>()
-                .where("\"INU_ID\" = ?").bind(this->m_pathElements[1])
-                .where("\"INU_DELETE\" IS NULL");
-
-                                                         
-        if (informationUnit)
-        {
-//            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType>> unitTypePtr = _session.find<InformationUnitType>().where("\"IUT_DELETE\" IS NULL")
-//                                                                                                                     .where("\"IUT_ID\" = ?").bind(informationUnit.get()->unitType.id());
-
-                informationUnit.get()->unitType.modify()->setId(informationUnit.get()->unitType.id());                
-                responseMsg += informationUnit.get()->unitType.modify()->toJSON();
-
-            res = EReturnCode::OK;
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Unit not found\"}";
-        }
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const &e)
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
-    return res;
- }
 
 void UnitResource::processGetRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    string responseMsg = "";
+    string nextElement = "";
+
     nextElement = getNextElementFromPath();
-    
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
-        this->m_statusCode = getListUnits(responseMsg);
-    }
-    else if(!nextElement.compare("types"))
-    {
-        this->m_statusCode = getTypeOfUnits(responseMsg);
+        m_statusCode = getUnitsList(responseMsg);
     }
     else
     {
         try
         {
-            
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
+            if (nextElement.empty())
             {
-                this->m_statusCode = getUnit(responseMsg);
-            }
-            else if(!nextElement.compare("subunits"))
-            {
-                this->m_statusCode = getSubUnitsForUnit(responseMsg);
-            }
-            else if(!nextElement.compare("types"))
-            {
-                this->m_statusCode = getTypeForUnit(responseMsg);
+                m_statusCode = getUnit(responseMsg);
             }
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast &)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }      
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
     }
+
     response.setStatus(this->m_statusCode);
     response.out() << responseMsg;
     return;
@@ -299,95 +111,121 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
 EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    long long iutId;
     Wt::WString name;
-    int typeId;
-      
-    try
+    long long baseInuId = 0;
+    Wt::WString baseOperation;
+
+    if (!sRequest.empty())
     {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-        //descriptif
-        name = result.get("inu_name");
-        typeId = result.get("iut_id");
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            name = result.get("name");
+            iutId = result.get("type_id");
+            if (result.contains("base_inu_id") && result.contains("base_operation"))
+            {
+                baseInuId = result.get("base_inu_id");
+                baseOperation = result.get("base_operation");
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, "");
     }
 
-    catch (Wt::Json::ParseError const& e)
+    if (responseMsg.empty())
     {
-        res = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON:" << sRequest;
-        return res;
-    }
-    catch (Wt::Json::TypeException const& e)
-    {
-        res = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Alert Ressource] Problems parsing JSON.:" << sRequest;
-        return res;
-    }    
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> unitTypePtr = m_session.find<Echoes::Dbo::InformationUnitType>().where("\"IUT_ID\" = ?").bind(typeId);
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> unitPtr;
-        
-        if(unitTypePtr)
-        {        
-            Echoes::Dbo::InformationUnit *informationUnit = new Echoes::Dbo::InformationUnit;
-            informationUnit->name = name;
-            informationUnit->unitType = unitTypePtr;
-            unitPtr = m_session.add<Echoes::Dbo::InformationUnit>(informationUnit);
-            
-            unitPtr.flush();
-            unitPtr.modify()->setId(unitPtr.id());
-            responseMsg = unitPtr->toJSON();
-            res = EReturnCode::OK;
-        }
-        else
+        try
         {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"UnitType not found\"}";
+            Wt::Dbo::Transaction transaction(m_session);
+
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> iutPtr = m_session.find<Echoes::Dbo::InformationUnitType>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_UNIT_TYPE ID) " = ?").bind(iutId)
+                    .where(QUOTE(TRIGRAM_INFORMATION_UNIT_TYPE SEP "DELETE") " IS NULL");
+            if (!iutPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, iutPtr);
+                return res;
+            }
+
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> baseInuPtr;
+            if (baseInuId > 0)
+            {
+                baseInuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
+                        .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(baseInuId)
+                        .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
+                if (!baseInuPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, baseInuPtr);
+                    return res;
+                }
+            }
+
+            Echoes::Dbo::InformationUnit *newInu = new Echoes::Dbo::InformationUnit();
+            newInu->name = name;
+            newInu->unitType = iutPtr;
+            if (baseInuId > 0)
+            {
+                 newInu->informationUnitBelongTo = baseInuPtr;
+            }
+            newInu->baseOperation = baseOperation;
+
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> newInuPtr = m_session.add<Echoes::Dbo::InformationUnit>(newInu);
+            newInuPtr.flush();
+
+            res = serialize(newInuPtr, responseMsg, EReturnCode::CREATED);
+
+            transaction.commit();
         }
-        transaction.commit();
-        
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
     }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
+
     return res;
 }
 
 void UnitResource::processPostRequest(Wt::Http::Response &response)
-{   
-    string responseMsg = "", nextElement = "";
+{
+    string responseMsg = "";
+    string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
-        this->m_statusCode = postUnit(responseMsg, m_requestData);
+        m_statusCode = postUnit(responseMsg, m_requestData);
     }
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        responseMsg = httpCodeToJSON(m_statusCode, "");
     }
 
-    response.setStatus(this->m_statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
-    return ;
-}
-
-
-void UnitResource::processPutRequest(Wt::Http::Response &response)
-{
     return;
 }
 
-
-void UnitResource::processPatchRequest(Wt::Http::Response &response)
+void UnitResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
 }
@@ -399,49 +237,58 @@ EReturnCode UnitResource::deleteUnit(string& responseMsg)
     {  
         Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> informationUnitPtr = m_session.find<Echoes::Dbo::InformationUnit>().where("\"INU_ID\" = ?").bind(this->m_pathElements[1]);
-        //Unit exist ?
-        if(informationUnitPtr)
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
+
+        if(inuPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchUnit>> seaUnitCollec = m_session.find<Echoes::Dbo::SearchUnit>().where("\"SEU_INU_INU_ID\" = ?").bind(this->m_pathElements[1]);
-            //verif si l'unité n'est pas utilisée                                                                
-            if (seaUnitCollec.size() == 0)
-            {                
-                //supprime l'info
-                informationUnitPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session.find<Echoes::Dbo::Information>()
+                    .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
+
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
+
+            if (infPtrCol.size() == 0 && idaPtrCol.size())
+            {
+                inuPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
                 res = EReturnCode::NO_CONTENT;
-                transaction.commit();   
             }
             else
             {
                 res = EReturnCode::CONFLICT;
-                responseMsg = "{\"message\":\"Conflict, an information use this unit\"}";
+                responseMsg = httpCodeToJSON(res, inuPtr);
             } 
         }
         else
         {
-            responseMsg = "{\"message\":\"Unit Not Found\"}";
             res = EReturnCode::NOT_FOUND;
-        }            
+            responseMsg = httpCodeToJSON(res, inuPtr);
+        }
+
+        transaction.commit();
     }
-    catch (Wt::Dbo::Exception const& e) 
+    catch (boost::bad_lexical_cast const& e)
     {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, e);
     }
+
     return res;
 }
 
 void UnitResource::processDeleteRequest(Wt::Http::Response &response)
-{    
-    string responseMsg = "", nextElement = "";
+{
+    string responseMsg = "";
+    string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+        responseMsg = httpCodeToJSON(m_statusCode, "");
     }
     else
     {
@@ -451,34 +298,25 @@ void UnitResource::processDeleteRequest(Wt::Http::Response &response)
 
             nextElement = getNextElementFromPath();
 
-            if(!nextElement.compare(""))
+            if (nextElement.empty())
             {
                 m_statusCode = deleteUnit(responseMsg);
             }
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                responseMsg = httpCodeToJSON(m_statusCode, "");
             }
         }
-        catch(boost::bad_lexical_cast &)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            responseMsg = httpCodeToJSON(m_statusCode, e);
         }
     }
 
-    response.setStatus(this->m_statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
-    return;
-}
-
-
-void UnitResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    // Create Session and Check auth
-    PublicApiResource::handleRequest(request, response);
-
     return;
 }
 
