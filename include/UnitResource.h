@@ -30,6 +30,7 @@ class UnitResource : public PublicApiResource
         EReturnCode postUnit(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
+        EReturnCode putUnit(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
 
         EReturnCode deleteUnit(std::string &responseMsg);

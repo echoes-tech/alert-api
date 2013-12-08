@@ -225,8 +225,115 @@ void UnitResource::processPostRequest(Wt::Http::Response &response)
     return;
 }
 
-void UnitResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode UnitResource::putUnit(string &responseMsg, const string &sRequest)
 {
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    Wt::WString name;
+
+    if (!sRequest.empty())
+    {
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            if (result.contains("name"))
+            {
+                name = result.get("name");
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, "");
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
+
+            if (inuPtr)
+            {
+                if (!name.empty())
+                {
+                    inuPtr.modify()->name = name;
+                }
+
+                res = serialize(inuPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, inuPtr);
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
+    return res;
+}
+
+void MediaResource::processPutRequest(Wt::Http::Response &response)
+{
+    string responseMsg = "";
+    string nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if (nextElement.empty())
+    {
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(m_statusCode, "");
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (nextElement.empty())
+            {
+                m_statusCode = putUnit(responseMsg, m_requestData);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(m_statusCode, "");
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
+    }
+
+    response.setStatus(m_statusCode);
+    response.out() << responseMsg;
     return;
 }
 
