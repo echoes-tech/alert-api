@@ -23,61 +23,86 @@ RoleResource::~RoleResource()
 {
 }
 
-EReturnCode RoleResource::getRoleForUser(std::string &responseMsg)
+EReturnCode RoleResource::getRolesList(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
-    {        
+    {
         Wt::Dbo::Transaction transaction(m_session);
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> userRoles = m_session.find<Echoes::Dbo::UserRole>().where("\"URO_ORG_ORG_ID\" = ?").bind(this->m_session.user()->organization);
-        if (userRoles.size() > 0)
-        {
-            unsigned int idx = 0;
-            responseMsg += "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole> >::const_iterator uro = userRoles.begin() ; uro != userRoles.end(); uro++)
-            {
-                idx++;
-                uro->modify()->setId(uro->id());
-                responseMsg += uro->modify()->toJSON();
-                if (idx < userRoles.size())
-                {
-                    responseMsg += ",";
-                }
-                responseMsg += "\n";
-            }
-            responseMsg += "]\n";
-        }
-        else
-        {
-            responseMsg = "{\"message\":\"Role not found\"}";
-            res = EReturnCode::NOT_FOUND;
-        }
-        res = EReturnCode::OK;
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> uroPtrCol = m_session.find<Echoes::Dbo::UserRole>()
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .orderBy(QUOTE(TRIGRAM_USER_ROLE ID));
+
+        res = serialize(uroPtrCol, responseMsg);
+
         transaction.commit();
     }
-    catch (Wt::Dbo::Exception e)
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << e.what();
         res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-        return res;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode RoleResource::getRole(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
+                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+
+        res = serialize(uroPtr, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
     }
     return res;
 }
 
 void RoleResource::processGetRequest(Wt::Http::Response &response)
 {
-    std::string responseMsg = "", nextElement = "";
-    
+    string responseMsg = "";
+    string nextElement = "";
+
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
-        this->m_statusCode = getRoleForUser(responseMsg);
+        m_statusCode = getRolesList(responseMsg);
     }
     else
     {
-        this->m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if (nextElement.empty())
+            {
+                m_statusCode = getRole(responseMsg);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(m_statusCode, "");
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
     }
 
     response.setStatus(this->m_statusCode);
@@ -85,36 +110,201 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
+EReturnCode RoleResource::postRole(string &responseMsg, const string &sRequest)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    Wt::WString name;
+
+    if (!sRequest.empty())
+    {
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            name = result.get("name");
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, "");
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+
+            Echoes::Dbo::UserRole *newUro = new Echoes::Dbo::UserRole();
+            newUro->name = name;
+            newUro->organization = m_session.user()->organization;
+
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session.add<Echoes::Dbo::UserRole>(newUro);
+            newUroPtr.flush();
+
+            res = serialize(newUroPtr, responseMsg, EReturnCode::CREATED);
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
+    return res;
+}
+
 void RoleResource::processPostRequest(Wt::Http::Response &response)
 {
+    string responseMsg = "";
+    string nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if (nextElement.empty())
+    {
+        m_statusCode = postRole(responseMsg, m_requestData);
+    }
+    else
+    {
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(m_statusCode, "");
+    }
+
+    response.setStatus(m_statusCode);
+    response.out() << responseMsg;
     return;
 }
 
+
+EReturnCode RoleResource::putRole(string &responseMsg, const string &sRequest)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    Wt::WString name;
+
+    if (!sRequest.empty())
+    {
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            if (result.contains("name"))
+            {
+                name = result.get("name");
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, "");
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
+                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+
+            if (uroPtr)
+            {
+                if (!name.empty())
+                {
+                    uroPtr.modify()->name = name;
+                }
+
+                res = serialize(uroPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, uroPtr);
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
+    return res;
+}
 
 void RoleResource::processPutRequest(Wt::Http::Response &response)
 {
+    string responseMsg = "";
+    string nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if (nextElement.empty())
+    {
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(m_statusCode, "");
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (nextElement.empty())
+            {
+                m_statusCode = putRole(responseMsg, m_requestData);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(m_statusCode, "");
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
+    }
+
+    response.setStatus(m_statusCode);
+    response.out() << responseMsg;
     return;
 }
-
-
-void RoleResource::processPatchRequest(Wt::Http::Response &response)
-{
-    return;
-}
-
-
 
 void RoleResource::processDeleteRequest(Wt::Http::Response &response)
 {
-    return;
-}
-
-
-void RoleResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-    // Create Session and Check auth
-    PublicApiResource::handleRequest(request, response);
-
     return;
 }
 

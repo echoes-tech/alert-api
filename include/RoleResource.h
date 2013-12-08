@@ -23,20 +23,18 @@ class RoleResource : public PublicApiResource
         virtual ~RoleResource();
         
     protected :
-
-        EReturnCode getRoleForUser(std::string &response);
+        EReturnCode getRolesList(std::string &response);
+        EReturnCode getRole(std::string &response);
         virtual void processGetRequest(Wt::Http::Response &response);
 
+        EReturnCode postRole(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
+        EReturnCode putRole(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
-        
-        virtual void processPatchRequest(Wt::Http::Response &response);
 
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);          
 };
 
-#endif	/* USERRESOURCE_H */
+#endif	/* ROLERESOURCE_H */
 
