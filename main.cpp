@@ -30,7 +30,7 @@
 #include "PluginResource.h"
 #include "ProbeResource.h"
 #include "RoleResource.h"
-#include "SearchTypeResource.h"
+#include "SourceResource.h"
 #include "UnitResource.h"
 #include "UserResource.h"
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
             OrganizationResource organizationRessource;
             PluginResource       pluginResource;
             ProbeResource        probeResource;
-            SearchTypeResource   searchTypeResource;
+            SourceResource       sourceResource;
             UnitResource         unitResource;
             UserResource         userResource;
             RoleResource         roleResource;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
             server.addResource(&pluginResource,        "/plugins");
             server.addResource(&probeResource,         "/probes");
             server.addResource(&roleResource,          "/roles");
-            server.addResource(&searchTypeResource,    "/search_types");
+            server.addResource(&sourceResource,        "/sources");
             server.addResource(&unitResource,          "/units");
             server.addResource(&userResource,          "/users");
             server.addResource(&itookiAckReceiver,     "/itooki/ack");

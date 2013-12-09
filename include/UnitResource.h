@@ -21,7 +21,7 @@ class UnitResource : public PublicApiResource
     public :
         UnitResource();
         virtual ~UnitResource();
-        
+
     protected :
         EReturnCode getUnitsList(std::string &responseMsg);
         EReturnCode getUnit(std::string &responseMsg);

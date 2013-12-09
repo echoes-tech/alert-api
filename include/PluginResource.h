@@ -26,9 +26,6 @@ class PluginResource : public PublicApiResource
         std::string m_role;
         std::string m_media_type;
         
-        EReturnCode pluginIsAccessible(std::string& responseMsg);
-        
-        EReturnCode getPluginJSON(std::string &responseMsg);
         EReturnCode getPlugin(std::string &responseMsg);
 //        EReturnCode getParameterValueForSearch(std::string &responseMsg);
 //        EReturnCode getParameterValueForSource(std::string &responseMsg);
@@ -42,7 +39,6 @@ class PluginResource : public PublicApiResource
 
 //        EReturnCode postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
 //        EReturnCode postSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
-        EReturnCode postSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
         EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
@@ -54,12 +50,10 @@ class PluginResource : public PublicApiResource
         
 //        EReturnCode patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
 //        EReturnCode patchSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
-//        EReturnCode patchParametersSourceForPlugin(std::string &responseMsg, const std::string &sRequest);
 //        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
 //        EReturnCode deleteInformationForSeaSrcAndPlg(std::string &responseMsg);
 //        EReturnCode deleteSearchForSourceAndPlugin(std::string &responseMsg);
-        EReturnCode deleteSourceForPlugin(std::string &responseMsg);
         EReturnCode deletePlugin(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 

@@ -50,7 +50,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
 	${OBJECTDIR}/src/RoleResource.o \
-	${OBJECTDIR}/src/SearchTypeResource.o \
+	${OBJECTDIR}/src/SourceResource.o \
 	${OBJECTDIR}/src/UnitResource.o \
 	${OBJECTDIR}/src/UserResource.o \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o
@@ -84,7 +84,7 @@ LDLIBSOPTIONS=-L../dbo/dist/Debug_SharedObject/GNU-Linux-x86 -ldbo -lwtdbo -lwtd
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	distcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api ${OBJECTFILES} ${LDLIBSOPTIONS} -lwthttp
+	distcc g++-4.7 -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/api ${OBJECTFILES} ${LDLIBSOPTIONS} -lwthttp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -161,10 +161,10 @@ ${OBJECTDIR}/src/RoleResource.o: src/RoleResource.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource.o src/RoleResource.cpp
 
-${OBJECTDIR}/src/SearchTypeResource.o: src/SearchTypeResource.cpp 
+${OBJECTDIR}/src/SourceResource.o: src/SourceResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SourceResource.o src/SourceResource.cpp
 
 ${OBJECTDIR}/src/UnitResource.o: src/UnitResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -392,17 +392,17 @@ ${OBJECTDIR}/src/RoleResource_nomain.o: ${OBJECTDIR}/src/RoleResource.o src/Role
 	    ${CP} ${OBJECTDIR}/src/RoleResource.o ${OBJECTDIR}/src/RoleResource_nomain.o;\
 	fi
 
-${OBJECTDIR}/src/SearchTypeResource_nomain.o: ${OBJECTDIR}/src/SearchTypeResource.o src/SearchTypeResource.cpp 
+${OBJECTDIR}/src/SourceResource_nomain.o: ${OBJECTDIR}/src/SourceResource.o src/SourceResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
-	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/SearchTypeResource.o`; \
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/SourceResource.o`; \
 	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
 	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} $@.d;\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchTypeResource_nomain.o src/SearchTypeResource.cpp;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SourceResource_nomain.o src/SourceResource.cpp;\
 	else  \
-	    ${CP} ${OBJECTDIR}/src/SearchTypeResource.o ${OBJECTDIR}/src/SearchTypeResource_nomain.o;\
+	    ${CP} ${OBJECTDIR}/src/SourceResource.o ${OBJECTDIR}/src/SourceResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/UnitResource_nomain.o: ${OBJECTDIR}/src/UnitResource.o src/UnitResource.cpp 

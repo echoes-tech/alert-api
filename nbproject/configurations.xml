@@ -24,8 +24,8 @@
       <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
       <itemPath>include/RoleResource.h</itemPath>
-      <itemPath>include/SearchTypeResource.h</itemPath>
       <itemPath>include/SendSMS.h</itemPath>
+      <itemPath>include/SourceResource.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
       <itemPath>include/UnitResource.h</itemPath>
       <itemPath>include/UserResource.h</itemPath>
@@ -59,7 +59,7 @@
         <itemPath>src/ProbeResource.cpp</itemPath>
         <itemPath>src/PublicApiResource.cpp</itemPath>
         <itemPath>src/RoleResource.cpp</itemPath>
-        <itemPath>src/SearchTypeResource.cpp</itemPath>
+        <itemPath>src/SourceResource.cpp</itemPath>
         <itemPath>src/UnitResource.cpp</itemPath>
         <itemPath>src/UserResource.cpp</itemPath>
       </logicalFolder>
@@ -114,7 +114,7 @@
           <linkerAddLib>
             <pElem>../dbo/dist/Debug_SharedObject/GNU-Linux-x86</pElem>
           </linkerAddLib>
-          <commandlineTool>distcc</commandlineTool>
+          <commandlineTool>distcc g++-4.7</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
@@ -191,9 +191,9 @@
       </item>
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SourceResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SrReception.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -237,7 +237,7 @@
       </item>
       <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/SourceResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/UnitResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -350,9 +350,9 @@
       </item>
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/SearchTypeResource.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SourceResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SrReception.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -396,7 +396,7 @@
       </item>
       <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/SearchTypeResource.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/SourceResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/UnitResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

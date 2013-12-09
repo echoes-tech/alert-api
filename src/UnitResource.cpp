@@ -296,7 +296,7 @@ EReturnCode UnitResource::putUnit(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void MediaResource::processPutRequest(Wt::Http::Response &response)
+void UnitResource::processPutRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
     string nextElement = "";
@@ -340,6 +340,7 @@ void MediaResource::processPutRequest(Wt::Http::Response &response)
 EReturnCode UnitResource::deleteUnit(string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
     try 
     {  
         Wt::Dbo::Transaction transaction(m_session);
@@ -358,7 +359,7 @@ EReturnCode UnitResource::deleteUnit(string& responseMsg)
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(m_pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
 
-            if (infPtrCol.size() == 0 && idaPtrCol.size())
+            if (infPtrCol.size() == 0 && idaPtrCol.size() == 0)
             {
                 inuPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
                 res = EReturnCode::NO_CONTENT;

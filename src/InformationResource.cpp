@@ -167,6 +167,118 @@ void InformationResource::processPostRequest(Wt::Http::Response &response)
     return;
 }
 
+//EReturnCode PluginResource::putAliasForInformation(string &responseMsg, const string &sRequest)
+//{
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+//    Wt::WString sRole;
+//    Wt::WString sMedia;
+//    Wt::WString sValue;
+//    if((res = pluginIsAccessible(responseMsg)) == 200)
+//    {
+//        try
+//        {
+//            Wt::Json::Object result;                   
+//            Wt::Json::parse(sRequest, result);
+//
+//            //information
+//            Wt::Json::Object alias = result.get("alias");
+//            sRole = alias.get("role");
+//            sMedia = alias.get("media");
+//            sValue = alias.get("value");
+//
+//            try
+//            {
+//                Wt::Dbo::Transaction transaction(m_session);
+//                //FIXME
+//                // Information exist?
+////                Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
+////                        .where("\"PLG_ID_PLG_ID\" = ?").bind(vPathElements[1])
+////                        .where("\"SRC_ID\" = ?").bind(vPathElements[3])
+////                        .where("\"SEA_ID\" = ?").bind(vPathElements[5])
+////                        .where("\"INF_VALUE_NUM\" = ?").bind(vPathElements[7])
+////                        .where("\"INU_ID_INU_ID\" = ?").bind(vPathElements[9])
+////                        ;
+////                if(infPtr)
+////                {
+////                    //Relier une unité à l'info
+////                    // unit exist?
+////                    Wt::Dbo::ptr<Echoes::Dbo::UserRole> ptrRole = _session.find<Echoes::Dbo::UserRole>()
+////                        .where("\"URO_ID\" = ?").bind(sRole)
+////                        .where("\"URO_DELETE\" IS NULL");
+////                
+////                    if (!ptrRole)
+////                    {
+////                        res = EReturnCode::NOT_FOUND;
+////                        responseMsg = "{\n\t\"message\":\"Role not found\"\n}";
+////                        return res;
+////                    }
+////
+////                    Wt::Dbo::ptr<Echoes::Dbo::MediaType> ptrMedia = _session.find<Echoes::Dbo::MediaType>()
+////                            .where("\"MED_ID\" = ?").bind(sMedia)
+////                            .where("\"MED_DELETE\" IS NULL");
+////
+////                    if (!ptrMedia)
+////                    {
+////                        res = EReturnCode::NOT_FOUND;
+////                        responseMsg = "{\n\t\"message\":\"Media not found\"\n}";
+////                        return res;
+////                    }
+////
+////
+////                    Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> ptrInformationAlias = _session.find<AlertMessageAliasInformation>()
+////                            .where("\"URO_ID_URO_ID\" = ?").bind(sRole)
+////                            .where("\"SEA_ID\" = ?").bind(infPtr->pk.search->pk.id)
+////                            .where("\"SRC_ID\" = ?").bind(infPtr->pk.search->pk.source->pk.id)
+////                            .where("\"PLG_ID_PLG_ID\" = ?").bind(infPtr->pk.search->pk.source->pk.plugin.id())
+////                            .where("\"INF_VALUE_NUM\" = ?").bind(infPtr->pk.subSearchNumber)
+////                            .where("\"INU_ID_INU_ID\" = ?").bind(infPtr->pk.unit.id())
+////                            .where("\"MED_ID_MED_ID\" = ?").bind(sMedia);
+////                    if (ptrInformationAlias) 
+////                    {
+////                        ptrInformationAlias.modify()->alias = sValue;
+////                    }
+////                    else
+////                    {
+////                        Echoes::Dbo::AlertMessageAliasInformation *newInformationAlias = new Echoes::Dbo::AlertMessageAliasInformation();
+////                        newInformationAlias->pk.information = infPtr;
+////                        newInformationAlias->pk.userRole = ptrRole;
+////                        newInformationAlias->pk.media = ptrMedia;
+////                        newInformationAlias->alias = sValue;
+////                        ptrInformationAlias = _session.add<Echoes::Dbo::AlertMessageAliasInformation>(newInformationAlias);
+////                    }
+////                    res = EReturnCode::OK;
+////                }
+////                else
+////                {
+////                    res = EReturnCode::NOT_FOUND;
+////                    responseMsg = "{\"message\":\"Information not found\"}";
+////                }
+//
+//                transaction.commit();
+//            }
+//            catch (Wt::Dbo::Exception const& e) 
+//            {
+//                Wt::log("error") << e.what();
+//                res = EReturnCode::SERVICE_UNAVAILABLE;
+//                responseMsg = "{\"message\":\"Service Unavailable\"}";
+//            }
+//        }
+//        catch (Wt::Json::ParseError const& e)
+//        {
+//            res = EReturnCode::BAD_REQUEST;
+//            responseMsg = "{\"message\":\"Problems parsing JSON\"}";
+//            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
+//        }
+//        catch (Wt::Json::TypeException const& e)
+//        {
+//            res = EReturnCode::BAD_REQUEST;
+//            responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
+//            Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
+//        }   
+//    }
+//    return res; 
+//}
+
 void InformationResource::processPutRequest(Wt::Http::Response &response)
 {
     return;
