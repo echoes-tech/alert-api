@@ -161,7 +161,7 @@ void CriterionResource::processGetRequest(Wt::Http::Response &response)
         }
     }
 
-    response.setStatus(this->m_statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
     return;
 }

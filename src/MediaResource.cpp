@@ -65,7 +65,7 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
-"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(this->m_session.user()->organization.id()) +
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
 
@@ -152,7 +152,7 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
         }
     }
 
-    response.setStatus(this->m_statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
     return;
 }

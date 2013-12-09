@@ -106,7 +106,7 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
         }
     }
 
-    response.setStatus(this->m_statusCode);
+    response.setStatus(m_statusCode);
     response.out() << responseMsg;
     return;
 }
@@ -197,7 +197,7 @@ void UserResource::processPostRequest(Wt::Http::Response &response)
     {
         if(nextElement.compare("action") == 0)
         {
-            this->m_statusCode = postActionForUser(responseMsg, m_requestData);
+            m_statusCode = postActionForUser(responseMsg, m_requestData);
         }
         else
         {

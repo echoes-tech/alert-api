@@ -23,24 +23,20 @@ class PluginResource : public PublicApiResource
         virtual ~PluginResource();
         
     protected :
-        std::string m_role;
-        std::string m_media_type;
-        
+        EReturnCode getPluginsList(std::string &responseMsg);
         EReturnCode getPlugin(std::string &responseMsg);
-        EReturnCode getInformationListForPlugin(std::string &responseMsg);
         EReturnCode getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putPlugin(std::string &responseMsg, const std::string &sRequest);
         EReturnCode putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
+        virtual void processPutRequest(Wt::Http::Response &response);
 
         EReturnCode deletePlugin(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
-
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);       
 };
 
 #endif	/* PLUGINRESOURCE_H */

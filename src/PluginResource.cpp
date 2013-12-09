@@ -25,64 +25,52 @@ PluginResource::~PluginResource()
 {
 }
 
-EReturnCode PluginResource::getPlugin(string& responseMsg)
+EReturnCode PluginResource::getPluginsList(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
     try
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        // on liste les plugins rattachés à des assets détenu par l'organization
-        string queryStr = "SELECT plg FROM \"T_PLUGIN_PLG\" plg "
-                                "WHERE \"PLG_ID\" IN "
-                                "("
-                                   "SELECT \"T_PLUGIN_PLG_PLG_ID\" FROM \"TJ_PLG_AST\" "
-                                   "wHERE \"T_ASSET_AST_AST_ID\" IN "
-                                        "("
-                                        "SELECT \"AST_ID\" FROM \"T_ASSET_AST\" "
-                                        "WHERE \"AST_ORG_ORG_ID\" = " + boost::lexical_cast<string>(m_session.user().get()->organization.id()) +
-                                        " AND \"AST_DELETE\" IS NULL "
-                                        ")"
-                                ") "
-                                " AND \"PLG_DELETE\" IS NULL"
-                                " ORDER BY \"PLG_ID\" ";
-        
-         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin> > queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >(queryStr);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = m_session.find<Echoes::Dbo::Plugin>()
+                .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .orderBy(QUOTE(TRIGRAM_PLUGIN ID));
 
-         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> > plgPtr = queryRes.resultList();
+        res = serialize(plgPtrCol, responseMsg);
 
-        
-        if(plgPtr.size() > 0 )
-        {
-            responseMsg = "[\n";
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >::const_iterator i = plgPtr.begin(); i != plgPtr.end(); i++) 
-            {
-                i->modify()->setId(i->id());
-                responseMsg +=  i->get()->toJSON();
-                idx++;
-                if(plgPtr.size()-idx > 0)
-                {
-                    responseMsg += ",\n";
-                }
-            }
-            responseMsg += "\n]\n";
-            res = EReturnCode::OK;
-            transaction.commit();
-        }
-        else
-        {
-            res = EReturnCode::NOT_FOUND;
-            responseMsg = "{\"message\":\"Plugin not found\"}";
-        }
+        transaction.commit();
     }
-    catch (Wt::Dbo::Exception const& e) 
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << "[PluginResource]" << e.what();
         res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
+        responseMsg = httpCodeToJSON(res, e);
     }
-    return res;  
+    return res;
+}
+
+EReturnCode PluginResource::getPlugin(std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
+                .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+
+        res = serialize(plgPtr, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
 }
 
 EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
@@ -134,62 +122,15 @@ EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
     return res;
 }
 
-EReturnCode PluginResource::getInformationListForPlugin(string &responseMsg)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    unsigned idx = 0;
-//    if((res = pluginIsAccessible(responseMsg)) == 200)
-//    {
-//        try
-//        {
-//            Wt::Dbo::Transaction transaction(m_session);
-//
-//            Wt::Dbo::collection <Wt::Dbo::ptr<Echoes::Dbo::Information>> information = m_session.find<Echoes::Dbo::Information>()
-//                    .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1])
-//                    .where("\"INF_DELETE\" IS NULL")
-//                    .orderBy("\"INF_ID\"");
-//
-//            if(information.size() > 0 )
-//            {
-//                responseMsg = "[\n";
-//                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information> >::const_iterator i = information.begin(); i != information.end(); i++) 
-//                { 
-//                    Echoes::Dbo::Information info(*i->get());
-//                    responseMsg +=  info.toJSON();
-//                    idx++;
-//                    if(information.size()-idx > 0)
-//                    {
-//                        responseMsg += ",\n";
-//                    }
-//                }
-//                responseMsg += "\n]\n";
-//                res = EReturnCode::OK;
-//            }
-//            else
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = "{\"message\":\"Information not found\"}";
-//            }
-//            transaction.commit();
-//        }
-//        catch (Wt::Dbo::Exception const& e) 
-//        {
-//            Wt::log("error") << e.what();
-//            res = EReturnCode::SERVICE_UNAVAILABLE;
-//            responseMsg = "{\"message\":\"Service Unavailable\"}";
-//        }
-//    }
-    return res;  
-}
-
 void PluginResource::processGetRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
-    
+    string responseMsg = "";
+    string nextElement = "";
+
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
-        m_statusCode = getPlugin(responseMsg);
+        m_statusCode = getPluginsList(responseMsg);
     }
     else
     {
@@ -198,150 +139,25 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath();
-
-            if(!nextElement.compare(""))
+            if (nextElement.empty())
             {
                 m_statusCode = getPlugin(responseMsg);
             }
-            else if(!nextElement.compare("alias"))
+            else if (!nextElement.compare("alias"))
             {
                 m_statusCode = getAliasForPlugin(responseMsg);
-            }
-            else if(!nextElement.compare("informations"))
-            {
-                nextElement = getNextElementFromPath();
-                if(!nextElement.compare(""))
-                {
-                    m_statusCode = getInformationListForPlugin(responseMsg);
-                }
-                else
-                {
-                    m_statusCode = EReturnCode::BAD_REQUEST;
-                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-                }
-            }
-            else if (!nextElement.compare("sources"))
-            {
-//                nextElement = getNextElementFromPath();
-//                if(!nextElement.compare(""))
-//                {
-//                    m_statusCode = getSourceForPlugin(responseMsg);
-//                }
-//                else
-//                {
-//                    boost::lexical_cast<unsigned long long>(nextElement);
-//                    nextElement = getNextElementFromPath();
-//                    if (!nextElement.compare("parameters"))
-//                    {
-//                        m_statusCode = getParameterValueForSource(responseMsg);
-//                    }
-//                    else if (!nextElement.compare("searches"))
-//                    {
-//                        nextElement = getNextElementFromPath();
-//                        if(!nextElement.compare(""))
-//                        {
-//                            m_statusCode = getSearchForSourceAndPlugin(responseMsg);
-//                        }
-//                        else
-//                        {
-//                            boost::lexical_cast<unsigned long long>(nextElement);
-//                            nextElement = getNextElementFromPath();
-//                            if(!nextElement.compare(""))
-//                            {
-//                                m_statusCode = getSearchForSearchIdForSourceAndPlugin(responseMsg);
-//                            }
-//                            else if(!nextElement.compare("parameters"))
-//                            {
-//                                m_statusCode = getParameterValueForSearch(responseMsg);
-//                            }
-//                            else if(!nextElement.compare("informations"))
-//                            {
-//                                nextElement = getNextElementFromPath();
-//                                if(!nextElement.compare(""))
-//                                {
-//                                    m_statusCode = getInformationForSeaSrcAndPlg(responseMsg);
-//                                }
-//                                else
-//                                {
-//                                    m_statusCode = EReturnCode::BAD_REQUEST;
-//                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                }
-//                                
-//                            }
-//                            else if(!nextElement.compare("inf_values"))
-//                            {
-//                                nextElement = getNextElementFromPath();
-//                                boost::lexical_cast<unsigned long long>(nextElement);
-//                                nextElement = getNextElementFromPath();
-//                                if(!nextElement.compare("units"))
-//                                {
-//                                    nextElement = getNextElementFromPath();
-//                                    boost::lexical_cast<unsigned long long>(nextElement);
-//                                    nextElement = getNextElementFromPath();
-//                                    if(!nextElement.compare("alias"))
-//                                    {
-//                                        m_statusCode = getAliasForInformation(responseMsg);
-//                                    }
-//                                    else if (!nextElement.compare("criteria"))
-//                                    {
-//                                        nextElement = getNextElementFromPath();
-//                                        if(!nextElement.compare(""))
-//                                        {
-//                                            m_statusCode = getCriteriaForInformation(responseMsg);
-//                                        }
-//                                        else
-//                                        {
-//                                            boost::lexical_cast<unsigned long long>(nextElement);
-//                                            nextElement = getNextElementFromPath();
-//                                            if(!nextElement.compare("alias"))
-//                                            {
-//                                                m_statusCode = getAliasForCriteria(responseMsg);
-//                                            }
-//                                            else
-//                                            {
-//                                                m_statusCode = EReturnCode::BAD_REQUEST;
-//                                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                            }
-//                                        }
-//                                    }
-//                                    else
-//                                    {
-//                                        m_statusCode = EReturnCode::BAD_REQUEST;
-//                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                    }
-//                                }
-//                                else
-//                                {
-//                                    m_statusCode = EReturnCode::BAD_REQUEST;
-//                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                }
-//                            }   
-//                            else
-//                            {
-//                                m_statusCode = EReturnCode::BAD_REQUEST;
-//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                            }
-//                        }
-//                    }
-//                    else
-//                    {
-//                        m_statusCode = EReturnCode::BAD_REQUEST;
-//                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                    }
-                    m_statusCode = EReturnCode::BAD_REQUEST;
-                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                }
             }
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                const string err = "[Plugin Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
-        catch(boost::bad_lexical_cast &)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            responseMsg = httpCodeToJSON(m_statusCode, e);
         }
     }
 
@@ -353,266 +169,96 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
 EReturnCode PluginResource::postPlugin(string& responseMsg, const string& sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    Wt::WString plgName = "", plgDesc = "";
-    try
+    Wt::WString name;
+    Wt::WString desc;
+//    long long preId;
+
+    if (!sRequest.empty())
     {
-        Wt::Json::Object result;                   
-        Wt::Json::parse(sRequest, result);
-        //descriptif
-        plgName = result.get("plg_name");
-        plgDesc = result.get("plg_desc");
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            name = result.get("name");
+            desc = result.get("desc");
+//            preId = result.get("reference_id");
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
     }
-    catch (Wt::Json::ParseError const& e)
+    else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\"message\":\"Problems parsing JSON\"}";
-        Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON:" << sRequest;
-        return res;
+        const string err = "[Plugin Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
-    catch (Wt::Json::TypeException const& e)
+
+    if (responseMsg.empty())
     {
-        res = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\"message\":\"Problems parsing JSON.\"}";
-        Wt::log("warning") << "[Plugin Ressource] Problems parsing JSON.:" << sRequest;
-        return res;
-    }   
-    try 
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-        Echoes::Dbo::Plugin *plugin = new Echoes::Dbo::Plugin();
-        plugin->name = plgName;
-        plugin->desc = plgDesc;
-        
-        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.add<Echoes::Dbo::Plugin>(plugin);
-       
-        plgPtr.flush();
-        plgPtr.modify()->setId(plgPtr.id());
-        responseMsg = plgPtr->toJSON();
-        
-        transaction.commit();
-        res = EReturnCode::OK;
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+
+//            Wt::Dbo::ptr<Echoes::Dbo::PluginReference> prePtr = m_session.find<Echoes::Dbo::PluginReference>()
+//                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE ID) " = ?").bind(preId)
+//                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE SEP "DELETE") " IS NULL");
+//            if (prePtr)
+//            {
+                Echoes::Dbo::Plugin *newPlg = new Echoes::Dbo::Plugin();
+                newPlg->organization = m_session.user()->organization;
+//                newPlg->pluginReference = prePtr;
+//                newPlg->versionRef = prePtr->version;
+                newPlg->versionRef = "1.0";
+                newPlg->versionClient = "1.0";
+                newPlg->name = name;
+                newPlg->desc = desc;
+                Wt::Dbo::ptr<Echoes::Dbo::Plugin> newPlgPtr = m_session.add<Echoes::Dbo::Plugin>(newPlg);
+                newPlgPtr.flush();
+
+                res = serialize(newPlgPtr, responseMsg, EReturnCode::CREATED);
+//            }
+//            else
+//            {
+//                res = EReturnCode::NOT_FOUND;
+//                responseMsg = httpCodeToJSON(res, prePtr);
+//            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
     }
-    catch (Wt::Dbo::Exception const& e) 
-    {
-        Wt::log("error") << e.what();
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = "{\"message\":\"Service Unavailable\"}";
-    }
+
     return res;
 }
 
 void PluginResource::processPostRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    string responseMsg = "";
+    string nextElement = "";
 
     nextElement = getNextElementFromPath();
-//    if(!nextElement.compare(""))
-//    {
-//        m_statusCode = postPlugin(responseMsg, m_requestData);
-//    }
-//    else
-//    {       
-//        try
-//        {
-//            boost::lexical_cast<unsigned long long>(nextElement);
-//
-//            nextElement = getNextElementFromPath();
-//            if(!nextElement.compare("sources"))
-//            {
-//                nextElement = getNextElementFromPath();
-//                if (!nextElement.compare(""))
-//                {
-//                    m_statusCode = postSourceForPlugin(responseMsg, m_requestData);
-//                }
-//                else
-//                {
-//                    boost::lexical_cast<unsigned long long>(nextElement);
-//
-//                    nextElement = getNextElementFromPath();
-//                    
-//                    ///// patch
-//                    if(!nextElement.compare("parameters"))
-//                    {
-//                        m_statusCode = patchParametersSourceForPlugin(responseMsg, sRequest);
-//                    }
-//                    
-//                    ////patch
-//                    else if(!nextElement.compare("searches"))
-//                    {
-//                        nextElement = getNextElementFromPath();
-//                        if (!nextElement.compare(""))
-//                        {
-//                            m_statusCode = postSearchForSourceAndPlugin(responseMsg, sRequest);
-//                        }
-//                        else
-//                        {
-//                            boost::lexical_cast<unsigned long long>(nextElement);
-//                            nextElement = getNextElementFromPath();
-//                            ///patch
-//                            if(!nextElement.compare(""))
-//                            {
-//                                m_statusCode = patchSearchForSourceAndPlugin(responseMsg, sRequest);
-//                            }
-//                            
-//                            ///patch
-//                            else if(!nextElement.compare("informations"))
-//                            {
-//                                nextElement = getNextElementFromPath();
-//                                if (!nextElement.compare(""))
-//                                {
-//                                    m_statusCode = postInformationForSeaSrcAndPlg(responseMsg, sRequest);
-//                                }
-//                                else
-//                                {
-//                                    ///patch
-//                                    boost::lexical_cast<unsigned long long>(nextElement);
-//                                    nextElement = getNextElementFromPath();
-//                                    
-//                                    if(!nextElement.compare(""))
-//                                    {
-//                                        m_statusCode = patchSearchForSourceAndPlugin(responseMsg, sRequest);
-//                                    }
-//                                    else
-//                                    {
-//                                        m_statusCode = EReturnCode::BAD_REQUEST;
-//                                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                    }
-//                                    ///patch
-//                                }
-//                            }
-//                            else
-//                            {
-//                                m_statusCode = EReturnCode::BAD_REQUEST;
-//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                            }
-//                        }
-//                    }
-//                    else
-//                    {
-//                        m_statusCode = EReturnCode::BAD_REQUEST;
-//                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                    }
-//                    m_statusCode = EReturnCode::BAD_REQUEST;
-//                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                }
-//            }
-//            else
-//            {  
-//                m_statusCode = EReturnCode::BAD_REQUEST;
-//                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//            }
-//        }
-//        catch(boost::bad_lexical_cast &)
-//        {
-//            m_statusCode = EReturnCode::BAD_REQUEST;
-//            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//        }             
-//    }
-
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return ;
-}
-
-
-void PluginResource::processPutRequest(Wt::Http::Response &response)
-{
-    string responseMsg = "", nextElement = "";
-    
-    nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+        m_statusCode = postPlugin(responseMsg, m_requestData);
     }
     else
     {
-        try
-        {
-            boost::lexical_cast<unsigned long long>(nextElement);
-
-            nextElement = getNextElementFromPath();
-
-//            if (!nextElement.compare("sources"))
-//            {
-//                nextElement = getNextElementFromPath();
-//                boost::lexical_cast<unsigned long long>(nextElement);
-//                nextElement = getNextElementFromPath();
-//                if (!nextElement.compare("searches"))
-//                {
-//                    nextElement = getNextElementFromPath();
-//                    boost::lexical_cast<unsigned long long>(nextElement);
-//                    nextElement = getNextElementFromPath();
-//                    if(!nextElement.compare("inf_values"))
-//                    {
-//                        nextElement = getNextElementFromPath();
-//                        boost::lexical_cast<unsigned long long>(nextElement);
-//                        nextElement = getNextElementFromPath();
-//                        if(!nextElement.compare("units"))
-//                        {
-//                            nextElement = getNextElementFromPath();
-//                            boost::lexical_cast<unsigned long long>(nextElement);
-//                            nextElement = getNextElementFromPath();
-//                            if(!nextElement.compare("criteria"))
-//                            {
-//                                nextElement = getNextElementFromPath();
-//                                boost::lexical_cast<unsigned long long>(nextElement);
-//                                nextElement = getNextElementFromPath();
-//                                if(!nextElement.compare("alias"))
-//                                {
-//                                    m_statusCode = putAliasForCriterion(responseMsg,sRequest);
-//                                }
-//                                else
-//                                {
-//                                    m_statusCode = EReturnCode::BAD_REQUEST;
-//                                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                                }
-//                            }
-//                            else if(!nextElement.compare("alias"))
-//                            {
-//                                m_statusCode = putAliasForInformation(responseMsg,sRequest);
-//                            }
-//                            else
-//                            {
-//                                m_statusCode = EReturnCode::BAD_REQUEST;
-//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                            }
-//                        }
-//                        else
-//                        {
-//                            m_statusCode = EReturnCode::BAD_REQUEST;
-//                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                        }
-//                    }
-//                    else
-//                    {
-//                        m_statusCode = EReturnCode::BAD_REQUEST;
-//                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                    }
-//                }
-//                else
-//                {
-//                    m_statusCode = EReturnCode::BAD_REQUEST;
-//                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                }
-//
-//            }
-//            else 
-            if (!nextElement.compare("alias"))
-            {
-                m_statusCode = putAliasForPlugin(responseMsg,m_requestData);
-            }
-            else
-            {
-                m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-            }
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-        }
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        const string err = "[Plugin Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -724,128 +370,128 @@ EReturnCode PluginResource::putAliasForPlugin(string &responseMsg, const string 
     return res; 
 }
 
-EReturnCode PluginResource::deletePlugin(string& responseMsg)
+EReturnCode PluginResource::putPlugin(string &responseMsg, const string &sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    if((res = pluginIsAccessible(responseMsg)) == 200)
-//    {
-//        try 
-//        {  
-//            Wt::Dbo::Transaction transaction(m_session);
-//            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>().where("\"PLG_ID\" = ?").bind(m_pathElements[1]);
-//            //verif si le plugin existe
-//            if(plgPtr)
-//            {
-//                plgPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-//                res = EReturnCode::NO_CONTENT;
-//            }
-//            else
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = "{\"message\":\"Plugin not found\"}";
-//            }
-//            transaction.commit();               
-//        }
-//        catch (Wt::Dbo::Exception const& e) 
-//        {
-//            Wt::log("error") << e.what();
-//            res = EReturnCode::SERVICE_UNAVAILABLE;
-//            responseMsg = "{\"message\":\"Service Unavailable\"}";
-//        }
-//    }    
+    Wt::WString name;
+    Wt::WString desc;
+
+    if (!sRequest.empty())
+    {
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            if (result.contains("name"))
+            {
+                name = result.get("name");
+            }
+            if (result.contains("desc"))
+            {
+                desc = result.get("desc");
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Plugin Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+
+            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
+                .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+
+            if (plgPtr)
+            {
+                if (!name.empty())
+                {
+                    plgPtr.modify()->name = name;
+                }
+
+                if (!desc.empty())
+                {
+                    plgPtr.modify()->desc = desc;
+                }
+
+                res = serialize(plgPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, plgPtr);
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
     return res;
 }
 
-void PluginResource::processDeleteRequest(Wt::Http::Response &response)
+void PluginResource::processPutRequest(Wt::Http::Response &response)
 {
-    string responseMsg = "", nextElement = "";
+    string responseMsg = "";
+    string nextElement = "";
 
     nextElement = getNextElementFromPath();
-    if(!nextElement.compare(""))
+    if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}"; 
+        const string err = "[Plugin Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
         try
         {
             boost::lexical_cast<unsigned long long>(nextElement);
-            nextElement = getNextElementFromPath();
-            if(!nextElement.compare(""))
-            {
-                m_statusCode = deletePlugin(responseMsg);
-            }
-            else if(!nextElement.compare("sources"))
-            {
-                nextElement = getNextElementFromPath();
-                boost::lexical_cast<unsigned long long>(nextElement);
 
-                nextElement = getNextElementFromPath();
-//                if(!nextElement.compare(""))
-//                {
-//                    m_statusCode = deleteSourceForPlugin(responseMsg);
-//                }
-//                    if(!nextElement.compare("searches"))
-//                {
-//                    
-//                    nextElement = getNextElementFromPath();
-//                    boost::lexical_cast<unsigned long long>(nextElement);
-//
-//                    nextElement = getNextElementFromPath();
-//
-//                    if(!nextElement.compare(""))
-//                    {
-//                        m_statusCode = deleteSearchForSourceAndPlugin(responseMsg);
-//                    }
-//                    else if (!nextElement.compare("inf_values"))
-//                    {
-//                        nextElement = getNextElementFromPath();
-//                        boost::lexical_cast<unsigned long long>(nextElement);
-//                        nextElement = getNextElementFromPath();
-//                        if (!nextElement.compare("units"))
-//                        {
-//                            nextElement = getNextElementFromPath();
-//                            boost::lexical_cast<unsigned long long>(nextElement);
-//                            nextElement = getNextElementFromPath();
-//                            if (!nextElement.compare("informations"))
-//                            {
-//                                m_statusCode = deleteInformationForSeaSrcAndPlg(responseMsg);
-//                            }
-//                            else
-//                            {
-//                                m_statusCode = EReturnCode::BAD_REQUEST;
-//                                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                            }
-//                        }
-//                        else
-//                        {
-//                            m_statusCode = EReturnCode::BAD_REQUEST;
-//                            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                        }
-//                    }
-//                    else
-//                    {
-//                        m_statusCode = EReturnCode::BAD_REQUEST;
-//                        responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                    }
-//                }
-//                else
-//                {
-//                    m_statusCode = EReturnCode::BAD_REQUEST;
-//                    responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
-//                }
+            nextElement = getNextElementFromPath();
+
+            if (nextElement.empty())
+            {
+                m_statusCode = putPlugin(responseMsg, m_requestData);
+            }
+            if (!nextElement.compare("alias"))
+            {
+                m_statusCode = putAliasForPlugin(responseMsg, m_requestData);
             }
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+                const string err = "[Plugin Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
-        catch(boost::bad_lexical_cast &)
+        catch (boost::bad_lexical_cast const& e)
         {
             m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = "{\n\t\"message\":\"Bad Request\"\n}";
+            responseMsg = httpCodeToJSON(m_statusCode, e);
         }
     }
 
@@ -854,21 +500,91 @@ void PluginResource::processDeleteRequest(Wt::Http::Response &response)
     return;
 }
 
-void PluginResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+EReturnCode PluginResource::deletePlugin(string& responseMsg)
 {
-    m_role = "";
-    m_media_type = "";
-    if (request.getParameter("role") != 0)
-    {
-        m_role = *request.getParameter("role");
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try 
+    {  
+        Wt::Dbo::Transaction transaction(m_session);
+           
+        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
+                .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+
+        if(plgPtr)
+        {
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = plgPtr->sources.find().where(QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL");
+
+            if (srcPtrCol.size() == 0)
+            {
+                plgPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = EReturnCode::NO_CONTENT;
+            }
+            else
+            {
+                res = EReturnCode::CONFLICT;
+                responseMsg = httpCodeToJSON(res, plgPtr);
+            } 
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, plgPtr);
+        }
+
+        transaction.commit();
     }
-    
-    if (request.getParameter("media_type") != 0)
+    catch (boost::bad_lexical_cast const& e)
     {
-        m_media_type = *request.getParameter("media_type");
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, e);
     }
 
-    PublicApiResource::handleRequest(request, response);
+    return res;
+}
+
+void PluginResource::processDeleteRequest(Wt::Http::Response &response)
+{
+    string responseMsg = "";
+    string nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if (nextElement.empty())
+    {
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        const string err = "[Plugin Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (nextElement.empty())
+            {
+                m_statusCode = deletePlugin(responseMsg);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                const string err = "[Plugin Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
+    }
+
+    response.setStatus(m_statusCode);
+    response.out() << responseMsg;
     return;
 }
 
