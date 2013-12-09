@@ -198,7 +198,9 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
 
     // AVA attributs
     Wt::WString keyValue;
-    long long idaId;
+    long long infId;
+    long long astId;
+    long long plgId;
     long long acrId;
 
     // AMS attributs
@@ -224,7 +226,9 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
 
             // AVA attributs
             keyValue = result.get("key_value");
-            idaId = result.get("information_data_id");
+            infId = result.get("information_id");
+            astId = result.get("asset_id");
+            plgId = result.get("plugin_id");
             acrId = result.get("alert_criteria_id");
 
             Wt::Json::Array amsAttributs = result.get("alert_media_specialization");
@@ -264,9 +268,53 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = m_session.find<Echoes::Dbo::InformationData>()
-                    .where(QUOTE(TRIGRAM_INFORMATION_DATA ID) " = ?").bind(idaId)
-                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
+            const string queryStr =
+" SELECT ida"
+"   FROM " QUOTE("T_INFORMATION_DATA" SEP TRIGRAM_INFORMATION_DATA) " ida"
+"   WHERE"
+"     " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID) " IN"
+"       ("
+"         SELECT " QUOTE(TRIGRAM_FILTER ID)
+"           FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) " fil"
+"           WHERE"
+"             " QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID) " IN"
+"               ("
+"                 SELECT " QUOTE(TRIGRAM_SEARCH ID)
+"                   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH)
+"                   WHERE"
+"                     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN"
+"                       ("
+"                         SELECT " QUOTE(TRIGRAM_SOURCE ID)
+"                           FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE)
+"                             WHERE"
+"                               " QUOTE(TRIGRAM_SOURCE ID) " IN"
+"                                 ("
+"                                   SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)
+"                                     FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE)
+"                                       WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN"
+"                                         ("
+"                                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
+"                                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
+"                                               WHERE"
+"                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
+"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(plgId) +
+"                                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
+"                                         )"
+"                                 )"
+"                               AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL"
+"                       )"
+"                     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL"
+"               )"
+"             AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL"
+"       )"
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(infId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(astId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
+"   LIMIT 1";
+
+            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
+    
+            Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
             if (!idaPtr)
             {
                 res = EReturnCode::NOT_FOUND;
