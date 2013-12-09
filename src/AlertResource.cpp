@@ -171,7 +171,8 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Alert Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -253,7 +254,8 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Alert Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -507,7 +509,8 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Alert Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -552,7 +555,8 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
                 if (ivaPtrVector.size() != 1 || ivaPtrVector[0]->informationData != alePtr->alertValue->informationData)
                 {
                     res = EReturnCode::BAD_REQUEST;
-                    responseMsg = httpCodeToJSON(res, "");
+                    const string err = "[Alert Resource] bad size or content of ivaPtrVector";
+                    responseMsg = httpCodeToJSON(res, err);
                 }
             }
 
@@ -678,7 +682,8 @@ void AlertResource::processPostRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Media Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -739,7 +744,8 @@ void AlertResource::processDeleteRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Alert Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -756,7 +762,8 @@ void AlertResource::processDeleteRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Alert Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

@@ -141,7 +141,8 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Media Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -186,7 +187,8 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Media Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -205,6 +207,8 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
                 newMed->mediaType = mtyPtr;
                 newMed->value = value;
                 newMed->token = Wt::WRandom::generateId(25);
+                newMed->isConfirmed = false;
+                newMed->isDefault = false;
                 Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session.add<Echoes::Dbo::Media>(newMed);
                 newMedPtr.flush();
 
@@ -241,7 +245,8 @@ void MediaResource::processPostRequest(Wt::Http::Response &response)
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Media Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -299,7 +304,8 @@ EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Media Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -361,7 +367,8 @@ void MediaResource::processPutRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Media Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -378,7 +385,8 @@ void MediaResource::processPutRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Media Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -446,7 +454,8 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Media Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -463,7 +472,8 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Media Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

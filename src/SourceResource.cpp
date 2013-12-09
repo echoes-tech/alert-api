@@ -43,7 +43,8 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
 "             ("
 "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                 WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                 WHERE"
+"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
 "                   AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "             )"
 "             AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + srcId +
@@ -55,7 +56,6 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
 
     return queryRes.resultValue();
 }
-
 
 EReturnCode SourceResource::getSourcesList(string &responseMsg)
 {
@@ -76,7 +76,8 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
 "             ("
 "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                 WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
+"                 WHERE"
+"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
 
         if (m_parameters["type"] > 0)
         {
@@ -152,7 +153,8 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Source Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -197,7 +199,8 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Source Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
     
     if (responseMsg.empty())
@@ -289,7 +292,8 @@ void SourceResource::processPostRequest(Wt::Http::Response &response)
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Source Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -313,7 +317,8 @@ void SourceResource::processPutRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Source Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -330,7 +335,8 @@ void SourceResource::processPutRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Source Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -398,7 +404,8 @@ void SourceResource::processDeleteRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Source Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -415,7 +422,8 @@ void SourceResource::processDeleteRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Source Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

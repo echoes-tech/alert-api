@@ -105,7 +105,8 @@ void OptionResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Option Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

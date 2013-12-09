@@ -399,7 +399,6 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-
 EReturnCode PluginResource::postPlugin(string& responseMsg, const string& sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;

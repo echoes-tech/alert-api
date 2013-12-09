@@ -193,7 +193,8 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Probe Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -239,7 +240,8 @@ EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Probe Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -295,7 +297,8 @@ void ProbeResource::processPostRequest(Wt::Http::Response &response)
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Probe Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -334,7 +337,8 @@ EReturnCode ProbeResource::putProbe(string &responseMsg, const string &sRequest)
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Probe Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -381,7 +385,8 @@ void ProbeResource::processPutRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Probe Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -398,7 +403,8 @@ void ProbeResource::processPutRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Probe Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -454,7 +460,8 @@ void ProbeResource::processDeleteRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Probe Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -471,7 +478,8 @@ void ProbeResource::processDeleteRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Probe Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

@@ -25,13 +25,13 @@ class SearchResource : public PublicApiResource
 
         /**
          * Select a Search
-         * @param srcId Identifier of Search
+         * @param seaId Identifier of Search
          * @return Search Wt Dbo Pointer
          */
         static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const long long &seaId, Echoes::Dbo::Session &session);
         /**
          * Select a Search with a ID string
-         * @param srcId String of Identifier of Search
+         * @param seaId String of Identifier of Search
          * @return Search Wt Dbo Pointer
          */
         static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const std::string &seaId, Echoes::Dbo::Session &session);

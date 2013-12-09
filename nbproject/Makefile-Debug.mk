@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/AssetResource.o \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/CriterionResource.o \
+	${OBJECTDIR}/src/FilterResource.o \
 	${OBJECTDIR}/src/InformationResource.o \
 	${OBJECTDIR}/src/JsonSerializer.o \
 	${OBJECTDIR}/src/MediaResource.o \
@@ -116,6 +117,11 @@ ${OBJECTDIR}/src/CriterionResource.o: src/CriterionResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource.o src/CriterionResource.cpp
+
+${OBJECTDIR}/src/FilterResource.o: src/FilterResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/FilterResource.o src/FilterResource.cpp
 
 ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -279,6 +285,19 @@ ${OBJECTDIR}/src/CriterionResource_nomain.o: ${OBJECTDIR}/src/CriterionResource.
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CriterionResource_nomain.o src/CriterionResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/CriterionResource.o ${OBJECTDIR}/src/CriterionResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/FilterResource_nomain.o: ${OBJECTDIR}/src/FilterResource.o src/FilterResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/FilterResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} $@.d;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/FilterResource_nomain.o src/FilterResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/FilterResource.o ${OBJECTDIR}/src/FilterResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/InformationResource_nomain.o: ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp 

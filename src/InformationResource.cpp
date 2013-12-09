@@ -77,8 +77,8 @@ EReturnCode InformationResource::getAliasForInformation(string &responseMsg)
 
     if (m_parameters["media_type"] <= 0 || m_parameters["user_role"] <= 0)
     {
-        res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Assert Resource] media_types or/and user_role are empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -147,7 +147,8 @@ void InformationResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Information Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

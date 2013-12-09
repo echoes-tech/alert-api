@@ -91,27 +91,33 @@ namespace boost
 using namespace std;
 
 template<>
-std::string PublicApiResource::getTableName(boost::bad_lexical_cast const& e)
+    std::string PublicApiResource::getTableName<boost::bad_lexical_cast>(boost::bad_lexical_cast const& e)
 {
     Wt::log("error") << e.what();
     return "";
 }
 template<>
-std::string PublicApiResource::getTableName(Wt::Dbo::Exception const& e)
+std::string PublicApiResource::getTableName<Wt::Dbo::Exception>(Wt::Dbo::Exception const& e)
 {
-    Wt::log("error") << e.what();
+    Wt::log("error") << "Wt::Dbo: " << e.what();
     return "";
 }
 template<>
-std::string PublicApiResource::getTableName(Wt::Json::ParseError const& e)
+std::string PublicApiResource::getTableName<Wt::Json::ParseError>(Wt::Json::ParseError const& e)
 {
-    Wt::log("error") << e.what();
+    Wt::log("error") << "Wt::Json::Parse: " << e.what();
     return "";
 }
 template<>
-std::string PublicApiResource::getTableName(Wt::Json::TypeException const& e)
+std::string PublicApiResource::getTableName<Wt::Json::TypeException>(Wt::Json::TypeException const& e)
 {
-    Wt::log("error") << e.what();
+    Wt::log("error") << "Wt::Json::Type: " << e.what();
+    return "";
+}
+template<>
+std::string PublicApiResource::getTableName<string>(string const& string)
+{
+    Wt::log("error") << string;
     return "";
 }
 
@@ -469,7 +475,8 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     else if (notAllowed)
     {
         response.setStatus(EReturnCode::BAD_REQUEST);
-        response.out() << httpCodeToJSON(EReturnCode::BAD_REQUEST, "");
+        const string err = "[Public API Resource] not allowed";
+        response.out() << httpCodeToJSON(EReturnCode::BAD_REQUEST, err);
     }
     else
     {

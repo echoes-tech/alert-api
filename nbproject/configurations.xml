@@ -15,6 +15,7 @@
       <itemPath>include/Conf.h</itemPath>
       <itemPath>include/CriterionResource.h</itemPath>
       <itemPath>include/Enums.h</itemPath>
+      <itemPath>include/FilterResource.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/JsonSerializer.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
@@ -51,6 +52,7 @@
         <itemPath>src/AssetResource.cpp</itemPath>
         <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/CriterionResource.cpp</itemPath>
+        <itemPath>src/FilterResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/JsonSerializer.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
@@ -171,6 +173,8 @@
       </item>
       <item path="include/Enums.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/FilterResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
@@ -222,6 +226,8 @@
       <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FilterResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -334,6 +340,8 @@
       </item>
       <item path="include/Enums.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/FilterResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ItookiAckReceiver.h" ex="false" tool="3" flavor2="0">
@@ -385,6 +393,8 @@
       <item path="src/Conf.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FilterResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

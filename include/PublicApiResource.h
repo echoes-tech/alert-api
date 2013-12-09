@@ -150,17 +150,18 @@ protected:
     }
 
     template<class C>
-    std::string getTableName(C)
+    std::string getTableName(C const &obj)
     {
+        std::cout << "obj is: " << typeid(C).name() << '\n';
         return "";
     }
     template<class C>
-    std::string getTableName(Wt::Dbo::ptr<C>)
+    std::string getTableName(Wt::Dbo::ptr<C> const &ptr)
     {
         return Wt::Dbo::JsonSerializer::transformTableName(m_session.tableName<C>());
     }
     template<class C>
-    std::string getTableName(Wt::Dbo::collection<Wt::Dbo::ptr<C>>)
+    std::string getTableName(Wt::Dbo::collection<Wt::Dbo::ptr<C>> const &ptrCol)
     {
         return Wt::Dbo::JsonSerializer::transformTableName(m_session.tableName<C>());
     }

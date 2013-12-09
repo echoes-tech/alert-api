@@ -95,7 +95,8 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Role Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -138,7 +139,8 @@ EReturnCode RoleResource::postRole(string &responseMsg, const string &sRequest)
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Role Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -181,7 +183,8 @@ void RoleResource::processPostRequest(Wt::Http::Response &response)
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Role Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -220,7 +223,8 @@ EReturnCode RoleResource::putRole(string &responseMsg, const string &sRequest)
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Role Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -270,7 +274,8 @@ void RoleResource::processPutRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Role Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -287,7 +292,8 @@ void RoleResource::processPutRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Role Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

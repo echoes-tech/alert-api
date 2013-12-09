@@ -12,13 +12,13 @@
  */
 
 #include "SearchResource.h"
-#include "SourceResource.h"
 
 using namespace std;
 
 SearchResource::SearchResource()
 {
     m_parameters["plugin"] = 0;
+    m_parameters["source"] = 0;
 }
 
 SearchResource::~SearchResource()
@@ -36,7 +36,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
 " SELECT sea"
 "   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) " sea"
 "   WHERE"
-"     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SEARCH SEP TRIGRAM_SOURCE ID) " IN"
+"     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN"
 "       ("
 "         SELECT " QUOTE(TRIGRAM_SOURCE ID)
 "           FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE)
@@ -49,7 +49,8 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
 "                         ("
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                               WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                               WHERE"
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
 "                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                         )"
 "                 )"
@@ -64,7 +65,6 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
     return queryRes.resultValue();
 }
 
-
 EReturnCode SearchResource::getSearchsList(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -76,7 +76,7 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 " SELECT sea"
 "   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) " sea"
 "   WHERE"
-"     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SEARCH SEP TRIGRAM_SOURCE ID) " IN"
+"     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN"
 "       ("
 "         SELECT " QUOTE(TRIGRAM_SOURCE ID)
 "           FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE)
@@ -89,7 +89,8 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 "                         ("
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                               WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
+"                               WHERE"
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
 
         if (m_parameters["type"] > 0)
         {
@@ -99,7 +100,15 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 
         queryStr +=
 "                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
-"                         )"
+"                         )";
+
+        if (m_parameters["source"] > 0)
+        {
+            queryStr +=
+"                         AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(m_parameters["source"]);
+        }
+
+        queryStr +=
 "                 )"
 "               AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL"
 "       )"
@@ -107,9 +116,9 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> srcPtrCol = queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = queryRes.resultList();
 
-        res = serialize(srcPtrCol, responseMsg);
+        res = serialize(seaPtrCol, responseMsg);
 
         transaction.commit();
     }
@@ -167,7 +176,8 @@ void SearchResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Search Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -214,7 +224,8 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Search Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -304,7 +315,8 @@ void SearchResource::processPostRequest(Wt::Http::Response &response)
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Search Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -328,7 +340,8 @@ void SearchResource::processPutRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Search Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -345,7 +358,8 @@ void SearchResource::processPutRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Search Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -368,9 +382,9 @@ EReturnCode SearchResource::deleteSearch(string& responseMsg)
     {  
         Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Search> srcPtr = selectSearch(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_session);
 
-        if(srcPtr)
+        if(seaPtr)
         {
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = m_session.find<Echoes::Dbo::Filter>()
                     .where(QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID)" = ?").bind(m_pathElements[1])
@@ -378,19 +392,19 @@ EReturnCode SearchResource::deleteSearch(string& responseMsg)
 
             if (filPtrCol.size() == 0)
             {
-                srcPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                seaPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
                 res = EReturnCode::NO_CONTENT;
             }
             else
             {
                 res = EReturnCode::CONFLICT;
-                responseMsg = httpCodeToJSON(res, srcPtr);
+                responseMsg = httpCodeToJSON(res, seaPtr);
             } 
         }
         else
         {
             res = EReturnCode::NOT_FOUND;
-            responseMsg = httpCodeToJSON(res, srcPtr);
+            responseMsg = httpCodeToJSON(res, seaPtr);
         }
 
         transaction.commit();
@@ -413,7 +427,8 @@ void SearchResource::processDeleteRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Search Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -430,7 +445,8 @@ void SearchResource::processDeleteRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Search Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

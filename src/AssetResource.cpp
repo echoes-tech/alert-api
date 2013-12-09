@@ -106,7 +106,8 @@ EReturnCode AssetResource::getAliasForAsset(std::string &responseMsg)
     if (m_parameters["media_type"] <= 0 || m_parameters["user_role"] <= 0)
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Assert Resource] media_types or/and user_role are empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -179,7 +180,8 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Asset Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -237,7 +239,8 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Assert Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -326,7 +329,8 @@ void AssetResource::processPostRequest(Wt::Http::Response &response)
     else
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Asset Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
 
     response.setStatus(m_statusCode);
@@ -380,7 +384,8 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Assert Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -488,13 +493,11 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
         try
         {
             Wt::Json::Object result;
-
             Wt::Json::parse(sRequest, result);
 
-            Wt::Json::Object alias = result.get("alias");
-            uroId = alias.get("role_id");
-            mtyId = alias.get("media_type_id");
-            value = alias.get("value");
+            uroId = result.get("role_id");
+            mtyId = result.get("media_type_id");
+            value = result.get("value");
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -510,7 +513,8 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
     else
     {
         res = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(res, "");
+        const string err = "[Assert Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
 
     if (responseMsg.empty())
@@ -549,7 +553,7 @@ EReturnCode AssetResource::putAliasForAsset(string &responseMsg, const string &s
                 Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
-                        .where(QUOTE(TRIGRAM_MEDIA ID SEP TRIGRAM_MEDIA ID) " = ?").bind(mtyId);
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId);
                 if (aaaPtr)
                 {
                     aaaPtr.modify()->alias = value;
@@ -591,7 +595,8 @@ void AssetResource::processPutRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Asset Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -612,7 +617,8 @@ void AssetResource::processPutRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Asset Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
@@ -683,7 +689,8 @@ void AssetResource::processDeleteRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = EReturnCode::BAD_REQUEST;
-        responseMsg = httpCodeToJSON(m_statusCode, "");
+        const string err = "[Asset Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
     }
     else
     {
@@ -700,7 +707,8 @@ void AssetResource::processDeleteRequest(Wt::Http::Response &response)
             else
             {
                 m_statusCode = EReturnCode::BAD_REQUEST;
-                responseMsg = httpCodeToJSON(m_statusCode, "");
+                const string err = "[Asset Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)

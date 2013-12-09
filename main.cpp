@@ -23,6 +23,7 @@
 #include "AlertResource.h"
 #include "AssetResource.h"
 #include "CriterionResource.h"
+#include "FilterResource.h"
 #include "InformationResource.h"
 #include "MediaResource.h"
 #include "OptionResource.h"
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
             AlertResource        alertResource;
             AssetResource        assetResource;
             CriterionResource    criteriaResource;
+            FilterResource       filterResource;
             InformationResource  informationRessource;
             MediaResource        mediaResource;
             OptionResource       optionRessource;
@@ -86,6 +88,7 @@ int main(int argc, char **argv)
             server.addResource(&alertResource,         "/alerts");
             server.addResource(&assetResource,         "/assets");
             server.addResource(&criteriaResource,      "/criteria");
+            server.addResource(&filterResource,        "/filters");
             server.addResource(&informationRessource,  "/informations");
             server.addResource(&mediaResource,         "/medias");
             server.addResource(&optionRessource,       "/options");
