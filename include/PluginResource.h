@@ -27,33 +27,19 @@ class PluginResource : public PublicApiResource
         std::string m_media_type;
         
         EReturnCode getPlugin(std::string &responseMsg);
-//        EReturnCode getParameterValueForSearch(std::string &responseMsg);
-//        EReturnCode getParameterValueForSource(std::string &responseMsg);
 //        EReturnCode getInformationForSeaSrcAndPlg(std::string &responseMsg);
-//        EReturnCode getSearchForSourceAndPlugin(std::string &responseMsg);
-//        EReturnCode getSearchForSearchIdForSourceAndPlugin(std::string &responseMsg);
-        EReturnCode getSourceForPlugin(std::string &responseMsg);
         EReturnCode getInformationListForPlugin(std::string &responseMsg);
         EReturnCode getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
 //        EReturnCode postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
-//        EReturnCode postSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
         EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
         virtual void processPutRequest(Wt::Http::Response &response);
-//        EReturnCode putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
-//        EReturnCode putAliasForCriterion(std::string &responseMsg, const std::string &sRequest);
         EReturnCode putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
-        
-        
-//        EReturnCode patchInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
-//        EReturnCode patchSearchForSourceAndPlugin(std::string &responseMsg, const std::string &sRequest);
-//        virtual void processPatchRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
 //        EReturnCode deleteInformationForSeaSrcAndPlg(std::string &responseMsg);
-//        EReturnCode deleteSearchForSourceAndPlugin(std::string &responseMsg);
         EReturnCode deletePlugin(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 

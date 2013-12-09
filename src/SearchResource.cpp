@@ -1,7 +1,7 @@
 /* 
- * API SourceResource
+ * API SearchResource
  * @author ECHOES Technologies (FPO)
- * @date 08/12/2013
+ * @date 09/12/2013
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -11,53 +11,61 @@
  * 
  */
 
+#include "SearchResource.h"
 #include "SourceResource.h"
 
 using namespace std;
 
-SourceResource::SourceResource()
+SearchResource::SearchResource()
 {
     m_parameters["plugin"] = 0;
 }
 
-SourceResource::~SourceResource()
+SearchResource::~SearchResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const long long &srcId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const long long &seaId, Echoes::Dbo::Session &session)
 {
-    return selectSource(boost::lexical_cast<string>(srcId), session);
+    return selectSearch(boost::lexical_cast<string>(seaId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
-" SELECT src"
-"   FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE) " src"
+" SELECT sea"
+"   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) " sea"
 "   WHERE"
-"     " QUOTE(TRIGRAM_SOURCE ID) " IN"
+"     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SEARCH SEP TRIGRAM_SOURCE ID) " IN"
 "       ("
-"         SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)
-"           FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE)
-"           WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN"
-"             ("
-"               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
-"                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                 WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
-"                   AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
-"             )"
-"             AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + srcId +
+"         SELECT " QUOTE(TRIGRAM_SOURCE ID)
+"           FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE)
+"             WHERE"
+"               " QUOTE(TRIGRAM_SOURCE ID) " IN"
+"                 ("
+"                   SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)
+"                     FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE)
+"                       WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN"
+"                         ("
+"                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
+"                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
+"                               WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
+"                         )"
+"                 )"
+"               AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL"
+"     AND " QUOTE(TRIGRAM_SEARCH ID) " = " + seaId +
+"     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL"
 "   LIMIT 1";
 
-    Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Source>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::Source>>(queryStr);
+    Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
 
     return queryRes.resultValue();
 }
 
 
-EReturnCode SourceResource::getSourcesList(string &responseMsg)
+EReturnCode SearchResource::getSearchsList(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -65,34 +73,41 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
         string queryStr =
-" SELECT src"
-"   FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE) " src"
+" SELECT sea"
+"   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) " sea"
 "   WHERE"
-"     " QUOTE(TRIGRAM_SOURCE ID) " IN"
+"     " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SEARCH SEP TRIGRAM_SOURCE ID) " IN"
 "       ("
-"         SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)
-"           FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE)
-"           WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN"
-"             ("
-"               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
-"                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                 WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
+"         SELECT " QUOTE(TRIGRAM_SOURCE ID)
+"           FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE)
+"             WHERE"
+"               " QUOTE(TRIGRAM_SOURCE ID) " IN"
+"                 ("
+"                   SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)
+"                     FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE)
+"                       WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN"
+"                         ("
+"                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
+"                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
+"                               WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
 
         if (m_parameters["type"] > 0)
         {
             queryStr +=
-"                   AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin"]);
+"                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin"]);
         }
 
         queryStr +=
-"                   AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
-"             )"
+"                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
+"                         )"
+"                 )"
+"               AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL";
+"     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Source>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Source>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> srcPtrCol = queryRes.resultList();
 
         res = serialize(srcPtrCol, responseMsg);
 
@@ -106,7 +121,7 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
     return res;
 }
 
-EReturnCode SourceResource::getSource(string &responseMsg)
+EReturnCode SearchResource::getSearch(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -114,9 +129,9 @@ EReturnCode SourceResource::getSource(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_session);
 
-        res = serialize(srcPtr, responseMsg);
+        res = serialize(seaPtr, responseMsg);
 
         transaction.commit();
     }
@@ -128,7 +143,7 @@ EReturnCode SourceResource::getSource(string &responseMsg)
     return res;
 }
 
-void SourceResource::processGetRequest(Wt::Http::Response &response)
+void SearchResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
     string nextElement = "";
@@ -136,7 +151,7 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if (nextElement.empty())
     {
-        m_statusCode = getSourcesList(responseMsg);
+        m_statusCode = getSearchsList(responseMsg);
     }
     else
     {
@@ -147,7 +162,7 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
             nextElement = getNextElementFromPath();
             if (nextElement.empty())
             {
-                m_statusCode = getSource(responseMsg);
+                m_statusCode = getSearch(responseMsg);
             }
             else
             {
@@ -167,11 +182,12 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
     return;
 }
 
-EReturnCode SourceResource::postSource(string& responseMsg, const string& sRequest)
+EReturnCode SearchResource::postSearch(string& responseMsg, const string& sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    long long adoId;
-    long long plgId;
+    long long srcId;
+    long long styId;
+    int period;
 
     if (!sRequest.empty())
     {
@@ -180,8 +196,9 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
 
-            adoId = result.get("addon_id");
-            plgId = result.get("plugin_id");
+            srcId = result.get("source_id");
+            styId = result.get("type_id");
+            period = result.get("period");
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -199,54 +216,54 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
         res = EReturnCode::BAD_REQUEST;
         responseMsg = httpCodeToJSON(res, "");
     }
-    
+
     if (responseMsg.empty())
     {
         try
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
-                    .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(plgId)
-                    .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
-            if (!plgPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::SearchType> styPtr = m_session.find<Echoes::Dbo::SearchType>()
+                    .where(QUOTE(TRIGRAM_SEARCH_TYPE ID) " = ?").bind(styId)
+                    .where(QUOTE(TRIGRAM_SEARCH_TYPE SEP "DELETE") " IS NULL");
+            if (!styPtr)
             {
                 res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, plgPtr);
-                return res;
-            }
-
-            Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session.find<Echoes::Dbo::Addon>()
-                    .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(adoId)
-                    .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL");
-            if (!adoPtr)
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, adoPtr);
+                responseMsg = httpCodeToJSON(res, styPtr);
                 return res;
             }
             
-            Echoes::Dbo::Source *newSrc = new Echoes::Dbo::Source();
-            newSrc->addon = adoPtr;
+            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, m_session);
+            if (!srcPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, srcPtr);
+                return res;
+            }
+            
+            Echoes::Dbo::Search *newSea = new Echoes::Dbo::Search();
+            newSea->searchType = styPtr;
+            newSea->source = srcPtr;
+            newSea->period = period;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Source> newSrcPtr = m_session.add<Echoes::Dbo::Source>(newSrc);
-            newSrcPtr.flush();
+            Wt::Dbo::ptr<Echoes::Dbo::Search> newSeaPtr = m_session.add<Echoes::Dbo::Search>(newSea);
+            newSeaPtr.flush();
 
             try
             {
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
 
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> >::const_iterator it = adoPtr->sourceParameters.begin(); it != adoPtr->sourceParameters.end(); it++)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> >::const_iterator it = styPtr->searchParameters.begin(); it != styPtr->searchParameters.end(); it++)
                 {
-                    Echoes::Dbo::SourceParameterValue *newSpv = new Echoes::Dbo::SourceParameterValue;
+                    Echoes::Dbo::SearchParameterValue *newSev = new Echoes::Dbo::SearchParameterValue;
 
-                    newSpv->value = result.get(it->get()->name.toUTF8());
-                    newSpv->name = it->get()->name;
-                    newSpv->pk.sourceParameter = *it;
-                    newSpv->pk.source = newSrcPtr;
-                    m_session.add<Echoes::Dbo::SourceParameterValue>(newSpv);
+                    newSev->value = result.get(it->get()->name.toUTF8());
+                    newSev->name = it->get()->name;
+                    newSev->searchParameterValueId.searchParameter= *it;
+                    newSev->searchParameterValueId.search = newSeaPtr;
+
+                    m_session.add<Echoes::Dbo::SearchParameterValue>(newSev);
                 }
             }
             catch (Wt::Json::ParseError const& e)
@@ -259,10 +276,8 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
                 res = EReturnCode::BAD_REQUEST;
                 responseMsg = httpCodeToJSON(res, e);
             }
-            
-            plgPtr.modify()->sources.insert(newSrcPtr);
 
-            res = serialize(newSrcPtr, responseMsg, EReturnCode::CREATED);
+            res = serialize(newSeaPtr, responseMsg, EReturnCode::CREATED);
 
             transaction.commit();
         }
@@ -276,7 +291,7 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
     return res;
 }
 
-void SourceResource::processPostRequest(Wt::Http::Response &response)
+void SearchResource::processPostRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
     string nextElement = "";
@@ -284,7 +299,7 @@ void SourceResource::processPostRequest(Wt::Http::Response &response)
     nextElement = getNextElementFromPath();
     if (nextElement.empty())
     {
-        m_statusCode = postSource(responseMsg, m_requestData);
+        m_statusCode = postSearch(responseMsg, m_requestData);
     }
     else
     {
@@ -297,14 +312,14 @@ void SourceResource::processPostRequest(Wt::Http::Response &response)
     return;
 }
 
-EReturnCode SourceResource::putSource(string &responseMsg, const string &sRequest)
+EReturnCode SearchResource::putSearch(string &responseMsg, const string &sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     return res;
 }
 
-void SourceResource::processPutRequest(Wt::Http::Response &response)
+void SearchResource::processPutRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
     string nextElement = "";
@@ -325,7 +340,7 @@ void SourceResource::processPutRequest(Wt::Http::Response &response)
 
             if (nextElement.empty())
             {
-                m_statusCode = putSource(responseMsg, m_requestData);
+                m_statusCode = putSearch(responseMsg, m_requestData);
             }
             else
             {
@@ -345,7 +360,7 @@ void SourceResource::processPutRequest(Wt::Http::Response &response)
     return;
 }
 
-EReturnCode SourceResource::deleteSource(string& responseMsg)
+EReturnCode SearchResource::deleteSearch(string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -353,15 +368,15 @@ EReturnCode SourceResource::deleteSource(string& responseMsg)
     {  
         Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> srcPtr = selectSearch(m_pathElements[1], m_session);
 
         if(srcPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = m_session.find<Echoes::Dbo::Search>()
-                    .where(QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)" = ?").bind(m_pathElements[1])
-                    .where(QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL");
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = m_session.find<Echoes::Dbo::Filter>()
+                    .where(QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID)" = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL");
 
-            if (seaPtrCol.size() == 0)
+            if (filPtrCol.size() == 0)
             {
                 srcPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
                 res = EReturnCode::NO_CONTENT;
@@ -389,7 +404,7 @@ EReturnCode SourceResource::deleteSource(string& responseMsg)
     return res;
 }
 
-void SourceResource::processDeleteRequest(Wt::Http::Response &response)
+void SearchResource::processDeleteRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
     string nextElement = "";
@@ -410,7 +425,7 @@ void SourceResource::processDeleteRequest(Wt::Http::Response &response)
 
             if (nextElement.empty())
             {
-                m_statusCode = deleteSource(responseMsg);
+                m_statusCode = deleteSearch(responseMsg);
             }
             else
             {

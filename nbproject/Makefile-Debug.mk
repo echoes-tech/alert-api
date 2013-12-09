@@ -50,6 +50,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
 	${OBJECTDIR}/src/RoleResource.o \
+	${OBJECTDIR}/src/SearchResource.o \
 	${OBJECTDIR}/src/SourceResource.o \
 	${OBJECTDIR}/src/UnitResource.o \
 	${OBJECTDIR}/src/UserResource.o \
@@ -160,6 +161,11 @@ ${OBJECTDIR}/src/RoleResource.o: src/RoleResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource.o src/RoleResource.cpp
+
+${OBJECTDIR}/src/SearchResource.o: src/SearchResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchResource.o src/SearchResource.cpp
 
 ${OBJECTDIR}/src/SourceResource.o: src/SourceResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -390,6 +396,19 @@ ${OBJECTDIR}/src/RoleResource_nomain.o: ${OBJECTDIR}/src/RoleResource.o src/Role
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RoleResource_nomain.o src/RoleResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/RoleResource.o ${OBJECTDIR}/src/RoleResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/SearchResource_nomain.o: ${OBJECTDIR}/src/SearchResource.o src/SearchResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/SearchResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} $@.d;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SearchResource_nomain.o src/SearchResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/SearchResource.o ${OBJECTDIR}/src/SearchResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/SourceResource_nomain.o: ${OBJECTDIR}/src/SourceResource.o src/SourceResource.cpp 
