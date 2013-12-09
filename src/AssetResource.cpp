@@ -627,8 +627,91 @@ void AssetResource::processPutRequest(Wt::Http::Response &response)
     return;
 }
 
+EReturnCode AssetResource::deleteAsset(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
+                .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+
+        if (astPtr)
+        {
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID)" = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
+
+            if (idaPtrCol.size() == 0)
+            {
+                astPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = EReturnCode::NO_CONTENT;
+            }
+            else
+            {
+                res = EReturnCode::CONFLICT;
+                responseMsg = httpCodeToJSON(res, astPtr);
+            } 
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, astPtr);
+        }
+
+        transaction.commit();
+    }
+    catch (boost::bad_lexical_cast const& e)
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+
+    return res;
+}
+
 void AssetResource::processDeleteRequest(Wt::Http::Response &response)
 {
+    string responseMsg = "";
+    string nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if (nextElement.empty())
+    {
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(m_statusCode, "");
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (nextElement.empty())
+            {
+                m_statusCode = deleteAsset(responseMsg);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(m_statusCode, "");
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
+    }
+
+    response.setStatus(m_statusCode);
+    response.out() << responseMsg;
     return;
 }
 

@@ -30,6 +30,7 @@
 #include "PluginResource.h"
 #include "ProbeResource.h"
 #include "RoleResource.h"
+#include "SearchResource.h"
 #include "SourceResource.h"
 #include "UnitResource.h"
 #include "UserResource.h"
@@ -73,6 +74,7 @@ int main(int argc, char **argv)
             OrganizationResource organizationRessource;
             PluginResource       pluginResource;
             ProbeResource        probeResource;
+            SearchResource       searchResource;
             SourceResource       sourceResource;
             UnitResource         unitResource;
             UserResource         userResource;
@@ -91,6 +93,7 @@ int main(int argc, char **argv)
             server.addResource(&pluginResource,        "/plugins");
             server.addResource(&probeResource,         "/probes");
             server.addResource(&roleResource,          "/roles");
+            server.addResource(&searchResource,        "/searches");
             server.addResource(&sourceResource,        "/sources");
             server.addResource(&unitResource,          "/units");
             server.addResource(&userResource,          "/users");
