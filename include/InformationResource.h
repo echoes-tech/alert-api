@@ -28,8 +28,10 @@ class InformationResource : public PublicApiResource
         EReturnCode getAliasForInformation(std::string  &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
+        EReturnCode postInformation(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
+        EReturnCode putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
 
         virtual void processDeleteRequest(Wt::Http::Response &response);

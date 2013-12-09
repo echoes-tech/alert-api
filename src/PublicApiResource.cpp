@@ -91,7 +91,7 @@ namespace boost
 using namespace std;
 
 template<>
-    std::string PublicApiResource::getTableName<boost::bad_lexical_cast>(boost::bad_lexical_cast const& e)
+std::string PublicApiResource::getTableName<boost::bad_lexical_cast>(boost::bad_lexical_cast const& e)
 {
     Wt::log("error") << e.what();
     return "";

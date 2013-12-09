@@ -17,7 +17,7 @@ using namespace std;
 
 SourceResource::SourceResource()
 {
-    m_parameters["plugin"] = 0;
+    m_parameters["plugin_id"] = 0;
 }
 
 SourceResource::~SourceResource()
@@ -79,10 +79,10 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
 "                 WHERE"
 "                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
 
-        if (m_parameters["type"] > 0)
+        if (m_parameters["plugin_id"] > 0)
         {
             queryStr +=
-"                   AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin"]);
+"                   AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin_id"]);
         }
 
         queryStr +=

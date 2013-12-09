@@ -16,7 +16,7 @@ using namespace std;
 
 MediaResource::MediaResource() : PublicApiResource::PublicApiResource()
 {
-    m_parameters["type"] = 0;
+    m_parameters["type_id"] = 0;
 }
 
 MediaResource::~MediaResource()
@@ -69,10 +69,10 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
 
-        if (m_parameters["type"] > 0)
+        if (m_parameters["type_id"] > 0)
         {
             queryStr +=
-"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = " + boost::lexical_cast<string>(m_parameters["type"]);
+"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = " + boost::lexical_cast<string>(m_parameters["type_id"]);
         }
 
         queryStr +=

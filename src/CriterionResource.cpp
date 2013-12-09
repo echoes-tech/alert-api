@@ -17,9 +17,9 @@ using namespace std;
 
 CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
 {
-    m_parameters["media_type"] = 0;
-    m_parameters["user_role"] = 0;
-    m_parameters["information"] = 0;
+    m_parameters["media_type_id"] = 0;
+    m_parameters["user_role_id"] = 0;
+    m_parameters["information_id"] = 0;
 }
 
 CriterionResource::~CriterionResource()
@@ -76,7 +76,7 @@ EReturnCode CriterionResource::getAliasForCriterion(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (m_parameters["media_type"] <= 0 || m_parameters["user_role"] <= 0 || m_parameters["information"] <= 0)
+    if (m_parameters["media_type_id"] <= 0 || m_parameters["user_role_id"] <= 0 || m_parameters["information_id"] <= 0)
     {
         res = EReturnCode::BAD_REQUEST;
         const string err = "[Criterion Resource] media_types or/and user_role or/and information are empty";
@@ -90,16 +90,16 @@ EReturnCode CriterionResource::getAliasForCriterion(string &responseMsg)
             Wt::Dbo::Transaction transaction(m_session);
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
-                    .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role_id"])
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
                         .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION_CRITERIA SEP "DELETE") " IS NULL")
-                        .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role"])
-                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type"])
-                        .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(m_parameters["information"])
+                        .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role_id"])
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type_id"])
+                        .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(m_parameters["information_id"])
                         .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID SEP TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(m_pathElements[1]);
 
                 res = serialize(aicPtr, responseMsg);
@@ -181,7 +181,7 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
 
-            uroId = result.get("role_id");
+            uroId = result.get("user_role_id");
             mtyId = result.get("media_type_id");
             infId = result.get("information_id");
             value = result.get("value");

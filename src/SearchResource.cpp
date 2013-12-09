@@ -17,8 +17,8 @@ using namespace std;
 
 SearchResource::SearchResource()
 {
-    m_parameters["plugin"] = 0;
-    m_parameters["source"] = 0;
+    m_parameters["plugin_id"] = 0;
+    m_parameters["source_id"] = 0;
 }
 
 SearchResource::~SearchResource()
@@ -92,20 +92,20 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 "                               WHERE"
 "                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
 
-        if (m_parameters["type"] > 0)
+        if (m_parameters["plugin_id"] > 0)
         {
             queryStr +=
-"                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin"]);
+"                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin_id"]);
         }
 
         queryStr +=
 "                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                         )";
 
-        if (m_parameters["source"] > 0)
+        if (m_parameters["source_id"] > 0)
         {
             queryStr +=
-"                         AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(m_parameters["source"]);
+"                         AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(m_parameters["source_id"]);
         }
 
         queryStr +=

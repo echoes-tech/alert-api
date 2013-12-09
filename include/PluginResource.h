@@ -32,7 +32,6 @@ class PluginResource : public PublicApiResource
         EReturnCode getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
-//        EReturnCode postInformationForSeaSrcAndPlg(std::string &responseMsg, const std::string &sRequest);
         EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
 
