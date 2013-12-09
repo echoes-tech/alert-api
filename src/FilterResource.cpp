@@ -292,14 +292,14 @@ EReturnCode FilterResource::postFilter(string& responseMsg, const string& sReque
 
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> >::const_iterator it = ftyPtr->filterParameters.begin(); it != ftyPtr->filterParameters.end(); it++)
                 {
-//                    Echoes::Dbo::FilterParameterValue *newFpv = new Echoes::Dbo::FilterParameterValue;
-//
-//                    newFpv->value = result.get(it->get()->name.toUTF8());
-//                    newFpv->name = it->get()->name;
+                    Echoes::Dbo::FilterParameterValue *newFpv = new Echoes::Dbo::FilterParameterValue;
+
+                    newFpv->value = result.get(it->get()->name.toUTF8());
+                    newFpv->name = it->get()->name;
 //                    newFpv->filterParameterValueId.filterParameter= *it;
 //                    newFpv->filterParameterValueId.filter = newFilPtr;
-//
-//                    m_session.add<Echoes::Dbo::FilterParameterValue>(newFpv);
+
+                    m_session.add<Echoes::Dbo::FilterParameterValue>(newFpv);
                 }
             }
             catch (Wt::Json::ParseError const& e)

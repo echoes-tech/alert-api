@@ -152,12 +152,12 @@ EReturnCode UserResource::postActionForUser(std::string &responseMsg, const std:
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserAction> uacPtr = m_session.find<Echoes::Dbo::UserAction>().where(QUOTE(TRIGRAM_USER_ACTION ID) " = ?").bind(uacId);
+            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session.find<Echoes::Dbo::UserActionType>().where(QUOTE(TRIGRAM_USER_ACTION_TYPE ID) " = ?").bind(uacId);
 
             Echoes::Dbo::UserHistoricalAction *newUha = new Echoes::Dbo::UserHistoricalAction();
             newUha->tableObject = tableObject;
             newUha->tableObjectId = tableObjectId;
-            newUha->userAction = uacPtr;
+            newUha->userAction = uatPtr;
             newUha->user = m_session.user();
             newUha->dateTime = Wt::WDateTime::currentDateTime();
             newUha->actionAfter = actionAfter;

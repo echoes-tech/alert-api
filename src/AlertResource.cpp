@@ -635,13 +635,13 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
 
                     switch (mtyID)
                     {
-                        case Echoes::Dbo::EMedia::SMS:
+                        case Echoes::Dbo::EMediaType::SMS:
                         {
                             Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
 
                             // Verifying the quota of sms
                             Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
-                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOption::QUOTA_SMS)
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
                                     .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(it->get()->media->user->organization.id())
                                     .limit(1);
 
@@ -670,11 +670,11 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
                             }
                             break;
                         }
-                        case Echoes::Dbo::EMedia::MAIL:
+                        case Echoes::Dbo::EMediaType::MAIL:
                             Wt::log("info") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
                             sendMAIL(ivaPtrVector, alePtr, newAtrPtr, *it);
                             break;
-                        case Echoes::Dbo::EMedia::MOBILE_APP:
+                        case Echoes::Dbo::EMediaType::MOBILE_APP:
                             Wt::log("info") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
                             sendMobileApp(ivaPtrVector, alePtr, newAtrPtr, *it);
                             break;
