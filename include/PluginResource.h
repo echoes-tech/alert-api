@@ -27,7 +27,6 @@ class PluginResource : public PublicApiResource
         std::string m_media_type;
         
         EReturnCode getPlugin(std::string &responseMsg);
-//        EReturnCode getInformationForSeaSrcAndPlg(std::string &responseMsg);
         EReturnCode getInformationListForPlugin(std::string &responseMsg);
         EReturnCode getAliasForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
@@ -38,12 +37,10 @@ class PluginResource : public PublicApiResource
         virtual void processPutRequest(Wt::Http::Response &response);
         EReturnCode putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
 
-//        EReturnCode deleteInformationForSeaSrcAndPlg(std::string &responseMsg);
         EReturnCode deletePlugin(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-       
+        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);       
 };
 
 #endif	/* PLUGINRESOURCE_H */

@@ -34,6 +34,7 @@ class InformationResource : public PublicApiResource
         EReturnCode putAliasForInformation(std::string &responseMsg, const std::string &sRequest);
         virtual void processPutRequest(Wt::Http::Response &response);
 
+        EReturnCode deleteInformation(std::string &responseMsg);
         virtual void processDeleteRequest(Wt::Http::Response &response);
 };
 

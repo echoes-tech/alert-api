@@ -182,56 +182,6 @@ EReturnCode PluginResource::getInformationListForPlugin(string &responseMsg)
     return res;  
 }
 
-//FIXME : MOVE OUT
-//EReturnCode PluginResource::getInformationForSeaSrcAndPlg(string& responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    if((res = pluginIsAccessible(responseMsg)) == 200)
-//    {
-//        unsigned idx = 0;
-//        try
-//        {
-//            Wt::Dbo::Transaction transaction(m_session);
-//            Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::Information >> infCollec = m_session.find<Echoes::Dbo::Information>()
-//                    .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1])
-//                    .where("\"SRC_ID\" = ?").bind(m_pathElements[3])
-//                    .where("\"SEA_ID\" = ?").bind(m_pathElements[5])
-//                    .where("\"INF_DELETE\" IS NULL")
-//                    .orderBy("\"INF_VALUE_NUM\"");                                                                                       
-//            if (infCollec.size() > 0)
-//            {
-//                responseMsg += "[\n";
-//                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information> >::const_iterator i = infCollec.begin(); i != infCollec.end(); i++) 
-//                {
-//                    Echoes::Dbo::Information info(*i->get());
-//                    responseMsg += "\t" + info.toJSON();
-//                    ++idx;
-//                    if(infCollec.size()-idx > 0)
-//                    {
-//                        responseMsg += ",\n";
-//                    }
-//                }
-//                responseMsg += "\n]\n";               
-//
-//                res = EReturnCode::OK;
-//            }
-//            else 
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = "{\"message\":\"Information not found\"}";
-//            }
-//            transaction.commit();
-//        }
-//        catch (Wt::Dbo::Exception const &e)
-//        {
-//            Wt::log("error") << e.what();
-//            res = EReturnCode::SERVICE_UNAVAILABLE;
-//            responseMsg = "{\"message\":\"Service Unavailable\"}";
-//        }
-//    }
-//    return res;
-//}
-
 void PluginResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "", nextElement = "";
@@ -773,64 +723,6 @@ EReturnCode PluginResource::putAliasForPlugin(string &responseMsg, const string 
 
     return res; 
 }
-
-//EReturnCode PluginResource::deleteInformationForSeaSrcAndPlg(string& responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    if((res = pluginIsAccessible(responseMsg)) == 200)
-//    {
-//        try 
-//        {  
-//            Wt::Dbo::Transaction transaction(m_session);
-//
-//            Wt::Dbo::ptr<Echoes::Dbo::Information> informationPtr = m_session.find<Echoes::Dbo::Information>()
-//                    .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1])
-//                    .where("\"SRC_ID\" = ?").bind(m_pathElements[3])
-//                    .where("\"SEA_ID\" = ?").bind(m_pathElements[5])
-//                    .where("\"INF_VALUE_NUM\" = ?").bind(m_pathElements[7])
-//                    .where("\"INU_ID_INU_ID\" = ?").bind(m_pathElements[9]);
-//            //information exist ?
-//            if(informationPtr)
-//            {
-//                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertValue>> avaCollec = m_session.find<Echoes::Dbo::AlertValue>()
-//                        .where("\"PLG_ID_PLG_ID\" = ?").bind(m_pathElements[1])
-//                        .where("\"SRC_ID\" = ?").bind(m_pathElements[3])
-//                        .where("\"SEA_ID\" = ?").bind(m_pathElements[5])
-//                        .where("\"INF_VALUE_NUM\" = ?").bind(m_pathElements[7])
-//                        .where("\"INU_ID_INU_ID\" = ?").bind(m_pathElements[9])
-//                        .where("\"AVA_DELETE\" IS NULL");
-//                //verif si l'info n'est pas utilisée                                                                
-//                if (avaCollec.size() == 0)
-//                {                
-//                    //supprime l'info
-//
-//                    informationPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
-//
-//                    res = EReturnCode::NO_CONTENT;
-//                }
-//                else
-//                {
-//                    res = EReturnCode::CONFLICT;
-//                    responseMsg = "{\"message\":\"Conflict, an alert use this information\"}";
-//                }
-//            }
-//            else
-//            {
-//                responseMsg = "{\"message\":\"Information Not Found\"}";
-//                res = EReturnCode::NOT_FOUND;
-//            }
-//
-//            transaction.commit();               
-//        }
-//        catch (Wt::Dbo::Exception const& e) 
-//        {
-//            Wt::log("error") << e.what();
-//            res = EReturnCode::SERVICE_UNAVAILABLE;
-//            responseMsg = "{\"message\":\"Service Unavailable\"}";
-//        }
-//    }    
-//    return res;
-//}
 
 EReturnCode PluginResource::deletePlugin(string& responseMsg)
 {

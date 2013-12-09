@@ -417,8 +417,92 @@ void InformationResource::processPutRequest(Wt::Http::Response &response)
     return;
 }
 
+EReturnCode InformationResource::deleteInformation(string& responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try 
+    {  
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
+                .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(m_pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
+
+        if(infPtr)
+        {
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID)" = ?").bind(m_pathElements[1])
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
+
+            if (idaPtrCol.size() == 0)
+            {
+                infPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = EReturnCode::NO_CONTENT;
+            }
+            else
+            {
+                res = EReturnCode::CONFLICT;
+                responseMsg = httpCodeToJSON(res, infPtr);
+            }
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, infPtr);
+        }
+
+        transaction.commit();
+    }
+    catch (boost::bad_lexical_cast const& e)
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+
+    return res;
+}
+
 void InformationResource::processDeleteRequest(Wt::Http::Response &response)
 {
+    string responseMsg = "";
+    string nextElement = "";
+
+    nextElement = getNextElementFromPath();
+    if (nextElement.empty())
+    {
+        m_statusCode = EReturnCode::BAD_REQUEST;
+        const string err = "[Filter Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(m_statusCode, err);
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+
+            if (nextElement.empty())
+            {
+                m_statusCode = deleteInformation(responseMsg);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                const string err = "[Filter Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
+    }
+
+    response.setStatus(m_statusCode);
+    response.out() << responseMsg;
     return;
 }
 
