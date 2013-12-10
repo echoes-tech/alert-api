@@ -23,10 +23,22 @@ class AssetResource : public PublicApiResource
         AssetResource();
         virtual ~AssetResource();
 
+        /**
+         * Select a Asset
+         * @param astId Identifier of Asset
+         * @return Asset Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const long long &astId, Echoes::Dbo::Session &session);
+        /**
+         * Select a Asset with a ID string
+         * @param astId String of Identifier of Asset
+         * @return Asset Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, Echoes::Dbo::Session &session);
+
     protected:
         EReturnCode getAssetsList(std::string &responseMsg);
         EReturnCode getAsset(std::string &responseMsg);
-        EReturnCode getProbesListForAsset(std::string  &responseMsg);
         EReturnCode getAliasForAsset(std::string  &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 

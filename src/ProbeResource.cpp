@@ -250,10 +250,7 @@ EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
-                    .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(astId)
-                    .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
-                    .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL");
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, m_session);
             if (astPtr)
             {
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();

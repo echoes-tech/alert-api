@@ -25,6 +25,19 @@ AssetResource::~AssetResource()
 {
 }
 
+Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const long long &astId, Echoes::Dbo::Session &session)
+{
+    return selectAsset(boost::lexical_cast<string>(astId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId, Echoes::Dbo::Session &session)
+{
+    return session.find<Echoes::Dbo::Asset>()
+            .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(astId)
+            .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
+            .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(session.user()->organization.id());
+}
+
 EReturnCode AssetResource::getAssetsList(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -56,10 +69,7 @@ EReturnCode AssetResource::getAsset(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
-                .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(m_pathElements[1], m_session);
 
         res = serialize(astPtr, responseMsg);
 
@@ -70,32 +80,6 @@ EReturnCode AssetResource::getAsset(string &responseMsg)
         res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = httpCodeToJSON(res, e);
     }
-    return res;
-}
-
-EReturnCode AssetResource::getProbesListForAsset(string &responseMsg)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session);
-
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe>> prbPtrCol = m_session.find<Echoes::Dbo::Probe>()
-                .where(QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_PROBE SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
-                .orderBy(QUOTE(TRIGRAM_PROBE ID));
-
-        res = serialize(prbPtrCol, responseMsg);
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e)
-    {
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = httpCodeToJSON(res, e);
-    }
-
     return res;
 }
 
@@ -168,10 +152,6 @@ void AssetResource::processGetRequest(Wt::Http::Response &response)
             if (nextElement.empty())
             {
                 m_statusCode = getAsset(responseMsg);
-            }
-            else if (!nextElement.compare("probes"))
-            {
-                m_statusCode = getProbesListForAsset(responseMsg);
             }
             else if (!nextElement.compare("alias"))
             {
@@ -394,12 +374,8 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
-                    .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
-                    .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
-
-            if (astPtr)
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(m_pathElements[1], m_session);
+        if (astPtr)
             {
                 if (!name.empty())
                 {
@@ -641,11 +617,7 @@ EReturnCode AssetResource::deleteAsset(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
-                .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
-
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(m_pathElements[1], m_session);
         if (astPtr)
         {
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()

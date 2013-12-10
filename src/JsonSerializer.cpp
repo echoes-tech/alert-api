@@ -41,7 +41,7 @@ namespace Wt
         m_isCollection(false)
         {
         }
-        
+
         std::string JsonSerializer::transformFieldName(const std::string& fieldName) {
             std::string res = fieldName;
             std::transform(res.begin(), res.end(), res.begin(), ::tolower);
@@ -58,17 +58,17 @@ namespace Wt
             }
             return res;
         }
-        
+
         std::string JsonSerializer::getResult()
         {
             return m_result;
         }
-        
+
         void JsonSerializer::print()
         {
             m_out << m_result;
         }
-        
+
         Session *JsonSerializer::session() {
             return &m_session;
         }
