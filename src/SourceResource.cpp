@@ -17,6 +17,7 @@ using namespace std;
 
 SourceResource::SourceResource()
 {
+    m_parameters["addon_id"] = 0;
     m_parameters["plugin_id"] = 0;
 }
 
@@ -129,6 +130,56 @@ EReturnCode SourceResource::getSource(string &responseMsg)
     return res;
 }
 
+EReturnCode SourceResource::getParametersList(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        string queryStr =
+" SELECT srp\n"
+"   FROM " QUOTE("TR_SOURCE_PARAMETER" SEP TRIGRAM_SOURCE_PARAMETER) " srp\n";
+
+        if (m_parameters["addon_id"] > 0)
+        {
+            queryStr +=
+"   WHERE\n"
+"     " QUOTE(TRIGRAM_SOURCE_PARAMETER ID) " IN\n"
+"       (\n"
+"         SELECT " QUOTE ("TR_SOURCE_PARAMETER" SEP TRIGRAM_SOURCE_PARAMETER SEP TRIGRAM_SOURCE_PARAMETER ID) "\n"
+"           FROM " QUOTE("TJ" SEP TRIGRAM_ADDON SEP TRIGRAM_SOURCE_PARAMETER) "\n"
+"           WHERE\n"
+"             " QUOTE("TR_ADDON" SEP TRIGRAM_ADDON SEP TRIGRAM_ADDON ID) " IN\n"
+"               (\n"
+"                 SELECT " QUOTE(TRIGRAM_ADDON ID)
+"                   FROM " QUOTE ("TR_ADDON" SEP TRIGRAM_ADDON) "\n"
+"                   WHERE\n"
+"                     " QUOTE(TRIGRAM_ADDON ID) " = " + boost::lexical_cast<string>(m_parameters["addon_id"]) + "\n" 
+"                     AND " QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL\n"
+"               )\n"
+"       )\n";
+        }
+
+        queryStr +=
+"   ORDER BY " QUOTE(TRIGRAM_SOURCE_PARAMETER ID)"\n";
+
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srpPtrCol =  queryRes.resultList();
+
+        res = serialize(srpPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void SourceResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -138,6 +189,10 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = getSourcesList(responseMsg);
+    }
+    else if (nextElement.compare("parameters") == 0)
+    {
+        m_statusCode = getParametersList(responseMsg);
     }
     else
     {

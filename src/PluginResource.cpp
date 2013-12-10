@@ -122,7 +122,7 @@ EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
     return res;
 }
 
-EReturnCode PluginResource::getInformationListForPlugin(string &responseMsg)
+EReturnCode PluginResource::getInformationsListForPlugin(string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -176,7 +176,7 @@ EReturnCode PluginResource::getInformationListForPlugin(string &responseMsg)
 "               )\n"
 "             AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL\n"
 "       )\n"
-"     AND " QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL;";
+"     AND " QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL\n";
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Information>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Information>>(queryStr);
 
@@ -215,13 +215,13 @@ void PluginResource::processGetRequest(Wt::Http::Response &response)
             {
                 m_statusCode = getPlugin(responseMsg);
             }
-            else if (!nextElement.compare("alias"))
+            else if (nextElement.compare("alias") == 0)
             {
                 m_statusCode = getAliasForPlugin(responseMsg);
             }
-            else if (!nextElement.compare("informations"))
+            else if (nextElement.compare("informations") == 0)
             {
-                m_statusCode = getInformationListForPlugin(responseMsg);
+                m_statusCode = getInformationsListForPlugin(responseMsg);
             }
             else
             {

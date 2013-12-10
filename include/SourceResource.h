@@ -39,6 +39,7 @@ class SourceResource : public PublicApiResource
     private:
         EReturnCode getSourcesList(std::string &responseMsg);
         EReturnCode getSource(std::string &responseMsg);
+        EReturnCode getParametersList(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postSource(std::string &responseMsg, const std::string &sRequest);
