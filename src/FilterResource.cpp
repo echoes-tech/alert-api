@@ -81,60 +81,61 @@ EReturnCode FilterResource::getFiltersList(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
         string queryStr =
-" SELECT fil"
-"   FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) " fil"
-"   WHERE"
-"     " QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID) " IN"
-"       ("
-"         SELECT " QUOTE(TRIGRAM_SEARCH ID)
-"           FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH)
-"           WHERE"
-"             " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN"
-"               ("
-"                 SELECT " QUOTE(TRIGRAM_SOURCE ID)
-"                   FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE)
-"                     WHERE"
-"                       " QUOTE(TRIGRAM_SOURCE ID) " IN"
-"                         ("
-"                           SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)
-"                             FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE)
-"                               WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN"
-"                                 ("
-"                                   SELECT " QUOTE(TRIGRAM_PLUGIN ID)
-"                                     FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
-"                                       WHERE"
-"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
+" SELECT fil\n"
+"   FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) " fil\n"
+"   WHERE\n"
+"     " QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID) " IN\n"
+"       (\n"
+"         SELECT " QUOTE(TRIGRAM_SEARCH ID) "\n"
+"           FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) "\n"
+"           WHERE\n"
+"             " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN\n"
+"               (\n"
+"                 SELECT " QUOTE(TRIGRAM_SOURCE ID) "\n"
+"                   FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE) "\n"
+"                     WHERE\n"
+"                       " QUOTE(TRIGRAM_SOURCE ID) " IN\n"
+"                         (\n"
+"                           SELECT " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) "\n"
+"                             FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE) "\n"
+"                               WHERE " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) " IN\n"
+"                                 (\n"
+"                                   SELECT " QUOTE(TRIGRAM_PLUGIN ID) "\n"
+"                                     FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) "\n"
+"                                       WHERE\n"
+"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +  "\n";
 
         if (m_parameters["plugin_id"] > 0)
         {
             queryStr +=
-"                                         AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin_id"]);
+"                                         AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin_id"]) + "\n";
         }
 
         queryStr +=
-"                                         AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
-"                                 )";
+"                                         AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n"
+"                                 )\n";
 
         if (m_parameters["source_id"] > 0)
         {
             queryStr +=
-"                                 AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(m_parameters["source_id"]);
+"                                 AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(m_parameters["source_id"]) + "\n";
         }
 
         queryStr +=
-"                       AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL"
-"               )";
+"                         )\n"
+"                       AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL\n"
+"               )\n";
 
         if (m_parameters["search_id"] > 0)
         {
             queryStr +=
-"             AND " QUOTE(TRIGRAM_SEARCH ID) " = " + boost::lexical_cast<string>(m_parameters["search_id"]);
+"             AND " QUOTE(TRIGRAM_SEARCH ID) " = " + boost::lexical_cast<string>(m_parameters["search_id"]) + "\n";
         }
 
         queryStr +=
-"             AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL"
-"       )"
-"     AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL";
+"             AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL\n"
+"       )\n"
+"     AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL;";
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Filter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Filter>>(queryStr);
 

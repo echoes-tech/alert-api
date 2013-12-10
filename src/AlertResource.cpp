@@ -275,7 +275,7 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
 "     " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID) " IN"
 "       ("
 "         SELECT " QUOTE(TRIGRAM_FILTER ID)
-"           FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) " fil"
+"           FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER)
 "           WHERE"
 "             " QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID) " IN"
 "               ("

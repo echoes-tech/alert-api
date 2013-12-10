@@ -26,6 +26,7 @@ class PluginResource : public PublicApiResource
         EReturnCode getPluginsList(std::string &responseMsg);
         EReturnCode getPlugin(std::string &responseMsg);
         EReturnCode getAliasForPlugin(std::string &responseMsg);
+        EReturnCode getInformationListForPlugin(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
