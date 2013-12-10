@@ -24,9 +24,6 @@ class AssetResource : public PublicApiResource
         virtual ~AssetResource();
 
     protected:
-        std::string m_role;
-        std::string m_media_type;
-        
         EReturnCode getAssetsList(std::string &responseMsg);
         EReturnCode getAsset(std::string &responseMsg);
         EReturnCode getProbesListForAsset(std::string  &responseMsg);

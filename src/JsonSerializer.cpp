@@ -37,7 +37,7 @@ namespace Wt
         m_session(s),
         m_result(""),
         m_currentElem(&m_root),
-        m_maxRank(2),
+        m_maxRank(3),
         m_isCollection(false)
         {
         }

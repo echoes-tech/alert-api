@@ -186,7 +186,7 @@ public:
                     boost::property_tree::ptree *previousElem;
                     if (m_currentElem != &m_root || m_rank > 0)
                     {
-                        if (!m_isCollection)
+                        if (!m_isCollection || m_rank > 1)
                         {
                             previousElem = m_currentElem;
                             m_currentElem = &elem;
@@ -194,11 +194,14 @@ public:
                     }
                     m_rank++;
                     m_currentElem->put("id", c.id());
-                    const_cast<C&> (*c).persist(*this);
+                    if (m_rank <= m_maxRank)
+                    {
+                        const_cast<C&> (*c).persist(*this);
+                    }
                     m_rank--;
                     if (m_currentElem != &m_root || m_rank > 0)
                     {
-                        if (!m_isCollection)
+                        if (!m_isCollection || m_rank > 1)
                         {
                             m_currentElem = previousElem;
                             m_currentElem->put_child(transformTableName(m_session.tableName<C>()), elem);
