@@ -80,7 +80,7 @@ protected:
     std::string m_requestData;
     std::vector<std::string> m_pathElements;
     unsigned short m_indexPathElement;
-    std::map<std::string,long long> m_parameters;
+    std::map<std::string, long long> m_parameters;
     EReturnCode m_statusCode;
 
     unsigned short retrieveCurrentHttpMethod(const std::string &method) const;

@@ -46,6 +46,7 @@ class ProbeResource : public PublicApiResource
     protected:
         EReturnCode getProbesList(std::string &responseMsg);
         EReturnCode getProbe(std::string &responseMsg);
+        EReturnCode getJsonForProbe(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postProbe(std::string &responseMsg, const std::string &sRequest);
