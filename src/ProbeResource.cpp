@@ -52,59 +52,64 @@ Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId,
 
 Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> ProbeResource::selectProbePackageParameter(const Wt::Dbo::ptr<Echoes::Dbo::Asset> &astPtr, Echoes::Dbo::Session &session)
 {
-    Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = session.find<Echoes::Dbo::ProbePackageParameter>()
-            .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(astPtr->assetArchitecture.id())
-            .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_DISTRIBUTION SEP TRIGRAM_ASSET_DISTRIBUTION ID) " = ?").bind(astPtr->assetDistribution.id())
-            .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(astPtr->assetRelease.id())
-            .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "DELETE") " IS NULL")
-            .orderBy(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PROBE_VERSION") " DESC, " QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PACKAGE_VERSION") " DESC")
-            .limit(1);
+    Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr;
 
-    bool releaseChecked = false;
-    Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr;
-    if (!pppPtr)
+    if (astPtr->assetArchitecture && astPtr->assetDistribution && astPtr->assetRelease)
     {
-        string wildcardRelease = astPtr->assetRelease->name.toUTF8().substr(0, astPtr->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
-        asrPtr = session.find<Echoes::Dbo::AssetRelease>().where(QUOTE(TRIGRAM_ASSET_RELEASE SEP "NAME") " = ?").bind(wildcardRelease);
         pppPtr = session.find<Echoes::Dbo::ProbePackageParameter>()
                 .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(astPtr->assetArchitecture.id())
                 .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_DISTRIBUTION SEP TRIGRAM_ASSET_DISTRIBUTION ID) " = ?").bind(astPtr->assetDistribution.id())
-                .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(asrPtr.id())
+                .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(astPtr->assetRelease.id())
                 .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PROBE_VERSION") " DESC, " QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PACKAGE_VERSION") " DESC")
                 .limit(1);
-        releaseChecked = true;
-    }
 
-    bool architectureChecked = false;
-    Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr;
-    if (!pppPtr)
-    {
-        // Only if arch is an i*86
-        if ((boost::starts_with(astPtr->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(astPtr->assetArchitecture->name.toUTF8(), "86")))
+        bool releaseChecked = false;
+        Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr;
+        if (!pppPtr)
         {
-            string wildcardArchitecture = "i*86";
-            asaPtr = session.find<Echoes::Dbo::AssetArchitecture>().where(QUOTE(TRIGRAM_ASSET_ARCHITECTURE SEP "NAME") " = ?").bind(wildcardArchitecture);
+            string wildcardRelease = astPtr->assetRelease->name.toUTF8().substr(0, astPtr->assetRelease->name.toUTF8().find_last_of('.') + 1) + "*";
+            asrPtr = session.find<Echoes::Dbo::AssetRelease>().where(QUOTE(TRIGRAM_ASSET_RELEASE SEP "NAME") " = ?").bind(wildcardRelease);
             pppPtr = session.find<Echoes::Dbo::ProbePackageParameter>()
-                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(asaPtr.id())
+                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(astPtr->assetArchitecture.id())
                     .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_DISTRIBUTION SEP TRIGRAM_ASSET_DISTRIBUTION ID) " = ?").bind(astPtr->assetDistribution.id())
-                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(astPtr->assetRelease.id())
+                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(asrPtr.id())
                     .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "DELETE") " IS NULL")
                     .orderBy(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PROBE_VERSION") " DESC, " QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PACKAGE_VERSION") " DESC")
                     .limit(1);
-            architectureChecked = true;
+            releaseChecked = true;
         }
-    }
 
-    if (releaseChecked && architectureChecked && !pppPtr)
-    {
-        pppPtr = session.find<Echoes::Dbo::ProbePackageParameter>()
-                .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(asaPtr.id())
-                .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_DISTRIBUTION SEP TRIGRAM_ASSET_DISTRIBUTION ID) " = ?").bind(astPtr->assetDistribution.id())
-                .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(asrPtr.id())
-                .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PROBE_VERSION") " DESC, " QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PACKAGE_VERSION") " DESC")
-                .limit(1);
+        bool architectureChecked = false;
+        Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr;
+        if (!pppPtr)
+        {
+            // Only if arch is an i*86
+            if ((boost::starts_with(astPtr->assetArchitecture->name.toUTF8(), "i")) && (boost::ends_with(astPtr->assetArchitecture->name.toUTF8(), "86")))
+            {
+                string wildcardArchitecture = "i*86";
+                asaPtr = session.find<Echoes::Dbo::AssetArchitecture>().where(QUOTE(TRIGRAM_ASSET_ARCHITECTURE SEP "NAME") " = ?").bind(wildcardArchitecture);
+                pppPtr = session.find<Echoes::Dbo::ProbePackageParameter>()
+                        .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(asaPtr.id())
+                        .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_DISTRIBUTION SEP TRIGRAM_ASSET_DISTRIBUTION ID) " = ?").bind(astPtr->assetDistribution.id())
+                        .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(astPtr->assetRelease.id())
+                        .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "DELETE") " IS NULL")
+                        .orderBy(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PROBE_VERSION") " DESC, " QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PACKAGE_VERSION") " DESC")
+                        .limit(1);
+                architectureChecked = true;
+            }
+        }
+
+        if (releaseChecked && architectureChecked && !pppPtr)
+        {
+            pppPtr = session.find<Echoes::Dbo::ProbePackageParameter>()
+                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_ARCHITECTURE SEP TRIGRAM_ASSET_ARCHITECTURE ID) " = ?").bind(asaPtr.id())
+                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_DISTRIBUTION SEP TRIGRAM_ASSET_DISTRIBUTION ID) " = ?").bind(astPtr->assetDistribution.id())
+                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP TRIGRAM_ASSET_RELEASE SEP TRIGRAM_ASSET_RELEASE ID) " = ?").bind(asrPtr.id())
+                    .where(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "DELETE") " IS NULL")
+                    .orderBy(QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PROBE_VERSION") " DESC, " QUOTE(TRIGRAM_PROBE_PACKAGE_PARAMETER SEP "PACKAGE_VERSION") " DESC")
+                    .limit(1);
+        }
     }
 
     return pppPtr;
@@ -569,7 +574,12 @@ EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
                 newPrb->asset = astPtr;
                 newPrb->name = name;
-                newPrb->probePackageParameter = selectProbePackageParameter(astPtr, m_session);
+
+                Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, m_session);
+                if (pppPtr)
+                {
+                    newPrb->probePackageParameter = pppPtr;
+                } 
 
                 Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session.add<Echoes::Dbo::Probe>(newPrb);
                 newPrbPtr.flush();

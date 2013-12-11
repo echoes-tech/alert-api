@@ -77,6 +77,7 @@ EReturnCode InformationResource::getAliasForInformation(string &responseMsg)
 
     if (m_parameters["media_type_id"] <= 0 || m_parameters["user_role_id"] <= 0)
     {
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Assert Resource] media_types or/and user_role are empty";
         responseMsg = httpCodeToJSON(res, err);
     }
