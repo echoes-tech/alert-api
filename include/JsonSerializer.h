@@ -46,26 +46,43 @@ public:
     static std::string transformTableName(const std::string& fieldTable);
 
     template <class V>
-    void act(Wt::Dbo::FieldRef< V> field)
+    void act(Wt::Dbo::FieldRef<V> field)
     {
-//            std::cout << "In act(Wt::Dbo::FieldRef< V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In act(Wt::Dbo::FieldRef<V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+        std::cout << "V is: " << typeid(V).name() << std::endl;
         m_currentElem->put(transformFieldName(field.name()), field.value());
-//            std::cout << "Out act(Wt::Dbo::FieldRef< V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out act(Wt::Dbo::FieldRef<V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
     // When the field is WDateTime or WString, field added as std::string to add quotes " " in json
 
-    void act(Wt::Dbo::FieldRef< Wt::WDateTime> field)
+    void act(Wt::Dbo::FieldRef<Wt::WDateTime> field)
     {
-//            std::cout << "In act(Wt::Dbo::FieldRef< Wt::WDateTime> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In act(Wt::Dbo::FieldRef<Wt::WDateTime> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         m_currentElem->put<std::string>(transformFieldName(field.name()), field.value().toString().toUTF8());
-//            std::cout << "Out act(Wt::Dbo::FieldRef< Wt::WDateTime> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out act(Wt::Dbo::FieldRef<Wt::WDateTime> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
-    void act(Wt::Dbo::FieldRef< Wt::WString> field)
+    void act(Wt::Dbo::FieldRef<Wt::WString> field)
     {
-//            std::cout << "In act(Wt::Dbo::FieldRef< Wt::WString> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In act(Wt::Dbo::FieldRef<Wt::WString> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         m_currentElem->put<std::string>(transformFieldName(field.name()), field.value().toUTF8());
-//            std::cout << "Out act(Wt::Dbo::FieldRef< Wt::WString> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out act(Wt::Dbo::FieldRef<Wt::WString> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+    }
+
+    void act(Wt::Dbo::FieldRef<boost::optional<Wt::WString>> field)
+    {
+//        std::cout << "In act(Wt::Dbo::FieldRef<boost::optional<Wt::WString>> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+        std::string value;
+        if (field.value())
+        {
+            value = field.value().get().toUTF8();
+        }
+        else
+        {
+            value = "";
+        }
+        m_currentElem->put<std::string>(transformFieldName(field.name()), value);
+//        std::cout << "Out act(Wt::Dbo::FieldRef<boost::optional<Wt::WString>> field)) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
     template <class V>
