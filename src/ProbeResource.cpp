@@ -317,6 +317,163 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
     return res;
 }
 
+EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_session);
+        if (prbPtr)
+        {
+            stringstream ss;
+            ss << "[\n";
+            
+            Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = prbPtr->probePackageParameter;
+            if(pppPtr)
+            {            
+                Wt::Dbo::ptr<Echoes::Dbo::AddonCommonPackageParameter> cppPtr = m_session.find<Echoes::Dbo::AddonCommonPackageParameter>()
+                        .where("\"CPP_ASA_ASA_ID\" = ?").bind(pppPtr->assetArchitecture.id())
+                        .where("\"CPP_ASD_ASD_ID\" = ?").bind(pppPtr->assetDistribution.id())
+                        .where("\"CPP_ASR_ASR_ID\" = ?").bind(pppPtr->assetRelease.id())
+                        .where("\"CPP_ADDON_COMMON_VERSION\" >= ?").bind(pppPtr->minimumVersion)
+                        .where("\"CPP_PPP_MINIMUM_VERSION\" <= ?").bind(pppPtr->probeVersion)
+                        // Compares major version number: substring('2.1.1', '^(\\d*)\\.') return '2'
+                        .where("substring(\"CPP_ADDON_COMMON_VERSION\", '^(\\d*)\\.') = substring(?, '^(\\d*)\\.')").bind(pppPtr->probeVersion)
+                        .where("\"CPP_DELETE\" IS NULL")
+                        .orderBy("\"CPP_ADDON_COMMON_VERSION\" DESC, \"CPP_PACKAGE_VERSION\" DESC")
+                        .limit(1);
+                boost::property_tree::ptree cppElem;
+                if(cppPtr)
+                {
+                    cppElem.put("name", "common");
+                    cppElem.put("version", cppPtr->addonCommonVersion.toUTF8());
+                    
+                    boost::property_tree::ptree cpaElem;
+                    if (cppPtr->addonCommonPackage)
+                    {
+                        const string filename = cppPtr->addonCommonPackage->filename.toUTF8();
+                        ifstream ifs("/var/www/wt/common/" + filename);
+                        string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+
+                        cpaElem.put("filename", filename);
+                        cpaElem.put("content", Wt::Utils::base64Encode(content));
+                        cpaElem.put("filename", cppPtr->packageVersion.toUTF8());
+                    }
+                    cppElem.put_child("package", cpaElem);
+                }
+                boost::property_tree::json_parser::write_json(ss, cppElem);
+                string tmp = ss.str().erase(ss.str().size() - 1);
+                ss.str("");
+                ss.clear();
+                ss << tmp;
+                ss << ",\n";
+
+                boost::property_tree::ptree pppElem;
+                pppElem.put("name", "core");
+                pppElem.put("version", pppPtr->probeVersion.toUTF8());
+
+                boost::property_tree::ptree ppaElem;
+                if (pppPtr->probePackage)
+                {
+                    const string filename = pppPtr->probePackage->filename.toUTF8();
+                    ppaElem.put("filename", filename);
+
+                    ifstream ifs("/var/www/wt/probe/" + filename);
+                    string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+
+                    ppaElem.put("content", Wt::Utils::base64Encode(content));
+                    ppaElem.put("version", pppPtr->packageVersion.toUTF8());
+                }
+                pppElem.put_child("package", ppaElem);
+
+                boost::property_tree::json_parser::write_json(ss, pppElem);
+                tmp = ss.str().erase(ss.str().size() - 1);
+                ss.str("");
+                ss.clear();
+                ss << tmp;
+                ss << ",\n";
+
+                set<long long> adoIdList;
+                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = prbPtr->asset->plugins;
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>::iterator plgPtrIt = plgPtrCol.begin(); plgPtrIt != plgPtrCol.end(); plgPtrIt++)
+                {
+                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = plgPtrIt->get()->sources;
+                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>>::iterator srcPtrIt = srcPtrCol.begin(); srcPtrIt != srcPtrCol.end(); srcPtrIt++)
+                    {
+                        adoIdList.insert(srcPtrIt->get()->addon.id());
+                    }
+                }
+
+                for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); adoIdIt++)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session.find<Echoes::Dbo::AddonPackageParameter>()
+                            .where("\"APP_ASA_ASA_ID\" = ?").bind(cppPtr->assetArchitecture.id())
+                            .where("\"APP_ASD_ASD_ID\" = ?").bind(cppPtr->assetDistribution.id())
+                            .where("\"APP_ASR_ASR_ID\" = ?").bind(cppPtr->assetRelease.id())
+                            .where("\"APP_CPP_MINIMUM_VERSION\" <= ?").bind(cppPtr->addonCommonVersion)
+                            // Compares major version number: substring('2.1.1', '^(\\d*)\\.') return '2'
+                            .where("substring(\"APP_ADDON_VERSION\", '^(\\d*)\\.') = substring(?, '^(\\d*)\\.')").bind(cppPtr->addonCommonVersion)
+                            .where("\"APP_ADO_ADO_ID\" = ?").bind(*adoIdIt)
+                            .where("\"APP_DELETE\" IS NULL")
+                            .orderBy("\"APP_ADDON_VERSION\" DESC, \"APP_PACKAGE_VERSION\" DESC")
+                            .limit(1);
+                    boost::property_tree::ptree appElem;
+                    if(appPtr)
+                    {
+                        appElem.put("name", appPtr->name);
+                        appElem.put("version", appPtr->addonVersion.toUTF8());
+
+                        boost::property_tree::ptree apaElem;
+                        if (appPtr->addonPackage)
+                        {
+                            const string filename = appPtr->addonPackage->filename.toUTF8();
+                            ifstream ifs("/var/www/wt/addons/" + filename);
+                            string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+
+                            apaElem.put("filename", filename);
+                            apaElem.put("content", Wt::Utils::base64Encode(content));
+                            apaElem.put("filename", appPtr->packageVersion.toUTF8());
+                        }
+                        appElem.put_child("package", apaElem);
+                    }
+                    boost::property_tree::json_parser::write_json(ss, appElem);
+
+                    if (distance(adoIdList.begin(), adoIdIt) > 1)
+                    {
+                        tmp = ss.str().erase(ss.str().size() - 1);
+                        ss.str("");
+                        ss.clear();
+                        ss << tmp;
+                        ss << ",\n";
+                    }
+                }
+            }
+
+            ss << "]\n";
+
+            responseMsg = ss.str();
+            
+            res = EReturnCode::OK;
+        }        
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, prbPtr);
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void ProbeResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -341,6 +498,10 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
             else if (nextElement.compare("json") == 0)
             {
                 m_statusCode = getJsonForProbe(responseMsg);
+            }
+            else if (nextElement.compare("packages") == 0)
+            {
+                m_statusCode = getPackagesForProbe(responseMsg);
             }
             else
             {
