@@ -17,6 +17,7 @@ using namespace std;
 
 FilterResource::FilterResource()
 {
+    m_parameters["type_id"] = 0;
     m_parameters["plugin_id"] = 0;
     m_parameters["source_id"] = 0;
     m_parameters["search_id"] = 0;
@@ -175,6 +176,56 @@ EReturnCode FilterResource::getFilter(string &responseMsg)
     return res;
 }
 
+EReturnCode FilterResource::getParametersList(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        string queryStr =
+" SELECT fpa\n"
+"   FROM " QUOTE("TR_FILTER_PARAMETER" SEP TRIGRAM_FILTER_PARAMETER) " fpa\n";
+
+        if (m_parameters["type_id"] > 0)
+        {
+            queryStr +=
+"   WHERE\n"
+"     " QUOTE(TRIGRAM_FILTER_PARAMETER ID) " IN\n"
+"       (\n"
+"         SELECT " QUOTE ("TR_FILTER_PARAMETER" SEP TRIGRAM_FILTER_PARAMETER SEP TRIGRAM_FILTER_PARAMETER ID) "\n"
+"           FROM " QUOTE("TJ" SEP TRIGRAM_FILTER_TYPE SEP TRIGRAM_FILTER_PARAMETER) "\n"
+"           WHERE\n"
+"             " QUOTE("TR_FILTER_TYPE" SEP TRIGRAM_FILTER_TYPE SEP TRIGRAM_FILTER_TYPE ID) " IN\n"
+"               (\n"
+"                 SELECT " QUOTE(TRIGRAM_FILTER_TYPE ID)
+"                   FROM " QUOTE ("TR_FILTER_TYPE" SEP TRIGRAM_FILTER_TYPE) "\n"
+"                   WHERE\n"
+"                     " QUOTE(TRIGRAM_FILTER_TYPE ID) " = " + boost::lexical_cast<string>(m_parameters["type_id"]) + "\n" 
+"                     AND " QUOTE(TRIGRAM_FILTER_TYPE SEP "DELETE") " IS NULL\n"
+"               )\n"
+"       )\n";
+        }
+
+        queryStr +=
+"   ORDER BY " QUOTE(TRIGRAM_FILTER_PARAMETER ID)"\n";
+
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>(queryStr);
+
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>> srpPtrCol = queryRes.resultList();
+
+        res = serialize(srpPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void FilterResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -184,6 +235,10 @@ void FilterResource::processGetRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = getFiltersList(responseMsg);
+    }
+    else if (nextElement.compare("parameters") == 0)
+    {
+        m_statusCode = getParametersList(responseMsg);
     }
     else
     {

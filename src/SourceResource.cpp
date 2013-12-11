@@ -166,7 +166,7 @@ EReturnCode SourceResource::getParametersList(string &responseMsg)
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srpPtrCol =  queryRes.resultList();
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srpPtrCol = queryRes.resultList();
 
         res = serialize(srpPtrCol, responseMsg);
 

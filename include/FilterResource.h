@@ -40,6 +40,7 @@ class FilterResource : public PublicApiResource
     private:
         EReturnCode getFiltersList(std::string &responseMsg);
         EReturnCode getFilter(std::string &responseMsg);
+        EReturnCode getParametersList(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postFilter(std::string &responseMsg, const std::string &sRequest);

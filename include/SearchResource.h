@@ -39,6 +39,7 @@ class SearchResource : public PublicApiResource
     private:
         EReturnCode getSearchsList(std::string &responseMsg);
         EReturnCode getSearch(std::string &responseMsg);
+        EReturnCode getParametersList(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postSearch(std::string &responseMsg, const std::string &sRequest);
