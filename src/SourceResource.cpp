@@ -180,6 +180,31 @@ EReturnCode SourceResource::getParametersList(string &responseMsg)
     return res;
 }
 
+EReturnCode SourceResource::getParametersListForSource(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_session);
+        
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session.find<Echoes::Dbo::SourceParameterValue>()
+                .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id());
+
+        res = serialize(spvPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void SourceResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -204,6 +229,10 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
             if (nextElement.empty())
             {
                 m_statusCode = getSource(responseMsg);
+            }
+            else if (nextElement.compare("parameters") == 0)
+            {
+                m_statusCode = getParametersListForSource(responseMsg);
             }
             else
             {

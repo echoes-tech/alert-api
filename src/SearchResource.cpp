@@ -203,6 +203,31 @@ EReturnCode SearchResource::getParametersList(string &responseMsg)
     return res;
 }
 
+EReturnCode SearchResource::getParametersListForSearch(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_session);
+        
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session.find<Echoes::Dbo::SearchParameterValue>()
+                .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtr.id());
+
+        res = serialize(sevPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void SearchResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -227,6 +252,10 @@ void SearchResource::processGetRequest(Wt::Http::Response &response)
             if (nextElement.empty())
             {
                 m_statusCode = getSearch(responseMsg);
+            }
+            else if (nextElement.compare("parameters") == 0)
+            {
+                m_statusCode = getParametersListForSearch(responseMsg);
             }
             else
             {

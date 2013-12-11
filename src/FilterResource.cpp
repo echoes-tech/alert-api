@@ -226,6 +226,31 @@ EReturnCode FilterResource::getParametersList(string &responseMsg)
     return res;
 }
 
+EReturnCode FilterResource::getParametersListForFilter(string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_session);
+        
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue>> fpvPtrCol = m_session.find<Echoes::Dbo::FilterParameterValue>()
+                .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtr.id());
+
+        res = serialize(fpvPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 void FilterResource::processGetRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -250,6 +275,10 @@ void FilterResource::processGetRequest(Wt::Http::Response &response)
             if (nextElement.empty())
             {
                 m_statusCode = getFilter(responseMsg);
+            }
+            else if (nextElement.compare("parameters") == 0)
+            {
+                m_statusCode = getParametersListForFilter(responseMsg);
             }
             else
             {
