@@ -23,7 +23,6 @@ class FilterResource : public PublicApiResource
         FilterResource();
         virtual ~FilterResource();
 
-    private:
         /**
          * Select a Filter
          * @param filId Identifier of Filter

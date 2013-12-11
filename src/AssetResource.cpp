@@ -296,6 +296,157 @@ EReturnCode AssetResource::postAsset(string &responseMsg, const string &sRequest
     return res;
 }
 
+EReturnCode AssetResource::postPluginForAsset(string &responseMsg, const string &sRequest)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    // IDA attributs
+    struct IdaStruct
+    {
+        long long astId;
+        long long infId;
+        long long inuId;
+        long long filId;
+        int filterFieldIndex;
+    };
+    vector<IdaStruct> idaStructs;
+
+    if (!sRequest.empty())
+    {
+        try
+        {
+            Wt::Json::Value result;
+            Wt::Json::parse(sRequest, result);
+
+            Wt::Json::Array idaAttributs = result;
+            for (Wt::Json::Array::const_iterator it = idaAttributs.begin(); it < idaAttributs.end(); it++)
+            {
+                Wt::Json::Object tmp = *it;
+                idaStructs.push_back(
+                {
+                    tmp.get("asset_id"),
+                    tmp.get("information_id"),
+                    tmp.get("information_unit_id"),
+                    tmp.get("filter_id"),
+                    tmp.get("filter_field_index_id")
+                }
+                );
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Asset Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session);
+
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(m_pathElements[1], m_session);
+            if (astPtr)
+            {
+                vector<Wt::Dbo::ptr<Echoes::Dbo::Asset>> astPtrVector;
+                vector<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrVector;
+                vector<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrVector;
+                vector<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrVector;
+                for (vector<IdaStruct>::const_iterator it = idaStructs.begin(); it < idaStructs.end(); it++)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(it->astId, m_session);
+                    if (!astPtr)
+                    {
+                        res = EReturnCode::NOT_FOUND;
+                        responseMsg = httpCodeToJSON(res, astPtr);
+                        return res;
+                    }
+                    astPtrVector.push_back(astPtr);
+
+                    Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
+                            .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(it->infId)
+                            .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
+                    if (!infPtr)
+                    {
+                        res = EReturnCode::NOT_FOUND;
+                        responseMsg = httpCodeToJSON(res, infPtr);
+                        return res;
+                    }
+                    infPtrVector.push_back(infPtr);
+
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
+                            .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(it->inuId)
+                            .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
+                    if (!inuPtr)
+                    {
+                        res = EReturnCode::NOT_FOUND;
+                        responseMsg = httpCodeToJSON(res, inuPtr);
+                        return res;
+                    }
+                    inuPtrVector.push_back(inuPtr);
+
+                    Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = FilterResource::selectFilter(it->filId, m_session);
+                    if (!filPtr)
+                    {
+                        res = EReturnCode::NOT_FOUND;
+                        responseMsg = httpCodeToJSON(res, filPtr);
+                        return res;
+                    }
+                    filPtrVector.push_back(filPtr);
+
+                    if (it->filterFieldIndex > filPtr->nbValue)
+                    {
+                        res = EReturnCode::BAD_REQUEST;
+                        const string err = "[Asset Resource] filterFieldIndex > filPtr->nbValue";
+                        responseMsg = httpCodeToJSON(res, err);
+                        return res;
+                    }
+                }
+
+                for (vector<IdaStruct>::iterator it = idaStructs.begin(); it < idaStructs.end(); it++)
+                {
+                    Echoes::Dbo::InformationData *newIda = new Echoes::Dbo::InformationData();
+                    newIda->asset = astPtrVector[distance(idaStructs.begin(), it)];
+                    newIda->information = infPtrVector[distance(idaStructs.begin(), it)];
+                    newIda->informationUnit = inuPtrVector[distance(idaStructs.begin(), it)];
+                    newIda->filter = filPtrVector[distance(idaStructs.begin(), it)];
+                    newIda->filterFieldIndex = it->filterFieldIndex;
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationData> newIdaPtr = m_session.add<Echoes::Dbo::InformationData>(newIda);
+                    newIdaPtr.flush();
+                }
+
+                res = serialize(astPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, astPtr);
+            }
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
+    return res;
+}
+
 void AssetResource::processPostRequest(Wt::Http::Response &response)
 {
     string responseMsg = "";
@@ -308,9 +459,27 @@ void AssetResource::processPostRequest(Wt::Http::Response &response)
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
-        const string err = "[Asset Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath();
+            if (nextElement.compare("plugins") == 0)
+            {
+                m_statusCode = postPluginForAsset(responseMsg, m_requestData);
+            }
+            else
+            {
+                m_statusCode = EReturnCode::BAD_REQUEST;
+                const string err = "[Asset Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(m_statusCode, err);
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            m_statusCode = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(m_statusCode, e);
+        }
     }
 
     response.setStatus(m_statusCode);
@@ -374,8 +543,8 @@ EReturnCode AssetResource::putAsset(string &responseMsg, const string &sRequest)
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(m_pathElements[1], m_session);
-        if (astPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(m_pathElements[1], m_session);
+            if (astPtr)
             {
                 if (!name.empty())
                 {

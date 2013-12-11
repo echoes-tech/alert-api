@@ -15,6 +15,7 @@
 #define	ASSETRESOURCE_H
 
 #include "PublicApiResource.h"
+#include "FilterResource.h"
 #include "ProbeResource.h"
 
 class AssetResource : public PublicApiResource
@@ -43,6 +44,7 @@ class AssetResource : public PublicApiResource
         virtual void processGetRequest(Wt::Http::Response &response);
 
         EReturnCode postAsset(std::string &responseMsg, const std::string &sRequest);
+        EReturnCode postPluginForAsset(std::string &responseMsg, const std::string &sRequest);
         virtual void processPostRequest(Wt::Http::Response &response);
         
         EReturnCode putAsset(std::string &responseMsg, const std::string &sRequest);
