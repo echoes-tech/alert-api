@@ -353,7 +353,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
                 boost::property_tree::ptree cppElem;
                 if(cppPtr)
                 {
-                    cppElem.put("name", "common");
+                    cppElem.put<std::string>("name", "common");
                     cppElem.put("version", cppPtr->addonCommonVersion.toUTF8());
                     
                     boost::property_tree::ptree cpaElem;
@@ -365,7 +365,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
 
                         cpaElem.put("filename", filename);
                         cpaElem.put("content", Wt::Utils::base64Encode(content));
-                        cpaElem.put("filename", cppPtr->packageVersion.toUTF8());
+                        cpaElem.put("version", cppPtr->packageVersion.toUTF8());
                     }
                     cppElem.put_child("package", cpaElem);
                 }
@@ -377,7 +377,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
                 ss << ",\n";
 
                 boost::property_tree::ptree pppElem;
-                pppElem.put("name", "core");
+                pppElem.put<std::string>("name", "core");
                 pppElem.put("version", pppPtr->probeVersion.toUTF8());
 
                 boost::property_tree::ptree ppaElem;
@@ -428,7 +428,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
                     boost::property_tree::ptree appElem;
                     if(appPtr)
                     {
-                        appElem.put("name", appPtr->name);
+                        appElem.put("name", appPtr->addon->name.toUTF8());
                         appElem.put("version", appPtr->addonVersion.toUTF8());
 
                         boost::property_tree::ptree apaElem;
@@ -440,7 +440,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
 
                             apaElem.put("filename", filename);
                             apaElem.put("content", Wt::Utils::base64Encode(content));
-                            apaElem.put("filename", appPtr->packageVersion.toUTF8());
+                            apaElem.put("version", appPtr->packageVersion.toUTF8());
                         }
                         appElem.put_child("package", apaElem);
                     }
