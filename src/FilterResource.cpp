@@ -383,6 +383,9 @@ EReturnCode FilterResource::postFilter(string& responseMsg, const string& sReque
                     newFpv->name = it->get()->name;
 //                    newFpv->filterParameterValueId.filterParameter= *it;
 //                    newFpv->filterParameterValueId.filter = newFilPtr;
+                    //TODO: Fix this name on DBO
+                    newFpv->filteParameterValueId.filterParameter= *it;
+                    newFpv->filteParameterValueId.filter = newFilPtr;
 
                     m_session.add<Echoes::Dbo::FilterParameterValue>(newFpv);
                 }

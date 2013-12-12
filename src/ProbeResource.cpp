@@ -360,11 +360,9 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
                     if (cppPtr->addonCommonPackage)
                     {
                         const string filename = cppPtr->addonCommonPackage->filename.toUTF8();
-                        ifstream ifs("/var/www/wt/common/" + filename);
-                        string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
-
                         cpaElem.put("filename", filename);
-                        cpaElem.put("content", Wt::Utils::base64Encode(content));
+                        const string content = PublicApiResource::file2base64("/var/www/wt/common/" + filename);
+                        cpaElem.put("content", content);
                         cpaElem.put("version", cppPtr->packageVersion.toUTF8());
                     }
                     cppElem.put_child("package", cpaElem);
@@ -385,11 +383,8 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
                 {
                     const string filename = pppPtr->probePackage->filename.toUTF8();
                     ppaElem.put("filename", filename);
-
-                    ifstream ifs("/var/www/wt/probe/" + filename);
-                    string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
-
-                    ppaElem.put("content", Wt::Utils::base64Encode(content));
+                    const string content = PublicApiResource::file2base64("/var/www/wt/probe/" + filename);
+                    ppaElem.put("content", content);
                     ppaElem.put("version", pppPtr->packageVersion.toUTF8());
                 }
                 pppElem.put_child("package", ppaElem);
@@ -435,11 +430,9 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
                         if (appPtr->addonPackage)
                         {
                             const string filename = appPtr->addonPackage->filename.toUTF8();
-                            ifstream ifs("/var/www/wt/addons/" + filename);
-                            string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
-
                             apaElem.put("filename", filename);
-                            apaElem.put("content", Wt::Utils::base64Encode(content));
+                            const string content = PublicApiResource::file2base64("/var/www/wt/addons/" + filename);
+                            apaElem.put("content", content);
                             apaElem.put("version", appPtr->packageVersion.toUTF8());
                         }
                         appElem.put_child("package", apaElem);

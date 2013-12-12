@@ -133,6 +133,15 @@ PublicApiResource::~PublicApiResource()
     beingDeleted();
 }
 
+string PublicApiResource::file2base64(const string &path)
+{         
+    ifstream ifs(path);
+    string content((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+    content = Wt::Utils::base64Encode(content);
+    boost::erase_all(content, "\r\n");
+    return content;
+}
+
 unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method) const
 {
     unsigned short res = 0;

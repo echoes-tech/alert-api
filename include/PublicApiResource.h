@@ -83,6 +83,8 @@ protected:
     std::map<std::string, long long> m_parameters;
     EReturnCode m_statusCode;
 
+    static std::string file2base64(const std::string &path);
+    
     unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
     void setPathElementsVector(const std::string &path);
     void setRequestData(const Wt::Http::Request &request);
