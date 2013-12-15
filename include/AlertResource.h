@@ -31,20 +31,22 @@ class AlertResource : public PublicApiResource
         /**
          * Select an Alert
          * @param aleId Identifier of Alert
+         * @param orgId Identifier of Organization
          * @return Alert Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const long long &aleId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const long long &aleId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select an Alert with a ID string
          * @param aleId String of Identifier of Alert
+         * @param orgId String of Identifier of Organization
          * @return Alert Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     protected:
         EReturnCode getRecipientsForAlert(std::string &responseMsg);       
-        EReturnCode getTrackingAlertMessage(std::string &responseMsg);
-        EReturnCode getTrackingAlertList(std::string &responseMsg);
+        EReturnCode getTrackingsForAlertsList(std::string &responseMsg);
+//        EReturnCode getTrackingAlertList(std::string &responseMsg);
         EReturnCode getAlertsList(std::string &responseMsg);
         EReturnCode getAlert(std::string &responseMsg);
         virtual void processGetRequest(Wt::Http::Response &response);

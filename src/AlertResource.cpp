@@ -16,19 +16,21 @@ using namespace std;
 
 AlertResource::AlertResource() : PublicApiResource::PublicApiResource()
 {
+    //TODO(FPO): Transform to media_type_id
     m_parameters["media_type"] = 0;
+    m_parameters["media_id"] = 0;
 }
 
 AlertResource::~AlertResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const long long &aleId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const long long &aleId, const long long &orgId, Echoes::Dbo::Session &session)
 {
-    return selectAlert(boost::lexical_cast<string>(aleId), session);
+    return selectAlert(boost::lexical_cast<string>(aleId), boost::lexical_cast<string>(orgId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const string &orgId, Echoes::Dbo::Session &session)
 {
     string queryStr =
 " SELECT ale"
@@ -49,7 +51,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId,
 "                         SELECT " QUOTE(TRIGRAM_USER ID)
 "                           FROM " QUOTE("T_USER_USR")
 "                           WHERE"
-"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
 "                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "                       )"
 "                     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
@@ -108,7 +110,6 @@ EReturnCode AlertResource::getAlertsList(string &responseMsg)
 "       )"
 "     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_ALERT ID);
-
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Alert>> alePtrCol = queryRes.resultList();
@@ -133,9 +134,43 @@ EReturnCode AlertResource::getAlert(std::string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], boost::lexical_cast<string>(m_organization), m_session);
 
         res = serialize(alePtr, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode AlertResource::getTrackingsForAlertsList(std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    if (m_parameters["media_id"] <= 0)
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Alert Resource] media is empty";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTracking >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTracking>()
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ? ").bind(m_parameters["media_id"])
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP "SEND_DATE") " IS NOT NULL")
+                .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING SEP "SEND_DATE") " DESC")
+                .limit(20);
+
+        res = serialize(atrPtrCol, responseMsg);
 
         transaction.commit();
     }
@@ -157,6 +192,10 @@ void AlertResource::processGetRequest(Wt::Http::Response &response)
     if (nextElement.empty())
     {
         m_statusCode = getAlertsList(responseMsg);
+    }
+    else if (nextElement.compare("trackings") == 0)
+    {
+        m_statusCode = getTrackingsForAlertsList(responseMsg);
     }
     else
     {
@@ -567,7 +606,7 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], boost::lexical_cast<string>(m_organization), m_session);
             if (!alePtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -759,7 +798,7 @@ EReturnCode AlertResource::deleteAlert(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], boost::lexical_cast<string>(m_organization), m_session);
 
         if (alePtr)
         {

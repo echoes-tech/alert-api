@@ -124,7 +124,8 @@ std::string PublicApiResource::getTableName<string>(string const& string)
 PublicApiResource::PublicApiResource() : Wt::WResource(),
 m_session(),
 m_indexPathElement(1),
-m_statusCode(EReturnCode::INTERNAL_SERVER_ERROR)
+m_statusCode(EReturnCode::INTERNAL_SERVER_ERROR),
+m_organization(0)
 {
 }
 
@@ -249,6 +250,7 @@ void PublicApiResource::resetAttributs()
     m_requestData = "";
     m_indexPathElement = 1;
     m_statusCode = EReturnCode::INTERNAL_SERVER_ERROR;
+    m_organization = 0;
 
     for (map<std::string, long long>::iterator it = m_parameters.begin(); it != m_parameters.end(); ++it)
     {
@@ -394,6 +396,11 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     {
                         Wt::log("error") << "[Public API Resource] Password or token is empty";
                     }
+                    
+                    if (m_authentified)
+                    {
+                        m_organization = m_session.user()->organization.id();
+                    }
                 }
                 else
                 {
@@ -432,6 +439,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 if (engOrgPtr)
                 {
                     m_authentified = true;
+                    m_organization = engOrgPtr->pk.organization.id();
                 }
                 else
                 {

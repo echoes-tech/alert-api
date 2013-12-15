@@ -82,6 +82,7 @@ protected:
     unsigned short m_indexPathElement;
     std::map<std::string, long long> m_parameters;
     EReturnCode m_statusCode;
+    long long m_organization;
 
     static std::string file2base64(const std::string &path);
     
