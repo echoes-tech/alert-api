@@ -260,7 +260,7 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
                             for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>::iterator fpaPtrIt = fpaPtrCol.begin(); fpaPtrIt != fpaPtrCol.end(); fpaPtrIt++)                    
                             {
                                 Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session.find<Echoes::Dbo::FilterParameterValue>()
-                                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(fpaPtrIt->id())
+                                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtrIt->id())
                                         .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtrIt->id())
                                         .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL");
                                 fpaElem.put(fpaPtrIt->get()->name.toUTF8(), fpvPtr->value.toUTF8());
@@ -275,19 +275,47 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
                                 idaElem.put_value(idaPtrIt->id());
                                 idaArr.push_back(std::make_pair("", idaElem));
                             }
-                            filElem.put_child("idsIDA", idaArr);
-                            
+                            if (idaArr.size() > 0)
+                            {
+                                filElem.put_child("idsIDA", idaArr);
+                            }
+                            else
+                            {
+                                filElem.put("idsIDA", "[]");
+                            }
+
                             filArr.push_back(std::make_pair("", filElem));
                         }
-                        seaElem.put_child("filters", filArr);
+                        if (filArr.size() > 0)
+                        {
+                            seaElem.put_child("filters", filArr);
+                        }
+                        else
+                        {
+                            seaElem.put("filters", "[]");
+                        }
 
                         seaArr.push_back(std::make_pair("", seaElem));
                     }
-                    srcElem.put_child("searches", seaArr);
+                    if (seaArr.size() > 0)
+                    {
+                        srcElem.put_child("searches", seaArr);
+                    }
+                    else
+                    {
+                        srcElem.put("searches", "[]");
+                    }
 
                     srcArr.push_back(std::make_pair("", srcElem));
                 }
-                addonElem.put_child("sources", srcArr);
+                if (srcArr.size() > 0)
+                {
+                    addonElem.put_child("sources", srcArr);
+                }
+                else
+                {
+                    addonElem.put("sources", "[]");
+                }
 
                 boost::property_tree::json_parser::write_json(ss, addonElem);
 
@@ -303,7 +331,7 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
             ss << "]\n";
 
             responseMsg = ss.str();
-            
+
             res = EReturnCode::OK;
         }        
         else
@@ -453,7 +481,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
             ss << "]\n";
 
             responseMsg = ss.str();
-            
+
             res = EReturnCode::OK;
         }        
         else
