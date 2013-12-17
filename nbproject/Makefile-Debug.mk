@@ -55,6 +55,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/SourceResource.o \
 	${OBJECTDIR}/src/UnitResource.o \
 	${OBJECTDIR}/src/UserResource.o \
+	${OBJECTDIR}/src/itooki/ItookiAckReceiver.o \
+	${OBJECTDIR}/src/itooki/ItookiAswReceiver.o \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o
 
 # Test Directory
@@ -187,6 +189,16 @@ ${OBJECTDIR}/src/UserResource.o: src/UserResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource.o src/UserResource.cpp
+
+${OBJECTDIR}/src/itooki/ItookiAckReceiver.o: src/itooki/ItookiAckReceiver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiAckReceiver.o src/itooki/ItookiAckReceiver.cpp
+
+${OBJECTDIR}/src/itooki/ItookiAswReceiver.o: src/itooki/ItookiAswReceiver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiAswReceiver.o src/itooki/ItookiAswReceiver.cpp
 
 ${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src/itooki
@@ -467,6 +479,32 @@ ${OBJECTDIR}/src/UserResource_nomain.o: ${OBJECTDIR}/src/UserResource.o src/User
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/UserResource_nomain.o src/UserResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/UserResource.o ${OBJECTDIR}/src/UserResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/itooki/ItookiAckReceiver_nomain.o: ${OBJECTDIR}/src/itooki/ItookiAckReceiver.o src/itooki/ItookiAckReceiver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/itooki/ItookiAckReceiver.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} $@.d;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiAckReceiver_nomain.o src/itooki/ItookiAckReceiver.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/itooki/ItookiAckReceiver.o ${OBJECTDIR}/src/itooki/ItookiAckReceiver_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/itooki/ItookiAswReceiver_nomain.o: ${OBJECTDIR}/src/itooki/ItookiAswReceiver.o src/itooki/ItookiAswReceiver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/itooki/ItookiAswReceiver.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} $@.d;\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I../wt-3.3.1-rc2/src/web -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/itooki/ItookiAswReceiver_nomain.o src/itooki/ItookiAswReceiver.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/itooki/ItookiAswReceiver.o ${OBJECTDIR}/src/itooki/ItookiAswReceiver_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o: ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp 
