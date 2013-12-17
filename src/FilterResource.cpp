@@ -27,12 +27,17 @@ FilterResource::~FilterResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const long long &filId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const long long &filId, const long long &orgId, Echoes::Dbo::Session &session)
 {
-    return selectFilter(boost::lexical_cast<string>(filId), session);
+    return selectFilter(boost::lexical_cast<string>(filId), boost::lexical_cast<string>(orgId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, const long long &orgId, Echoes::Dbo::Session &session)
+{
+    return selectFilter(filId, boost::lexical_cast<string>(orgId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, const std::string &orgId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT fil"
@@ -57,7 +62,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &fil
 "                                   SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                                     FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                       WHERE"
-"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
 "                                         AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                 )"
 "                         )"
@@ -104,7 +109,7 @@ EReturnCode FilterResource::getFiltersList(string &responseMsg)
 "                                   SELECT " QUOTE(TRIGRAM_PLUGIN ID) "\n"
 "                                     FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) "\n"
 "                                       WHERE\n"
-"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +  "\n";
+"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +  "\n";
 
         if (m_parameters["plugin_id"] > 0)
         {
@@ -162,7 +167,7 @@ EReturnCode FilterResource::getFilter(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_organization, m_session);
 
         res = serialize(filPtr, responseMsg);
 
@@ -233,7 +238,7 @@ EReturnCode FilterResource::getParametersListForFilter(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_organization, m_session);
         
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue>> fpvPtrCol = m_session.find<Echoes::Dbo::FilterParameterValue>()
                 .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL")
@@ -353,7 +358,7 @@ EReturnCode FilterResource::postFilter(string& responseMsg, const string& sReque
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = SearchResource::selectSearch(seaId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = SearchResource::selectSearch(seaId, m_organization, m_session);
             if (!seaPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -495,7 +500,7 @@ EReturnCode FilterResource::deleteFilter(string& responseMsg)
     {  
         Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(m_pathElements[1], m_organization, m_session);
 
         if(filPtr)
         {

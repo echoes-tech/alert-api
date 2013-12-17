@@ -33,14 +33,14 @@ EReturnCode OptionResource::getOptionsList(string &responseMsg)
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                 .orderBy(QUOTE(TRIGRAM_OPTION ID));
 
         if (m_parameters["type_id"] > 0)
         {
             queryRes = queryRes.where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?");
             // FPO: I don't know why but we have to bind every marker here to make the binding.
-            queryRes.bind(m_session.user()->organization.id()).bind(m_parameters["type_id"]);
+            queryRes.bind(m_organization).bind(m_parameters["type_id"]);
         }
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol =  queryRes.resultList();
@@ -67,7 +67,7 @@ EReturnCode OptionResource::getOption(string &responseMsg)
         Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION ID) " = ?").bind(m_pathElements[1])
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
         res = serialize(optPtr, responseMsg);
 

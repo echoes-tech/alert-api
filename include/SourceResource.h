@@ -26,15 +26,24 @@ class SourceResource : public PublicApiResource
         /**
          * Select a Source
          * @param srcId Identifier of Source
+         * @param orgId Identifier of Organization
          * @return Source Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const long long &srcId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const long long &srcId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Source with a string of identifier of Source
+         * @param srcId String of Identifier of Source
+         * @param orgId Identifier of Organization
+         * @return Source Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select a Source with a ID string
          * @param srcId String of Identifier of Source
+         * @param orgId String of Identifier of Organization
          * @return Source Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     private:
         EReturnCode getSourcesList(std::string &responseMsg);

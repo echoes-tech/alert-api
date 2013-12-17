@@ -26,15 +26,24 @@ class SearchResource : public PublicApiResource
         /**
          * Select a Search
          * @param seaId Identifier of Search
+         * @param orgId Identifier of Organization
          * @return Search Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const long long &seaId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const long long &seaId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Search with a string of identifier of Search
+         * @param seaId String of Identifier of Search
+         * @param orgId Identifier of Organization
+         * @return Search Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const std::string &seaId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select a Search with a ID string
          * @param seaId String of Identifier of Search
+         * @param orgId String of Identifier of Organization
          * @return Search Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const std::string &seaId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const std::string &seaId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     private:
         EReturnCode getSearchsList(std::string &responseMsg);

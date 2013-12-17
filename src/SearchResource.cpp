@@ -26,12 +26,17 @@ SearchResource::~SearchResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const long long &seaId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const long long &seaId, const long long &orgId, Echoes::Dbo::Session &session)
 {
-    return selectSearch(boost::lexical_cast<string>(seaId), session);
+    return selectSearch(boost::lexical_cast<string>(seaId), boost::lexical_cast<string>(orgId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, const long long &orgId, Echoes::Dbo::Session &session)
+{
+    return selectSearch(seaId, boost::lexical_cast<string>(orgId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, const string &orgId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT sea"
@@ -51,7 +56,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                               WHERE"
-"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
 "                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                         )"
 "                 )"
@@ -91,7 +96,7 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                               WHERE"
-"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization);
 
         if (m_parameters["plugin_id"] > 0)
         {
@@ -139,7 +144,7 @@ EReturnCode SearchResource::getSearch(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_organization, m_session);
 
         res = serialize(seaPtr, responseMsg);
 
@@ -210,7 +215,7 @@ EReturnCode SearchResource::getParametersListForSearch(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_organization, m_session);
         
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session.find<Echoes::Dbo::SearchParameterValue>()
                 .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL")
@@ -328,7 +333,7 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, m_organization, m_session);
             if (!srcPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -466,7 +471,7 @@ EReturnCode SearchResource::deleteSearch(string& responseMsg)
     {  
         Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_organization, m_session);
 
         if(seaPtr)
         {

@@ -34,7 +34,7 @@ EReturnCode PluginResource::getPluginsList(string &responseMsg)
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                 .orderBy(QUOTE(TRIGRAM_PLUGIN ID));
 
         res = serialize(plgPtrCol, responseMsg);
@@ -59,7 +59,7 @@ EReturnCode PluginResource::getPlugin(std::string &responseMsg)
         Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
         res = serialize(plgPtr, responseMsg);
 
@@ -92,7 +92,7 @@ EReturnCode PluginResource::getAliasForPlugin(string &responseMsg)
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role_id"])
-                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
@@ -163,7 +163,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(string &responseMsg)
 "                                                 SELECT " QUOTE(TRIGRAM_PLUGIN ID) "\n"
 "                                                   FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) "\n"
 "                                                   WHERE\n"
-"                                                     " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) + "\n"
+"                                                     " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) + "\n"
 "                                                     AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + m_pathElements[1] + "\n"
 "                                                     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n"
 "                                               )\n"
@@ -386,7 +386,7 @@ EReturnCode PluginResource::putAliasForPlugin(string &responseMsg, const string 
 
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr =  m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL");
             if (plgPtr)
             {
@@ -495,7 +495,7 @@ EReturnCode PluginResource::putPlugin(string &responseMsg, const string &sReques
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
             if (plgPtr)
             {
@@ -587,7 +587,7 @@ EReturnCode PluginResource::deletePlugin(string& responseMsg)
         Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
         if(plgPtr)
         {

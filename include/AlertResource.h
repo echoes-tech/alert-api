@@ -36,7 +36,14 @@ class AlertResource : public PublicApiResource
          */
         static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const long long &aleId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
-         * Select an Alert with a ID string
+         * Select an Alert with a string of identifier of alert
+         * @param aleId String of Identifier of Alert
+         * @param orgId Identifier of Organization
+         * @return Alert Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Alert with string IDs
          * @param aleId String of Identifier of Alert
          * @param orgId String of Identifier of Organization
          * @return Alert Wt Dbo Pointer

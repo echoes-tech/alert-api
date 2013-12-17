@@ -23,12 +23,17 @@ MediaResource::~MediaResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const long long &medId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const long long &medId, const long long &orgId, Echoes::Dbo::Session &session)
 {
-    return selectMedia(boost::lexical_cast<string>(medId), session);
+    return selectMedia(boost::lexical_cast<string>(medId), boost::lexical_cast<string>(orgId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, const long long &orgId, Echoes::Dbo::Session &session)
+{
+    return selectMedia(medId, boost::lexical_cast<string>(orgId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, const std::string &orgId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT med"
@@ -39,7 +44,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
-"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
@@ -65,7 +70,7 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
-"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
 
@@ -103,7 +108,7 @@ EReturnCode MediaResource::getMedia(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_organization, m_session);
 
         res = serialize(medPtr, responseMsg);
 
@@ -314,7 +319,7 @@ EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_organization, m_session);
 
             if (medPtr)
             {
@@ -409,7 +414,7 @@ EReturnCode MediaResource::deleteMedia(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_organization, m_session);
 
         if (medPtr)
         {

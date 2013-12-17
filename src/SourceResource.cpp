@@ -25,12 +25,17 @@ SourceResource::~SourceResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const long long &srcId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const long long &srcId, const long long &orgId, Echoes::Dbo::Session &session)
 {
-    return selectSource(boost::lexical_cast<string>(srcId), session);
+    return selectSource(boost::lexical_cast<string>(srcId), boost::lexical_cast<string>(orgId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, const long long &orgId, Echoes::Dbo::Session &session)
+{
+    return selectSource(srcId, boost::lexical_cast<string>(orgId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, const string &orgId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT src"
@@ -45,7 +50,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
 "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                 WHERE"
-"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
 "                   AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "             )"
 "             AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + srcId +
@@ -78,7 +83,7 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
 "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                 WHERE"
-"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id());
+"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization);
 
         if (m_parameters["plugin_id"] > 0)
         {
@@ -116,7 +121,7 @@ EReturnCode SourceResource::getSource(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_organization, m_session);
 
         res = serialize(srcPtr, responseMsg);
 
@@ -187,7 +192,7 @@ EReturnCode SourceResource::getParametersListForSource(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_organization, m_session);
         
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session.find<Echoes::Dbo::SourceParameterValue>()
                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL")
@@ -296,7 +301,7 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                     .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(plgId)
                     .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
             if (!plgPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -443,7 +448,7 @@ EReturnCode SourceResource::deleteSource(string& responseMsg)
     {  
         Wt::Dbo::Transaction transaction(m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_organization, m_session);
 
         if(srcPtr)
         {

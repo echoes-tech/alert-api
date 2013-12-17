@@ -26,19 +26,29 @@ class ProbeResource : public PublicApiResource
         /**
          * Select a Probe
          * @param prbId Identifier of Probe
+         * @param orgId Identifier of Organization
          * @return Probe Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const long long &prbId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const long long &prbId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Probe with a string of identifier of Probe
+         * @param prbId String of Identifier of Probe
+         * @param orgId Identifier of Organization
+         * @return Probe Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select a Probe with a ID string
          * @param prbId String of Identifier of Probe
-         * @return Probes Wt Dbo Pointer
+         * @param orgId Identifier of Organization
+         * @return Probe Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, const std::string &orgId, Echoes::Dbo::Session &session);
 
         /**
          * Select a Probe Package Parameter
-         * @param astId Identifier of Asset
+         * @param prbId Identifier of Probe
+         * @param orgId String of Identifier of Organization
          * @return Probe Wt Dbo Pointer
          */
         static Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> selectProbePackageParameter(const Wt::Dbo::ptr<Echoes::Dbo::Asset> &astPtr, Echoes::Dbo::Session &session);

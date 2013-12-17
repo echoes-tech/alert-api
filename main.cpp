@@ -36,8 +36,8 @@
 #include "UnitResource.h"
 #include "UserResource.h"
 
-#include "ItookiAckReceiver.h"
-#include "ItookiAswReceiver.h"
+#include "itooki/ItookiAckReceiver.h"
+#include "itooki/ItookiAswReceiver.h"
 
 #endif
 

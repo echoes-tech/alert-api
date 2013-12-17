@@ -32,7 +32,7 @@ EReturnCode UserResource::getUsersList(string &responseMsg)
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                 .orderBy(QUOTE(TRIGRAM_USER ID));
 
         res = serialize(usrPtrCol, responseMsg);
@@ -57,7 +57,7 @@ EReturnCode UserResource::getUser(string &responseMsg)
         Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(m_pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
         res = serialize(usrPtr, responseMsg);
 
@@ -271,7 +271,7 @@ EReturnCode UserResource::putUser(string &responseMsg, const string &sRequest)
             Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(m_pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
             if (usrPtr)
             {
@@ -280,7 +280,7 @@ EReturnCode UserResource::putUser(string &responseMsg, const string &sRequest)
                     Wt::Dbo::ptr<Echoes::Dbo::UserRole> usoPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                        .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                        .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
                     if (usrPtr)
                     {

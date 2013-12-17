@@ -25,15 +25,24 @@ class MediaResource : public PublicApiResource
         /**
          * Select a Media
          * @param medId Identifier of Media
+         * @param orgId Identifier of Organization
          * @return Media Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const long long &medId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const long long &medId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Media with a string of identifier of Media
+         * @param medId String of Identifier of Media
+         * @param orgId Identifier of Organization
+         * @return Media Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const std::string &medId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select a Media with a ID string
          * @param medId String of Identifier of Media
+         * @param orgId String of Identifier of Organization
          * @return Media Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const std::string &medId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const std::string &medId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     protected :
         EReturnCode getMedia(std::string &responseMsg);

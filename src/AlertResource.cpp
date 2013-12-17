@@ -30,6 +30,11 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const long long &ale
     return selectAlert(boost::lexical_cast<string>(aleId), boost::lexical_cast<string>(orgId), session);
 }
 
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const long long &orgId, Echoes::Dbo::Session &session)
+{
+    return selectAlert(aleId, boost::lexical_cast<string>(orgId), session);
+}
+
 Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const string &orgId, Echoes::Dbo::Session &session)
 {
     string queryStr =
@@ -93,7 +98,7 @@ EReturnCode AlertResource::getAlertsList(string &responseMsg)
 "                         SELECT " QUOTE(TRIGRAM_USER ID)
 "                           FROM " QUOTE("T_USER_USR")
 "                           WHERE"
-"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
+"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +
 "                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "                       )";
 
@@ -134,7 +139,7 @@ EReturnCode AlertResource::getAlert(std::string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], boost::lexical_cast<string>(m_organization), m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_organization, m_session);
 
         res = serialize(alePtr, responseMsg);
 
@@ -335,7 +340,7 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
 "                                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                               WHERE"
-"                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
+"                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(plgId) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                         )"
@@ -374,7 +379,7 @@ EReturnCode AlertResource::postAlert(string &responseMsg, const string &sRequest
             vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
             for (vector<AmsStruct>::const_iterator it = amsStructs.begin(); it < amsStructs.end(); it++)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, m_organization, m_session);
                 if (!medPtr)
                 {
                     res = EReturnCode::NOT_FOUND;
@@ -603,7 +608,7 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], boost::lexical_cast<string>(m_organization), m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_organization, m_session);
             if (!alePtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -678,7 +683,7 @@ EReturnCode AlertResource::postAlertTracking(string &responseMsg, const string &
                             // Verifying the quota of sms
                             Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                                     .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
-                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(it->get()->media->user->organization.id())
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                                     .limit(1);
 
                             try
@@ -795,7 +800,7 @@ EReturnCode AlertResource::deleteAlert(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], boost::lexical_cast<string>(m_organization), m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(m_pathElements[1], m_organization, m_session);
 
         if (alePtr)
         {

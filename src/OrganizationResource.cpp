@@ -32,7 +32,7 @@ EReturnCode OrganizationResource::getOrganizationsList(string &responseMsg)
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session.find<Echoes::Dbo::Organization>()
                 .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id())
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
                 .orderBy(QUOTE(TRIGRAM_ORGANIZATION ID));
 
         res = serialize(orgPtrCol, responseMsg);
@@ -57,7 +57,7 @@ EReturnCode OrganizationResource::getOrganization(std::string &responseMsg)
         Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
                 .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_session.user()->organization.id());
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
 
         res = serialize(orgPtr, responseMsg);
 

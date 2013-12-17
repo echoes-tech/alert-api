@@ -23,12 +23,17 @@ ProbeResource::~ProbeResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const long long &prbId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const long long &prbId, const long long &orgId, Echoes::Dbo::Session &session)
 {
-    return selectProbe(boost::lexical_cast<string>(prbId), session);
+    return selectProbe(boost::lexical_cast<string>(prbId), boost::lexical_cast<string>(orgId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, const long long &orgId, Echoes::Dbo::Session &session)
+{
+    return selectProbe(prbId, boost::lexical_cast<string>(orgId), session);
+}
+
+Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, const string &orgId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT prb"
@@ -39,7 +44,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId,
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(session.user()->organization.id()) +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL"
@@ -130,7 +135,7 @@ EReturnCode ProbeResource::getProbesList(string &responseMsg)
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_session.user()->organization.id()) +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL"
@@ -160,7 +165,7 @@ EReturnCode ProbeResource::getProbe(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
 
         res = serialize(prbPtr, responseMsg);
 
@@ -182,7 +187,7 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
         if (prbPtr)
         {
             map<Wt::Dbo::ptr<Echoes::Dbo::Addon>, vector<Wt::Dbo::ptr<Echoes::Dbo::Source>>> srcListByAddon;
@@ -358,7 +363,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
         if (prbPtr)
         {
             stringstream ss;
@@ -589,7 +594,7 @@ EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, m_organization, m_session);
             if (astPtr)
             {
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
@@ -688,7 +693,7 @@ EReturnCode ProbeResource::putProbe(string &responseMsg, const string &sRequest)
         {
             Wt::Dbo::Transaction transaction(m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
 
             if (prbPtr)
             {
@@ -768,7 +773,7 @@ EReturnCode ProbeResource::deleteProbe(string &responseMsg)
     {
         Wt::Dbo::Transaction transaction(m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
 
         if (prbPtr)
         {

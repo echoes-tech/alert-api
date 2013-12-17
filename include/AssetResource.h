@@ -27,15 +27,24 @@ class AssetResource : public PublicApiResource
         /**
          * Select a Asset
          * @param astId Identifier of Asset
+         * @param orgId Identifier of Organization
          * @return Asset Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const long long &astId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const long long &astId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Asset with a string of identifier of Asset
+         * @param astId String of Identifier of Asset
+         * @param orgId Identifier of Organization
+         * @return Asset Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select a Asset with a ID string
          * @param astId String of Identifier of Asset
+         * @param orgId String of Identifier of Organization
          * @return Asset Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     protected:
         EReturnCode getAssetsList(std::string &responseMsg);

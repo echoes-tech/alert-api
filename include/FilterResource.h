@@ -26,15 +26,24 @@ class FilterResource : public PublicApiResource
         /**
          * Select a Filter
          * @param filId Identifier of Filter
+         * @param orgId Identifier of Organization
          * @return Filter Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const long long &filId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const long long &filId, const long long &orgId, Echoes::Dbo::Session &session);
+        /**
+         * Select an Filter with a string of identifier of Filter
+         * @param filId String of Identifier of Filter
+         * @param orgId Identifier of Organization
+         * @return Filter Wt Dbo Pointer
+         */
+        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const long long &orgId, Echoes::Dbo::Session &session);
         /**
          * Select a Filter with a ID string
          * @param filId String of Identifier of Filter
+         * @param orgId String of Identifier of Organization
          * @return Filter Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     private:
         EReturnCode getFiltersList(std::string &responseMsg);
