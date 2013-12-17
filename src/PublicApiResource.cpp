@@ -471,22 +471,22 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
         switch (retrieveCurrentHttpMethod(request.method()))
         {
-        case Wt::Http::Get:
-            processGetRequest(response);
-            break;
-        case Wt::Http::Post:
-            processPostRequest(response);
-            break;
-        case Wt::Http::Put:
-            processPutRequest(response);
-            break;
-        case Wt::Http::Delete:
-            processDeleteRequest(response);
-            break;
-        default:
-            response.setStatus(EReturnCode::METHOD_NOT_ALLOWED);
-            response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
-            break;
+            case Wt::Http::Get:
+                processGetRequest(response);
+                break;
+            case Wt::Http::Post:
+                processPostRequest(response);
+                break;
+            case Wt::Http::Put:
+                processPutRequest(response);
+                break;
+            case Wt::Http::Delete:
+                processDeleteRequest(response);
+                break;
+            default:
+                response.setStatus(EReturnCode::METHOD_NOT_ALLOWED);
+                response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
+                break;
         }
     }
     else if (notAllowed)

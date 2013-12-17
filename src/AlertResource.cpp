@@ -516,12 +516,9 @@ EReturnCode AlertResource::sendSMS
 
     Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
 
-    ItookiSMSSender itookiSMSSender(amsPtr->media->value.toUTF8(), sms, this);
-    itookiSMSSender.setAlertTrackingPtr(atrPtr);
+    ItookiSMSSender itookiSMSSender(this);
 
-    atrPtr.modify()->content = sms;
-
-    if (!itookiSMSSender.send())
+    if (!itookiSMSSender.send(amsPtr->media->value.toUTF8(), sms, atrPtr))
     {
         amsPtr.modify()->lastSend = now;
         res = EReturnCode::OK;

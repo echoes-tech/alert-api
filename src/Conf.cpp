@@ -7,7 +7,7 @@
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
  * COMPANY AUTHORIZATION.
  * 
- * COPYRIGHT 2012 BY ECHOES TECHNOLGIES SAS
+ * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
 
@@ -17,7 +17,15 @@ using namespace std;
 
 Conf conf;
 
-Conf::Conf()
+Conf::Conf() :
+m_sessConnectParams(""),
+m_smtpHost(""),
+m_smtpPort(0),
+m_alertMailSenderName("ECHOES Alert"),
+m_alertMailSenderAddress("noreply-alert@echoes-tech.com"),
+m_smsLogin(""),
+m_smsPassword(""),
+m_smsHttps(true)
 {
 }
 
@@ -30,39 +38,67 @@ bool Conf::readProperties(Wt::WServer& server)
     Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML;
 
     bool res = false;
-    string dbHost = "", dbPort = "", dbName = "", dbUser = "", dbPassword = "", smtpHost = "", smtpPort = "", alertMailSenderName = "", alertMailSenderAddress = "";
+    struct Db
+    {
+        string host;
+        string port;
+        string name;
+        string user;
+        string password;
+    };
+    Db db;
+    struct Smtp
+    {
+        string host;
+        string port;
+    };
+    Smtp smtp;
+    struct AlertMailSender
+    {
+        string name;
+        string address;
+    };
+    AlertMailSender alertMailSender;
+    struct Sms
+    {
+        string login;
+        string password;
+        string https;
+    };
+    Sms sms;
 
     if
       (
-       server.readConfigurationProperty("db-host", dbHost)
-       && server.readConfigurationProperty("db-port", dbPort)
-       && server.readConfigurationProperty("db-name", dbName)
-       && server.readConfigurationProperty("db-user", dbUser)
-       && server.readConfigurationProperty("db-password", dbPassword)
+       server.readConfigurationProperty("db-host", db.host)
+       && server.readConfigurationProperty("db-port", db.port)
+       && server.readConfigurationProperty("db-name", db.name)
+       && server.readConfigurationProperty("db-user", db.user)
+       && server.readConfigurationProperty("db-password", db.password)
       )
     {
-        setDBHost(dbHost);
         try
         {
-            setDBPort(boost::lexical_cast<unsigned>(dbPort));
+            setSessConnectParams
+            (
+                db.host,
+                boost::lexical_cast<unsigned>(db.port),
+                db.name,
+                db.user,
+                db.password
+            );
         }
         catch (boost::bad_lexical_cast &)
         {
              Wt::log("error") << "[Conf] Property named 'db-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
              return res;
         }
-        setDBName(dbName);
-        setDBUser(dbUser);
-        setDBPassword(dbPassword);
 
-        setSessConnectParams(_dbHost, _dbPort, _dbName, _dbUser, _dbPassword);
-
-        if (server.readConfigurationProperty("smtp-host", smtpHost) && server.readConfigurationProperty("smtp-port", smtpPort))
+        if (server.readConfigurationProperty("smtp-host", smtp.host) && server.readConfigurationProperty("smtp-port", smtp.port))
         {
-            setSMTPHost(smtpHost);
+            setSMTPHost(smtp.host);
             try
             {
-                setSMTPPort(boost::lexical_cast<unsigned>(smtpPort));
+                setSMTPPort(boost::lexical_cast<unsigned>(smtp.port));
             }
             catch (boost::bad_lexical_cast &)
             {
@@ -70,91 +106,64 @@ bool Conf::readProperties(Wt::WServer& server)
                  return res;
             }
             
-            if (server.readConfigurationProperty("alert-mail-sender-name", alertMailSenderName))
-                setAlertMailSenderName(alertMailSenderName);
+            if (server.readConfigurationProperty("alert-mail-sender-name", alertMailSender.name))
+            {
+                setAlertMailSenderName(alertMailSender.name);
+            }
             else
             {
-                setAlertMailSenderName("ECHOES Alert");
-                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-name' is set 'ECHOES Alert' because it is not set in " << WT_CONFIG_XML << ".";
+                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-name' is set 'ECHOES Alert' because it is not set in " << WT_CONFIG_XML;
             }
             
-            if (server.readConfigurationProperty("alert-mail-sender-address", alertMailSenderAddress))
-                setAlertMailSenderName(alertMailSenderAddress);
+            if (server.readConfigurationProperty("alert-mail-sender-address", alertMailSender.address))
+            {
+                setAlertMailSenderName(alertMailSender.address);
+            }
             else
             {
-                setAlertMailSenderName("noreply-alert@echoes-tech.com");
-                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-address' is set 'noreply-alert@echoes-tech.com' because it is not set in " << WT_CONFIG_XML << ".";
+                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-address' is set 'noreply-alert@echoes-tech.com' because it is not set in " << WT_CONFIG_XML;
+            }
+
+            if
+            (
+                server.readConfigurationProperty("sms-login", sms.login)
+                && server.readConfigurationProperty("sms-password", sms.password)
+                && server.readConfigurationProperty("sms-https", sms.https)
+            )
+            {
+                setSmsLogin(sms.login);
+                setSmsPassword(sms.password);
+                if (sms.https.compare("true") == 0)
+                {
+                    setSmsHttps(true);
+                }
+                else if (sms.https.compare("false") == 0)
+                {
+                    setSmsHttps(false);
+                }
+                else
+                {
+                     Wt::log("error") << "[Conf] Property named 'sms-https' in " << WT_CONFIG_XML << " should be an boolean (true or false). By default: true";
+                }
+            }
+            else
+            {
+                Wt::log("warning") << "[Conf] Incomplete SMS properties in " << WT_CONFIG_XML;
             }
 
             res = true;
         }
         else
+        {
             Wt::log("error") << "[Conf] Incomplete SMTP properties in " << WT_CONFIG_XML;
+        }
     }
     else
+    {
         Wt::log("error") << "[Conf] Incomplete DB properties in " << WT_CONFIG_XML;
+    }
     
     return res;
-}
-
-void Conf::setDBHost(string dbHost)
-{
-    _dbHost = dbHost;
-
-    return;
-}
-
-string Conf::getDBHost() const
-{
-    return _dbHost;
-}
-
-void Conf::setDBPort(unsigned dbPort)
-{
-    _dbPort = dbPort;
-
-    return;
-}
-
-unsigned Conf::getDBPort() const
-{
-    return _dbPort;
-}
-
-void Conf::setDBName(string dbName)
-{
-    _dbName = dbName;
-
-    return;
-}
-
-string Conf::getDBName() const
-{
-    return _dbName;
-}
-
-void Conf::setDBUser(string dbUser)
-{
-    _dbUser = dbUser;
-
-    return;
-}
-
-string Conf::getDBUser() const
-{
-    return _dbUser;
-}
-
-void Conf::setDBPassword(string dbPassword)
-{
-    _dbPassword = dbPassword;
-
-    return;
-}
-
-string Conf::getDBPassword() const
-{
-    return _dbPassword;
 }
 
 void Conf::setSessConnectParams
@@ -165,8 +174,8 @@ void Conf::setSessConnectParams
     string dbUser,
     string dbPassword
 )
-{   
-    _sessConnectParams = "hostaddr=" + dbHost +
+{
+    m_sessConnectParams = "hostaddr=" + dbHost +
                          " port=" + boost::lexical_cast<string>(dbPort) +
                          " dbname=" + dbName +
                          " user=" + dbUser +
@@ -176,50 +185,83 @@ void Conf::setSessConnectParams
 
 string Conf::getSessConnectParams() const
 {
-    return _sessConnectParams;
+    return m_sessConnectParams;
 }
 
-void Conf::setSMTPHost(std::string smtpHost)
+void Conf::setSMTPHost(string smtpHost)
 {
-    _smtpHost = smtpHost;
+    m_smtpHost = smtpHost;
     return;
 }
 
-std::string Conf::getSMTPHost() const
+string Conf::getSMTPHost() const
 {
-    return _smtpHost;
+    return m_smtpHost;
 }
 
 void Conf::setSMTPPort(unsigned smtpPort)
 {
-    _smtpPort = smtpPort;
+    m_smtpPort = smtpPort;
     return;
 }
 
 unsigned Conf::getSMTPPort() const
 {
-    return _smtpPort;
+    return m_smtpPort;
 }
 
-void Conf::setAlertMailSenderAddress(std::string alertMailSenderAddress)
+void Conf::setAlertMailSenderAddress(string alertMailSenderAddress)
 {
-    _alertMailSenderAddress = alertMailSenderAddress;
+    m_alertMailSenderAddress = alertMailSenderAddress;
     return;
 }
 
-std::string Conf::getAlertMailSenderAddress() const
+string Conf::getAlertMailSenderAddress() const
 {
-    return _alertMailSenderAddress;
+    return m_alertMailSenderAddress;
 }
 
-void Conf::setAlertMailSenderName(std::string alertMailSenderName)
+void Conf::setAlertMailSenderName(string alertMailSenderName)
 {
-    _alertMailSenderName = alertMailSenderName;
+    m_alertMailSenderName = alertMailSenderName;
     return;
 }
 
-std::string Conf::getAlertMailSenderName() const
+string Conf::getAlertMailSenderName() const
 {
-    return _alertMailSenderName;
+    return m_alertMailSenderName;
+}
+
+void Conf::setSmsHttps(bool smsHttps)
+{
+    m_smsHttps = smsHttps;
+    return;
+}
+
+bool Conf::isSmsHttps() const
+{
+    return m_smsHttps;
+}
+
+void Conf::setSmsPassword(string smsPassword)
+{
+    m_smsPassword = smsPassword;
+    return;
+}
+
+string Conf::getSmsPassword() const
+{
+    return m_smsPassword;
+}
+
+void Conf::setSmsLogin(string smsLogin)
+{
+    m_smsLogin = smsLogin;
+    return;
+}
+
+string Conf::getSmsLogin() const
+{
+    return m_smsLogin;
 }
 

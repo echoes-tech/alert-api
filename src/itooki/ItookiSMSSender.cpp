@@ -7,7 +7,7 @@
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
  * COMPANY AUTHORIZATION.
  * 
- * COPYRIGHT 2012 BY ECHOES TECHNOLGIES SAS
+ * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
 
@@ -15,164 +15,149 @@
 
 using namespace std;
 
-ItookiSMSSender::ItookiSMSSender(const string &number, const string &message, Wt::WObject *parent)
+ItookiSMSSender::ItookiSMSSender(Wt::WObject *parent) :
+m_parent(parent)
 {
-    setNumber(number);
-    setMessage(message);
-    setParent(parent);
 }
 
-int ItookiSMSSender::send()
+ItookiSMSSender::~ItookiSMSSender()
+{
+}
+
+int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr)
 {
     int res = -1;
 
-    // HTTP Client init
-    Wt::Http::Client *client = new Wt::Http::Client(_parent);
-    client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, _1, _2));
-
-    string apiAddress = "https://www.itooki.fr/http.php"
-            "?email=contact@echoes-tech.com"
-            "&pass=00SjmAuiitooki"
-            "&numero=" + Wt::Utils::urlEncode(_number)
-            + "&message=" + Wt::Utils::urlEncode(_message)
-            + "&refaccus=o";
-
-    Wt::log("info") << "[Itooki SMS Sender] Trying to send request to Itooki API. Address : " << apiAddress;
-    if (client->get(apiAddress)) 
+    try
     {
-        Wt::log("info") << "[Itooki SMS Sender] Message sent to Itooki API. Address : " << apiAddress;
-
-        if(Utils::checkId<Echoes::Dbo::AlertTracking>(_alertTrackingPtr))
+        if(atrPtr)
         {
-            try
+            Wt::Http::Client *client = new Wt::Http::Client(m_parent);
+            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, client, _1, _2, atrPtr.id()));
+
+            string url = "http";
+            if (conf.isSmsHttps())
             {
-                Wt::Dbo::Transaction transaction(*_alertTrackingPtr.session());
+                url += "s";
+            }
+            url += "://www.itooki.fr/http.php"
+                    "?email=" + conf.getSmsLogin() +
+                    "&pass=" + conf.getSmsPassword() +
+                    "&numero=" + Wt::Utils::urlEncode(number) +
+                    "&message=" + Wt::Utils::urlEncode(message) +
+                    "&refaccus=o";
+
+            Wt::log("info") << "[Itooki SMS Sender] Trying to send request to Itooki API";
+            Wt::log("debug") << "[Itooki SMS Sender] Address : " << url;
+            if (client->get(url))
+            {
+                Wt::log("info") << "[Itooki SMS Sender] Message sent to Itooki API";
+
                 //TODO : hostname cpp way
                 char hostname[255];
                 gethostname(hostname, 255);
-                _alertTrackingPtr.modify()->senderSrv = hostname;
-                _alertTrackingPtr.modify()->sendDate = Wt::WDateTime::currentDateTime();
-                transaction.commit();
+                atrPtr.modify()->senderSrv = hostname;
+                atrPtr.modify()->content = Wt::WString::fromUTF8(message);
+                atrPtr.modify()->sendDate = Wt::WDateTime::currentDateTime();
+
+                res = 0;
             } 
-            catch (Wt::Dbo::Exception const& e) 
+            else 
             {
-                Wt::log("error") << "[Itooki SMS Sender] " << e.what();
+                Wt::log("error") << "[Itooki SMS Sender] Failed to send message to Itooki API";
             }
         }
-        res = 0;
-    } 
-    else 
+        else 
+        {
+            Wt::log("error") << "[Itooki SMS Sender] atrPtr is empty. No SMS sent";
+        }
+    }
+    catch (Wt::Dbo::Exception const& e)
     {
-        Wt::log("error") << "[Itooki SMS Sender] Failed to send message to Itooki API. Address : " << apiAddress;
+        Wt::log("error") << "[Itooki SMS Sender] " << e.what();
     }
 
     return res;
 }
 
-void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response)
+void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system::error_code err, const Wt::Http::Message& response, const long long atrId)
 {
     if (!err && response.status() == 200)
     {
-        string resultCode = response.body();
+        const string resultCode = response.body();
 
-        Wt::log("info") << "[SMS][ACK] result code : " << resultCode;
-        vector< string > splitResult;
+        Wt::log("debug") << "[Itooki SMS Sender][ACK] result code : " << resultCode;
+        vector<string> splitResult;
         boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
 
-        if (splitResult.size() != 2)
+        switch (splitResult.size())
         {
-            Wt::log("error") << "[SMS] Unexpected answer from itooki.";
-        }
-
-        if (splitResult.size() == 0)
-        {
-            Wt::log("error") << "[SMS] Unexpected answer from itooki, no result code.";
-        }
-
-        if (splitResult.size() == 2)
-        {
-
-            if (Utils::checkId<Echoes::Dbo::AlertTracking > (_alertTrackingPtr))
+            case 0:
+                Wt::log("error") << "[Itooki SMS Sender][ACK] Unexpected answer from itooki, no result code.";
+                break;
+            case 2:
             {
+                Echoes::Dbo::Session session(conf.getSessConnectParams());
                 try
                 {
-                    Wt::Dbo::Transaction transaction(*_alertTrackingPtr.session());
-                    _alertTrackingPtr.modify()->ackId = splitResult[1];
-                    _alertTrackingPtr.modify()->ackGw = "itooki.fr";
-                    _alertTrackingPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+                    Wt::Dbo::Transaction transaction(session);
 
-                    Echoes::Dbo::AlertTrackingEvent *ate = new Echoes::Dbo::AlertTrackingEvent();
-                    ate->alertTracking = _alertTrackingPtr;
-                    ate->date = Wt::WDateTime::currentDateTime();
-                    ate->value = splitResult[0];
-                    transaction.commit();
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = session.find<Echoes::Dbo::AlertTracking>()
+                        .where(QUOTE(TRIGRAM_ALERT_TRACKING ID) " = ?").bind(atrId)
+                        .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP "DELETE") " IS NULL");
 
+                    if (atrPtr)
+                    {
+                            Wt::Dbo::Transaction transaction(session);
+
+                            atrPtr.modify()->ackId = splitResult[1];
+                            atrPtr.modify()->ackGw = "itooki.fr";
+                            atrPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
+
+                            Echoes::Dbo::AlertTrackingEvent *newAte = new Echoes::Dbo::AlertTrackingEvent();
+                            newAte->alertTracking = atrPtr;
+                            newAte->date = Wt::WDateTime::currentDateTime();
+                            newAte->value = splitResult[0];
+
+                            Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAtePtr = session.add<Echoes::Dbo::AlertTrackingEvent>(newAte);
+                            newAtePtr.flush();
+
+                            transaction.commit();
+                    }
+                    else
+                    {
+                        Wt::log("error") << "[Itooki SMS Sender][ACK] Alert tracking not found";
+                        //TODO error behavior
+                    }
                 }
                 catch (Wt::Dbo::Exception const& e)
                 {
-                    Wt::log("error") << e.what();
+                    Wt::log("error") << "[Itooki SMS Sender][ACK] " << e.what();
                     //TODO : behaviour in error case
                 }
+                break;
             }
-            else
-            {
-                Wt::log("error") << "[SMS] Alert tracking not found";
-                //TODO error behavior
-            }
-
+            default:
+                Wt::log("error") << "[Itooki SMS Sender][ACK] Unexpected answer from itooki.";
+                break;
         }
     }
     else
     {
-        Wt::log("error") << "Http::Client error: " << err.message();
+        Wt::log("error") << "[Itooki SMS Sender][ACK] Http::Client error: " << err.message();
     }
-}
 
-void ItookiSMSSender::setMessage(string message)
-{
-    _message = message;
-    return;
-}
-
-std::string ItookiSMSSender::getMessage() const
-{
-    return _message;
-}
-
-void ItookiSMSSender::setNumber(string number)
-{
-    _number = number;
-    return;
-}
-
-std::string ItookiSMSSender::getNumber() const
-{
-    return _number;
-}
-
-void ItookiSMSSender::setAlertTrackingPtr(Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> alertTrackingPtr)
-{
-    _alertTrackingPtr = alertTrackingPtr;
-    return;
-}
-
-Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> ItookiSMSSender::getAlertTrackingPtr() const
-{
-    return _alertTrackingPtr;
+    delete client;
 }
 
 void ItookiSMSSender::setParent(Wt::WObject* parent)
 {
-    _parent = parent;
+    m_parent = parent;
     return;
 }
 
 Wt::WObject* ItookiSMSSender::getParent() const
 {
-    return _parent;
-}
-
-ItookiSMSSender::~ItookiSMSSender()
-{
+    return m_parent;
 }
 

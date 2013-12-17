@@ -7,7 +7,7 @@
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
  * COMPANY AUTHORIZATION.
  * 
- * COPYRIGHT 2012 BY ECHOES TECHNOLGIES SAS
+ * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
 
@@ -29,26 +29,25 @@ class Conf {
          */
         bool readProperties(Wt::WServer& server);
 
-        std::string getDBHost() const;
-        unsigned getDBPort() const;
-        std::string getDBName() const;
-        std::string getDBUser() const;
-        std::string getDBPassword() const;
         std::string getSessConnectParams() const;
         std::string getSMTPHost() const;
         unsigned getSMTPPort() const;
         std::string getAlertMailSenderAddress() const;
-        std::string getAlertMailSenderName() const;       
+        std::string getAlertMailSenderName() const;
+        bool isSmsHttps() const;
+        std::string getSmsPassword() const;
+        std::string getSmsLogin() const;
 
     protected:
-        std::string _dbHost, _dbName, _dbUser, _dbPassword, _sessConnectParams, _smtpHost, _alertMailSenderName, _alertMailSenderAddress;
-        unsigned _dbPort, _smtpPort;
+        std::string m_sessConnectParams;
+        std::string m_smtpHost;
+        unsigned m_smtpPort;
+        std::string m_alertMailSenderName;
+        std::string m_alertMailSenderAddress;
+        std::string m_smsLogin;
+        std::string m_smsPassword;
+        bool m_smsHttps;
 
-        void setDBPassword(std::string dbPassword);
-        void setDBPort(unsigned dbPort);
-        void setDBUser(std::string dbUser);
-        void setDBName(std::string dbName);
-        void setDBHost(std::string dbHost);
         void setSessConnectParams
         (
                 std::string dbHost,
@@ -61,6 +60,9 @@ class Conf {
         void setAlertMailSenderAddress(std::string alertMailSenderAddress);
         void setAlertMailSenderName(std::string alertMailSenderName);
         void setSMTPHost(std::string smtpHost);
+        void setSmsHttps(bool smsHttps);
+        void setSmsPassword(std::string smsPassword);
+        void setSmsLogin(std::string smsLogin);
 };
 
 extern Conf conf;
