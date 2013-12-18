@@ -433,7 +433,7 @@ EReturnCode AssetResource::postPluginForAsset(string &responseMsg, const string 
                     newIdaPtr.flush();
                 }
 
-                res = serialize(astPtr, responseMsg);
+                res = serialize(astPtr, responseMsg, EReturnCode::CREATED);
             }
             else
             {
