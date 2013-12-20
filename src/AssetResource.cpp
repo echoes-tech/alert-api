@@ -437,7 +437,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     newIdaPtr.flush();
                 }
 
-                res = serialize(astPtr, responseMsg);
+                res = serialize(astPtr, responseMsg, EReturnCode::CREATED);
             }
             else
             {

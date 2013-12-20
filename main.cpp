@@ -1,5 +1,5 @@
 /* 
- * API Asset Ressource
+ * Main
  * @author ECHOES Technologies (TSA)
  * @date 08/08/2012
  * 
@@ -127,13 +127,17 @@ int main(int argc, char **argv)
                 server.stop();
 
                 if (sig == SIGHUP)
+                {
                     Wt::WServer::restart(argc, argv, environ);
+                }
 
                 res = EXIT_SUCCESS;
             }
         }
         else
+        {
             Wt::log("fatal") << "[Main] Every properties are not correctly set in " << WT_CONFIG_XML;
+        }
     }
     catch (Wt::WServer::Exception& e)
     {
