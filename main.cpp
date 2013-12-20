@@ -65,22 +65,33 @@ int main(int argc, char **argv)
 
         if (conf.readProperties(server))
         {
-            AddonResource        addonResource;
-            AlertResource        alertResource;
-            AssetResource        assetResource;
-            CriterionResource    criteriaResource;
-            FilterResource       filterResource;
-            InformationResource  informationRessource;
-            MediaResource        mediaResource;
-            OptionResource       optionRessource;
-            OrganizationResource organizationRessource;
-            PluginResource       pluginResource;
-            ProbeResource        probeResource;
-            SearchResource       searchResource;
-            SourceResource       sourceResource;
-            UnitResource         unitResource;
-            UserResource         userResource;
-            RoleResource         roleResource;
+            
+            Wt::Dbo::SqlConnection *connection;
+            connection = new Wt::Dbo::backend::Postgres(conf.getSessConnectParams());
+        //    connection->setProperty("show-queries", "true");
+
+            Wt::Dbo::FixedSqlConnectionPool *connectionPool = new Wt::Dbo::FixedSqlConnectionPool(connection, 50);
+
+            Echoes::Dbo::Session *session = new Echoes::Dbo::Session();
+            session->setConnectionPool(*connectionPool);
+            session->initMapClass();
+            
+            AddonResource        addonResource(session);
+            AlertResource        alertResource(session);
+            AssetResource        assetResource(session);
+            CriterionResource    criteriaResource(session);
+            FilterResource       filterResource(session);
+            InformationResource  informationRessource(session);
+            MediaResource        mediaResource(session);
+            OptionResource       optionRessource(session);
+            OrganizationResource organizationRessource(session);
+            PluginResource       pluginResource(session);
+            ProbeResource        probeResource(session);
+            SearchResource       searchResource(session);
+            SourceResource       sourceResource(session);
+            UnitResource         unitResource(session);
+            UserResource         userResource(session);
+            RoleResource         roleResource(session);
             ItookiAckReceiver    itookiAckReceiver;
             ItookiAswReceiver    itookiAswReceiver;
 

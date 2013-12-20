@@ -20,7 +20,7 @@
 class ProbeResource : public PublicApiResource
 {
     public:
-        ProbeResource();
+        ProbeResource(Echoes::Dbo::Session*);
         virtual ~ProbeResource();
 
         /**
@@ -54,20 +54,20 @@ class ProbeResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> selectProbePackageParameter(const Wt::Dbo::ptr<Echoes::Dbo::Asset> &astPtr, Echoes::Dbo::Session &session);
         
     protected:
-        EReturnCode getProbesList(std::string &responseMsg);
-        EReturnCode getProbe(std::string &responseMsg);
-        EReturnCode getJsonForProbe(std::string &responseMsg);
-        EReturnCode getPackagesForProbe(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getProbesList(const long long &orgId, std::string &responseMsg);
+        EReturnCode getProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getJsonForProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postProbe(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postProbe(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putProbe(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putProbe(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteProbe(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode deleteProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* PROBERESOURCE_H */

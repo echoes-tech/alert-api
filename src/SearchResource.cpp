@@ -15,11 +15,8 @@
 
 using namespace std;
 
-SearchResource::SearchResource()
+SearchResource::SearchResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
-    m_parameters["type_id"] = 0;
-    m_parameters["plugin_id"] = 0;
-    m_parameters["source_id"] = 0;
 }
 
 SearchResource::~SearchResource()
@@ -71,13 +68,13 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
     return queryRes.resultValue();
 }
 
-EReturnCode SearchResource::getSearchsList(string &responseMsg)
+EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
         string queryStr =
 " SELECT sea"
 "   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) " sea"
@@ -96,22 +93,22 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                               WHERE"
-"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization);
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId);
 
-        if (m_parameters["plugin_id"] > 0)
+        if (parameters["plugin_id"] > 0)
         {
             queryStr +=
-"                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin_id"]);
+"                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(parameters["plugin_id"]);
         }
 
         queryStr +=
 "                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                         )";
 
-        if (m_parameters["source_id"] > 0)
+        if (parameters["source_id"] > 0)
         {
             queryStr +=
-"                         AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(m_parameters["source_id"]);
+"                         AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + boost::lexical_cast<string>(parameters["source_id"]);
         }
 
         queryStr +=
@@ -120,7 +117,7 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
 "       )"
 "     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = queryRes.resultList();
 
@@ -136,15 +133,15 @@ EReturnCode SearchResource::getSearchsList(string &responseMsg)
     return res;
 }
 
-EReturnCode SearchResource::getSearch(string &responseMsg)
+EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, *m_session);
 
         res = serialize(seaPtr, responseMsg);
 
@@ -158,18 +155,18 @@ EReturnCode SearchResource::getSearch(string &responseMsg)
     return res;
 }
 
-EReturnCode SearchResource::getParametersList(string &responseMsg)
+EReturnCode SearchResource::getParametersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
         string queryStr =
 " SELECT sep\n"
 "   FROM " QUOTE("TR_SEARCH_PARAMETER" SEP TRIGRAM_SEARCH_PARAMETER) " sep\n";
 
-        if (m_parameters["type_id"] > 0)
+        if (parameters["type_id"] > 0)
         {
             queryStr +=
 "   WHERE\n"
@@ -183,7 +180,7 @@ EReturnCode SearchResource::getParametersList(string &responseMsg)
 "                 SELECT " QUOTE(TRIGRAM_SEARCH_TYPE ID)
 "                   FROM " QUOTE ("TR_SEARCH_TYPE" SEP TRIGRAM_SEARCH_TYPE) "\n"
 "                   WHERE\n"
-"                     " QUOTE(TRIGRAM_SEARCH_TYPE ID) " = " + boost::lexical_cast<string>(m_parameters["type_id"]) + "\n" 
+"                     " QUOTE(TRIGRAM_SEARCH_TYPE ID) " = " + boost::lexical_cast<string>(parameters["type_id"]) + "\n" 
 "                     AND " QUOTE(TRIGRAM_SEARCH_TYPE SEP "DELETE") " IS NULL\n"
 "               )\n"
 "       )\n";
@@ -192,7 +189,7 @@ EReturnCode SearchResource::getParametersList(string &responseMsg)
         queryStr +=
 "   ORDER BY " QUOTE(TRIGRAM_SEARCH_PARAMETER ID)"\n";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> srpPtrCol = queryRes.resultList();
 
@@ -208,16 +205,16 @@ EReturnCode SearchResource::getParametersList(string &responseMsg)
     return res;
 }
 
-EReturnCode SearchResource::getParametersListForSearch(string &responseMsg)
+EReturnCode SearchResource::getParametersListForSearch(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, *m_session);
         
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session.find<Echoes::Dbo::SearchParameterValue>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session->find<Echoes::Dbo::SearchParameterValue>()
                 .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtr.id());
 
@@ -233,19 +230,28 @@ EReturnCode SearchResource::getParametersListForSearch(string &responseMsg)
     return res;
 }
 
-void SearchResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
+    
+    parameters["type_id"] = 0;
+    parameters["plugin_id"] = 0;
+    parameters["source_id"] = 0;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getSearchsList(responseMsg);
+        res = getSearchsList(parameters, orgId, responseMsg);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        m_statusCode = getParametersList(responseMsg);
+        res = getParametersList(parameters, orgId, responseMsg);
     }
     else
     {
@@ -253,35 +259,33 @@ void SearchResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getSearch(responseMsg);
+                res = getSearch(pathElements, orgId, responseMsg);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                m_statusCode = getParametersListForSearch(responseMsg);
+                res = getParametersListForSearch(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Search Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode SearchResource::postSearch(string& responseMsg, const string& sRequest)
+EReturnCode SearchResource::postSearch(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long srcId;
@@ -321,9 +325,9 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::SearchType> styPtr = m_session.find<Echoes::Dbo::SearchType>()
+            Wt::Dbo::ptr<Echoes::Dbo::SearchType> styPtr = m_session->find<Echoes::Dbo::SearchType>()
                     .where(QUOTE(TRIGRAM_SEARCH_TYPE ID) " = ?").bind(styId)
                     .where(QUOTE(TRIGRAM_SEARCH_TYPE SEP "DELETE") " IS NULL");
             if (!styPtr)
@@ -333,7 +337,7 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, m_organization, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, orgId, *m_session);
             if (!srcPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -346,7 +350,7 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
             newSea->source = srcPtr;
             newSea->period = period;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Search> newSeaPtr = m_session.add<Echoes::Dbo::Search>(newSea);
+            Wt::Dbo::ptr<Echoes::Dbo::Search> newSeaPtr = m_session->add<Echoes::Dbo::Search>(newSea);
             newSeaPtr.flush();
 
             try
@@ -363,7 +367,7 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
                     newSev->searchParameterValueId.searchParameter= *it;
                     newSev->searchParameterValueId.search = newSeaPtr;
 
-                    m_session.add<Echoes::Dbo::SearchParameterValue>(newSev);
+                    m_session->add<Echoes::Dbo::SearchParameterValue>(newSev);
                 }
             }
             catch (Wt::Json::ParseError const& e)
@@ -391,46 +395,54 @@ EReturnCode SearchResource::postSearch(string& responseMsg, const string& sReque
     return res;
 }
 
-void SearchResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = postSearch(responseMsg, m_requestData);
+        res = postSearch(sRequest, orgId, responseMsg);
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Search Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode SearchResource::putSearch(string &responseMsg, const string &sRequest)
+EReturnCode SearchResource::putSearch(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     return res;
 }
 
-void SearchResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Search Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -438,45 +450,43 @@ void SearchResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putSearch(responseMsg, m_requestData);
+                res = putSearch(sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Search Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode SearchResource::deleteSearch(string& responseMsg)
+EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try 
     {  
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, *m_session);
 
         if(seaPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = m_session.find<Echoes::Dbo::Filter>()
-                    .where(QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID)" = ?").bind(m_pathElements[1])
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = m_session->find<Echoes::Dbo::Filter>()
+                    .where(QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL");
 
             if (filPtrCol.size() == 0)
@@ -507,17 +517,22 @@ EReturnCode SearchResource::deleteSearch(string& responseMsg)
     return res;
 }
 
-void SearchResource::processDeleteRequest(Wt::Http::Response &response)
+EReturnCode SearchResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Search Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -525,28 +540,26 @@ void SearchResource::processDeleteRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = deleteSearch(responseMsg);
+                res = deleteSearch(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Search Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

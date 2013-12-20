@@ -86,7 +86,7 @@ void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         try
         {
-            Wt::Dbo::Transaction transaction(session);
+            Echoes::Dbo::SafeTransaction transaction(session);
             Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = session.find<Echoes::Dbo::AlertTracking>().where("\"ATR_ACK_ID\" = ?").bind(messageId);
             if (atrPtr)
             {

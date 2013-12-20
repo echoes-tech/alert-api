@@ -46,7 +46,7 @@ void ItookiAswReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
     // new transaction
     try
     {
-        Wt::Dbo::Transaction transaction(session);
+        Echoes::Dbo::SafeTransaction transaction(session);
         Echoes::Dbo::UserHistoricalAction *uha = new Echoes::Dbo::UserHistoricalAction;
         uha->dateTime = Wt::WDateTime::currentDateTime();
         uha->tableObject = m_number + " : " + m_message;

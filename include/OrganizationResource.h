@@ -19,19 +19,13 @@
 class OrganizationResource : public PublicApiResource
 {
     public :
-        OrganizationResource();
+        OrganizationResource(Echoes::Dbo::Session*);
         virtual ~OrganizationResource();
         
     protected :
-        EReturnCode getOrganizationsList(std::string &responseMsg);
-        EReturnCode getOrganization(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
-
-        virtual void processPostRequest(Wt::Http::Response &response);
-
-        virtual void processPutRequest(Wt::Http::Response &response);
-
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode getOrganizationsList(const long long &orgId, std::string &responseMsg);
+        EReturnCode getOrganization(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* ORGANIZATIONRESOURCE_H */

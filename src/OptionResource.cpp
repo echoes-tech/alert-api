@@ -15,32 +15,31 @@
 
 using namespace std;
 
-OptionResource::OptionResource()
+OptionResource::OptionResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
-    m_parameters["type_id"] = 0;
 }
 
 OptionResource::~OptionResource()
 {
 }
 
-EReturnCode OptionResource::getOptionsList(string &responseMsg)
+EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session.find<Echoes::Dbo::Option>()
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session->find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_OPTION ID));
 
-        if (m_parameters["type_id"] > 0)
+        if (parameters["type_id"] > 0)
         {
             queryRes = queryRes.where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?");
             // FPO: I don't know why but we have to bind every marker here to make the binding.
-            queryRes.bind(m_organization).bind(m_parameters["type_id"]);
+            queryRes.bind(orgId).bind(parameters["type_id"]);
         }
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol =  queryRes.resultList();
@@ -57,17 +56,17 @@ EReturnCode OptionResource::getOptionsList(string &responseMsg)
     return res;
 }
 
-EReturnCode OptionResource::getOption(string &responseMsg)
+EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
-                .where(QUOTE(TRIGRAM_OPTION ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session->find<Echoes::Dbo::Option>()
+                .where(QUOTE(TRIGRAM_OPTION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
         res = serialize(optPtr, responseMsg);
 
@@ -81,15 +80,22 @@ EReturnCode OptionResource::getOption(string &responseMsg)
     return res;
 }
 
-void OptionResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    parameters["type_id"] = 0;
+    
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getOptionsList(responseMsg);
+        res = getOptionsList(parameters, orgId, responseMsg);
     }
     else
     {
@@ -97,27 +103,25 @@ void OptionResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getOption(responseMsg);
+                res = getOption(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Option Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

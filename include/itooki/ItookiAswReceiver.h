@@ -17,6 +17,7 @@
 #include <Wt/WResource>
 
 #include <tools/Session.h>
+#include <tools/SafeTransaction.h>
 
 #include "Conf.h"
 

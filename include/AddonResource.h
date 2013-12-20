@@ -19,13 +19,13 @@
 class AddonResource : public PublicApiResource
 {
     public :
-        AddonResource();
+        AddonResource(Echoes::Dbo::Session*);
         virtual ~AddonResource();
      
     protected :
-        EReturnCode getAddonsList(std::string &responseMsg);
-        EReturnCode getAddon(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getAddonsList(const long long &orgId, std::string &responseMsg);
+        EReturnCode getAddon(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* ADDONRESOURCE_H */

@@ -19,13 +19,13 @@
 class OptionResource : public PublicApiResource
 {
     public:
-        OptionResource();
+        OptionResource(Echoes::Dbo::Session*);
         virtual ~OptionResource();
 
     private:
-        EReturnCode getOptionsList(std::string &responseMsg);
-        EReturnCode getOption(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getOptionsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getOption(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* OPTIONRESOURCE_H */

@@ -20,7 +20,7 @@
 class SourceResource : public PublicApiResource
 {
     public:
-        SourceResource();
+        SourceResource(Echoes::Dbo::Session*);
         virtual ~SourceResource();
 
         /**
@@ -46,20 +46,20 @@ class SourceResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     private:
-        EReturnCode getSourcesList(std::string &responseMsg);
-        EReturnCode getSource(std::string &responseMsg);
-        EReturnCode getParametersList(std::string &responseMsg);
-        EReturnCode getParametersListForSource(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getSourcesList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getParametersListForSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postSource(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postSource(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putSource(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putSource(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteSource(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode deleteSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* SOURCERESOURCE_H */

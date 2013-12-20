@@ -15,7 +15,7 @@
 
 using namespace std;
 
-ProbeResource::ProbeResource() : PublicApiResource::PublicApiResource()
+ProbeResource::ProbeResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -120,13 +120,13 @@ Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> ProbeResource::selectProbePacka
     return pppPtr;
 }
 
-EReturnCode ProbeResource::getProbesList(string &responseMsg)
+EReturnCode ProbeResource::getProbesList(const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
         string queryStr =
 " SELECT prb"
 "   FROM " QUOTE("T_PROBE_PRB") " prb"
@@ -135,13 +135,13 @@ EReturnCode ProbeResource::getProbesList(string &responseMsg)
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_PROBE ID);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Probe>> queryRes = m_session.query <Wt::Dbo::ptr<Echoes::Dbo::Probe>> (queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Probe>> queryRes = m_session->query <Wt::Dbo::ptr<Echoes::Dbo::Probe>> (queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe>> prbPtrCol = queryRes.resultList();
 
@@ -157,15 +157,15 @@ EReturnCode ProbeResource::getProbesList(string &responseMsg)
     return res;
 }
 
-EReturnCode ProbeResource::getProbe(string &responseMsg)
+EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
 
         res = serialize(prbPtr, responseMsg);
 
@@ -179,15 +179,15 @@ EReturnCode ProbeResource::getProbe(string &responseMsg)
     return res;
 }
 
-EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
+EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
         if (prbPtr)
         {
             map<Wt::Dbo::ptr<Echoes::Dbo::Addon>, vector<Wt::Dbo::ptr<Echoes::Dbo::Source>>> srcListByAddon;
@@ -222,7 +222,7 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
                     boost::property_tree::ptree srpElem;
                     for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>::iterator srpPtrIt = srpPtrCol.begin(); srpPtrIt != srpPtrCol.end(); srpPtrIt++)                    
                     {
-                        Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session.find<Echoes::Dbo::SourceParameterValue>()
+                        Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session->find<Echoes::Dbo::SourceParameterValue>()
                                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER ID SEP TRIGRAM_SOURCE_PARAMETER ID) " = ?").bind(srpPtrIt->id())
                                 .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id())
                                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL");
@@ -242,7 +242,7 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
                         boost::property_tree::ptree sepElem;
                         for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>::iterator sepPtrIt = sepPtrCol.begin(); sepPtrIt != sepPtrCol.end(); sepPtrIt++)                    
                         {
-                            Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session.find<Echoes::Dbo::SearchParameterValue>()
+                            Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session->find<Echoes::Dbo::SearchParameterValue>()
                                     .where(QUOTE(TRIGRAM_SEARCH_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(sepPtrIt->id())
                                     .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtrIt->id())
                                     .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL");
@@ -264,7 +264,7 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
                             boost::property_tree::ptree fpaElem;
                             for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>::iterator fpaPtrIt = fpaPtrCol.begin(); fpaPtrIt != fpaPtrCol.end(); fpaPtrIt++)                    
                             {
-                                Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session.find<Echoes::Dbo::FilterParameterValue>()
+                                Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session->find<Echoes::Dbo::FilterParameterValue>()
                                         .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtrIt->id())
                                         .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtrIt->id())
                                         .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL");
@@ -355,15 +355,15 @@ EReturnCode ProbeResource::getJsonForProbe(string &responseMsg)
     return res;
 }
 
-EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
+EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
         if (prbPtr)
         {
             stringstream ss;
@@ -372,7 +372,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
             Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = prbPtr->probePackageParameter;
             if(pppPtr)
             {            
-                Wt::Dbo::ptr<Echoes::Dbo::AddonCommonPackageParameter> cppPtr = m_session.find<Echoes::Dbo::AddonCommonPackageParameter>()
+                Wt::Dbo::ptr<Echoes::Dbo::AddonCommonPackageParameter> cppPtr = m_session->find<Echoes::Dbo::AddonCommonPackageParameter>()
                         .where("\"CPP_ASA_ASA_ID\" = ?").bind(pppPtr->assetArchitecture.id())
                         .where("\"CPP_ASD_ASD_ID\" = ?").bind(pppPtr->assetDistribution.id())
                         .where("\"CPP_ASR_ASR_ID\" = ?").bind(pppPtr->assetRelease.id())
@@ -442,7 +442,7 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
 
                 for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); adoIdIt++)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session.find<Echoes::Dbo::AddonPackageParameter>()
+                    Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session->find<Echoes::Dbo::AddonPackageParameter>()
                             .where("\"APP_ASA_ASA_ID\" = ?").bind(cppPtr->assetArchitecture.id())
                             .where("\"APP_ASD_ASD_ID\" = ?").bind(cppPtr->assetDistribution.id())
                             .where("\"APP_ASR_ASR_ID\" = ?").bind(cppPtr->assetRelease.id())
@@ -505,15 +505,20 @@ EReturnCode ProbeResource::getPackagesForProbe(string &responseMsg)
     return res;
 }
 
-void ProbeResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getProbesList(responseMsg);
+        res = getProbesList(orgId, responseMsg);
     }
     else
     {
@@ -521,39 +526,37 @@ void ProbeResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getProbe(responseMsg);
+                res = getProbe(pathElements, orgId, responseMsg);
             }
             else if (nextElement.compare("json") == 0)
             {
-                m_statusCode = getJsonForProbe(responseMsg);
+                res = getJsonForProbe(pathElements, orgId, responseMsg);
             }
             else if (nextElement.compare("packages") == 0)
             {
-                m_statusCode = getPackagesForProbe(responseMsg);
+                res = getPackagesForProbe(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Probe Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest)
+EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -592,22 +595,22 @@ EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, m_organization, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, orgId, *m_session);
             if (astPtr)
             {
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
                 newPrb->asset = astPtr;
                 newPrb->name = name;
 
-                Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, *m_session);
                 if (pppPtr)
                 {
                     newPrb->probePackageParameter = pppPtr;
                 } 
 
-                Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session.add<Echoes::Dbo::Probe>(newPrb);
+                Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session->add<Echoes::Dbo::Probe>(newPrb);
                 newPrbPtr.flush();
 
                 res = serialize(newPrbPtr, responseMsg, EReturnCode::CREATED);
@@ -630,29 +633,32 @@ EReturnCode ProbeResource::postProbe(string &responseMsg, const string &sRequest
     return res;
 }
 
-void ProbeResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = postProbe(responseMsg, m_requestData);
+        res = postProbe(sRequest, orgId, responseMsg);
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Probe Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode ProbeResource::putProbe(string &responseMsg, const string &sRequest)
+EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -691,9 +697,9 @@ EReturnCode ProbeResource::putProbe(string &responseMsg, const string &sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
 
             if (prbPtr)
             {
@@ -722,17 +728,22 @@ EReturnCode ProbeResource::putProbe(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void ProbeResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Probe Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -740,40 +751,38 @@ void ProbeResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putProbe(responseMsg, m_requestData);
+                res = putProbe(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Probe Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode ProbeResource::deleteProbe(string &responseMsg)
+EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
 
         if (prbPtr)
         {
@@ -797,17 +806,22 @@ EReturnCode ProbeResource::deleteProbe(string &responseMsg)
     return res;
 }
 
-void ProbeResource::processDeleteRequest(Wt::Http::Response &response)
+EReturnCode ProbeResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Probe Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -815,28 +829,26 @@ void ProbeResource::processDeleteRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = deleteProbe(responseMsg);
+                res = deleteProbe(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Probe Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

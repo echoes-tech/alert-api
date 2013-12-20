@@ -19,25 +19,25 @@
 class PluginResource : public PublicApiResource
 {
     public :
-        PluginResource();
+        PluginResource(Echoes::Dbo::Session*);
         virtual ~PluginResource();
         
     protected :
-        EReturnCode getPluginsList(std::string &responseMsg);
-        EReturnCode getPlugin(std::string &responseMsg);
-        EReturnCode getAliasForPlugin(std::string &responseMsg);
-        EReturnCode getInformationsListForPlugin(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getPluginsList(const long long &orgId, std::string &responseMsg);
+        EReturnCode getPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getAliasForPlugin(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getInformationsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postPlugin(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postPlugin(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putPlugin(std::string &responseMsg, const std::string &sRequest);
-        EReturnCode putAliasForPlugin(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putPlugin(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        EReturnCode putAliasForPlugin(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deletePlugin(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode deletePlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* PLUGINRESOURCE_H */

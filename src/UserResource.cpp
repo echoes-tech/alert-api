@@ -15,7 +15,7 @@
 
 using namespace std;
 
-UserResource::UserResource() : PublicApiResource::PublicApiResource()
+UserResource::UserResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -23,16 +23,16 @@ UserResource::~UserResource()
 {
 }
 
-EReturnCode UserResource::getUsersList(string &responseMsg)
+EReturnCode UserResource::getUsersList(const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session->find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_USER ID));
 
         res = serialize(usrPtrCol, responseMsg);
@@ -47,17 +47,17 @@ EReturnCode UserResource::getUsersList(string &responseMsg)
     return res;
 }
 
-EReturnCode UserResource::getUser(string &responseMsg)
+EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
-                .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+                .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
         res = serialize(usrPtr, responseMsg);
 
@@ -71,15 +71,20 @@ EReturnCode UserResource::getUser(string &responseMsg)
     return res;
 }
 
-void UserResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getUsersList(responseMsg);
+        res = getUsersList(orgId, responseMsg);
     }
     else
     {
@@ -87,31 +92,29 @@ void UserResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getUser(responseMsg);
+                res = getUser(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[User Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode UserResource::postActionForUser(std::string &responseMsg, const std::string &sRequest)
+EReturnCode UserResource::postActionForUser(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -150,21 +153,21 @@ EReturnCode UserResource::postActionForUser(std::string &responseMsg, const std:
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session.find<Echoes::Dbo::UserActionType>().where(QUOTE(TRIGRAM_USER_ACTION_TYPE ID) " = ?").bind(uacId);
+            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session->find<Echoes::Dbo::UserActionType>().where(QUOTE(TRIGRAM_USER_ACTION_TYPE ID) " = ?").bind(uacId);
 
             Echoes::Dbo::UserHistoricalAction *newUha = new Echoes::Dbo::UserHistoricalAction();
             newUha->tableObject = tableObject;
             newUha->tableObjectId = tableObjectId;
             newUha->userAction = uatPtr;
-            newUha->user = m_session.user();
+            newUha->user = m_session->user();
             newUha->dateTime = Wt::WDateTime::currentDateTime();
             newUha->actionAfter = actionAfter;
             newUha->actionBefore = actionBefore;
             newUha->actionRelative = actionRelative;
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserHistoricalAction> newUhaPtr = m_session.add<Echoes::Dbo::UserHistoricalAction>(newUha);
+            Wt::Dbo::ptr<Echoes::Dbo::UserHistoricalAction> newUhaPtr = m_session->add<Echoes::Dbo::UserHistoricalAction>(newUha);
             newUhaPtr.flush();
 
             res = serialize(newUhaPtr, responseMsg, EReturnCode::CREATED);
@@ -181,38 +184,41 @@ EReturnCode UserResource::postActionForUser(std::string &responseMsg, const std:
     return res;
 }
 
-void UserResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[User Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
         if(nextElement.compare("action") == 0)
         {
-            m_statusCode = postActionForUser(responseMsg, m_requestData);
+            res = postActionForUser(sRequest, orgId, responseMsg);
         }
         else
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
+            res = EReturnCode::BAD_REQUEST;
             const string err = "[User Resource] bad nextElement";
-            responseMsg = httpCodeToJSON(m_statusCode, err);
+            responseMsg = httpCodeToJSON(res, err);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode UserResource::putUser(string &responseMsg, const string &sRequest)
+EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString firstName;
@@ -266,21 +272,21 @@ EReturnCode UserResource::putUser(string &responseMsg, const string &sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
-                .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(m_pathElements[1])
+            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+                .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
             if (usrPtr)
             {
                 if (uroId > 0)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::UserRole> usoPtr = m_session.find<Echoes::Dbo::UserRole>()
+                    Wt::Dbo::ptr<Echoes::Dbo::UserRole> usoPtr = m_session->find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                        .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                        .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
                     if (usrPtr)
                     {
@@ -331,17 +337,22 @@ EReturnCode UserResource::putUser(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void UserResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode UserResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[User Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -349,28 +360,26 @@ void UserResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putUser(responseMsg, m_requestData);
+                res = putUser(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[User Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

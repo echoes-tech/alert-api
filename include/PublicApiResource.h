@@ -20,12 +20,14 @@
 #include <boost/exception/detail/exception_ptr.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 #include <Wt/Http/Client>
 #include <Wt/Http/Request>
 #include <Wt/Http/Response>
 #include <Wt/Json/Array>
 #include <Wt/Json/Object>
+#include <Wt/Dbo/FixedSqlConnectionPool>
 #include <Wt/Json/Parser>
 #include <Wt/Utils>
 #include <Wt/WApplication>
@@ -60,6 +62,7 @@ namespace boost
 }
 
 
+#include <tools/SafeTransaction.h>
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
 #include <tools/Enums.h>
@@ -71,35 +74,25 @@ namespace boost
 
 class PublicApiResource : public Wt::WResource {
 public:
-    PublicApiResource();
+    PublicApiResource(Echoes::Dbo::Session *session);
     virtual ~PublicApiResource();
-
+    
 protected:
-    Echoes::Dbo::Session m_session;
-    bool m_authentified;
-    std::string m_requestData;
-    std::vector<std::string> m_pathElements;
-    unsigned short m_indexPathElement;
-    std::map<std::string, long long> m_parameters;
-    EReturnCode m_statusCode;
-    long long m_organization;
+    Echoes::Dbo::Session* m_session;
+
+    Wt::Dbo::FixedSqlConnectionPool *m_connectionPool;
 
     static std::string file2base64(const std::string &path);
     
     unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
-    void setPathElementsVector(const std::string &path);
-    void setRequestData(const Wt::Http::Request &request);
-    void setParameters(const Wt::Http::Request &request);
-
-    std::string getNextElementFromPath();
+    std::string getNextElementFromPath(unsigned short &indexPathElement, std::vector<std::string> &pathElements);
     std::string request2string(const Wt::Http::Request &request);
 
-    void resetAttributs();
-
-    virtual void processGetRequest(Wt::Http::Response &response);
-    virtual void processPostRequest(Wt::Http::Response &response);
-    virtual void processPutRequest(Wt::Http::Response &response);
-    virtual void processDeleteRequest(Wt::Http::Response &response);
+    std::string processRequestParameters(const Wt::Http::Request &request, std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters);
+    virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
@@ -146,7 +139,7 @@ protected:
     template<class C>
     std::string serializeToJSON(C &obj) {
         std::string responseMsg;
-        Wt::Dbo::JsonSerializer jsonSerializer(m_session);
+        Wt::Dbo::JsonSerializer jsonSerializer(*m_session);
         jsonSerializer.serialize(obj);
         responseMsg = jsonSerializer.getResult();
         return responseMsg;
@@ -161,12 +154,12 @@ protected:
     template<class C>
     std::string getTableName(Wt::Dbo::ptr<C> const &ptr)
     {
-        return Wt::Dbo::JsonSerializer::transformTableName(m_session.tableName<C>());
+        return Wt::Dbo::JsonSerializer::transformTableName(m_session->tableName<C>());
     }
     template<class C>
     std::string getTableName(Wt::Dbo::collection<Wt::Dbo::ptr<C>> const &ptrCol)
     {
-        return Wt::Dbo::JsonSerializer::transformTableName(m_session.tableName<C>());
+        return Wt::Dbo::JsonSerializer::transformTableName(m_session->tableName<C>());
     }
 
     template<class C>

@@ -25,7 +25,7 @@
 class AlertResource : public PublicApiResource
 {
     public :
-        AlertResource();
+        AlertResource(Echoes::Dbo::Session*);
         virtual ~AlertResource();
 
         /**
@@ -51,12 +51,12 @@ class AlertResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     protected:
-        EReturnCode getRecipientsForAlert(std::string &responseMsg);       
-        EReturnCode getTrackingsForAlertsList(std::string &responseMsg);
-//        EReturnCode getTrackingAlertList(std::string &responseMsg);
-        EReturnCode getAlertsList(std::string &responseMsg);
-        EReturnCode getAlert(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+//        EReturnCode getRecipientsForAlert(const long long &orgId, std::string &responseMsg);       
+        EReturnCode getTrackingsForAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+//        EReturnCode getTrackingAlertList(const long long &orgId, std::string &responseMsg);
+        EReturnCode getAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         /**
          * method to send a MAIL 
@@ -108,14 +108,14 @@ class AlertResource : public PublicApiResource
          Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
         );
         
-        EReturnCode postAlert(std::string &responseMsg, const std::string &sRequest);
-        EReturnCode postAlertTracking(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postAlert(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        EReturnCode postAlertTracking(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        virtual void processPutRequest(Wt::Http::Response &response);
+//        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteAlert(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode deleteAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 #endif	/* ALERTRESOURCE_H */
 

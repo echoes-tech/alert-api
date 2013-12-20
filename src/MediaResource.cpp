@@ -14,9 +14,8 @@
 
 using namespace std;
 
-MediaResource::MediaResource() : PublicApiResource::PublicApiResource()
+MediaResource::MediaResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
-    m_parameters["type_id"] = 0;
 }
 
 MediaResource::~MediaResource()
@@ -55,13 +54,13 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
     return queryRes.resultValue();
 }
 
-EReturnCode MediaResource::getMediasList(string &responseMsg)
+EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
         string queryStr =
 " SELECT med"
 "   FROM " QUOTE("T_MEDIA_MED") " med"
@@ -70,21 +69,21 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
-"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization) +
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
 
-        if (m_parameters["type_id"] > 0)
+        if (parameters["type_id"] > 0)
         {
             queryStr +=
-"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = " + boost::lexical_cast<string>(m_parameters["type_id"]);
+"     AND " QUOTE(TRIGRAM_MEDIA SEP TRIGRAM_MEDIA_TYPE SEP TRIGRAM_MEDIA_TYPE ID) " = " + boost::lexical_cast<string>(parameters["type_id"]);
         }
 
         queryStr +=
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrCol = queryRes.resultList();
 
@@ -100,15 +99,15 @@ EReturnCode MediaResource::getMediasList(string &responseMsg)
     return res;
 }
 
-EReturnCode MediaResource::getMedia(string &responseMsg)
+EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, *m_session);
 
         res = serialize(medPtr, responseMsg);
 
@@ -122,15 +121,22 @@ EReturnCode MediaResource::getMedia(string &responseMsg)
     return res;
 }
 
-void MediaResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
+    
+    parameters["type_id"] = 0;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getMediasList(responseMsg);
+        res = getMediasList(parameters, orgId, responseMsg);
     }
     else
     {
@@ -138,31 +144,29 @@ void MediaResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getMedia(responseMsg);
+                res = getMedia(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Media Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest)
+EReturnCode MediaResource::postMedia(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long mtyId;
@@ -200,21 +204,21 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
+            Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
                     .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                     .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
             if (mtyPtr)
             {
                 Echoes::Dbo::Media *newMed = new Echoes::Dbo::Media();
-                newMed->user = m_session.user();
+                newMed->user = m_session->user();
                 newMed->mediaType = mtyPtr;
                 newMed->value = value;
                 newMed->token = Wt::WRandom::generateId(25);
                 newMed->isConfirmed = false;
                 newMed->isDefault = false;
-                Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session.add<Echoes::Dbo::Media>(newMed);
+                Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session->add<Echoes::Dbo::Media>(newMed);
                 newMedPtr.flush();
 
                 res = serialize(newMedPtr, responseMsg, EReturnCode::CREATED);
@@ -237,29 +241,32 @@ EReturnCode MediaResource::postMedia(string &responseMsg, const string &sRequest
     return res;
 }
 
-void MediaResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = postMedia(responseMsg, m_requestData);
+        res = postMedia(sRequest, orgId, responseMsg);
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Media Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
+EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString token;
@@ -317,9 +324,9 @@ EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_organization, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, *m_session);
 
             if (medPtr)
             {
@@ -363,17 +370,22 @@ EReturnCode MediaResource::putMedia(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void MediaResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Media Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -381,45 +393,43 @@ void MediaResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putMedia(responseMsg, m_requestData);
+                res = putMedia(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Media Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode MediaResource::deleteMedia(string &responseMsg)
+EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathElements, const long long &orgId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, *m_session);
 
         if (medPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>> amsPtrCol = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
-                    .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ?").bind(m_pathElements[1])
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>> amsPtrCol = m_session->find<Echoes::Dbo::AlertMediaSpecialization>()
+                    .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
 
             if (amsPtrCol.size() == 0)
@@ -450,17 +460,22 @@ EReturnCode MediaResource::deleteMedia(string &responseMsg)
     return res;
 }
 
-void MediaResource::processDeleteRequest(Wt::Http::Response &response)
+EReturnCode MediaResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Media Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -468,28 +483,26 @@ void MediaResource::processDeleteRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = deleteMedia(responseMsg);
+                res = deleteMedia(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Media Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

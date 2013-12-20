@@ -15,10 +15,8 @@
 
 using namespace std;
 
-SourceResource::SourceResource()
+SourceResource::SourceResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
-    m_parameters["addon_id"] = 0;
-    m_parameters["plugin_id"] = 0;
 }
 
 SourceResource::~SourceResource()
@@ -63,13 +61,13 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
     return queryRes.resultValue();
 }
 
-EReturnCode SourceResource::getSourcesList(string &responseMsg)
+EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
         string queryStr =
 " SELECT src"
 "   FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE) " src"
@@ -83,12 +81,12 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
 "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                 WHERE"
-"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(m_organization);
+"                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId);
 
-        if (m_parameters["plugin_id"] > 0)
+        if (parameters["plugin_id"] > 0)
         {
             queryStr +=
-"                   AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(m_parameters["plugin_id"]);
+"                   AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(parameters["plugin_id"]);
         }
 
         queryStr +=
@@ -97,7 +95,7 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
 "       )"
 "     AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Source>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Source>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Source>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Source>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = queryRes.resultList();
 
@@ -113,15 +111,15 @@ EReturnCode SourceResource::getSourcesList(string &responseMsg)
     return res;
 }
 
-EReturnCode SourceResource::getSource(string &responseMsg)
+EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, *m_session);
 
         res = serialize(srcPtr, responseMsg);
 
@@ -135,18 +133,18 @@ EReturnCode SourceResource::getSource(string &responseMsg)
     return res;
 }
 
-EReturnCode SourceResource::getParametersList(string &responseMsg)
+EReturnCode SourceResource::getParametersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
         string queryStr =
 " SELECT srp\n"
 "   FROM " QUOTE("TR_SOURCE_PARAMETER" SEP TRIGRAM_SOURCE_PARAMETER) " srp\n";
 
-        if (m_parameters["addon_id"] > 0)
+        if (parameters["addon_id"] > 0)
         {
             queryStr +=
 "   WHERE\n"
@@ -160,7 +158,7 @@ EReturnCode SourceResource::getParametersList(string &responseMsg)
 "                 SELECT " QUOTE(TRIGRAM_ADDON ID)
 "                   FROM " QUOTE ("TR_ADDON" SEP TRIGRAM_ADDON) "\n"
 "                   WHERE\n"
-"                     " QUOTE(TRIGRAM_ADDON ID) " = " + boost::lexical_cast<string>(m_parameters["addon_id"]) + "\n" 
+"                     " QUOTE(TRIGRAM_ADDON ID) " = " + boost::lexical_cast<string>(parameters["addon_id"]) + "\n" 
 "                     AND " QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL\n"
 "               )\n"
 "       )\n";
@@ -169,7 +167,7 @@ EReturnCode SourceResource::getParametersList(string &responseMsg)
         queryStr +=
 "   ORDER BY " QUOTE(TRIGRAM_SOURCE_PARAMETER ID)"\n";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srpPtrCol = queryRes.resultList();
 
@@ -185,16 +183,16 @@ EReturnCode SourceResource::getParametersList(string &responseMsg)
     return res;
 }
 
-EReturnCode SourceResource::getParametersListForSource(string &responseMsg)
+EReturnCode SourceResource::getParametersListForSource(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, *m_session);
         
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session.find<Echoes::Dbo::SourceParameterValue>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session->find<Echoes::Dbo::SourceParameterValue>()
                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id());
 
@@ -210,19 +208,27 @@ EReturnCode SourceResource::getParametersListForSource(string &responseMsg)
     return res;
 }
 
-void SourceResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    parameters["addon_id"] = 0;
+    parameters["plugin_id"] = 0;
+    
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getSourcesList(responseMsg);
+        res = getSourcesList(parameters, orgId, responseMsg);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        m_statusCode = getParametersList(responseMsg);
+        res = getParametersList(parameters, orgId, responseMsg);
     }
     else
     {
@@ -230,35 +236,33 @@ void SourceResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getSource(responseMsg);
+                res = getSource(pathElements, orgId, responseMsg);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                m_statusCode = getParametersListForSource(responseMsg);
+                res = getParametersListForSource(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Source Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode SourceResource::postSource(string& responseMsg, const string& sRequest)
+EReturnCode SourceResource::postSource(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long adoId;
@@ -296,12 +300,12 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
+            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session->find<Echoes::Dbo::Plugin>()
                     .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(plgId)
                     .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
             if (!plgPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -309,7 +313,7 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
                 return res;
             }
 
-            Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session.find<Echoes::Dbo::Addon>()
+            Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session->find<Echoes::Dbo::Addon>()
                     .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(adoId)
                     .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL");
             if (!adoPtr)
@@ -322,7 +326,7 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
             Echoes::Dbo::Source *newSrc = new Echoes::Dbo::Source();
             newSrc->addon = adoPtr;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Source> newSrcPtr = m_session.add<Echoes::Dbo::Source>(newSrc);
+            Wt::Dbo::ptr<Echoes::Dbo::Source> newSrcPtr = m_session->add<Echoes::Dbo::Source>(newSrc);
             newSrcPtr.flush();
 
             try
@@ -338,7 +342,7 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
                     newSpv->name = it->get()->name;
                     newSpv->pk.sourceParameter = *it;
                     newSpv->pk.source = newSrcPtr;
-                    m_session.add<Echoes::Dbo::SourceParameterValue>(newSpv);
+                    m_session->add<Echoes::Dbo::SourceParameterValue>(newSpv);
                 }
             }
             catch (Wt::Json::ParseError const& e)
@@ -368,46 +372,54 @@ EReturnCode SourceResource::postSource(string& responseMsg, const string& sReque
     return res;
 }
 
-void SourceResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = postSource(responseMsg, m_requestData);
+        res = postSource(sRequest, orgId, responseMsg);
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Source Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode SourceResource::putSource(string &responseMsg, const string &sRequest)
+EReturnCode SourceResource::putSource(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     return res;
 }
 
-void SourceResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Source Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -415,45 +427,43 @@ void SourceResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putSource(responseMsg, m_requestData);
+                res = putSource(sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Source Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode SourceResource::deleteSource(string& responseMsg)
+EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try 
     {  
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(m_pathElements[1], m_organization, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, *m_session);
 
         if(srcPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = m_session.find<Echoes::Dbo::Search>()
-                    .where(QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)" = ?").bind(m_pathElements[1])
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = m_session->find<Echoes::Dbo::Search>()
+                    .where(QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL");
 
             if (seaPtrCol.size() == 0)
@@ -484,17 +494,22 @@ EReturnCode SourceResource::deleteSource(string& responseMsg)
     return res;
 }
 
-void SourceResource::processDeleteRequest(Wt::Http::Response &response)
+EReturnCode SourceResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Source Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -502,28 +517,26 @@ void SourceResource::processDeleteRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = deleteSource(responseMsg);
+                res = deleteSource(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Source Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

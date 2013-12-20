@@ -15,7 +15,7 @@
 
 using namespace std;
 
-RoleResource::RoleResource() : PublicApiResource::PublicApiResource()
+RoleResource::RoleResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -23,16 +23,16 @@ RoleResource::~RoleResource()
 {
 }
 
-EReturnCode RoleResource::getRolesList(string &responseMsg)
+EReturnCode RoleResource::getRolesList(const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> uroPtrCol = m_session.find<Echoes::Dbo::UserRole>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> uroPtrCol = m_session->find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_USER_ROLE ID));
 
         res = serialize(uroPtrCol, responseMsg);
@@ -47,17 +47,17 @@ EReturnCode RoleResource::getRolesList(string &responseMsg)
     return res;
 }
 
-EReturnCode RoleResource::getRole(string &responseMsg)
+EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
-                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
         res = serialize(uroPtr, responseMsg);
 
@@ -71,15 +71,20 @@ EReturnCode RoleResource::getRole(string &responseMsg)
     return res;
 }
 
-void RoleResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getRolesList(responseMsg);
+        res = getRolesList(orgId, responseMsg);
     }
     else
     {
@@ -87,31 +92,29 @@ void RoleResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getRole(responseMsg);
+                res = getRole(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Role Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode RoleResource::postRole(string &responseMsg, const string &sRequest)
+EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -147,13 +150,13 @@ EReturnCode RoleResource::postRole(string &responseMsg, const string &sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
             Echoes::Dbo::UserRole *newUro = new Echoes::Dbo::UserRole();
             newUro->name = name;
-            newUro->organization = m_session.user()->organization;
+            newUro->organization = m_session->user()->organization;
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session.add<Echoes::Dbo::UserRole>(newUro);
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session->add<Echoes::Dbo::UserRole>(newUro);
             newUroPtr.flush();
 
             res = serialize(newUroPtr, responseMsg, EReturnCode::CREATED);
@@ -170,29 +173,32 @@ EReturnCode RoleResource::postRole(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void RoleResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = postRole(responseMsg, m_requestData);
+        res = postRole(sRequest, orgId, responseMsg);
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Role Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode RoleResource::putRole(string &responseMsg, const string &sRequest)
+EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -231,12 +237,12 @@ EReturnCode RoleResource::putRole(string &responseMsg, const string &sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
-                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_pathElements[1])
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
             if (uroPtr)
             {
@@ -265,17 +271,22 @@ EReturnCode RoleResource::putRole(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void RoleResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Role Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -283,33 +294,26 @@ void RoleResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putRole(responseMsg, m_requestData);
+                res = putRole(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Role Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
-}
-
-void RoleResource::processDeleteRequest(Wt::Http::Response &response)
-{
-    return;
+    return res;
 }
 

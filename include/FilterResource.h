@@ -20,7 +20,7 @@
 class FilterResource : public PublicApiResource
 {
     public:
-        FilterResource();
+        FilterResource(Echoes::Dbo::Session*);
         virtual ~FilterResource();
 
         /**
@@ -46,20 +46,20 @@ class FilterResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     private:
-        EReturnCode getFiltersList(std::string &responseMsg);
-        EReturnCode getFilter(std::string &responseMsg);
-        EReturnCode getParametersList(std::string &responseMsg);
-        EReturnCode getParametersListForFilter(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getFiltersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getParametersListForFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postFilter(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postFilter(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putFilter(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putFilter(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteFilter(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode deleteFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* FILTERRESOURCE_H */

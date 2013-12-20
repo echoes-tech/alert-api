@@ -19,19 +19,19 @@
 class UserResource : public PublicApiResource
 {
     public :
-        UserResource();
+        UserResource(Echoes::Dbo::Session*);
         virtual ~UserResource();
         
     protected :
-        EReturnCode getUsersList(std::string &response);
-        EReturnCode getUser(std::string &response);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getUsersList(const long long &orgId, std::string &response);
+        EReturnCode getUser(const std::vector<std::string> &pathElements, const long long &orgId, std::string &response);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postActionForUser(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postActionForUser(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putUser(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putUser(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* USERRESOURCE_H */

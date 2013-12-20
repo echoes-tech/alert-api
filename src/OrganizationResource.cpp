@@ -15,7 +15,7 @@
 
 using namespace std;
 
-OrganizationResource::OrganizationResource() : PublicApiResource::PublicApiResource()
+OrganizationResource::OrganizationResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -23,16 +23,16 @@ OrganizationResource::~OrganizationResource()
 {
 }
 
-EReturnCode OrganizationResource::getOrganizationsList(string &responseMsg)
+EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session.find<Echoes::Dbo::Organization>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session->find<Echoes::Dbo::Organization>()
                 .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_ORGANIZATION ID));
 
         res = serialize(orgPtrCol, responseMsg);
@@ -47,17 +47,17 @@ EReturnCode OrganizationResource::getOrganizationsList(string &responseMsg)
     return res;
 }
 
-EReturnCode OrganizationResource::getOrganization(std::string &responseMsg)
+EReturnCode OrganizationResource::getOrganization(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
+        Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
                 .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_pathElements[1])
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization);
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
         res = serialize(orgPtr, responseMsg);
 
@@ -71,15 +71,20 @@ EReturnCode OrganizationResource::getOrganization(std::string &responseMsg)
     return res;
 }
 
-void OrganizationResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode OrganizationResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getOrganizationsList(responseMsg);
+        res = getOrganizationsList(orgId, responseMsg);
     }
     else
     {
@@ -87,43 +92,25 @@ void OrganizationResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getOrganization(responseMsg);
+                res = getOrganization(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Organization Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
-}
-
-void OrganizationResource::processPostRequest(Wt::Http::Response &response)
-{
-
-    return;
-}
-
-void OrganizationResource::processPutRequest(Wt::Http::Response &response)
-{
-    return;
-}
-
-void OrganizationResource::processDeleteRequest(Wt::Http::Response &response)
-{
-    return;
+    return res;
 }
 

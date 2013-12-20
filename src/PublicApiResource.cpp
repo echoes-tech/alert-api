@@ -121,12 +121,10 @@ std::string PublicApiResource::getTableName<string>(string const& string)
     return "";
 }
 
-PublicApiResource::PublicApiResource() : Wt::WResource(),
-m_session(),
-m_indexPathElement(1),
-m_statusCode(EReturnCode::INTERNAL_SERVER_ERROR),
-m_organization(0)
+PublicApiResource::PublicApiResource(Echoes::Dbo::Session *session) : Wt::WResource(),
+m_session(session)
 {
+    //mutex_.reset(new boost::recursive_mutex());
 }
 
 PublicApiResource::~PublicApiResource()
@@ -167,46 +165,13 @@ unsigned short PublicApiResource::retrieveCurrentHttpMethod(const string &method
     return res;
 }
 
-void PublicApiResource::setPathElementsVector(const string &path)
-{
-    boost::split(m_pathElements, path, boost::is_any_of("/"), boost::token_compress_on);
-
-    return;
-}
-
-void PublicApiResource::setRequestData(const Wt::Http::Request &request)
-{
-    m_requestData = request2string(request);
-    return;
-}
-
-void PublicApiResource::setParameters(const Wt::Http::Request &request)
-{
-    for (map<std::string, long long>::iterator it = m_parameters.begin(); it != m_parameters.end(); ++it)
-    {
-        if (request.getParameter(it->first) != 0)
-        {
-            try
-            {
-                it->second = boost::lexical_cast<unsigned long long>(*request.getParameter(it->first));
-            }
-            catch (boost::bad_lexical_cast const& e)
-            {
-                Wt::log("warning") << "[PUBLIC API] Bad URL parameter: " << e.what();
-            }
-        }
-    }
-
-    return;
-}
-
-string PublicApiResource::getNextElementFromPath()
+string PublicApiResource::getNextElementFromPath(unsigned short &indexPathElement, vector<string> &pathElements)
 {
     string res = "";
 
-    if (m_pathElements.size() > m_indexPathElement)
+    if (pathElements.size() > indexPathElement)
     {
-        res = m_pathElements[m_indexPathElement++];
+        res = pathElements[indexPathElement++];
     }
 
     return res;
@@ -245,47 +210,59 @@ string PublicApiResource::request2string(const Wt::Http::Request &request)
     return s;
 }
 
-void PublicApiResource::resetAttributs()
+string PublicApiResource::processRequestParameters(const Wt::Http::Request &request, vector<string> &pathElements, map<string, long long> &parameters)
 {
-    m_requestData = "";
-    m_indexPathElement = 1;
-    m_statusCode = EReturnCode::INTERNAL_SERVER_ERROR;
-    m_organization = 0;
+    const string path = request.pathInfo();
+    boost::split(pathElements, path, boost::is_any_of("/"), boost::token_compress_on);
 
-    for (map<std::string, long long>::iterator it = m_parameters.begin(); it != m_parameters.end(); ++it)
+    for (map<std::string, long long>::iterator it = parameters.begin(); it != parameters.end(); ++it)
     {
-        it->second = 0;
+        if (request.getParameter(it->first) != 0)
+        {
+            try
+            {
+                it->second = boost::lexical_cast<unsigned long long>(*request.getParameter(it->first));
+            }
+            catch (boost::bad_lexical_cast const& e)
+            {
+                Wt::log("warning") << "[PUBLIC API] Bad URL parameter: " << e.what();
+            }
+        }
     }
-
-    return;
+    
+    return request2string(request);
 }
 
-void PublicApiResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode PublicApiResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    response.setStatus(EReturnCode::BAD_REQUEST);
-    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
-    return;
+    EReturnCode res = EReturnCode::BAD_REQUEST;
+    const string err = "[Public Api Resource] GET Method not implemented";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
 }
 
-void PublicApiResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode PublicApiResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    response.setStatus(EReturnCode::BAD_REQUEST);
-    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
-    return;
+    EReturnCode res = EReturnCode::BAD_REQUEST;
+    const string err = "[Public Api Resource] POST Method not implemented";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
 }
 
-void PublicApiResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode PublicApiResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    response.setStatus(EReturnCode::BAD_REQUEST);
-    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
-    return;
+    EReturnCode res = EReturnCode::BAD_REQUEST;
+    const string err = "[Public Api Resource] PUT Method not implemented";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
 }
 
-void PublicApiResource::processDeleteRequest(Wt::Http::Response &response)
+EReturnCode PublicApiResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    response.setStatus(EReturnCode::BAD_REQUEST);
-    response.out() << "{\n\t\"message\":\"Bad Request\"\n}";
-    return;
+    EReturnCode res = EReturnCode::BAD_REQUEST;
+    const string err = "[Public Api Resource] DELETE Method not implemented";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
 }
 
 void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
@@ -293,13 +270,15 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     Wt::log("info") << "[PUBLIC API] Identifying";
 
     // default : not authentified
-    m_authentified = false;
+    bool authentified = false;
     bool notAllowed = false;
 
     string login = "";
     string password = "";
     string token = "";
     string eno_token = "";
+
+    long long orgId = 0;
 
     if (request.getParameter("login") != 0)
     {
@@ -336,40 +315,40 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
     }
-
-    m_session.initConnection(conf.getSessConnectParams());
+    
+//    m_session->initConnection(conf.getSessConnectParams());
     if (!login.empty())
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
             // check whether the user exists
-            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = m_session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
+            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = m_session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
             if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType))
             {
                 // find the user from his login
-                Wt::Auth::User user = m_session.users().findWithIdentity(Wt::Auth::Identity::LoginName, login);
+                Wt::Auth::User user = m_session->users().findWithIdentity(Wt::Auth::Identity::LoginName, login);
 
                 if (user.isValid())
                 {
                     if (!password.empty())
                     {
                         // ToDo: find problem cause : why rereadAll ??
-                        m_session.rereadAll();
+                        m_session->rereadAll();
                         // verify
-                        switch (m_session.passwordAuth().verifyPassword(user, password))
+                        switch (m_session->passwordAuth().verifyPassword(user, password))
                         {
                             case Wt::Auth::PasswordValid:
-                                m_session.login().login(user);
-                                m_authentified = true;
+                                m_session->login().login(user);
+                                authentified = true;
                                 Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
                                 break;
                             case Wt::Auth::LoginThrottling:
                                 Wt::log("info") << "[PUBLIC API] too many attempts.";
                                 break;
                             case Wt::Auth::PasswordInvalid:
-                                Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number : " << user.failedLoginAttempts();
+                                Wt::log("info") << "[PUBLIC API] " << user.id() << " failure number: " << user.failedLoginAttempts();
                                 break;
                             default:
                                 break;
@@ -377,15 +356,15 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     }
                     else if (!token.empty())
                     {
-                        Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session.find<Echoes::Dbo::User>()
+                        Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session->find<Echoes::Dbo::User>()
                                 .where(QUOTE(TRIGRAM_USER SEP "MAIL") " = ?").bind(login)
                                 .where(QUOTE(TRIGRAM_USER SEP "TOKEN") " = ?").bind(token)
                                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                                 .limit(1);
                         if (userPtr)
                         {
-                            m_session.login().login(user);
-                            m_authentified = true;
+                            m_session->login().login(user);
+                            authentified = true;
                         }
                         else
                         {
@@ -397,9 +376,9 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                         Wt::log("error") << "[Public API Resource] Password or token is empty";
                     }
                     
-                    if (m_authentified)
+                    if (authentified)
                     {
-                        m_organization = m_session.user()->organization.id();
+                        orgId = m_session->user()->organization.id();
                     }
                 }
                 else
@@ -416,30 +395,30 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         }
         catch (Wt::Dbo::Exception const& e)
         {
-            Wt::log("error") << "[PUBLIC API] " << e.what();
+            Wt::log("error") << "[PUBLIC API] User log: " << e.what();
         }
     }
     else if (!eno_token.empty())
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
-            Wt::Dbo::ptr<Echoes::Dbo::Engine> enginePtr = m_session.find<Echoes::Dbo::Engine>()
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Engine> enginePtr = m_session->find<Echoes::Dbo::Engine>()
                     .where(QUOTE(TRIGRAM_ENGINE SEP "FQDN") " = ?").bind(request.clientAddress())
                     .where(QUOTE(TRIGRAM_ENGINE SEP "DELETE") " IS NULL")
                     .limit(1);
 
             if (enginePtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
+                Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session->find<Echoes::Dbo::EngOrg>()
                         .where(QUOTE(TRIGRAM_ENGINE ID SEP TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "TOKEN") " = ?").bind(eno_token)
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "DELETE") " IS NULL")
                         .limit(1);
                 if (engOrgPtr)
                 {
-                    m_authentified = true;
-                    m_organization = engOrgPtr->pk.organization.id();
+                    authentified = true;
+                    orgId = engOrgPtr->pk.organization.id();
                 }
                 else
                 {
@@ -456,37 +435,49 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         }
         catch (Wt::Dbo::Exception const& e)
         {
-            Wt::log("error") << "[PUBLIC API] " << e.what();
+            Wt::log("error") << "[PUBLIC API] Engine log: " << e.what();
         }
     }
 
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
 
-    if (m_authentified)
+    if (authentified)
     {
-        setPathElementsVector(request.pathInfo());
-        setParameters(request);
-        setRequestData(request);
+        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+        string responseMsg = "";
 
         switch (retrieveCurrentHttpMethod(request.method()))
         {
             case Wt::Http::Get:
-                processGetRequest(response);
+                res = processGetRequest(request, orgId, responseMsg);
                 break;
             case Wt::Http::Post:
-                processPostRequest(response);
+                res = processPostRequest(request, orgId, responseMsg);
                 break;
             case Wt::Http::Put:
-                processPutRequest(response);
+                res = processPutRequest(request, orgId, responseMsg);
                 break;
             case Wt::Http::Delete:
-                processDeleteRequest(response);
+                res = processDeleteRequest(request, orgId, responseMsg);
                 break;
             default:
-                response.setStatus(EReturnCode::METHOD_NOT_ALLOWED);
-                response.out() << "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
+                res = EReturnCode::METHOD_NOT_ALLOWED;
+                responseMsg = "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
                 break;
+        }
+
+        response.setStatus(res);
+        response.out() << responseMsg;
+
+        try
+        {
+            Wt::log("info") << "[PUBLIC API] " << m_session->user().id() << " logged out.";
+            m_session->login().logout();
+        }
+        catch (Wt::Dbo::Exception const& e) 
+        {
+            Wt::log("error") << "[PUBLIC API] User logout" << e.what();
         }
     }
     else if (notAllowed)
@@ -500,7 +491,5 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         response.setStatus(EReturnCode::UNAUTHORIZED);
         response.out() << "{\n\t\"message\": \"Authentication failure\"\n}";
     }
-
-    resetAttributs();
 }
 

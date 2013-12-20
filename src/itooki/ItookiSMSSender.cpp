@@ -100,7 +100,7 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                 Echoes::Dbo::Session session(conf.getSessConnectParams());
                 try
                 {
-                    Wt::Dbo::Transaction transaction(session);
+                    Echoes::Dbo::SafeTransaction transaction(session);
 
                     Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = session.find<Echoes::Dbo::AlertTracking>()
                         .where(QUOTE(TRIGRAM_ALERT_TRACKING ID) " = ?").bind(atrId)
@@ -108,7 +108,7 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
 
                     if (atrPtr)
                     {
-                            Wt::Dbo::Transaction transaction(session);
+                            Echoes::Dbo::SafeTransaction transaction(session);
 
                             atrPtr.modify()->ackId = splitResult[1];
                             atrPtr.modify()->ackGw = "itooki.fr";

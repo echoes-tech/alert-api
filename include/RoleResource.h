@@ -19,21 +19,21 @@
 class RoleResource : public PublicApiResource
 {
     public :
-        RoleResource();
+        RoleResource(Echoes::Dbo::Session*);
         virtual ~RoleResource();
         
     protected :
-        EReturnCode getRolesList(std::string &response);
-        EReturnCode getRole(std::string &response);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getRolesList(const long long &orgId, std::string &response);
+        EReturnCode getRole(const std::vector<std::string> &pathElements, const long long &orgId, std::string &response);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postRole(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postRole(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putRole(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putRole(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+//        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* ROLERESOURCE_H */

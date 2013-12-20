@@ -28,7 +28,6 @@
       <itemPath>include/PublicApiResource.h</itemPath>
       <itemPath>include/RoleResource.h</itemPath>
       <itemPath>include/SearchResource.h</itemPath>
-      <itemPath>include/SendSMS.h</itemPath>
       <itemPath>include/SourceResource.h</itemPath>
       <itemPath>include/SrReception.h</itemPath>
       <itemPath>include/UnitResource.h</itemPath>
@@ -127,10 +126,11 @@
             <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
+            <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>boost_system</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
-            <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>stdc++</linkerLibLibItem>
+            <linkerLibLibItem>pthread</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-lwthttp</commandLine>
         </linkerTool>
@@ -198,8 +198,6 @@
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SearchResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -369,8 +367,6 @@
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SearchResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/SendSMS.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceResource.h" ex="false" tool="3" flavor2="0">
       </item>

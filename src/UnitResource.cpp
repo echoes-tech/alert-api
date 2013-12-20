@@ -15,7 +15,7 @@
 
 using namespace std;
 
-UnitResource::UnitResource() : PublicApiResource::PublicApiResource()
+UnitResource::UnitResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -23,14 +23,14 @@ UnitResource::~UnitResource()
 {
 }
 
-EReturnCode UnitResource::getUnitsList(string& responseMsg)
+EReturnCode UnitResource::getUnitsList(const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrCol = m_session.find<Echoes::Dbo::InformationUnit>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrCol = m_session->find<Echoes::Dbo::InformationUnit>()
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_INFORMATION_UNIT ID));
 
@@ -46,15 +46,15 @@ EReturnCode UnitResource::getUnitsList(string& responseMsg)
     return res;
 }
 
-EReturnCode UnitResource::getUnit(string &responseMsg)
+EReturnCode UnitResource::getUnit(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
-                .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
 
         res = serialize(inuPtr, responseMsg);
@@ -69,15 +69,20 @@ EReturnCode UnitResource::getUnit(string &responseMsg)
     return res;
 }
 
-void UnitResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getUnitsList(responseMsg);
+        res = getUnitsList(orgId, responseMsg);
     }
     else
     {
@@ -85,31 +90,29 @@ void UnitResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getUnit(responseMsg);
+                res = getUnit(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Unit Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
+EReturnCode UnitResource::postUnit(const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long iutId;
@@ -154,9 +157,9 @@ EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> iutPtr = m_session.find<Echoes::Dbo::InformationUnitType>()
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> iutPtr = m_session->find<Echoes::Dbo::InformationUnitType>()
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT_TYPE ID) " = ?").bind(iutId)
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT_TYPE SEP "DELETE") " IS NULL");
             if (!iutPtr)
@@ -169,7 +172,7 @@ EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
             Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> baseInuPtr;
             if (baseInuId > 0)
             {
-                baseInuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
+                baseInuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
                         .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(baseInuId)
                         .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
                 if (!baseInuPtr)
@@ -189,7 +192,7 @@ EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
             }
             newInu->baseOperation = baseOperation;
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> newInuPtr = m_session.add<Echoes::Dbo::InformationUnit>(newInu);
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> newInuPtr = m_session->add<Echoes::Dbo::InformationUnit>(newInu);
             newInuPtr.flush();
 
             res = serialize(newInuPtr, responseMsg, EReturnCode::CREATED);
@@ -206,29 +209,32 @@ EReturnCode UnitResource::postUnit(string& responseMsg, const string& sRequest)
     return res;
 }
 
-void UnitResource::processPostRequest(Wt::Http::Response &response)
+EReturnCode UnitResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = postUnit(responseMsg, m_requestData);
+        res = postUnit(sRequest, orgId, responseMsg);
     }
     else
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Unit Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode UnitResource::putUnit(string &responseMsg, const string &sRequest)
+EReturnCode UnitResource::putUnit(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -267,10 +273,10 @@ EReturnCode UnitResource::putUnit(string &responseMsg, const string &sRequest)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
-                    .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(m_pathElements[1])
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
 
             if (inuPtr)
@@ -300,17 +306,22 @@ EReturnCode UnitResource::putUnit(string &responseMsg, const string &sRequest)
     return res;
 }
 
-void UnitResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode UnitResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Unit Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -318,51 +329,49 @@ void UnitResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = putUnit(responseMsg, m_requestData);
+                res = putUnit(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Unit Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode UnitResource::deleteUnit(string& responseMsg)
+EReturnCode UnitResource::deleteUnit(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     try 
     {  
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
            
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
-                .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
 
         if(inuPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session.find<Echoes::Dbo::Information>()
-                    .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(m_pathElements[1])
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session->find<Echoes::Dbo::Information>()
+                    .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
-                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(m_pathElements[1])
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session->find<Echoes::Dbo::InformationData>()
+                    .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
 
             if (infPtrCol.size() == 0 && idaPtrCol.size() == 0)
@@ -393,17 +402,22 @@ EReturnCode UnitResource::deleteUnit(string& responseMsg)
     return res;
 }
 
-void UnitResource::processDeleteRequest(Wt::Http::Response &response)
+EReturnCode UnitResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Unit Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -411,28 +425,26 @@ void UnitResource::processDeleteRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (nextElement.empty())
             {
-                m_statusCode = deleteUnit(responseMsg);
+                res = deleteUnit(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Unit Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-AddonResource::AddonResource() : PublicApiResource::PublicApiResource()
+AddonResource::AddonResource(Echoes::Dbo::Session *session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -23,14 +23,14 @@ AddonResource::~AddonResource()
 {
 }
 
-EReturnCode AddonResource::getAddonsList(string& responseMsg)
+EReturnCode AddonResource::getAddonsList(const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoPtrCol = m_session.find<Echoes::Dbo::Addon>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoPtrCol = m_session->find<Echoes::Dbo::Addon>()
                 .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_ADDON ID));
 
@@ -46,15 +46,15 @@ EReturnCode AddonResource::getAddonsList(string& responseMsg)
     return res;
 }
 
-EReturnCode AddonResource::getAddon(string& responseMsg)
+EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session.find<Echoes::Dbo::Addon>()
-                .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session->find<Echoes::Dbo::Addon>()
+                .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL");
 
         res = serialize(adoPtr, responseMsg);
@@ -69,43 +69,46 @@ EReturnCode AddonResource::getAddon(string& responseMsg)
     return res;
 }
 
-void AddonResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
     if (nextElement.empty())
     {
-        m_statusCode = getAddonsList(responseMsg);
+        res = getAddonsList(orgId, responseMsg);
     }
     else
     {
         try
         {
             boost::lexical_cast<unsigned long long>(nextElement);
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getAddon(responseMsg);
+                res = getAddon(pathElements, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Addon Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

@@ -15,25 +15,22 @@
 
 using namespace std;
 
-CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
+CriterionResource::CriterionResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
 {
-    m_parameters["media_type_id"] = 0;
-    m_parameters["user_role_id"] = 0;
-    m_parameters["information_id"] = 0;
 }
 
 CriterionResource::~CriterionResource()
 {
 }
 
-EReturnCode CriterionResource::getCriteriaList(string &responseMsg)
+EReturnCode CriterionResource::getCriteriaList(const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria>> acrPtrCol = m_session.find<Echoes::Dbo::AlertCriteria>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria>> acrPtrCol = m_session->find<Echoes::Dbo::AlertCriteria>()
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_ALERT_CRITERIA ID));
 
@@ -49,15 +46,15 @@ EReturnCode CriterionResource::getCriteriaList(string &responseMsg)
     return res;
 }
 
-EReturnCode CriterionResource::getCriterion(string &responseMsg)
+EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Wt::Dbo::Transaction transaction(m_session);
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
-                .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(m_pathElements[1])
+        Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session->find<Echoes::Dbo::AlertCriteria>()
+                .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
 
         res = serialize(acrPtr, responseMsg);
@@ -72,11 +69,11 @@ EReturnCode CriterionResource::getCriterion(string &responseMsg)
     return res;
 }
 
-EReturnCode CriterionResource::getAliasForCriterion(string &responseMsg)
+EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (m_parameters["media_type_id"] <= 0 || m_parameters["user_role_id"] <= 0 || m_parameters["information_id"] <= 0)
+    if (parameters["media_type_id"] <= 0 || parameters["user_role_id"] <= 0 || parameters["information_id"] <= 0)
     {
         res = EReturnCode::BAD_REQUEST;
         const string err = "[Criterion Resource] media_types or/and user_role or/and information are empty";
@@ -87,20 +84,20 @@ EReturnCode CriterionResource::getAliasForCriterion(string &responseMsg)
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
-                    .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role_id"])
-                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(m_organization)
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session->find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
                         .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION_CRITERIA SEP "DELETE") " IS NULL")
-                        .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(m_parameters["user_role_id"])
-                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(m_parameters["media_type_id"])
-                        .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(m_parameters["information_id"])
-                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID SEP TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(m_pathElements[1]);
+                        .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
+                        .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(parameters["media_type_id"])
+                        .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(parameters["information_id"])
+                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID SEP TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1]);
 
                 res = serialize(aicPtr, responseMsg);
             }
@@ -122,15 +119,24 @@ EReturnCode CriterionResource::getAliasForCriterion(string &responseMsg)
     return res;
 }
 
-void CriterionResource::processGetRequest(Wt::Http::Response &response)
+EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    parameters["media_type_id"] = 0;
+    parameters["user_role_id"] = 0;
+    parameters["information_id"] = 0;
+    
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = getCriteriaList(responseMsg);
+        res = getCriteriaList(orgId, responseMsg);
     }
     else
     {
@@ -138,35 +144,33 @@ void CriterionResource::processGetRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                m_statusCode = getCriterion(responseMsg);
+                res = getCriterion(pathElements, orgId, responseMsg);
             }
             else if (!nextElement.compare("alias"))
             {
-                m_statusCode = getAliasForCriterion(responseMsg);
+                res = getAliasForCriterion(pathElements, parameters, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Criterion Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 
-EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const string &sRequest)
+EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -209,14 +213,14 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
     {
         try
         {
-            Wt::Dbo::Transaction transaction(m_session);
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr =  m_session.find<Echoes::Dbo::AlertCriteria>()
-                .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(m_pathElements[1])
+            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr =  m_session->find<Echoes::Dbo::AlertCriteria>()
+                .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");;
             if (acrPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
+                Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
                          .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(infId)
                          .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
                 if (!infPtr)
@@ -226,7 +230,7 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
+                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
                 if (!uroPtr)
@@ -236,7 +240,7 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
+                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
                 if (!mtyPtr)
@@ -246,10 +250,10 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session->find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(infId)
-                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID SEP TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(m_pathElements[1])
+                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID SEP TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId);
                 if (aicPtr)
                 {
@@ -263,7 +267,7 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
                     newAic->pk.userRole = uroPtr;
                     newAic->pk.mediaType = mtyPtr;
                     newAic->alias = value;
-                    aicPtr = m_session.add<Echoes::Dbo::AlertMessageAliasInformationCriteria>(newAic);
+                    aicPtr = m_session->add<Echoes::Dbo::AlertMessageAliasInformationCriteria>(newAic);
                 }
                 res = EReturnCode::OK;
             }
@@ -284,17 +288,22 @@ EReturnCode CriterionResource::putAliasForCriterion(string &responseMsg, const s
     return res; 
 }
 
-void CriterionResource::processPutRequest(Wt::Http::Response &response)
+EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    string responseMsg = "";
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
 
-    nextElement = getNextElementFromPath();
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        m_statusCode = EReturnCode::BAD_REQUEST;
+        res = EReturnCode::BAD_REQUEST;
         const string err = "[Criterion Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(m_statusCode, err);
+        responseMsg = httpCodeToJSON(res, err);
     }
     else
     {
@@ -302,28 +311,26 @@ void CriterionResource::processPutRequest(Wt::Http::Response &response)
         {
             boost::lexical_cast<unsigned long long>(nextElement);
 
-            nextElement = getNextElementFromPath();
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
             if (!nextElement.compare("alias"))
             {
-                m_statusCode = putAliasForCriterion(responseMsg, m_requestData);
+                res = putAliasForCriterion(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
-                m_statusCode = EReturnCode::BAD_REQUEST;
+                res = EReturnCode::BAD_REQUEST;
                 const string err = "[Criterion Resource] bad nextElement";
-                responseMsg = httpCodeToJSON(m_statusCode, err);
+                responseMsg = httpCodeToJSON(res, err);
             }
         }
         catch (boost::bad_lexical_cast const& e)
         {
-            m_statusCode = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(m_statusCode, e);
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
         }
     }
 
-    response.setStatus(m_statusCode);
-    response.out() << responseMsg;
-    return;
+    return res;
 }
 

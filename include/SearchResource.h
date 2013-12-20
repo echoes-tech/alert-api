@@ -20,7 +20,7 @@
 class SearchResource : public PublicApiResource
 {
     public:
-        SearchResource();
+        SearchResource(Echoes::Dbo::Session*);
         virtual ~SearchResource();
 
         /**
@@ -46,20 +46,20 @@ class SearchResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Search> selectSearch(const std::string &seaId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     private:
-        EReturnCode getSearchsList(std::string &responseMsg);
-        EReturnCode getSearch(std::string &responseMsg);
-        EReturnCode getParametersList(std::string &responseMsg);
-        EReturnCode getParametersListForSearch(std::string &responseMsg);
-        virtual void processGetRequest(Wt::Http::Response &response);
+        EReturnCode getSearchsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getSearch(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+        EReturnCode getParametersListForSearch(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode postSearch(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPostRequest(Wt::Http::Response &response);
+        EReturnCode postSearch(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putSearch(std::string &responseMsg, const std::string &sRequest);
-        virtual void processPutRequest(Wt::Http::Response &response);
+        EReturnCode putSearch(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteSearch(std::string &responseMsg);
-        virtual void processDeleteRequest(Wt::Http::Response &response);
+        EReturnCode deleteSearch(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* SEARCHRESOURCE_H */
