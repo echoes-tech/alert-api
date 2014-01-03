@@ -170,6 +170,7 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long mtyId;
+    long long usrId;
     Wt::WString value;
 
     if (!sRequest.empty())
@@ -180,6 +181,7 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
             Wt::Json::parse(sRequest, result);
 
             mtyId = result.get("type_id");
+            usrId = result.get("user_id");
             value = result.get("value");
         }
         catch (Wt::Json::ParseError const& e)
@@ -209,27 +211,37 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
             Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
                     .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                     .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
-            if (mtyPtr)
-            {
-                Echoes::Dbo::Media *newMed = new Echoes::Dbo::Media();
-                newMed->user = m_session->user();
-                newMed->mediaType = mtyPtr;
-                newMed->value = value;
-                newMed->token = Wt::WRandom::generateId(25);
-                newMed->isConfirmed = false;
-                newMed->isDefault = false;
-                Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session->add<Echoes::Dbo::Media>(newMed);
-                newMedPtr.flush();
-
-                res = serialize(newMedPtr, responseMsg, EReturnCode::CREATED);
-
-                transaction.commit();
-            }
-            else
+            if (!mtyPtr)
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, mtyPtr);
+                return res;
             }
+
+            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+                    .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(usrId)
+                    .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+            if (!usrPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, usrPtr);
+                return res;
+            }
+
+            Echoes::Dbo::Media *newMed = new Echoes::Dbo::Media();
+            newMed->user = usrPtr;
+            newMed->mediaType = mtyPtr;
+            newMed->value = value;
+            newMed->token = Wt::WRandom::generateId(25);
+            newMed->isConfirmed = false;
+            newMed->isDefault = false;
+            Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session->add<Echoes::Dbo::Media>(newMed);
+            newMedPtr.flush();
+
+            res = serialize(newMedPtr, responseMsg, EReturnCode::CREATED);
+
+            transaction.commit();
         }
         catch (Wt::Dbo::Exception const& e)
         {
