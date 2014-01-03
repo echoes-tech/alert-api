@@ -211,7 +211,6 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
         responseMsg = httpCodeToJSON(res, err);
     }
 
-
     if (responseMsg.empty())
     {
         try
@@ -275,6 +274,127 @@ EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &req
         responseMsg = httpCodeToJSON(res, err);
     }
 
+    return res;
+}
+
+EReturnCode InformationResource::putInformation(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    Wt::WString name;
+    Wt::WString calculate;
+    Wt::WString desc;
+    bool display;
+    bool isDisplayIsPresent = false;
+    long long inuId = 0;
+
+    if (!sRequest.empty())
+    {
+        try
+        {
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+
+            if(result.contains("name"))
+            {
+                name = result.get("name");
+            }
+            if(result.contains("desc"))
+            {
+                desc = result.get("desc");
+            }
+            if(result.contains("display"))
+            {
+                display = result.get("display");
+                isDisplayIsPresent = true;
+            }
+            if(result.contains("unit_id"))
+            {
+                inuId = result.get("unit_id");
+            }
+            if(result.contains("calculate"))
+            {
+                calculate = result.get("calculate");
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Information Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
+
+            Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
+                .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
+
+            if (infPtr)
+            {
+                if (!name.empty())
+                {
+                    infPtr.modify()->name = name;
+                }
+                if (!desc.empty())
+                {
+                    infPtr.modify()->desc = desc;
+                }
+                if (isDisplayIsPresent)
+                {
+                    infPtr.modify()->display = display;
+                }
+                if (inuId > 0)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                            .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(inuId)
+                            .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
+                    if (inuPtr)
+                    {
+                        infPtr.modify()->informationUnit = inuPtr;
+                    }
+                    else
+                    {
+                        Wt::log("debug") << "[Information Resource] Put Information: unit not found";
+                    }
+                }
+                if (!calculate.empty())
+                {
+                    infPtr.modify()->calculate = calculate;
+                }
+
+                res = serialize(infPtr, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, infPtr);
+            }
+
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    
     return res;
 }
 
@@ -406,7 +526,11 @@ EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &requ
 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
 
-            if (!nextElement.compare("alias"))
+            if (nextElement.empty())
+            {
+                res = putInformation(pathElements, sRequest, orgId, responseMsg);
+            }
+            else if (!nextElement.compare("alias"))
             {
                 res = putAliasForInformation(pathElements, sRequest, orgId, responseMsg);
             }
