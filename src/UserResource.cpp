@@ -155,7 +155,8 @@ EReturnCode UserResource::postActionForUser(const string& sRequest, const long l
         {
             Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session->find<Echoes::Dbo::UserActionType>().where(QUOTE(TRIGRAM_USER_ACTION_TYPE ID) " = ?").bind(uacId);
+            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session->find<Echoes::Dbo::UserActionType>()
+                    .where(QUOTE(TRIGRAM_USER_ACTION_TYPE ID) " = ?").bind(uacId);
 
             Echoes::Dbo::UserHistoricalAction *newUha = new Echoes::Dbo::UserHistoricalAction();
             newUha->tableObject = tableObject;

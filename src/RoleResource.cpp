@@ -152,9 +152,19 @@ EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgI
         {
             Echoes::Dbo::SafeTransaction transaction(*m_session);
 
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+            if (!orgPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, orgPtr);
+                return res;
+            }
+
             Echoes::Dbo::UserRole *newUro = new Echoes::Dbo::UserRole();
             newUro->name = name;
-            newUro->organization = m_session->user()->organization;
+            newUro->organization = orgPtr;
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session->add<Echoes::Dbo::UserRole>(newUro);
             newUroPtr.flush();

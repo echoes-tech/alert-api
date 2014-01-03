@@ -288,13 +288,23 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
         {
             Echoes::Dbo::SafeTransaction transaction(*m_session);
 
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+            if (!orgPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, orgPtr);
+                return res;
+            }
+
 //            Wt::Dbo::ptr<Echoes::Dbo::PluginReference> prePtr = m_session->find<Echoes::Dbo::PluginReference>()
 //                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE ID) " = ?").bind(preId)
 //                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE SEP "DELETE") " IS NULL");
 //            if (prePtr)
 //            {
                 Echoes::Dbo::Plugin *newPlg = new Echoes::Dbo::Plugin();
-                newPlg->organization = m_session->user()->organization;
+                newPlg->organization = orgPtr;
 //                newPlg->pluginReference = prePtr;
 //                newPlg->versionRef = prePtr->version;
                 newPlg->versionRef = "1.0";

@@ -238,10 +238,20 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
         {
             Echoes::Dbo::SafeTransaction transaction(*m_session);
 
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+            if (!orgPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, orgPtr);
+                return res;
+            }
+
             Echoes::Dbo::Asset *newAst = new Echoes::Dbo::Asset();
             newAst->name = name;
             newAst->assetIsHost = false;
-            newAst->organization = m_session->user()->organization;
+            newAst->organization = orgPtr;
 
             if (!architecture.empty())
             {
