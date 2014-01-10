@@ -33,7 +33,7 @@ int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::
         if(atrPtr)
         {
             Wt::Http::Client *client = new Wt::Http::Client(m_parent);
-            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, client, _1, _2, atrPtr.id()));
+//            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, client, _1, _2, atrPtr.id()));
 
             string url = "http";
             if (conf.isSmsHttps())
@@ -41,8 +41,8 @@ int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::
                 url += "s";
             }
             url += "://www.itooki.fr/http.php"
-                    "?email=" + conf.getSmsLogin() +
-                    "&pass=" + conf.getSmsPassword() +
+                    "?email=" + Wt::Utils::urlEncode(conf.getSmsLogin()) +
+                    "&pass=" + Wt::Utils::urlEncode(conf.getSmsPassword()) +
                     "&numero=" + Wt::Utils::urlEncode(number) +
                     "&message=" + Wt::Utils::urlEncode(message) +
                     "&refaccus=o";

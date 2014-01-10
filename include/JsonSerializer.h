@@ -49,7 +49,7 @@ public:
     void act(Wt::Dbo::FieldRef<V> field)
     {
 //        std::cout << "In act(Wt::Dbo::FieldRef<V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
-        std::cout << "V is: " << typeid(V).name() << std::endl;
+//        std::cout << "V is: " << typeid(V).name() << std::endl;
         m_currentElem->put(transformFieldName(field.name()), field.value());
 //        std::cout << "Out act(Wt::Dbo::FieldRef<V> field) - " << field.name() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
@@ -227,7 +227,7 @@ public:
                 }
                 else
                 {
-            //                    m_currentElem->put(transformTableName(m_session.tableName<C>()), "{}");
+                    m_currentElem->put(transformTableName(m_session.tableName<C>()), "{}");
                 }
             }
             else
