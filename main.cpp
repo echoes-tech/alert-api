@@ -70,7 +70,7 @@ int main(int argc, char **argv)
             connection = new Wt::Dbo::backend::Postgres(conf.getSessConnectParams());
         //    connection->setProperty("show-queries", "true");
 
-            Wt::Dbo::FixedSqlConnectionPool *connectionPool = new Wt::Dbo::FixedSqlConnectionPool(connection, 20);
+            Wt::Dbo::FixedSqlConnectionPool *connectionPool = new Wt::Dbo::FixedSqlConnectionPool(connection, 30);
 
             Echoes::Dbo::Session *session = new Echoes::Dbo::Session();
             session->setConnectionPool(*connectionPool);
