@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/CriterionResource.o \
 	${OBJECTDIR}/src/FilterResource.o \
+	${OBJECTDIR}/src/InformationDataResource.o \
 	${OBJECTDIR}/src/InformationResource.o \
 	${OBJECTDIR}/src/JsonSerializer.o \
 	${OBJECTDIR}/src/MediaResource.o \
@@ -124,6 +125,11 @@ ${OBJECTDIR}/src/FilterResource.o: src/FilterResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/FilterResource.o src/FilterResource.cpp
+
+${OBJECTDIR}/src/InformationDataResource.o: src/InformationDataResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationDataResource.o src/InformationDataResource.cpp
 
 ${OBJECTDIR}/src/InformationResource.o: src/InformationResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -310,6 +316,19 @@ ${OBJECTDIR}/src/FilterResource_nomain.o: ${OBJECTDIR}/src/FilterResource.o src/
 	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/FilterResource_nomain.o src/FilterResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/FilterResource.o ${OBJECTDIR}/src/FilterResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/InformationDataResource_nomain.o: ${OBJECTDIR}/src/InformationDataResource.o src/InformationDataResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/InformationDataResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} $@.d;\
+	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/InformationDataResource_nomain.o src/InformationDataResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/InformationDataResource.o ${OBJECTDIR}/src/InformationDataResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/InformationResource_nomain.o: ${OBJECTDIR}/src/InformationResource.o src/InformationResource.cpp 

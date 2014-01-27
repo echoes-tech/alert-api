@@ -18,6 +18,7 @@
       <itemPath>include/CriterionResource.h</itemPath>
       <itemPath>include/Enums.h</itemPath>
       <itemPath>include/FilterResource.h</itemPath>
+      <itemPath>include/InformationDataResource.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/JsonSerializer.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
@@ -56,6 +57,7 @@
         <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/CriterionResource.cpp</itemPath>
         <itemPath>src/FilterResource.cpp</itemPath>
+        <itemPath>src/InformationDataResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/JsonSerializer.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
@@ -112,7 +114,6 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../dbo/include</pElem>
-            <pElem>../wt-3.3.1-rc2/src/web</pElem>
             <pElem>.</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -179,6 +180,8 @@
       </item>
       <item path="include/FilterResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/InformationDataResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/JsonSerializer.h" ex="false" tool="3" flavor2="0">
@@ -230,6 +233,8 @@
       <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FilterResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InformationDataResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -348,6 +353,8 @@
       </item>
       <item path="include/FilterResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/InformationDataResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/JsonSerializer.h" ex="false" tool="3" flavor2="0">
@@ -399,6 +406,8 @@
       <item path="src/CriterionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FilterResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InformationDataResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
