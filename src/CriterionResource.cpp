@@ -185,10 +185,12 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
 
+            cout << "GETTING" << endl;
             uroId = result.get("user_role_id");
             mtyId = result.get("media_type_id");
             infId = result.get("information_id");
             value = result.get("value");
+            cout << "GETTING DONE" << endl;
         }
         catch (Wt::Json::ParseError const& e)
         {

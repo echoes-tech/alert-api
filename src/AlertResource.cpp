@@ -273,7 +273,15 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             threadSleep = result.get("thread_sleep");
 
             // AVA attributs
-            keyValue = result.get("key_value");
+            if (!result.get("key_value").isNull())
+            {
+                keyValue = result.get("key_value");
+            }
+            else
+            {
+                keyValue = "";
+            }
+            
             infId = result.get("information_id");
             astId = result.get("asset_id");
             plgId = result.get("plugin_id");
