@@ -50,8 +50,6 @@ Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInform
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   LIMIT 1";
 
-    
-    
     Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
 
     return queryRes.resultValue();
@@ -65,8 +63,8 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
     {
         Echoes::Dbo::SafeTransaction transaction(*m_session);
         string queryStr =
-" SELECT med"
-"   FROM " QUOTE("T_INFORMATION_DATA_IDA") " med"
+" SELECT ida"
+"   FROM " QUOTE("T_INFORMATION_DATA_IDA") " ida"
 "   WHERE"
 "     " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " IN"
 "       ("
@@ -75,6 +73,11 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
 "           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )";
+
+        if (parameters["filter_id"] > 0)
+        {
+            queryStr += "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID) " = " + boost::lexical_cast<string>(parameters["filter_id"]);
+        }
 
         queryStr +=
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
@@ -104,9 +107,9 @@ EReturnCode InformationDataResource::getInformationData(const std::vector<std::s
     {
         Echoes::Dbo::SafeTransaction transaction(*m_session);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationData> medPtr = selectInformationData(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, *m_session);
 
-        res = serialize(medPtr, responseMsg);
+        res = serialize(idaPtr, responseMsg);
 
         transaction.commit();
     }
@@ -126,7 +129,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
     vector<string> pathElements;
     map<string, long long> parameters;
     
-    parameters["type_id"] = 0;
+    parameters["filter_id"] = 0;
 
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
