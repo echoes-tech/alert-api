@@ -50,6 +50,7 @@ class AssetResource : public PublicApiResource
         EReturnCode getAssetsList(const long long &orgId, std::string &responseMsg);
         EReturnCode getAsset(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode getAliasForAsset(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string  &responseMsg);
+        EReturnCode getPluginsForAsset(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode postAsset(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
