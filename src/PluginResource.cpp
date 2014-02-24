@@ -192,6 +192,51 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
     return res;
 }
 
+EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try
+    {
+        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        const string queryStr =
+            " SELECT ast"
+            "   FROM " QUOTE("T_ASSET_AST") " ast"
+            "   WHERE"
+            "     " QUOTE(TRIGRAM_ASSET ID) " IN"
+            "       ("
+            "         SELECT " QUOTE("T_ASSET_AST" SEP TRIGRAM_ASSET ID)
+            "           FROM " QUOTE("TJ_PLG_AST")
+            "           WHERE " QUOTE("T_PLUGIN_PLG" SEP TRIGRAM_PLUGIN ID) " = " + pathElements[1] +
+            "       )"
+            "     AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+            "     AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
+
+            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
+
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> plgColl = queryRes.resultList();
+            
+
+            if (plgColl.size() > 0)
+            {
+                res = serialize(plgColl, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, plgColl);
+            }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -228,6 +273,10 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
             else if (nextElement.compare("informations") == 0)
             {
                 res = getInformationsListForPlugin(pathElements, orgId, responseMsg);
+            }
+            else if (nextElement.compare("assets") == 0)
+            {
+                res = getAssetsListForPlugin(pathElements, orgId, responseMsg);
             }
             else
             {
