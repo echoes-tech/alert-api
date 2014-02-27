@@ -25,32 +25,41 @@
 
 #include "JsonSerializer.h"
 
+using namespace std;
+
 namespace Wt
 {
     namespace Dbo
     {
         unsigned short JsonSerializer::m_rank = 0;
-        std::vector<std::string> JsonSerializer::m_joinTableContainer;
+        vector<string> JsonSerializer::m_joinTableContainer;
         
         JsonSerializer::JsonSerializer(Session& s) :
-        m_out(std::cout),
+        m_out(cout),
         m_session(s),
         m_result(""),
         m_currentElem(&m_root),
         m_maxRank(3),
-        m_isCollection(false)
+        m_isCollection(false),
+        m_parentTableName("")
         {
         }
 
-        std::string JsonSerializer::transformFieldName(const std::string& fieldName) {
-            std::string res = fieldName;
-            std::transform(res.begin(), res.end(), res.begin(), ::tolower);
+        JsonSerializer::~JsonSerializer()
+        {
+        }
+
+        string JsonSerializer::transformFieldName(const string& fieldName)
+        {
+            string res = fieldName;
+            transform(res.begin(), res.end(), res.begin(), ::tolower);
             res.erase(0, res.find_first_of("_") + 1);
             return res;
         }
 
-        std::string JsonSerializer::transformTableName(const std::string& fieldTable) {
-            std::string res = fieldTable;
+        string JsonSerializer::transformTableName(const string& fieldTable)
+        {
+            string res = fieldTable;
             // Check if fieldTable has more than 1 '_'
             if (res.find_first_of("_") != res.find_last_of("_")) {
                 res = transformFieldName(fieldTable);
@@ -59,7 +68,15 @@ namespace Wt
             return res;
         }
 
-        std::string JsonSerializer::getResult()
+        string JsonSerializer::getTrigramFromTableName(const string& tableName)
+        {
+            string res = tableName;
+            res.erase(0, res.find_last_of("_") + 1);
+            return res;
+            
+        }
+        
+        string JsonSerializer::getResult()
         {
             return m_result;
         }

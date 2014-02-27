@@ -26,6 +26,7 @@
 #ifndef JSONSERIALIZER_H
 #define	JSONSERIALIZER_H
 
+#include <boost/algorithm/string.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -44,9 +45,11 @@ class JsonSerializer
 public:
 
     JsonSerializer(Session& s);
+    virtual ~JsonSerializer();
 
     static std::string transformFieldName(const std::string& fieldName);
     static std::string transformTableName(const std::string& fieldTable);
+    static std::string getTrigramFromTableName(const std::string& tableName);
 
     template <class V>
     void act(Wt::Dbo::FieldRef<V> field)
@@ -120,25 +123,44 @@ public:
     }
 
     template <class V>
-    void actCollection(const Wt::Dbo::CollectionRef< V> & collec)
+    void actCollection(const Wt::Dbo::CollectionRef<V> & collec)
     {
-            std::cout << "In actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
-// FIXME i'm famous !
-// Si cette méthode est appelée de manière récursive, m_joinTableContainer est partargé.
-// Ceci a pour conséquence, que si un objet apparait dans une collection de rang > 0
-// il ne sera présent que dans le 1er objet de la collection.
+//        std::cout << "In actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+        // FIXME i'm famous !
+        // Si cette méthode est appelée de manière récursive, m_joinTableContainer est partargé.
+        // Ceci a pour conséquence, que si un objet apparait dans une collection de rang > 0
+        // il ne sera présent que dans le 1er objet de la collection.
         if (std::find(m_joinTableContainer.begin(), m_joinTableContainer.end(), collec.joinName()) == m_joinTableContainer.end())
         {
             m_joinTableContainer.push_back(collec.joinName());
-            
-            std::string trigramV = boost::lexical_cast<std::string>(m_session.tableName<V>());
-            trigramV.erase(0, trigramV.find_last_of("_") + 1);
 
-            long long i = m_session.query<long long>("select count(1) from \"" + boost::lexical_cast<std::string>(m_session.tableName<V>()) + "\"").where("\"" + trigramV + SEP "DELETE\" IS NULL");
+            std::string tableName = "";
+            std::string fieldIdName = "";
+            std::string deleteCondition = "";
+            if (boost::starts_with(collec.joinName(), TABLE_JOINT_PREFIX SEP))
+            {
+                tableName = collec.joinName();
+                fieldIdName = m_parentTableName + SEP + getTrigramFromTableName(m_parentTableName) + ID;
+                deleteCondition = "";
+            }
+            else
+            {
+                tableName = boost::lexical_cast<std::string>(m_session.tableName<V>());
+                fieldIdName = collec.joinName() + SEP + getTrigramFromTableName(m_parentTableName) + ID;
+                deleteCondition = "AND \"" + getTrigramFromTableName(boost::lexical_cast<std::string>(m_session.tableName<V>())) + SEP "DELETE\" IS NULL";
+            }
+
+            const long long i = m_session.query<long long>(
+" SELECT COUNT(1)"
+"   FROM \"" + tableName + "\""
+"   WHERE"
+"     \"" + fieldIdName + "\" = " + boost::lexical_cast<std::string>(m_currentElem->get<long long>("id")) +
+"     " + deleteCondition
+            );
 
             m_currentElem->put<long long>(transformTableName(m_session.tableName<V>()) + "s", i);
         }
-            std::cout << "Out actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
     // We do not want to display AuthInfo to our users.
     template<class S>
@@ -179,6 +201,7 @@ public:
                     m_currentElem->put("id", c.id());
                     if (m_rank <= m_maxRank)
                     {
+                        m_parentTableName = m_session.tableName<C>();
                         const_cast<C&> (*c).persist(*this);
                     }
                     m_rank--;
@@ -216,7 +239,7 @@ public:
     // boost version: 1.53
 
     template <class C>
-    void processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs)
+    void processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr<C>>& cs)
     {
 //            std::cout << "In processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         long unsigned int i = 0;
@@ -303,14 +326,16 @@ public:
     void print();
     Session *session();
 private:
-
     std::ostream& m_out;
     std::stringstream m_ss;
     Session& m_session;
     std::string m_result;
-    boost::property_tree::ptree m_root, *m_currentElem;
+    boost::property_tree::ptree m_root;
+    boost::property_tree::ptree *m_currentElem;
     const unsigned short m_maxRank;
     bool m_isCollection;
+    std::string m_parentTableName;
+
     static std::vector<std::string> m_joinTableContainer;
     static unsigned short m_rank;
 };
