@@ -238,7 +238,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 EReturnCode AlertResource::postAlert(const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    cout << "ALERTE POSTEE" << endl;
+
     // ALE attributs
     Wt::WString name;
     Wt::WString value;
@@ -373,7 +373,6 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
             if (!idaPtr)
             {
-                cout << "NO IDA PTR" << endl;
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, idaPtr);
                 return res;
@@ -384,7 +383,6 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
             if (!acrPtr)
             {
-                cout << "NO ACR PTR" << endl;
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, acrPtr);
                 return res;
@@ -396,7 +394,6 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, orgId, *m_session);
                 if (!medPtr)
                 {
-                    cout << "NO MED PTR" << endl;
                     res = EReturnCode::NOT_FOUND;
                     responseMsg = httpCodeToJSON(res, medPtr);
                     return res;

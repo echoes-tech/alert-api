@@ -7,7 +7,7 @@
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
  * COMPANY AUTHORIZATION.
  * 
- * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
+ * COPYRIGHT 2013-2014 BY ECHOES TECHNOLGIES SAS
  * 
  */
 
@@ -32,6 +32,7 @@ EReturnCode InformationResource::getInformationsList(const long long &orgId, str
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session->find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_INFORMATION ID));
 
         res = serialize(infPtrCol, responseMsg);
@@ -46,7 +47,7 @@ EReturnCode InformationResource::getInformationsList(const long long &orgId, str
     return res;
 }
 
-EReturnCode InformationResource::getInformation(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getInformation(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -55,7 +56,8 @@ EReturnCode InformationResource::getInformation(const std::vector<std::string> &
 
         Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
+                .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
         res = serialize(infPtr, responseMsg);
 
@@ -69,7 +71,7 @@ EReturnCode InformationResource::getInformation(const std::vector<std::string> &
     return res;
 }
 
-EReturnCode InformationResource::getAliasForInformation(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getAliasForInformation(const vector<string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -118,7 +120,7 @@ EReturnCode InformationResource::getAliasForInformation(const std::vector<std::s
     return res;
 }
 
-EReturnCode InformationResource::getPluginsListForInformation(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getPluginsListForInformation(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -126,49 +128,47 @@ EReturnCode InformationResource::getPluginsListForInformation(const std::vector<
     {
         Echoes::Dbo::SafeTransaction transaction(*m_session);
         const string queryStr =
-            "SELECT plg\n"
-            "   FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) " plg\n"
-            "   WHERE\n"
-            "     " QUOTE(TRIGRAM_PLUGIN ID) " IN\n"
-            "       (\n"        
-            "                 SELECT " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) "\n"
-            "                   FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE) "\n"
-            "                   WHERE\n"
-            "                     " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN\n"        
-            "                       (\n"
-            "                         SELECT " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) "\n"
-            "                           FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) "\n"
-            "                           WHERE\n"
-            "                             " QUOTE(TRIGRAM_SEARCH ID) " IN\n"        
-            "                               (\n"
-            "                                 SELECT " QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID) "\n"
-            "                                   FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) "\n"
-            "                                   WHERE\n"
-            "                                     " QUOTE(TRIGRAM_FILTER ID) " IN\n"
-            "                                       (\n"
-            "                                         SELECT " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID) "\n"
-            "                                           FROM " QUOTE("T_INFORMATION_DATA" SEP TRIGRAM_INFORMATION_DATA) "\n"
-            "                                           WHERE\n"        
-            "                                             " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " IN\n"
-            "                                               (\n"
-            "                                                 SELECT " QUOTE(TRIGRAM_INFORMATION ID) "\n"
-            "                                                   FROM " QUOTE("T_INFORMATION" SEP TRIGRAM_INFORMATION) "\n"
-            "                                                   WHERE\n"
-//            "                                                     " QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
-//            "                                                     AND " 
-            "                                                     " QUOTE(TRIGRAM_INFORMATION ID) " = " + pathElements[1] + "\n"
-            "                                                     AND " QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL\n"
-            "                                               )\n"
-            "                                               AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL\n"        
-            "                                       )\n"
-            "                                     AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL\n"
-            "                               )\n"        
-            "                             AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL\n"
-            "                       )\n"
-            "               )\n"
-//            "       )\n"
-            "     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
-            "     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n";        
+" SELECT plg\n"
+"   FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) " plg\n"
+"   WHERE\n"
+"     " QUOTE(TRIGRAM_PLUGIN ID) " IN\n"
+"       (\n"
+"         SELECT " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN SEP TRIGRAM_PLUGIN ID) "\n"
+"           FROM " QUOTE("TJ" SEP TRIGRAM_PLUGIN SEP TRIGRAM_SOURCE) "\n"
+"           WHERE\n"
+"             " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " IN\n"        
+"               (\n"
+"                 SELECT " QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) "\n"
+"                   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) "\n"
+"                   WHERE\n"
+"                     " QUOTE(TRIGRAM_SEARCH ID) " IN\n"        
+"                       (\n"
+"                         SELECT " QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID) "\n"
+"                           FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) "\n"
+"                           WHERE\n"
+"                             " QUOTE(TRIGRAM_FILTER ID) " IN\n"
+"                               (\n"
+"                                 SELECT " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID) "\n"
+"                                   FROM " QUOTE("T_INFORMATION_DATA" SEP TRIGRAM_INFORMATION_DATA) "\n"
+"                                   WHERE\n"        
+"                                     " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " IN\n"
+"                                       (\n"
+"                                         SELECT " QUOTE(TRIGRAM_INFORMATION ID) "\n"
+"                                           FROM " QUOTE("T_INFORMATION" SEP TRIGRAM_INFORMATION) "\n"
+"                                           WHERE\n"
+"                                             " QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
+"                                             AND " QUOTE(TRIGRAM_INFORMATION ID) " = " + pathElements[1] + "\n"
+"                                             AND " QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL\n"
+"                                       )\n"
+"                                     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL\n"        
+"                               )\n"
+"                             AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL\n"
+"                       )\n"        
+"                     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL\n"
+"               )\n"
+"       )\n"
+"     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
+"     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n";        
         
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
 
@@ -186,7 +186,7 @@ EReturnCode InformationResource::getPluginsListForInformation(const std::vector<
     return res;
 }
 
-EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -215,11 +215,11 @@ EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &requ
             {
                 res = getInformation(pathElements, orgId, responseMsg);
             }
-            else if (!nextElement.compare("alias"))
+            else if (nextElement.compare("alias") == 0)
             {
                 res = getAliasForInformation(pathElements, parameters, orgId, responseMsg);
             }
-            else if (!nextElement.compare("plugins"))
+            else if (nextElement.compare("plugins") == 0)
             {
                 res = getPluginsListForInformation(pathElements, orgId, responseMsg);
             }
@@ -289,6 +289,16 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
         {
             Echoes::Dbo::SafeTransaction transaction(*m_session);
 
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+            if (!orgPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, orgPtr);
+                return res;
+            }
+            
             Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(inuId)
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
@@ -300,6 +310,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
                 newInf->calculate = calculate;
                 newInf->desc = desc;
                 newInf->informationUnit = inuPtr;
+                newInf->organization = orgPtr;
 
                 Wt::Dbo::ptr<Echoes::Dbo::Information> newInfPtr = m_session->add<Echoes::Dbo::Information>(newInf);
                 newInfPtr.flush();
@@ -324,7 +335,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
     return res; 
 }
 
-EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -349,7 +360,7 @@ EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &req
     return res;
 }
 
-EReturnCode InformationResource::putInformation(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
+EReturnCode InformationResource::putInformation(const vector<string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -415,6 +426,7 @@ EReturnCode InformationResource::putInformation(const std::vector<std::string> &
 
             Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
             if (infPtr)
@@ -470,7 +482,7 @@ EReturnCode InformationResource::putInformation(const std::vector<std::string> &
     return res;
 }
 
-EReturnCode InformationResource::putAliasForInformation(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::putAliasForInformation(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -514,6 +526,7 @@ EReturnCode InformationResource::putAliasForInformation(const std::vector<std::s
 
             Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr =  m_session->find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
             if (infPtr)
             {
@@ -573,7 +586,7 @@ EReturnCode InformationResource::putAliasForInformation(const std::vector<std::s
     return res; 
 }
 
-EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -623,7 +636,7 @@ EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &requ
     return res;
 }
 
-EReturnCode InformationResource::deleteInformation(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode InformationResource::deleteInformation(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -633,6 +646,7 @@ EReturnCode InformationResource::deleteInformation(const std::vector<std::string
 
         Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
         if(infPtr)
@@ -669,7 +683,7 @@ EReturnCode InformationResource::deleteInformation(const std::vector<std::string
     return res;
 }
 
-EReturnCode InformationResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
