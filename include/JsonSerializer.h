@@ -100,14 +100,14 @@ public:
     template <class V>
     void actPtr(Wt::Dbo::PtrRef< V> field)
     {
-//            std::cout << "In actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         if (m_rank <= m_maxRank)
         {
             m_rank++;
             processSerialize(field.value());
             m_rank--;
         }
-//            std::cout << "Out actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
     template<class S>
@@ -172,15 +172,15 @@ public:
     template <class C>
     void processSerialize(C& c)
     {
-//            std::cout << "In processSerialize(C& c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In processSerialize(C& c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         const_cast<C&> (c).persist(*this);
-//            std::cout << "Out processSerialize(C& c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out processSerialize(C& c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
     template <class C>
     void processSerialize(Wt::Dbo::ptr< C> & c)
     {
-//            std::cout << "In processSerialize(Wt::Dbo::ptr< C> & c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In processSerialize(Wt::Dbo::ptr< C> & c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         if (m_rank <= m_maxRank)
         {
             if (c)
@@ -189,12 +189,15 @@ public:
                 {
                     boost::property_tree::ptree elem;
                     boost::property_tree::ptree *previousElem;
+                    std::string previousParentTableName;
+
                     if (m_currentElem != &m_root || m_rank > 0)
                     {
                         if (!m_isCollection || m_rank > 1)
                         {
                             previousElem = m_currentElem;
                             m_currentElem = &elem;
+                            previousParentTableName = m_parentTableName;
                         }
                     }
                     m_rank++;
@@ -211,6 +214,7 @@ public:
                         {
                             m_currentElem = previousElem;
                             m_currentElem->put_child(transformTableName(m_session.tableName<C>()), elem);
+                            m_parentTableName = previousParentTableName;
                         }
                     }
                 }
@@ -224,7 +228,7 @@ public:
                 m_currentElem->put(transformTableName(m_session.tableName<C>()), "{}");
             }
         }
-//            std::cout << "Out processSerialize(Wt::Dbo::ptr< C> & c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out processSerialize(Wt::Dbo::ptr< C> & c) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
     template<class S>
@@ -241,7 +245,7 @@ public:
     template <class C>
     void processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr<C>>& cs)
     {
-//            std::cout << "In processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         long unsigned int i = 0;
         m_ss << "[\n";
         m_rank++;
@@ -278,7 +282,7 @@ public:
 // We will fix this the day we have a problem which should not happen.
         m_rank--;
         m_ss << "]\n";
-//            std::cout << "Out processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out processSerialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - " << m_session.tableName<C>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
     template<class S>
@@ -292,7 +296,7 @@ public:
     void serialize(C& c)
     {
         m_rank = 0;
-//            std::cout << "In serialize(C& c) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In serialize(C& c) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         m_joinTableContainer.clear();
         processSerialize(c);
         try
@@ -304,7 +308,7 @@ public:
             Wt::log("error") << "[JsonSerializer] - " << e.message();
         }
         m_result = m_ss.str();
-//            std::cout << "Out serialize(C& c) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out serialize(C& c) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
     // WARNING: hack to create an array on root of JSON
     // boost::property_tree::json_parser::write_json doesn't handle array for root
@@ -315,11 +319,11 @@ public:
     {
         m_rank = 0;
         m_isCollection = true;
-//            std::cout << "In serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "In serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
         m_joinTableContainer.clear();
         processSerialize(cs);
         m_result = m_ss.str();
-//            std::cout << "Out serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
+//        std::cout << "Out serialize(Wt::Dbo::collection< Wt::Dbo::ptr< C> >& cs) - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
 
     std::string getResult();
