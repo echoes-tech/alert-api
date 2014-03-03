@@ -562,18 +562,18 @@
 
 	    <property name="smtp-host"><%= smtp_host %></property>
 	    <property name="smtp-port">25</property>
-        <property name="alert-mail-sender-name">ECHOES Alert</property>
-        <property name="alert-mail-sender-address">noreply-alert@echoes-tech.com</property>
+	    <property name="alert-mail-sender-name">ECHOES Alert</property>
+	    <property name="alert-mail-sender-address">noreply-alert@echoes-tech.com</property>
 
-        <property name="db-host"><%= db_host %></property>
-        <property name="db-port">5432</property>
-        <property name="db-name"><%= db_name %></property>
-        <property name="db-user"><%= db_username %></property>
-        <property name="db-password"><%= db_password %></property>
+	    <property name="db-host"><%= database_host %></property>
+	    <property name="db-port">5432</property>
+	    <property name="db-name"><%= database_name %></property>
+	    <property name="db-user"><%= database_user %></property>
+	    <property name="db-password"><%= database_password %></property>
 
-        <property name="sms-login"><%= sms_login %></property>
-        <property name="sms-password"><%= sms_password %></property>
-        <property name="sms-https">true</property>
+	    <property name="sms-login"><%= sms_login %></property>
+	    <property name="sms-password"><%= sms_password %></property>
+	    <property name="sms-https">true</property>
 	</properties>
 
     </application-settings>
