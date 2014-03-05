@@ -274,7 +274,7 @@ public:
             }
             m_currentElem->clear();
             m_joinTableContainer.clear();
-            i++;
+            ++i;
         }
 // FIXME (or not.)
 // When the last elem is "deleted" (echoes way) a ',' remains before the final brackett

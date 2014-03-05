@@ -394,7 +394,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
             Wt::Json::parse(sRequest, result);
 
             Wt::Json::Array idaAttributs = result;
-            for (Wt::Json::Array::const_iterator it = idaAttributs.begin(); it < idaAttributs.end(); it++)
+            for (Wt::Json::Array::const_iterator it = idaAttributs.begin(); it < idaAttributs.end(); ++it)
             {
                 Wt::Json::Object tmp = *it;
                 idaStructs.push_back(
@@ -439,7 +439,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                 vector<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrVector;
                 vector<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrVector;
                 vector<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrVector;
-                for (vector<IdaStruct>::const_iterator it = idaStructs.begin(); it < idaStructs.end(); it++)
+                for (vector<IdaStruct>::const_iterator it = idaStructs.begin(); it < idaStructs.end(); ++it)
                 {
                     Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(it->astId, orgId, *m_session);
                     if (!astPtr)
@@ -490,7 +490,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     }
                 }
 
-                for (vector<IdaStruct>::iterator it = idaStructs.begin(); it < idaStructs.end(); it++)
+                for (vector<IdaStruct>::iterator it = idaStructs.begin(); it < idaStructs.end(); ++it)
                 {
                     Echoes::Dbo::InformationData *newIda = new Echoes::Dbo::InformationData();
                     newIda->asset = astPtrVector[distance(idaStructs.begin(), it)];

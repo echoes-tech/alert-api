@@ -358,7 +358,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
 
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> >::const_iterator it = styPtr->searchParameters.begin(); it != styPtr->searchParameters.end(); it++)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> >::const_iterator it = styPtr->searchParameters.begin(); it != styPtr->searchParameters.end(); ++it)
                 {
                     Echoes::Dbo::SearchParameterValue *newSev = new Echoes::Dbo::SearchParameterValue;
 

@@ -288,7 +288,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             acrId = result.get("alert_criteria_id");
 
             Wt::Json::Array amsAttributs = result.get("alert_media_specialization");
-            for (Wt::Json::Array::const_iterator it = amsAttributs.begin(); it < amsAttributs.end(); it++)
+            for (Wt::Json::Array::const_iterator it = amsAttributs.begin(); it < amsAttributs.end(); ++it)
             {
                 Wt::Json::Object tmp = *it;
                 amsStructs.push_back(
@@ -389,7 +389,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             }
 
             vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
-            for (vector<AmsStruct>::const_iterator it = amsStructs.begin(); it < amsStructs.end(); it++)
+            for (vector<AmsStruct>::const_iterator it = amsStructs.begin(); it < amsStructs.end(); ++it)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, orgId, *m_session);
                 if (!medPtr)
@@ -420,7 +420,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             Wt::Dbo::ptr<Echoes::Dbo::Alert> newAlePtr = m_session->add<Echoes::Dbo::Alert>(ale);
             newAlePtr.flush();
 
-            for (vector<AmsStruct>::iterator it = amsStructs.begin(); it < amsStructs.end(); it++)
+            for (vector<AmsStruct>::iterator it = amsStructs.begin(); it < amsStructs.end(); ++it)
             {
                 Echoes::Dbo::AlertMediaSpecialization *newAms = new Echoes::Dbo::AlertMediaSpecialization();
                 newAms->media = medPtrVector[distance(amsStructs.begin(), it)];
@@ -629,7 +629,7 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
             }
 
             vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
-            for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); it++)
+            for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session->find<Echoes::Dbo::InformationValue>()
                         .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
@@ -646,7 +646,7 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
             // Check whether the number and IDs of IVA concord with the alert definition
             if (alePtr->alertSequence)
             {
-                for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ::const_iterator it = ivaPtrVector.begin(); it < ivaPtrVector.end(); it++)
+                for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ::const_iterator it = ivaPtrVector.begin(); it < ivaPtrVector.end(); ++it)
                 {
                     //TODO(FPO): To Be Coded when we will implement the Alert Sequence
                 }

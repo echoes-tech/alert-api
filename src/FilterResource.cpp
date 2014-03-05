@@ -384,7 +384,7 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
 
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> >::const_iterator it = ftyPtr->filterParameters.begin(); it != ftyPtr->filterParameters.end(); it++)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> >::const_iterator it = ftyPtr->filterParameters.begin(); it != ftyPtr->filterParameters.end(); ++it)
                 {
                     Echoes::Dbo::FilterParameterValue *newFpv = new Echoes::Dbo::FilterParameterValue;
 

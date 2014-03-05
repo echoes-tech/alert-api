@@ -334,7 +334,7 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
 
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> >::const_iterator it = adoPtr->sourceParameters.begin(); it != adoPtr->sourceParameters.end(); it++)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> >::const_iterator it = adoPtr->sourceParameters.begin(); it != adoPtr->sourceParameters.end(); ++it)
                 {
                     Echoes::Dbo::SourceParameterValue *newSpv = new Echoes::Dbo::SourceParameterValue;
 
