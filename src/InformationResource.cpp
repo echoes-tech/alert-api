@@ -15,7 +15,7 @@
 
 using namespace std;
 
-InformationResource::InformationResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+InformationResource::InformationResource() : PublicApiResource::PublicApiResource()
 {
 }
 

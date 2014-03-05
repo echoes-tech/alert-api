@@ -15,7 +15,7 @@
 
 using namespace std;
 
-OptionResource::OptionResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+OptionResource::OptionResource() : PublicApiResource::PublicApiResource()
 {
 }
 

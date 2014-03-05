@@ -14,7 +14,7 @@
 
 using namespace std;
 
-MediaResource::MediaResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+MediaResource::MediaResource() : PublicApiResource::PublicApiResource()
 {
 }
 

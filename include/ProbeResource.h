@@ -20,7 +20,7 @@
 class ProbeResource : public PublicApiResource
 {
     public:
-        ProbeResource(Echoes::Dbo::Session*);
+        ProbeResource();
         virtual ~ProbeResource();
 
         /**

@@ -14,7 +14,7 @@
 
 using namespace std;
 
-AlertResource::AlertResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+AlertResource::AlertResource() : PublicApiResource::PublicApiResource()
 {
 }
 

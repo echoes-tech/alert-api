@@ -15,7 +15,7 @@
 
 using namespace std;
 
-SearchResource::SearchResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+SearchResource::SearchResource() : PublicApiResource::PublicApiResource()
 {
 }
 

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-CriterionResource::CriterionResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
 {
 }
 

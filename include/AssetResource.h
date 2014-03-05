@@ -21,7 +21,7 @@
 class AssetResource : public PublicApiResource
 {
     public:
-        AssetResource(Echoes::Dbo::Session*);
+        AssetResource();
         virtual ~AssetResource();
 
         /**

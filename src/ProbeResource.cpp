@@ -15,7 +15,7 @@
 
 using namespace std;
 
-ProbeResource::ProbeResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+ProbeResource::ProbeResource() : PublicApiResource::PublicApiResource()
 {
 }
 

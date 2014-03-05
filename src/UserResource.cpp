@@ -15,7 +15,7 @@
 
 using namespace std;
 
-UserResource::UserResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+UserResource::UserResource() : PublicApiResource::PublicApiResource()
 {
 }
 

@@ -74,7 +74,7 @@ namespace boost
 
 class PublicApiResource : public Wt::WResource {
 public:
-    PublicApiResource(Echoes::Dbo::Session *session);
+    PublicApiResource();
     virtual ~PublicApiResource();
     
 protected:

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-FilterResource::FilterResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+FilterResource::FilterResource() : PublicApiResource::PublicApiResource()
 {
 }
 

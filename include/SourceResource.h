@@ -20,7 +20,7 @@
 class SourceResource : public PublicApiResource
 {
     public:
-        SourceResource(Echoes::Dbo::Session*);
+        SourceResource();
         virtual ~SourceResource();
 
         /**

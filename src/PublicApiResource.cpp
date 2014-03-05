@@ -121,14 +121,14 @@ std::string PublicApiResource::getTableName<string>(string const& string)
     return "";
 }
 
-PublicApiResource::PublicApiResource(Echoes::Dbo::Session *session) : Wt::WResource(),
-m_session(session)
+PublicApiResource::PublicApiResource() : Wt::WResource(),
+m_session(new Echoes::Dbo::Session(conf.getSessConnectParams()))
 {
-    //mutex_.reset(new boost::recursive_mutex());
 }
 
 PublicApiResource::~PublicApiResource()
 {
+    delete m_session;
     beingDeleted();
 }
 
@@ -472,8 +472,10 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
         try
         {
+            Echoes::Dbo::SafeTransaction transaction(*m_session);
             Wt::log("info") << "[PUBLIC API] " << m_session->user().id() << " logged out.";
             m_session->login().logout();
+            transaction.commit();
         }
         catch (Wt::Dbo::Exception const& e) 
         {

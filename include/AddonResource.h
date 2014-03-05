@@ -19,7 +19,7 @@
 class AddonResource : public PublicApiResource
 {
     public :
-        AddonResource(Echoes::Dbo::Session*);
+        AddonResource();
         virtual ~AddonResource();
      
     protected :

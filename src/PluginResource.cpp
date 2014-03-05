@@ -15,7 +15,7 @@
 
 using namespace std;
 
-PluginResource::PluginResource(Echoes::Dbo::Session* session) : PublicApiResource::PublicApiResource(session)
+PluginResource::PluginResource() : PublicApiResource::PublicApiResource()
 {
 }
 

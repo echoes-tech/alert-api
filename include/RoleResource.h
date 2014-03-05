@@ -19,7 +19,7 @@
 class RoleResource : public PublicApiResource
 {
     public :
-        RoleResource(Echoes::Dbo::Session*);
+        RoleResource();
         virtual ~RoleResource();
         
     protected :

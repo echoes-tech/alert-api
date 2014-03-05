@@ -25,7 +25,7 @@
 class AlertResource : public PublicApiResource
 {
     public :
-        AlertResource(Echoes::Dbo::Session*);
+        AlertResource();
         virtual ~AlertResource();
 
         /**

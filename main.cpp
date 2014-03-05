@@ -66,56 +66,45 @@ int main(int argc, char **argv)
 
         if (conf.readProperties(server))
         {
-            
-            Wt::Dbo::SqlConnection *connection;
-            connection = new Wt::Dbo::backend::Postgres(conf.getSessConnectParams());
-        //    connection->setProperty("show-queries", "true");
+            AddonResource           addonResource;
+            AlertResource           alertResource;
+            AssetResource           assetResource;
+            CriterionResource       criteriaResource;
+            FilterResource          filterResource;
+            InformationResource     informationRessource;
+            InformationDataResource informationDataRessource;
+            MediaResource           mediaResource;
+            OptionResource          optionRessource;
+            OrganizationResource    organizationRessource;
+            PluginResource          pluginResource;
+            ProbeResource           probeResource;
+            SearchResource          searchResource;
+            SourceResource          sourceResource;
+            UnitResource            unitResource;
+            UserResource            userResource;
+            RoleResource            roleResource;
+            ItookiAckReceiver       itookiAckReceiver;
+            ItookiAswReceiver       itookiAswReceiver;
 
-            Wt::Dbo::FixedSqlConnectionPool *connectionPool = new Wt::Dbo::FixedSqlConnectionPool(connection, 30);
-
-            Echoes::Dbo::Session *session = new Echoes::Dbo::Session();
-            session->setConnectionPool(*connectionPool);
-            session->initMapClass();
-            
-            AddonResource        addonResource(session);
-            AlertResource        alertResource(session);
-            AssetResource        assetResource(session);
-            CriterionResource    criteriaResource(session);
-            FilterResource       filterResource(session);
-            InformationResource  informationRessource(session);
-            InformationDataResource  informationDataRessource(session);
-            MediaResource        mediaResource(session);
-            OptionResource       optionRessource(session);
-            OrganizationResource organizationRessource(session);
-            PluginResource       pluginResource(session);
-            ProbeResource        probeResource(session);
-            SearchResource       searchResource(session);
-            SourceResource       sourceResource(session);
-            UnitResource         unitResource(session);
-            UserResource         userResource(session);
-            RoleResource         roleResource(session);
-            ItookiAckReceiver    itookiAckReceiver;
-            ItookiAswReceiver    itookiAswReceiver;
-
-            server.addResource(&addonResource,             "/addons");
-            server.addResource(&alertResource,             "/alerts");
-            server.addResource(&assetResource,             "/assets");
-            server.addResource(&criteriaResource,          "/criteria");
-            server.addResource(&filterResource,            "/filters");
-            server.addResource(&informationRessource,      "/informations");
-            server.addResource(&informationDataRessource,  "/information_datas");
-            server.addResource(&mediaResource,             "/medias");
-            server.addResource(&optionRessource,           "/options");
-            server.addResource(&organizationRessource,     "/organizations");
-            server.addResource(&pluginResource,            "/plugins");
-            server.addResource(&probeResource,             "/probes");
-            server.addResource(&roleResource,              "/roles");
-            server.addResource(&searchResource,            "/searches");
-            server.addResource(&sourceResource,            "/sources");
-            server.addResource(&unitResource,              "/units");
-            server.addResource(&userResource,              "/users");
-            server.addResource(&itookiAckReceiver,         "/itooki/ack");
-            server.addResource(&itookiAswReceiver,         "/itooki/asw");
+            server.addResource(&addonResource,            "/addons");
+            server.addResource(&alertResource,            "/alerts");
+            server.addResource(&assetResource,            "/assets");
+            server.addResource(&criteriaResource,         "/criteria");
+            server.addResource(&filterResource,           "/filters");
+            server.addResource(&informationRessource,     "/informations");
+            server.addResource(&informationDataRessource, "/information_datas");
+            server.addResource(&mediaResource,            "/medias");
+            server.addResource(&optionRessource,          "/options");
+            server.addResource(&organizationRessource,    "/organizations");
+            server.addResource(&pluginResource,           "/plugins");
+            server.addResource(&probeResource,            "/probes");
+            server.addResource(&roleResource,             "/roles");
+            server.addResource(&searchResource,           "/searches");
+            server.addResource(&sourceResource,           "/sources");
+            server.addResource(&unitResource,             "/units");
+            server.addResource(&userResource,             "/users");
+            server.addResource(&itookiAckReceiver,        "/itooki/ack");
+            server.addResource(&itookiAswReceiver,        "/itooki/asw");
 
             Echoes::Dbo::Session::configureAuth();
 
