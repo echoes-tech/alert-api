@@ -15,7 +15,7 @@
 
 using namespace std;
 
-CriterionResource::CriterionResource() : PublicApiResource::PublicApiResource()
+CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode CriterionResource::getCriteriaList(const long long &orgId, string &r
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria>> acrPtrCol = m_session->find<Echoes::Dbo::AlertCriteria>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria>> acrPtrCol = m_session.find<Echoes::Dbo::AlertCriteria>()
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_ALERT_CRITERIA ID));
 
@@ -51,9 +51,9 @@ EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, 
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session->find<Echoes::Dbo::AlertCriteria>()
+        Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
 
@@ -84,15 +84,15 @@ EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::strin
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session->find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
                         .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION_CRITERIA SEP "DELETE") " IS NULL")
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(parameters["media_type_id"])
@@ -215,14 +215,14 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr =  m_session->find<Echoes::Dbo::AlertCriteria>()
+            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr =  m_session.find<Echoes::Dbo::AlertCriteria>()
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");;
             if (acrPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
+                Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                          .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(infId)
                          .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
                 if (!infPtr)
@@ -232,7 +232,7 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
                 if (!uroPtr)
@@ -242,7 +242,7 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
+                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
                 if (!mtyPtr)
@@ -252,7 +252,7 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session->find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria> aicPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(infId)
                         .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID SEP TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(pathElements[1])
@@ -269,7 +269,7 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
                     newAic->pk.userRole = uroPtr;
                     newAic->pk.mediaType = mtyPtr;
                     newAic->alias = value;
-                    aicPtr = m_session->add<Echoes::Dbo::AlertMessageAliasInformationCriteria>(newAic);
+                    aicPtr = m_session.add<Echoes::Dbo::AlertMessageAliasInformationCriteria>(newAic);
                 }
                 res = EReturnCode::OK;
             }

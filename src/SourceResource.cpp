@@ -15,7 +15,7 @@
 
 using namespace std;
 
-SourceResource::SourceResource() : PublicApiResource::PublicApiResource()
+SourceResource::SourceResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -67,7 +67,7 @@ EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, c
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT src"
 "   FROM " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE) " src"
@@ -95,7 +95,7 @@ EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, c
 "       )"
 "     AND " QUOTE(TRIGRAM_SOURCE SEP "DELETE") " IS NULL";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Source>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Source>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Source>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Source>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = queryRes.resultList();
 
@@ -117,9 +117,9 @@ EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElemen
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, m_session);
 
         res = serialize(srcPtr, responseMsg);
 
@@ -138,7 +138,7 @@ EReturnCode SourceResource::getParametersList(map<string, long long> &parameters
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
         string queryStr =
 " SELECT srp\n"
@@ -167,7 +167,7 @@ EReturnCode SourceResource::getParametersList(map<string, long long> &parameters
         queryStr +=
 "   ORDER BY " QUOTE(TRIGRAM_SOURCE_PARAMETER ID)"\n";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srpPtrCol = queryRes.resultList();
 
@@ -188,11 +188,11 @@ EReturnCode SourceResource::getParametersListForSource(const std::vector<std::st
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, m_session);
         
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session->find<Echoes::Dbo::SourceParameterValue>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session.find<Echoes::Dbo::SourceParameterValue>()
                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id());
 
@@ -300,9 +300,9 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session->find<Echoes::Dbo::Plugin>()
+            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                     .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(plgId)
                     .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -313,7 +313,7 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
                 return res;
             }
 
-            Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session->find<Echoes::Dbo::Addon>()
+            Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session.find<Echoes::Dbo::Addon>()
                     .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(adoId)
                     .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL");
             if (!adoPtr)
@@ -326,7 +326,7 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
             Echoes::Dbo::Source *newSrc = new Echoes::Dbo::Source();
             newSrc->addon = adoPtr;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Source> newSrcPtr = m_session->add<Echoes::Dbo::Source>(newSrc);
+            Wt::Dbo::ptr<Echoes::Dbo::Source> newSrcPtr = m_session.add<Echoes::Dbo::Source>(newSrc);
             newSrcPtr.flush();
 
             try
@@ -342,7 +342,7 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
                     newSpv->name = it->get()->name;
                     newSpv->pk.sourceParameter = *it;
                     newSpv->pk.source = newSrcPtr;
-                    m_session->add<Echoes::Dbo::SourceParameterValue>(newSpv);
+                    m_session.add<Echoes::Dbo::SourceParameterValue>(newSpv);
                 }
             }
             catch (Wt::Json::ParseError const& e)
@@ -456,13 +456,13 @@ EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathEle
 
     try 
     {  
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, m_session);
 
         if(srcPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = m_session->find<Echoes::Dbo::Search>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = m_session.find<Echoes::Dbo::Search>()
                     .where(QUOTE(TRIGRAM_SEARCH SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL");
 

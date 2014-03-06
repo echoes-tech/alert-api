@@ -15,7 +15,7 @@
 
 using namespace std;
 
-InformationDataResource::InformationDataResource() : PublicApiResource::PublicApiResource()
+InformationDataResource::InformationDataResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -61,7 +61,7 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT ida"
 "   FROM " QUOTE("T_INFORMATION_DATA_IDA") " ida"
@@ -83,7 +83,7 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_INFORMATION_DATA ID);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = queryRes.resultList();
 
@@ -105,9 +105,9 @@ EReturnCode InformationDataResource::getInformationData(const std::vector<std::s
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, m_session);
 
         res = serialize(idaPtr, responseMsg);
 
@@ -206,9 +206,9 @@ EReturnCode InformationDataResource::postInformationData(const string& sRequest,
 //    {
 //        try
 //        {
-//            Echoes::Dbo::SafeTransaction transaction(*m_session);
+//            Wt::Dbo::Transaction transaction(m_session, true);
 //
-//            Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
+//            Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
 //                    .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
 //                    .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
 //            if (!mtyPtr)
@@ -218,7 +218,7 @@ EReturnCode InformationDataResource::postInformationData(const string& sRequest,
 //                return res;
 //            }
 //
-//            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+//            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
 //                    .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(usrId)
 //                    .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
 //                    .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -236,7 +236,7 @@ EReturnCode InformationDataResource::postInformationData(const string& sRequest,
 //            newMed->token = Wt::WRandom::generateId(25);
 //            newMed->isConfirmed = false;
 //            newMed->isDefault = false;
-//            Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session->add<Echoes::Dbo::Media>(newMed);
+//            Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session.add<Echoes::Dbo::Media>(newMed);
 //            newMedPtr.flush();
 //
 //            res = serialize(newMedPtr, responseMsg, EReturnCode::CREATED);
@@ -338,9 +338,9 @@ EReturnCode InformationDataResource::putInformationData(const std::vector<std::s
 //    {
 //        try
 //        {
-//            Echoes::Dbo::SafeTransaction transaction(*m_session);
+//            Wt::Dbo::Transaction transaction(m_session, true);
 //
-//            Wt::Dbo::ptr<Echoes::Dbo::InformationData> medPtr = selectInformationData(pathElements[1], orgId, *m_session);
+//            Wt::Dbo::ptr<Echoes::Dbo::InformationData> medPtr = selectInformationData(pathElements[1], orgId, m_session);
 //
 //            if (medPtr)
 //            {
@@ -437,9 +437,9 @@ EReturnCode InformationDataResource::deleteInformationData(const std::vector<std
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, m_session);
 
         if (idaPtr)
         {

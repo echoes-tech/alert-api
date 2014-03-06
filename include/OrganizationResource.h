@@ -19,7 +19,7 @@
 class OrganizationResource : public PublicApiResource
 {
     public :
-        OrganizationResource();
+        OrganizationResource(Echoes::Dbo::Session& session);
         virtual ~OrganizationResource();
         
     protected :

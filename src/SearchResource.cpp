@@ -15,7 +15,7 @@
 
 using namespace std;
 
-SearchResource::SearchResource() : PublicApiResource::PublicApiResource()
+SearchResource::SearchResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -74,7 +74,7 @@ EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, c
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT sea"
 "   FROM " QUOTE("T_SEARCH" SEP TRIGRAM_SEARCH) " sea"
@@ -117,7 +117,7 @@ EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, c
 "       )"
 "     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Search>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Search>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = queryRes.resultList();
 
@@ -139,9 +139,9 @@ EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElemen
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, m_session);
 
         res = serialize(seaPtr, responseMsg);
 
@@ -160,7 +160,7 @@ EReturnCode SearchResource::getParametersList(map<string, long long> &parameters
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
         string queryStr =
 " SELECT sep\n"
@@ -189,7 +189,7 @@ EReturnCode SearchResource::getParametersList(map<string, long long> &parameters
         queryStr +=
 "   ORDER BY " QUOTE(TRIGRAM_SEARCH_PARAMETER ID)"\n";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> srpPtrCol = queryRes.resultList();
 
@@ -210,11 +210,11 @@ EReturnCode SearchResource::getParametersListForSearch(const std::vector<std::st
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, m_session);
         
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session->find<Echoes::Dbo::SearchParameterValue>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session.find<Echoes::Dbo::SearchParameterValue>()
                 .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtr.id());
 
@@ -325,9 +325,9 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::SearchType> styPtr = m_session->find<Echoes::Dbo::SearchType>()
+            Wt::Dbo::ptr<Echoes::Dbo::SearchType> styPtr = m_session.find<Echoes::Dbo::SearchType>()
                     .where(QUOTE(TRIGRAM_SEARCH_TYPE ID) " = ?").bind(styId)
                     .where(QUOTE(TRIGRAM_SEARCH_TYPE SEP "DELETE") " IS NULL");
             if (!styPtr)
@@ -337,7 +337,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, orgId, m_session);
             if (!srcPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -350,7 +350,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
             newSea->source = srcPtr;
             newSea->period = period;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Search> newSeaPtr = m_session->add<Echoes::Dbo::Search>(newSea);
+            Wt::Dbo::ptr<Echoes::Dbo::Search> newSeaPtr = m_session.add<Echoes::Dbo::Search>(newSea);
             newSeaPtr.flush();
 
             try
@@ -367,7 +367,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
                     newSev->searchParameterValueId.searchParameter= *it;
                     newSev->searchParameterValueId.search = newSeaPtr;
 
-                    m_session->add<Echoes::Dbo::SearchParameterValue>(newSev);
+                    m_session.add<Echoes::Dbo::SearchParameterValue>(newSev);
                 }
             }
             catch (Wt::Json::ParseError const& e)
@@ -479,13 +479,13 @@ EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathEle
 
     try 
     {  
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, m_session);
 
         if(seaPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = m_session->find<Echoes::Dbo::Filter>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = m_session.find<Echoes::Dbo::Filter>()
                     .where(QUOTE(TRIGRAM_FILTER SEP TRIGRAM_SEARCH SEP TRIGRAM_SEARCH ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL");
 

@@ -15,8 +15,9 @@
 
 using namespace std;
 
-ItookiSMSSender::ItookiSMSSender(Wt::WObject *parent) :
-m_parent(parent)
+ItookiSMSSender::ItookiSMSSender(Echoes::Dbo::Session& session, Wt::WObject *parent) :
+m_parent(parent),
+m_session(session)
 {
 }
 
@@ -97,19 +98,16 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                 break;
             case 2:
             {
-                Echoes::Dbo::Session session(conf.getSessConnectParams());
                 try
                 {
-                    Echoes::Dbo::SafeTransaction transaction(session);
+                    Wt::Dbo::Transaction transaction(m_session, true);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = session.find<Echoes::Dbo::AlertTracking>()
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = m_session.find<Echoes::Dbo::AlertTracking>()
                         .where(QUOTE(TRIGRAM_ALERT_TRACKING ID) " = ?").bind(atrId)
                         .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP "DELETE") " IS NULL");
 
                     if (atrPtr)
                     {
-                            Echoes::Dbo::SafeTransaction transaction(session);
-
                             atrPtr.modify()->ackId = splitResult[1];
                             atrPtr.modify()->ackGw = "itooki.fr";
                             atrPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
@@ -119,16 +117,15 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                             newAte->date = Wt::WDateTime::currentDateTime();
                             newAte->value = splitResult[0];
 
-                            Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAtePtr = session.add<Echoes::Dbo::AlertTrackingEvent>(newAte);
+                            Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAtePtr = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newAte);
                             newAtePtr.flush();
-
-                            transaction.commit();
                     }
                     else
                     {
                         Wt::log("error") << "[Itooki SMS Sender][ACK] Alert tracking not found";
                         //TODO error behavior
                     }
+                    transaction.commit();
                 }
                 catch (Wt::Dbo::Exception const& e)
                 {

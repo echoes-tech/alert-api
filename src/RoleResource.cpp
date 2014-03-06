@@ -15,7 +15,7 @@
 
 using namespace std;
 
-RoleResource::RoleResource() : PublicApiResource::PublicApiResource()
+RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode RoleResource::getRolesList(const long long &orgId, string &responseM
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> uroPtrCol = m_session->find<Echoes::Dbo::UserRole>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> uroPtrCol = m_session.find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_USER_ROLE ID));
@@ -52,9 +52,9 @@ EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, 
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+        Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -150,9 +150,9 @@ EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgI
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
                     .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
             if (!orgPtr)
@@ -166,7 +166,7 @@ EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgI
             newUro->name = name;
             newUro->organization = orgPtr;
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session->add<Echoes::Dbo::UserRole>(newUro);
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session.add<Echoes::Dbo::UserRole>(newUro);
             newUroPtr.flush();
 
             res = serialize(newUroPtr, responseMsg, EReturnCode::CREATED);
@@ -247,9 +247,9 @@ EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, 
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);

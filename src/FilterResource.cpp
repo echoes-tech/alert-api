@@ -15,7 +15,7 @@
 
 using namespace std;
 
-FilterResource::FilterResource() : PublicApiResource::PublicApiResource()
+FilterResource::FilterResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -81,7 +81,7 @@ EReturnCode FilterResource::getFiltersList(map<string, long long> &parameters, c
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT fil\n"
 "   FROM " QUOTE("T_FILTER" SEP TRIGRAM_FILTER) " fil\n"
@@ -139,7 +139,7 @@ EReturnCode FilterResource::getFiltersList(map<string, long long> &parameters, c
 "       )\n"
 "     AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL;";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Filter>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Filter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Filter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Filter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = queryRes.resultList();
 
@@ -161,9 +161,9 @@ EReturnCode FilterResource::getFilter(const std::vector<std::string> &pathElemen
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, m_session);
 
         res = serialize(filPtr, responseMsg);
 
@@ -182,7 +182,7 @@ EReturnCode FilterResource::getParametersList(map<string, long long> &parameters
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
         string queryStr =
 " SELECT fpa\n"
@@ -211,7 +211,7 @@ EReturnCode FilterResource::getParametersList(map<string, long long> &parameters
         queryStr +=
 "   ORDER BY " QUOTE(TRIGRAM_FILTER_PARAMETER ID)"\n";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>> srpPtrCol = queryRes.resultList();
 
@@ -232,11 +232,11 @@ EReturnCode FilterResource::getParametersListForFilter(const std::vector<std::st
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, m_session);
         
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue>> fpvPtrCol = m_session->find<Echoes::Dbo::FilterParameterValue>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue>> fpvPtrCol = m_session.find<Echoes::Dbo::FilterParameterValue>()
                 .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtr.id());
 
@@ -350,9 +350,9 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::FilterType> ftyPtr = m_session->find<Echoes::Dbo::FilterType>()
+            Wt::Dbo::ptr<Echoes::Dbo::FilterType> ftyPtr = m_session.find<Echoes::Dbo::FilterType>()
                     .where(QUOTE(TRIGRAM_FILTER_TYPE ID) " = ?").bind(ftyId)
                     .where(QUOTE(TRIGRAM_FILTER_TYPE SEP "DELETE") " IS NULL");
             if (!ftyPtr)
@@ -362,7 +362,7 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = SearchResource::selectSearch(seaId, orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = SearchResource::selectSearch(seaId, orgId, m_session);
             if (!seaPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -376,7 +376,7 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
             newFil->nbValue = nbValue;
             newFil->posKeyValue = posKeyValue;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Filter> newFilPtr = m_session->add<Echoes::Dbo::Filter>(newFil);
+            Wt::Dbo::ptr<Echoes::Dbo::Filter> newFilPtr = m_session.add<Echoes::Dbo::Filter>(newFil);
             newFilPtr.flush();
 
             try
@@ -396,7 +396,7 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
                     newFpv->filteParameterValueId.filterParameter= *it;
                     newFpv->filteParameterValueId.filter = newFilPtr;
 
-                    m_session->add<Echoes::Dbo::FilterParameterValue>(newFpv);
+                    m_session.add<Echoes::Dbo::FilterParameterValue>(newFpv);
                 }
             }
             catch (Wt::Json::ParseError const& e)
@@ -507,13 +507,13 @@ EReturnCode FilterResource::deleteFilter(const std::vector<std::string> &pathEle
 
     try 
     {  
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, m_session);
 
         if(filPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session->find<Echoes::Dbo::InformationData>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
 

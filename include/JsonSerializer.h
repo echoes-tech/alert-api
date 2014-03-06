@@ -35,7 +35,6 @@
 #include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/WLogger>
 
-#include <tools/SafeTransaction.h>
 #include <tools/Session.h>
 
 namespace Wt { namespace Dbo {

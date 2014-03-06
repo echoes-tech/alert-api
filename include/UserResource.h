@@ -19,7 +19,7 @@
 class UserResource : public PublicApiResource
 {
     public :
-        UserResource();
+        UserResource(Echoes::Dbo::Session& session);
         virtual ~UserResource();
         
     protected :

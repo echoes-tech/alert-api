@@ -19,7 +19,7 @@
 class CriterionResource : public PublicApiResource
 {
     public :
-        CriterionResource();
+        CriterionResource(Echoes::Dbo::Session& session);
         virtual ~CriterionResource();
 
     protected :

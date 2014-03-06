@@ -121,14 +121,13 @@ std::string PublicApiResource::getTableName<string>(string const& string)
     return "";
 }
 
-PublicApiResource::PublicApiResource() : Wt::WResource(),
-m_session(new Echoes::Dbo::Session(conf.getSessConnectParams()))
+PublicApiResource::PublicApiResource(Echoes::Dbo::Session& session) : Wt::WResource(),
+m_session(session)
 {
 }
 
 PublicApiResource::~PublicApiResource()
 {
-    delete m_session;
     beingDeleted();
 }
 
@@ -315,32 +314,31 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         Wt::log("error") << "[Public API Resource] No login or eno_token parameter";
     }
-    
-//    m_session->initConnection(conf.getSessConnectParams());
+
     if (!login.empty())
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
             // check whether the user exists
-            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = m_session->find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
+            Wt::Dbo::ptr<AuthInfo::AuthIdentityType> authIdType = m_session.find<AuthInfo::AuthIdentityType > ().where("\"identity\" = ?").bind(login);
             if (Utils::checkId<AuthInfo::AuthIdentityType > (authIdType))
             {
                 // find the user from his login
-                Wt::Auth::User user = m_session->users().findWithIdentity(Wt::Auth::Identity::LoginName, login);
+                Wt::Auth::User user = m_session.users().findWithIdentity(Wt::Auth::Identity::LoginName, login);
 
                 if (user.isValid())
                 {
                     if (!password.empty())
                     {
                         // ToDo: find problem cause : why rereadAll ??
-                        m_session->rereadAll();
+                        m_session.rereadAll();
                         // verify
-                        switch (m_session->passwordAuth().verifyPassword(user, password))
+                        switch (m_session.passwordAuth().verifyPassword(user, password))
                         {
                             case Wt::Auth::PasswordValid:
-                                m_session->login().login(user);
+                                m_session.login().login(user);
                                 authentified = true;
                                 Wt::log("info") << "[PUBLIC API] " << user.id() << " logged.";
                                 break;
@@ -356,14 +354,14 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     }
                     else if (!token.empty())
                     {
-                        Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session->find<Echoes::Dbo::User>()
+                        Wt::Dbo::ptr<Echoes::Dbo::User> userPtr = m_session.find<Echoes::Dbo::User>()
                                 .where(QUOTE(TRIGRAM_USER SEP "MAIL") " = ?").bind(login)
                                 .where(QUOTE(TRIGRAM_USER SEP "TOKEN") " = ?").bind(token)
                                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                                 .limit(1);
                         if (userPtr)
                         {
-                            m_session->login().login(user);
+                            m_session.login().login(user);
                             authentified = true;
                         }
                         else
@@ -378,7 +376,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     
                     if (authentified)
                     {
-                        orgId = m_session->user()->organization.id();
+                        orgId = m_session.user()->organization.id();
                     }
                 }
                 else
@@ -402,15 +400,15 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
-            Wt::Dbo::ptr<Echoes::Dbo::Engine> enginePtr = m_session->find<Echoes::Dbo::Engine>()
+            Wt::Dbo::Transaction transaction(m_session, true);
+            Wt::Dbo::ptr<Echoes::Dbo::Engine> enginePtr = m_session.find<Echoes::Dbo::Engine>()
                     .where(QUOTE(TRIGRAM_ENGINE SEP "FQDN") " = ?").bind(request.clientAddress())
                     .where(QUOTE(TRIGRAM_ENGINE SEP "DELETE") " IS NULL")
                     .limit(1);
 
             if (enginePtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session->find<Echoes::Dbo::EngOrg>()
+                Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
                         .where(QUOTE(TRIGRAM_ENGINE ID SEP TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "TOKEN") " = ?").bind(eno_token)
                         .where(QUOTE(TRIGRAM_ENG_ORG SEP "DELETE") " IS NULL")
@@ -472,9 +470,9 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
-            Wt::log("info") << "[PUBLIC API] " << m_session->user().id() << " logged out.";
-            m_session->login().logout();
+            Wt::Dbo::Transaction transaction(m_session, true);
+            Wt::log("info") << "[PUBLIC API] " << m_session.user().id() << " logged out.";
+            m_session.login().logout();
             transaction.commit();
         }
         catch (Wt::Dbo::Exception const& e) 

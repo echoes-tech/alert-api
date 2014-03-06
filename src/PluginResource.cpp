@@ -15,7 +15,7 @@
 
 using namespace std;
 
-PluginResource::PluginResource() : PublicApiResource::PublicApiResource()
+PluginResource::PluginResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode PluginResource::getPluginsList(const long long &orgId, string &respo
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = m_session->find<Echoes::Dbo::Plugin>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_PLUGIN ID));
@@ -52,9 +52,9 @@ EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElemen
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session->find<Echoes::Dbo::Plugin>()
+        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -86,15 +86,15 @@ EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pa
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasPlugin> aapPtr = m_session->find<Echoes::Dbo::AlertMessageAliasPlugin>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasPlugin> aapPtr = m_session.find<Echoes::Dbo::AlertMessageAliasPlugin>()
                         .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_PLUGIN SEP "DELETE") " IS NULL")
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(parameters["media_type_id"])
@@ -126,7 +126,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         const string queryStr =
 " SELECT inf\n"
 "   FROM " QUOTE("T_INFORMATION" SEP TRIGRAM_INFORMATION) " inf\n"
@@ -176,7 +176,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 "       )\n"
 "     AND " QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL\n";
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Information>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Information>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Information>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Information>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = queryRes.resultList();
 
@@ -198,7 +198,7 @@ EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         const string queryStr =
             " SELECT ast"
             "   FROM " QUOTE("T_ASSET_AST") " ast"
@@ -212,7 +212,7 @@ EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string
             "     AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
             "     AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
 
-            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
+            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
 
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> plgColl = queryRes.resultList();
             
@@ -335,9 +335,9 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
                     .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
             if (!orgPtr)
@@ -347,7 +347,7 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
                 return res;
             }
 
-//            Wt::Dbo::ptr<Echoes::Dbo::PluginReference> prePtr = m_session->find<Echoes::Dbo::PluginReference>()
+//            Wt::Dbo::ptr<Echoes::Dbo::PluginReference> prePtr = m_session.find<Echoes::Dbo::PluginReference>()
 //                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE ID) " = ?").bind(preId)
 //                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE SEP "DELETE") " IS NULL");
 //            if (prePtr)
@@ -360,7 +360,7 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
                 newPlg->versionClient = "1.0";
                 newPlg->name = name;
                 newPlg->desc = desc;
-                Wt::Dbo::ptr<Echoes::Dbo::Plugin> newPlgPtr = m_session->add<Echoes::Dbo::Plugin>(newPlg);
+                Wt::Dbo::ptr<Echoes::Dbo::Plugin> newPlgPtr = m_session.add<Echoes::Dbo::Plugin>(newPlg);
                 newPlgPtr.flush();
 
                 res = serialize(newPlgPtr, responseMsg, EReturnCode::CREATED);
@@ -448,15 +448,15 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr =  m_session->find<Echoes::Dbo::Plugin>()
+            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr =  m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL");
             if (plgPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
                 if (!uroPtr)
@@ -466,7 +466,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
+                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
                 if (!mtyPtr)
@@ -476,7 +476,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasPlugin> aapPtr = m_session->find<Echoes::Dbo::AlertMessageAliasPlugin>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasPlugin> aapPtr = m_session.find<Echoes::Dbo::AlertMessageAliasPlugin>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_PLUGIN ID SEP TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId);
@@ -491,7 +491,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
                     newAap->pk.userRole = uroPtr;
                     newAap->pk.mediaType = mtyPtr;
                     newAap->alias = value;
-                    aapPtr = m_session->add<Echoes::Dbo::AlertMessageAliasPlugin>(newAap);
+                    aapPtr = m_session.add<Echoes::Dbo::AlertMessageAliasPlugin>(newAap);
                 }
                 res = EReturnCode::OK;
             }
@@ -556,9 +556,9 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session->find<Echoes::Dbo::Plugin>()
+            Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -651,9 +651,9 @@ EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathEle
 
     try 
     {  
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session->find<Echoes::Dbo::Plugin>()
+        Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);

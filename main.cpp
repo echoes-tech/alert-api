@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 {
     #ifndef main
     int res = EXIT_FAILURE;
-    
+
     try
     {
         // use argv[0] as the application name to match a suitable entry
@@ -66,25 +66,27 @@ int main(int argc, char **argv)
 
         if (conf.readProperties(server))
         {
-            AddonResource           addonResource;
-            AlertResource           alertResource;
-            AssetResource           assetResource;
-            CriterionResource       criteriaResource;
-            FilterResource          filterResource;
-            InformationResource     informationRessource;
-            InformationDataResource informationDataRessource;
-            MediaResource           mediaResource;
-            OptionResource          optionRessource;
-            OrganizationResource    organizationRessource;
-            PluginResource          pluginResource;
-            ProbeResource           probeResource;
-            SearchResource          searchResource;
-            SourceResource          sourceResource;
-            UnitResource            unitResource;
-            UserResource            userResource;
-            RoleResource            roleResource;
-            ItookiAckReceiver       itookiAckReceiver;
-            ItookiAswReceiver       itookiAswReceiver;
+            Echoes::Dbo::Session session(conf.getSessConnectParams());
+
+            AddonResource           addonResource(session);
+            AlertResource           alertResource(session);
+            AssetResource           assetResource(session);
+            CriterionResource       criteriaResource(session);
+            FilterResource          filterResource(session);
+            InformationResource     informationRessource(session);
+            InformationDataResource informationDataRessource(session);
+            MediaResource           mediaResource(session);
+            OptionResource          optionRessource(session);
+            OrganizationResource    organizationRessource(session);
+            PluginResource          pluginResource(session);
+            ProbeResource           probeResource(session);
+            SearchResource          searchResource(session);
+            SourceResource          sourceResource(session);
+            UnitResource            unitResource(session);
+            UserResource            userResource(session);
+            RoleResource            roleResource(session);
+            ItookiAckReceiver       itookiAckReceiver(session);
+            ItookiAswReceiver       itookiAswReceiver(session);
 
             server.addResource(&addonResource,            "/addons");
             server.addResource(&alertResource,            "/alerts");

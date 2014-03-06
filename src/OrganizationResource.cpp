@@ -15,7 +15,7 @@
 
 using namespace std;
 
-OrganizationResource::OrganizationResource() : PublicApiResource::PublicApiResource()
+OrganizationResource::OrganizationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, s
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session->find<Echoes::Dbo::Organization>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session.find<Echoes::Dbo::Organization>()
                 .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_ORGANIZATION ID));
@@ -52,9 +52,9 @@ EReturnCode OrganizationResource::getOrganization(const std::vector<std::string>
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+        Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
                 .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);

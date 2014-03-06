@@ -15,7 +15,7 @@
 
 using namespace std;
 
-ProbeResource::ProbeResource() : PublicApiResource::PublicApiResource()
+ProbeResource::ProbeResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -126,7 +126,7 @@ EReturnCode ProbeResource::getProbesList(const long long &orgId, string &respons
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT prb"
 "   FROM " QUOTE("T_PROBE_PRB") " prb"
@@ -141,7 +141,7 @@ EReturnCode ProbeResource::getProbesList(const long long &orgId, string &respons
 "     AND " QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_PROBE ID);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Probe>> queryRes = m_session->query <Wt::Dbo::ptr<Echoes::Dbo::Probe>> (queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Probe>> queryRes = m_session.query <Wt::Dbo::ptr<Echoes::Dbo::Probe>> (queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe>> prbPtrCol = queryRes.resultList();
 
@@ -163,9 +163,9 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
 
         res = serialize(prbPtr, responseMsg);
 
@@ -185,9 +185,9 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
         if (prbPtr)
         {
             map<Wt::Dbo::ptr<Echoes::Dbo::Addon>, vector<Wt::Dbo::ptr<Echoes::Dbo::Source>>> srcListByAddon;
@@ -222,7 +222,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                     boost::property_tree::ptree srpElem;
                     for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>::iterator srpPtrIt = srpPtrCol.begin(); srpPtrIt != srpPtrCol.end(); srpPtrIt++)                    
                     {
-                        Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session->find<Echoes::Dbo::SourceParameterValue>()
+                        Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session.find<Echoes::Dbo::SourceParameterValue>()
                                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER ID SEP TRIGRAM_SOURCE_PARAMETER ID) " = ?").bind(srpPtrIt->id())
                                 .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id())
                                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL");
@@ -242,7 +242,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                         boost::property_tree::ptree sepElem;
                         for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>::iterator sepPtrIt = sepPtrCol.begin(); sepPtrIt != sepPtrCol.end(); sepPtrIt++)                    
                         {
-                            Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session->find<Echoes::Dbo::SearchParameterValue>()
+                            Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session.find<Echoes::Dbo::SearchParameterValue>()
                                     .where(QUOTE(TRIGRAM_SEARCH_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(sepPtrIt->id())
                                     .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtrIt->id())
                                     .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL");
@@ -264,7 +264,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                             boost::property_tree::ptree fpaElem;
                             for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>::iterator fpaPtrIt = fpaPtrCol.begin(); fpaPtrIt != fpaPtrCol.end(); fpaPtrIt++)                    
                             {
-                                Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session->find<Echoes::Dbo::FilterParameterValue>()
+                                Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session.find<Echoes::Dbo::FilterParameterValue>()
                                         .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtrIt->id())
                                         .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtrIt->id())
                                         .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL");
@@ -361,9 +361,9 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
         if (prbPtr)
         {
             stringstream ss;
@@ -372,7 +372,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
             Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = prbPtr->probePackageParameter;
             if(pppPtr)
             {            
-                Wt::Dbo::ptr<Echoes::Dbo::AddonCommonPackageParameter> cppPtr = m_session->find<Echoes::Dbo::AddonCommonPackageParameter>()
+                Wt::Dbo::ptr<Echoes::Dbo::AddonCommonPackageParameter> cppPtr = m_session.find<Echoes::Dbo::AddonCommonPackageParameter>()
                         .where("\"CPP_ASA_ASA_ID\" = ?").bind(pppPtr->assetArchitecture.id())
                         .where("\"CPP_ASD_ASD_ID\" = ?").bind(pppPtr->assetDistribution.id())
                         .where("\"CPP_ASR_ASR_ID\" = ?").bind(pppPtr->assetRelease.id())
@@ -442,7 +442,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
 
                 for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); adoIdIt++)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session->find<Echoes::Dbo::AddonPackageParameter>()
+                    Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session.find<Echoes::Dbo::AddonPackageParameter>()
                             .where("\"APP_ASA_ASA_ID\" = ?").bind(cppPtr->assetArchitecture.id())
                             .where("\"APP_ASD_ASD_ID\" = ?").bind(cppPtr->assetDistribution.id())
                             .where("\"APP_ASR_ASR_ID\" = ?").bind(cppPtr->assetRelease.id())
@@ -595,22 +595,22 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, orgId, m_session);
             if (astPtr)
             {
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
                 newPrb->asset = astPtr;
                 newPrb->name = name;
 
-                Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, *m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, m_session);
                 if (pppPtr)
                 {
                     newPrb->probePackageParameter = pppPtr;
                 } 
 
-                Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session->add<Echoes::Dbo::Probe>(newPrb);
+                Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session.add<Echoes::Dbo::Probe>(newPrb);
                 newPrbPtr.flush();
 
                 res = serialize(newPrbPtr, responseMsg, EReturnCode::CREATED);
@@ -697,9 +697,9 @@ EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
 
             if (prbPtr)
             {
@@ -780,9 +780,9 @@ EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathEleme
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
 
         if (prbPtr)
         {

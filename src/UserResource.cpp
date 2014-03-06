@@ -15,7 +15,7 @@
 
 using namespace std;
 
-UserResource::UserResource() : PublicApiResource::PublicApiResource()
+UserResource::UserResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode UserResource::getUsersList(const long long &orgId, string &responseM
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session->find<Echoes::Dbo::User>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_USER ID));
@@ -52,9 +52,9 @@ EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, 
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+        Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -153,22 +153,22 @@ EReturnCode UserResource::postActionForUser(const string& sRequest, const long l
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session->find<Echoes::Dbo::UserActionType>()
+            Wt::Dbo::ptr<Echoes::Dbo::UserActionType> uatPtr = m_session.find<Echoes::Dbo::UserActionType>()
                     .where(QUOTE(TRIGRAM_USER_ACTION_TYPE ID) " = ?").bind(uacId);
 
             Echoes::Dbo::UserHistoricalAction *newUha = new Echoes::Dbo::UserHistoricalAction();
             newUha->tableObject = tableObject;
             newUha->tableObjectId = tableObjectId;
             newUha->userAction = uatPtr;
-            newUha->user = m_session->user();
+            newUha->user = m_session.user();
             newUha->dateTime = Wt::WDateTime::currentDateTime();
             newUha->actionAfter = actionAfter;
             newUha->actionBefore = actionBefore;
             newUha->actionRelative = actionRelative;
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserHistoricalAction> newUhaPtr = m_session->add<Echoes::Dbo::UserHistoricalAction>(newUha);
+            Wt::Dbo::ptr<Echoes::Dbo::UserHistoricalAction> newUhaPtr = m_session.add<Echoes::Dbo::UserHistoricalAction>(newUha);
             newUhaPtr.flush();
 
             res = serialize(newUhaPtr, responseMsg, EReturnCode::CREATED);
@@ -273,9 +273,9 @@ EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, 
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -284,7 +284,7 @@ EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, 
             {
                 if (uroId > 0)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::UserRole> usoPtr = m_session->find<Echoes::Dbo::UserRole>()
+                    Wt::Dbo::ptr<Echoes::Dbo::UserRole> usoPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);

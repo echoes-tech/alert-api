@@ -16,7 +16,6 @@
 
 #include <Wt/WResource>
 
-#include <tools/SafeTransaction.h>
 #include <tools/Session.h>
 
 #include "Conf.h"
@@ -24,10 +23,12 @@
 class ItookiAckReceiver : public Wt::WResource
 {
     public:
-        ItookiAckReceiver();
+        ItookiAckReceiver(Echoes::Dbo::Session& session);
         virtual ~ItookiAckReceiver();
 
     protected:
+        Echoes::Dbo::Session& m_session;
+        
         std::string m_errorCode;
         std::string m_refSent;
         

@@ -19,7 +19,7 @@
 class MediaResource : public PublicApiResource
 {
     public :
-        MediaResource();
+        MediaResource(Echoes::Dbo::Session& session);
         virtual ~MediaResource();
 
         /**

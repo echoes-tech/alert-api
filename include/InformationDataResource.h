@@ -19,7 +19,7 @@
 class InformationDataResource : public PublicApiResource
 {
     public :
-        InformationDataResource();
+        InformationDataResource(Echoes::Dbo::Session& session);
         virtual ~InformationDataResource();
 
         /**

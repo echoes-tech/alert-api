@@ -17,17 +17,18 @@
 #include <Wt/WResource>
 
 #include <tools/Session.h>
-#include <tools/SafeTransaction.h>
 
 #include "Conf.h"
 
 class ItookiAswReceiver : public Wt::WResource
 {
     public:
-        ItookiAswReceiver();
+        ItookiAswReceiver(Echoes::Dbo::Session& session);
         virtual ~ItookiAswReceiver();
 
     protected:
+        Echoes::Dbo::Session& m_session;
+
         std::string m_number;
         std::string m_message;
         

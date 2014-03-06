@@ -15,7 +15,7 @@
 
 using namespace std;
 
-AddonResource::AddonResource() : PublicApiResource::PublicApiResource()
+AddonResource::AddonResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode AddonResource::getAddonsList(const long long &orgId, string& respons
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoPtrCol = m_session->find<Echoes::Dbo::Addon>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Addon>> adoPtrCol = m_session.find<Echoes::Dbo::Addon>()
                 .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_ADDON ID));
 
@@ -51,9 +51,9 @@ EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const lo
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session->find<Echoes::Dbo::Addon>()
+        Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = m_session.find<Echoes::Dbo::Addon>()
                 .where(QUOTE(TRIGRAM_ADDON ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL");
 

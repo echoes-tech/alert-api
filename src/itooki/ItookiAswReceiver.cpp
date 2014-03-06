@@ -15,7 +15,8 @@
 
 using namespace std;
 
-ItookiAswReceiver::ItookiAswReceiver() : Wt::WResource()
+ItookiAswReceiver::ItookiAswReceiver(Echoes::Dbo::Session& session) : Wt::WResource(),
+m_session(session)
 {
 }
 
@@ -26,8 +27,6 @@ ItookiAswReceiver::~ItookiAswReceiver()
 
 void ItookiAswReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    Echoes::Dbo::Session session(conf.getSessConnectParams());
-
     Wt::log("notice") << "[ASW] Query string : " << request.queryString();
 
 
@@ -46,11 +45,11 @@ void ItookiAswReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
     // new transaction
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         Echoes::Dbo::UserHistoricalAction *uha = new Echoes::Dbo::UserHistoricalAction;
         uha->dateTime = Wt::WDateTime::currentDateTime();
         uha->tableObject = m_number + " : " + m_message;
-        session.add<Echoes::Dbo::UserHistoricalAction>(uha);
+        m_session.add<Echoes::Dbo::UserHistoricalAction>(uha);
     }
     catch(Wt::Dbo::Exception const& e)
     {

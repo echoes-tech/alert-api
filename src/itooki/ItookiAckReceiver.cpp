@@ -15,7 +15,8 @@
 
 using namespace std;
 
-ItookiAckReceiver::ItookiAckReceiver() : Wt::WResource()
+ItookiAckReceiver::ItookiAckReceiver(Echoes::Dbo::Session& session) : Wt::WResource(),
+m_session(session)
 {
 }
 
@@ -26,8 +27,6 @@ ItookiAckReceiver::~ItookiAckReceiver()
 
 void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
-    Echoes::Dbo::Session session(conf.getSessConnectParams());
-
     Wt::log("notice") << "[ACK] Query string : " << request.queryString();
 
     if (!request.getParameterValues("erreur").empty())
@@ -86,8 +85,8 @@ void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(session);
-            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = session.find<Echoes::Dbo::AlertTracking>().where("\"ATR_ACK_ID\" = ?").bind(messageId);
+            Wt::Dbo::Transaction transaction(m_session, true);
+            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = m_session.find<Echoes::Dbo::AlertTracking>().where("\"ATR_ACK_ID\" = ?").bind(messageId);
             if (atrPtr)
             {
                 atrPtr.modify()->receiverSrv = gateway;
@@ -99,7 +98,7 @@ void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
                 ate->value = eventReason;
                 ate->date = Wt::WDateTime::currentDateTime();
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = session.add(ate);
+                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = m_session.add(ate);
             }
             else
             {
@@ -108,7 +107,7 @@ void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
                 ate->value = eventReason;
                 ate->date = Wt::WDateTime::currentDateTime();
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = session.add(ate);
+                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = m_session.add(ate);
                 //TODO error behavior
             }
         }

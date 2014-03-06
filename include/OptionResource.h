@@ -19,7 +19,7 @@
 class OptionResource : public PublicApiResource
 {
     public:
-        OptionResource();
+        OptionResource(Echoes::Dbo::Session& session);
         virtual ~OptionResource();
 
     private:

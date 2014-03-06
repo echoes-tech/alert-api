@@ -19,9 +19,9 @@
 class RoleResource : public PublicApiResource
 {
     public :
-        RoleResource();
+        RoleResource(Echoes::Dbo::Session& session);
         virtual ~RoleResource();
-        
+
     protected :
         EReturnCode getRolesList(const long long &orgId, std::string &response);
         EReturnCode getRole(const std::vector<std::string> &pathElements, const long long &orgId, std::string &response);

@@ -20,7 +20,7 @@
 class FilterResource : public PublicApiResource
 {
     public:
-        FilterResource();
+        FilterResource(Echoes::Dbo::Session& session);
         virtual ~FilterResource();
 
         /**

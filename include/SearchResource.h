@@ -20,7 +20,7 @@
 class SearchResource : public PublicApiResource
 {
     public:
-        SearchResource();
+        SearchResource(Echoes::Dbo::Session& session);
         virtual ~SearchResource();
 
         /**

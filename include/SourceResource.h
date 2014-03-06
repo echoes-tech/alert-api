@@ -11,7 +11,6 @@
  * 
  */
 
-
 #ifndef SOURCERESOURCE_H
 #define	SOURCERESOURCE_H
 
@@ -20,7 +19,7 @@
 class SourceResource : public PublicApiResource
 {
     public:
-        SourceResource();
+        SourceResource(Echoes::Dbo::Session& session);
         virtual ~SourceResource();
 
         /**

@@ -19,7 +19,7 @@
 class PluginResource : public PublicApiResource
 {
     public :
-        PluginResource();
+        PluginResource(Echoes::Dbo::Session& session);
         virtual ~PluginResource();
         
     protected :

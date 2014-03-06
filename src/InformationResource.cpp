@@ -15,7 +15,7 @@
 
 using namespace std;
 
-InformationResource::InformationResource() : PublicApiResource::PublicApiResource()
+InformationResource::InformationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode InformationResource::getInformationsList(const long long &orgId, str
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session->find<Echoes::Dbo::Information>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_INFORMATION ID));
@@ -52,9 +52,9 @@ EReturnCode InformationResource::getInformation(const vector<string> &pathElemen
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
+        Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -86,15 +86,15 @@ EReturnCode InformationResource::getAliasForInformation(const vector<string> &pa
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> aaiPtr = m_session->find<Echoes::Dbo::AlertMessageAliasInformation>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> aaiPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformation>()
                         .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION SEP "DELETE") " IS NULL")
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(parameters["media_type_id"])
@@ -126,7 +126,7 @@ EReturnCode InformationResource::getPluginsListForInformation(const vector<strin
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         const string queryStr =
 " SELECT plg\n"
 "   FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) " plg\n"
@@ -170,7 +170,7 @@ EReturnCode InformationResource::getPluginsListForInformation(const vector<strin
 "     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
 "     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n";        
         
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = queryRes.resultList();
 
@@ -287,9 +287,9 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
                     .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
             if (!orgPtr)
@@ -299,7 +299,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(inuId)
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
             if (inuPtr)
@@ -312,7 +312,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
                 newInf->informationUnit = inuPtr;
                 newInf->organization = orgPtr;
 
-                Wt::Dbo::ptr<Echoes::Dbo::Information> newInfPtr = m_session->add<Echoes::Dbo::Information>(newInf);
+                Wt::Dbo::ptr<Echoes::Dbo::Information> newInfPtr = m_session.add<Echoes::Dbo::Information>(newInf);
                 newInfPtr.flush();
 
                 res = serialize(newInfPtr, responseMsg, EReturnCode::CREATED);
@@ -422,9 +422,9 @@ EReturnCode InformationResource::putInformation(const vector<string> &pathElemen
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
+            Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
@@ -445,7 +445,7 @@ EReturnCode InformationResource::putInformation(const vector<string> &pathElemen
                 }
                 if (inuId > 0)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                             .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(inuId)
                             .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
                     if (inuPtr)
@@ -522,15 +522,15 @@ EReturnCode InformationResource::putAliasForInformation(const vector<string> &pa
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr =  m_session->find<Echoes::Dbo::Information>()
+            Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr =  m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
             if (infPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
                 if (!uroPtr)
@@ -540,7 +540,7 @@ EReturnCode InformationResource::putAliasForInformation(const vector<string> &pa
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
+                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
                 if (!mtyPtr)
@@ -550,7 +550,7 @@ EReturnCode InformationResource::putAliasForInformation(const vector<string> &pa
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> aaiPtr = m_session->find<Echoes::Dbo::AlertMessageAliasInformation>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation> aaiPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformation>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_INFORMATION ID SEP TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId);
@@ -565,7 +565,7 @@ EReturnCode InformationResource::putAliasForInformation(const vector<string> &pa
                     newAai->pk.userRole = uroPtr;
                     newAai->pk.mediaType = mtyPtr;
                     newAai->alias = value;
-                    aaiPtr = m_session->add<Echoes::Dbo::AlertMessageAliasInformation>(newAai);
+                    aaiPtr = m_session.add<Echoes::Dbo::AlertMessageAliasInformation>(newAai);
                 }
                 res = EReturnCode::OK;
             }
@@ -642,16 +642,16 @@ EReturnCode InformationResource::deleteInformation(const vector<string> &pathEle
 
     try 
     {  
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
+        Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
         if(infPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session->find<Echoes::Dbo::InformationData>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
 

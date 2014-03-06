@@ -15,7 +15,7 @@
 
 using namespace std;
 
-AssetResource::AssetResource() : PublicApiResource::PublicApiResource()
+AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -46,9 +46,9 @@ EReturnCode AssetResource::getAssetsList(const long long &orgId, string &respons
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> astPtrCol = m_session->find<Echoes::Dbo::Asset>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> astPtrCol = m_session.find<Echoes::Dbo::Asset>()
                 .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_ASSET ID));
@@ -70,9 +70,9 @@ EReturnCode AssetResource::getAsset(const vector<string> &pathElements, const lo
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
 
         res = serialize(astPtr, responseMsg);
 
@@ -101,15 +101,15 @@ EReturnCode AssetResource::getAliasForAsset(const vector<string> &pathElements, 
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+            Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session->find<Echoes::Dbo::AlertMessageAliasAsset>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                         .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_ASSET SEP "DELETE") " IS NULL")
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(parameters["media_type_id"])
@@ -143,7 +143,7 @@ EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
             
             
@@ -160,7 +160,7 @@ EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements
             "     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
             "     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL";
 
-            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
+            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
 
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgColl = queryRes.resultList();
             
@@ -292,9 +292,9 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session->find<Echoes::Dbo::Organization>()
+            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
                     .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
             if (!orgPtr)
@@ -311,14 +311,14 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
 
             if (!architecture.empty())
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr = m_session->find<Echoes::Dbo::AssetArchitecture>()
+                Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr = m_session.find<Echoes::Dbo::AssetArchitecture>()
                         .where(QUOTE(TRIGRAM_ASSET_ARCHITECTURE SEP "NAME") " = ?").bind(architecture)
                         .limit(1);
                 if (!asaPtr)
                 {
                     Echoes::Dbo::AssetArchitecture *newAsa = new Echoes::Dbo::AssetArchitecture();
                     newAsa->name = architecture;
-                    asaPtr = m_session->add<Echoes::Dbo::AssetArchitecture>(newAsa);
+                    asaPtr = m_session.add<Echoes::Dbo::AssetArchitecture>(newAsa);
                     asaPtr.flush();
                 }
                 newAst->assetArchitecture = asaPtr;
@@ -326,14 +326,14 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
 
             if (!distribution.empty())
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> asdPtr = m_session->find<Echoes::Dbo::AssetDistribution>()
+                Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> asdPtr = m_session.find<Echoes::Dbo::AssetDistribution>()
                         .where(QUOTE(TRIGRAM_ASSET_DISTRIBUTION SEP "NAME") " = ?").bind(distribution)
                         .limit(1);
                 if (!asdPtr)
                 {
                     Echoes::Dbo::AssetDistribution *newAsd = new Echoes::Dbo::AssetDistribution();
                     newAsd->name = distribution;
-                    asdPtr = m_session->add<Echoes::Dbo::AssetDistribution>(newAsd);
+                    asdPtr = m_session.add<Echoes::Dbo::AssetDistribution>(newAsd);
                     asdPtr.flush();
                 }
                 newAst->assetDistribution = asdPtr;
@@ -341,20 +341,20 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
 
             if (!distribution.empty())
             {
-                Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr = m_session->find<Echoes::Dbo::AssetRelease>()
+                Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr = m_session.find<Echoes::Dbo::AssetRelease>()
                         .where(QUOTE(TRIGRAM_ASSET_RELEASE SEP "NAME") " = ?").bind(release)
                         .limit(1);
                 if (!asrPtr)
                 {
                     Echoes::Dbo::AssetRelease *newAsr = new Echoes::Dbo::AssetRelease();
                     newAsr->name = release;
-                    asrPtr = m_session->add<Echoes::Dbo::AssetRelease>(newAsr);
+                    asrPtr = m_session.add<Echoes::Dbo::AssetRelease>(newAsr);
                     asrPtr.flush();
                 }
                 newAst->assetRelease = asrPtr;
             }
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> newAstPtr = m_session->add<Echoes::Dbo::Asset>(newAst);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> newAstPtr = m_session.add<Echoes::Dbo::Asset>(newAst);
             newAstPtr.flush();
 
             res = serialize(newAstPtr, responseMsg, EReturnCode::CREATED);
@@ -430,9 +430,9 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
             if (astPtr)
             {
                 vector<Wt::Dbo::ptr<Echoes::Dbo::Asset>> astPtrVector;
@@ -441,7 +441,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                 vector<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrVector;
                 for (vector<IdaStruct>::const_iterator it = idaStructs.begin(); it < idaStructs.end(); ++it)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(it->astId, orgId, *m_session);
+                    Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(it->astId, orgId, m_session);
                     if (!astPtr)
                     {
                         res = EReturnCode::NOT_FOUND;
@@ -450,7 +450,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     }
                     astPtrVector.push_back(astPtr);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session->find<Echoes::Dbo::Information>()
+                    Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                             .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(it->infId)
                             .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
                     if (!infPtr)
@@ -461,7 +461,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     }
                     infPtrVector.push_back(infPtr);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                             .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(it->inuId)
                             .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
                     if (!inuPtr)
@@ -472,7 +472,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     }
                     inuPtrVector.push_back(inuPtr);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = FilterResource::selectFilter(it->filId, orgId, *m_session);
+                    Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = FilterResource::selectFilter(it->filId, orgId, m_session);
                     if (!filPtr)
                     {
                         res = EReturnCode::NOT_FOUND;
@@ -499,7 +499,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     newIda->filter = filPtrVector[distance(idaStructs.begin(), it)];
                     newIda->filterFieldIndex = it->filterFieldIndex;
                     
-                    Wt::Dbo::ptr<Echoes::Dbo::InformationData> newIdaPtr = m_session->add<Echoes::Dbo::InformationData>(newIda);
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationData> newIdaPtr = m_session.add<Echoes::Dbo::InformationData>(newIda);
                     newIdaPtr.flush();
                 }
 
@@ -619,9 +619,9 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
             if (astPtr)
             {
                 if (!name.empty())
@@ -631,14 +631,14 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
 
                 if (!architecture.empty())
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr = m_session->find<Echoes::Dbo::AssetArchitecture>()
+                    Wt::Dbo::ptr<Echoes::Dbo::AssetArchitecture> asaPtr = m_session.find<Echoes::Dbo::AssetArchitecture>()
                             .where(QUOTE(TRIGRAM_ASSET_ARCHITECTURE SEP "NAME") " = ?").bind(architecture)
                             .limit(1);
                     if (!asaPtr)
                     {
                         Echoes::Dbo::AssetArchitecture *newAsa = new Echoes::Dbo::AssetArchitecture();
                         newAsa->name = architecture;
-                        asaPtr = m_session->add<Echoes::Dbo::AssetArchitecture>(newAsa);
+                        asaPtr = m_session.add<Echoes::Dbo::AssetArchitecture>(newAsa);
                         asaPtr.flush();
                     }
                     astPtr.modify()->assetArchitecture = asaPtr;
@@ -646,14 +646,14 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
 
                 if (!distribution.empty())
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> asdPtr = m_session->find<Echoes::Dbo::AssetDistribution>()
+                    Wt::Dbo::ptr<Echoes::Dbo::AssetDistribution> asdPtr = m_session.find<Echoes::Dbo::AssetDistribution>()
                             .where(QUOTE(TRIGRAM_ASSET_DISTRIBUTION SEP "NAME") " = ?").bind(distribution)
                             .limit(1);
                     if (!asdPtr)
                     {
                         Echoes::Dbo::AssetDistribution *newAsd = new Echoes::Dbo::AssetDistribution();
                         newAsd->name = distribution;
-                        asdPtr = m_session->add<Echoes::Dbo::AssetDistribution>(newAsd);
+                        asdPtr = m_session.add<Echoes::Dbo::AssetDistribution>(newAsd);
                         asdPtr.flush();
                     }
                     astPtr.modify()->assetDistribution = asdPtr;
@@ -661,14 +661,14 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
 
                 if (!distribution.empty())
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr = m_session->find<Echoes::Dbo::AssetRelease>()
+                    Wt::Dbo::ptr<Echoes::Dbo::AssetRelease> asrPtr = m_session.find<Echoes::Dbo::AssetRelease>()
                             .where(QUOTE(TRIGRAM_ASSET_RELEASE SEP "NAME") " = ?").bind(release)
                             .limit(1);
                     if (!asrPtr)
                     {
                         Echoes::Dbo::AssetRelease *newAsr = new Echoes::Dbo::AssetRelease();
                         newAsr->name = release;
-                        asrPtr = m_session->add<Echoes::Dbo::AssetRelease>(newAsr);
+                        asrPtr = m_session.add<Echoes::Dbo::AssetRelease>(newAsr);
                         asrPtr.flush();
                     }
                     astPtr.modify()->assetRelease = asrPtr;
@@ -681,7 +681,7 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
 
                     for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe> >::const_iterator it = prbPtrCol.begin(); it != prbPtrCol.end(); ++it)
                     {
-                        it->modify()->probePackageParameter = ProbeResource::selectProbePackageParameter(astPtr, *m_session);
+                        it->modify()->probePackageParameter = ProbeResource::selectProbePackageParameter(astPtr, m_session);
                     }
                 }
 
@@ -744,16 +744,16 @@ EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, 
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session->find<Echoes::Dbo::Asset>()
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
                     .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
 
             if (astPtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session->find<Echoes::Dbo::UserRole>()
+                Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
                 if (!uroPtr)
@@ -763,7 +763,7 @@ EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, 
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
+                Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
                 if (!mtyPtr)
@@ -773,7 +773,7 @@ EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, 
                     return res;
                 }
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session->find<Echoes::Dbo::AlertMessageAliasAsset>()
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_ASSET ID SEP TRIGRAM_ASSET ID) " = ?").bind(pathElements[1])
                         .where(QUOTE(TRIGRAM_MEDIA_TYPE ID SEP TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId);
@@ -788,7 +788,7 @@ EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, 
                     newAaa->pk.userRole = uroPtr;
                     newAaa->pk.mediaType = mtyPtr;
                     newAaa->alias = value;
-                    aaaPtr = m_session->add<Echoes::Dbo::AlertMessageAliasAsset>(newAaa);
+                    aaaPtr = m_session.add<Echoes::Dbo::AlertMessageAliasAsset>(newAaa);
                 }
                 res = EReturnCode::OK;
             }
@@ -865,12 +865,12 @@ EReturnCode AssetResource::deleteAsset(const vector<string> &pathElements, const
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
         if (astPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session->find<Echoes::Dbo::InformationData>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
 

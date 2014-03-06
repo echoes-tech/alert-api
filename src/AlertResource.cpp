@@ -14,7 +14,7 @@
 
 using namespace std;
 
-AlertResource::AlertResource() : PublicApiResource::PublicApiResource()
+AlertResource::AlertResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -75,7 +75,7 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT ale"
 "   FROM " QUOTE("T_ALERT_ALE") " ale"
@@ -112,7 +112,7 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
 "       )"
 "     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_ALERT ID);
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Alert>> alePtrCol = queryRes.resultList();
 
@@ -134,9 +134,9 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
 
         res = serialize(alePtr, responseMsg);
 
@@ -163,10 +163,10 @@ EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &par
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
         //ToDo(FPO): Check rights
-        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTracking >> atrPtrCol = m_session->find<Echoes::Dbo::AlertTracking>()
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTracking >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTracking>()
                 .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ? ").bind(parameters["media_id"])
                 .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP "SEND_DATE") " IS NOT NULL")
                 .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING SEP "SEND_DATE") " DESC")
@@ -322,7 +322,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
             const string queryStr =
 " SELECT ida"
@@ -368,7 +368,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   LIMIT 1";
 
-            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
+            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
     
             Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
             if (!idaPtr)
@@ -378,7 +378,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 return res;
             }
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session->find<Echoes::Dbo::AlertCriteria>()
+            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
                     .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(acrId)
                     .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
             if (!acrPtr)
@@ -391,7 +391,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
             for (vector<AmsStruct>::const_iterator it = amsStructs.begin(); it < amsStructs.end(); ++it)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, orgId, *m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, orgId, m_session);
                 if (!medPtr)
                 {
                     res = EReturnCode::NOT_FOUND;
@@ -408,7 +408,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             ava->value = value;
             ava->keyValue = keyValue;
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session->add<Echoes::Dbo::AlertValue>(ava);
+            Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session.add<Echoes::Dbo::AlertValue>(ava);
             newAvaPtr.flush();
 
             Echoes::Dbo::Alert *ale = new Echoes::Dbo::Alert();
@@ -417,7 +417,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             ale->creaDate = Wt::WDateTime::currentDateTime();
             ale->threadSleep = threadSleep;
 
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> newAlePtr = m_session->add<Echoes::Dbo::Alert>(ale);
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> newAlePtr = m_session.add<Echoes::Dbo::Alert>(ale);
             newAlePtr.flush();
 
             for (vector<AmsStruct>::iterator it = amsStructs.begin(); it < amsStructs.end(); ++it)
@@ -429,7 +429,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 newAms->notifEndOfAlert = false;
                 newAms->message = it->message;
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> newAmsPtr = m_session->add<Echoes::Dbo::AlertMediaSpecialization>(newAms);
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> newAmsPtr = m_session.add<Echoes::Dbo::AlertMediaSpecialization>(newAms);
                 newAmsPtr.flush();
             }
 
@@ -533,7 +533,7 @@ EReturnCode AlertResource::sendSMS
 
     Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
 
-    ItookiSMSSender itookiSMSSender(this);
+    ItookiSMSSender itookiSMSSender(m_session, this);
 
     if (!itookiSMSSender.send(amsPtr->media->value.toUTF8(), sms, atrPtr))
     {
@@ -618,9 +618,9 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
             if (!alePtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -631,7 +631,7 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
             vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
             for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session->find<Echoes::Dbo::InformationValue>()
+                Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session.find<Echoes::Dbo::InformationValue>()
                         .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
                         .where(QUOTE(TRIGRAM_INFORMATION_VALUE SEP "DELETE") " IS NULL");
                 if (!ivaPtr)
@@ -679,7 +679,7 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                     // WARNING : SendDate must be set by the API when the alert was sent, not before
                     newAtr->sendDate = *(new Wt::WDateTime());
 
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> newAtrPtr = m_session->add<Echoes::Dbo::AlertTracking>(newAtr);
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> newAtrPtr = m_session.add<Echoes::Dbo::AlertTracking>(newAtr);
                     newAtrPtr.flush();
 
                     Wt::log("info") << " [Alert Ressource] " << "Alert tracking number creation : " << newAtrPtr.id();
@@ -693,7 +693,7 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                             Wt::log("info") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
 
                             // Verifying the quota of sms
-                            Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session->find<Echoes::Dbo::Option>()
+                            Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                                     .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
                                     .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                                     .limit(1);
@@ -808,9 +808,9 @@ EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
 
         if (alePtr)
         {

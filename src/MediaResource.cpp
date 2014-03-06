@@ -10,11 +10,12 @@
  * COPYRIGHT 2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
+
 #include "MediaResource.h"
 
 using namespace std;
 
-MediaResource::MediaResource() : PublicApiResource::PublicApiResource()
+MediaResource::MediaResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -60,7 +61,7 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT med"
 "   FROM " QUOTE("T_MEDIA_MED") " med"
@@ -83,7 +84,7 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session->query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrCol = queryRes.resultList();
 
@@ -105,9 +106,9 @@ EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, m_session);
 
         res = serialize(medPtr, responseMsg);
 
@@ -206,9 +207,9 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session->find<Echoes::Dbo::MediaType>()
+            Wt::Dbo::ptr<Echoes::Dbo::MediaType> mtyPtr = m_session.find<Echoes::Dbo::MediaType>()
                     .where(QUOTE(TRIGRAM_MEDIA_TYPE ID) " = ?").bind(mtyId)
                     .where(QUOTE(TRIGRAM_MEDIA_TYPE SEP "DELETE") " IS NULL");
             if (!mtyPtr)
@@ -218,7 +219,7 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
                 return res;
             }
 
-            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session->find<Echoes::Dbo::User>()
+            Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                     .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(usrId)
                     .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
@@ -236,7 +237,7 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
             newMed->token = Wt::WRandom::generateId(25);
             newMed->isConfirmed = false;
             newMed->isDefault = false;
-            Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session->add<Echoes::Dbo::Media>(newMed);
+            Wt::Dbo::ptr<Echoes::Dbo::Media> newMedPtr = m_session.add<Echoes::Dbo::Media>(newMed);
             newMedPtr.flush();
 
             res = serialize(newMedPtr, responseMsg, EReturnCode::CREATED);
@@ -336,9 +337,9 @@ EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, *m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, m_session);
 
             if (medPtr)
             {
@@ -434,13 +435,13 @@ EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathEleme
 
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, *m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, m_session);
 
         if (medPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>> amsPtrCol = m_session->find<Echoes::Dbo::AlertMediaSpecialization>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>> amsPtrCol = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
                     .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
 

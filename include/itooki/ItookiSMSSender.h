@@ -24,14 +24,13 @@
 #include <Wt/WLogger>
 
 #include <tools/Session.h>
-#include <tools/SafeTransaction.h>
 
 #include "Conf.h"
 
 class ItookiSMSSender
 {
     public:
-        ItookiSMSSender(Wt::WObject *parent = NULL);
+        ItookiSMSSender(Echoes::Dbo::Session& session, Wt::WObject *parent = NULL);
         virtual ~ItookiSMSSender();
 
         Wt::WObject* getParent() const;
@@ -40,6 +39,7 @@ class ItookiSMSSender
 
     private:
         Wt::WObject *m_parent;
+        Echoes::Dbo::Session& m_session;
 
         void setParent(Wt::WObject* parent);
 

@@ -61,8 +61,6 @@ namespace boost
   }
 }
 
-
-#include <tools/SafeTransaction.h>
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
 #include <tools/Enums.h>
@@ -74,13 +72,11 @@ namespace boost
 
 class PublicApiResource : public Wt::WResource {
 public:
-    PublicApiResource();
+    PublicApiResource(Echoes::Dbo::Session& session);
     virtual ~PublicApiResource();
     
 protected:
-    Echoes::Dbo::Session* m_session;
-
-    Wt::Dbo::FixedSqlConnectionPool *m_connectionPool;
+    Echoes::Dbo::Session& m_session;
 
     static std::string file2base64(const std::string &path);
     
@@ -139,7 +135,7 @@ protected:
     template<class C>
     std::string serializeToJSON(C &obj) {
         std::string responseMsg;
-        Wt::Dbo::JsonSerializer jsonSerializer(*m_session);
+        Wt::Dbo::JsonSerializer jsonSerializer(m_session);
         jsonSerializer.serialize(obj);
         responseMsg = jsonSerializer.getResult();
         return responseMsg;
@@ -154,12 +150,12 @@ protected:
     template<class C>
     std::string getTableName(Wt::Dbo::ptr<C> const &ptr)
     {
-        return Wt::Dbo::JsonSerializer::transformTableName(m_session->tableName<C>());
+        return Wt::Dbo::JsonSerializer::transformTableName(m_session.tableName<C>());
     }
     template<class C>
     std::string getTableName(Wt::Dbo::collection<Wt::Dbo::ptr<C>> const &ptrCol)
     {
-        return Wt::Dbo::JsonSerializer::transformTableName(m_session->tableName<C>());
+        return Wt::Dbo::JsonSerializer::transformTableName(m_session.tableName<C>());
     }
 
     template<class C>

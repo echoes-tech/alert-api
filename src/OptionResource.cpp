@@ -15,7 +15,7 @@
 
 using namespace std;
 
-OptionResource::OptionResource() : PublicApiResource::PublicApiResource()
+OptionResource::OptionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &par
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session->find<Echoes::Dbo::Option>()
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
                 .orderBy(QUOTE(TRIGRAM_OPTION ID));
@@ -61,9 +61,9 @@ EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElemen
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session->find<Echoes::Dbo::Option>()
+        Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);

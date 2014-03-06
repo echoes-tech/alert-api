@@ -15,7 +15,7 @@
 
 using namespace std;
 
-UnitResource::UnitResource() : PublicApiResource::PublicApiResource()
+UnitResource::UnitResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
@@ -28,9 +28,9 @@ EReturnCode UnitResource::getUnitsList(const long long &orgId, string& responseM
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrCol = m_session->find<Echoes::Dbo::InformationUnit>()
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationUnit>> inuPtrCol = m_session.find<Echoes::Dbo::InformationUnit>()
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL")
                 .orderBy(QUOTE(TRIGRAM_INFORMATION_UNIT ID));
 
@@ -51,9 +51,9 @@ EReturnCode UnitResource::getUnit(const std::vector<std::string> &pathElements, 
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
 
@@ -157,9 +157,9 @@ EReturnCode UnitResource::postUnit(const string& sRequest, const long long &orgI
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> iutPtr = m_session->find<Echoes::Dbo::InformationUnitType>()
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnitType> iutPtr = m_session.find<Echoes::Dbo::InformationUnitType>()
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT_TYPE ID) " = ?").bind(iutId)
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT_TYPE SEP "DELETE") " IS NULL");
             if (!iutPtr)
@@ -172,7 +172,7 @@ EReturnCode UnitResource::postUnit(const string& sRequest, const long long &orgI
             Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> baseInuPtr;
             if (baseInuId > 0)
             {
-                baseInuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+                baseInuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                         .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(baseInuId)
                         .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
                 if (!baseInuPtr)
@@ -192,7 +192,7 @@ EReturnCode UnitResource::postUnit(const string& sRequest, const long long &orgI
             }
             newInu->baseOperation = baseOperation;
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> newInuPtr = m_session->add<Echoes::Dbo::InformationUnit>(newInu);
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> newInuPtr = m_session.add<Echoes::Dbo::InformationUnit>(newInu);
             newInuPtr.flush();
 
             res = serialize(newInuPtr, responseMsg, EReturnCode::CREATED);
@@ -273,9 +273,9 @@ EReturnCode UnitResource::putUnit(const std::vector<std::string> &pathElements, 
     {
         try
         {
-            Echoes::Dbo::SafeTransaction transaction(*m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+            Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
 
@@ -358,19 +358,19 @@ EReturnCode UnitResource::deleteUnit(const std::vector<std::string> &pathElement
 
     try 
     {  
-        Echoes::Dbo::SafeTransaction transaction(*m_session);
+        Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session->find<Echoes::Dbo::InformationUnit>()
+        Wt::Dbo::ptr<Echoes::Dbo::InformationUnit> inuPtr = m_session.find<Echoes::Dbo::InformationUnit>()
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION_UNIT SEP "DELETE") " IS NULL");
 
         if(inuPtr)
         {
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session->find<Echoes::Dbo::Information>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session.find<Echoes::Dbo::Information>()
                     .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session->find<Echoes::Dbo::InformationData>()
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION_UNIT SEP TRIGRAM_INFORMATION_UNIT ID)" = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL");
 

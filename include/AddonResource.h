@@ -19,9 +19,9 @@
 class AddonResource : public PublicApiResource
 {
     public :
-        AddonResource();
+        AddonResource(Echoes::Dbo::Session& session);
         virtual ~AddonResource();
-     
+
     protected :
         EReturnCode getAddonsList(const long long &orgId, std::string &responseMsg);
         EReturnCode getAddon(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
