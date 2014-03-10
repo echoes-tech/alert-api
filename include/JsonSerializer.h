@@ -100,11 +100,15 @@ public:
     void actPtr(Wt::Dbo::PtrRef< V> field)
     {
 //        std::cout << "In actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
-        if (m_rank <= m_maxRank)
+        if (m_rank < m_maxRank)
         {
             m_rank++;
             processSerialize(field.value());
             m_rank--;
+        }
+        else if (m_rank == m_maxRank)
+        {
+            processSerialize(field.value());
         }
 //        std::cout << "Out actPtr(Wt::Dbo::PtrRef< V> field) - " << m_session.tableName<V>() << " - rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
