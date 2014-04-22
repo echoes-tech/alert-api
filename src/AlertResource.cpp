@@ -293,7 +293,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     tmp.get("information_id"),
                     tmp.get("asset_id"),
                     tmp.get("plugin_id"),
-                    tmp.get("alert_criteria_id")
+                    tmp.get("alert_criterion_id")
                 }
                 );
             }
@@ -308,7 +308,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 
 
             // AMS attributs
-            Wt::Json::Array amsAttributs = result.get("alert_media_specialization");
+            Wt::Json::Array amsAttributs = result.get("alert_media_specializations");
             for (Wt::Json::Array::const_iterator it = amsAttributs.begin(); it < amsAttributs.end(); ++it)
             {
                 Wt::Json::Object tmp = *it;
