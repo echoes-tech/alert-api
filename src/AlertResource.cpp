@@ -241,15 +241,19 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 
     // ALE attributs
     Wt::WString name;
-    Wt::WString value;
     int threadSleep;
 
     // AVA attributs
-    Wt::WString keyValue;
-    long long infId;
-    long long astId;
-    long long plgId;
-    long long acrId;
+    struct AvaStruct
+    {
+        Wt::WString value;
+        Wt::WString keyValue;
+        long long infId;
+        long long astId;
+        long long plgId;
+        long long acrId;
+    };
+    vector<AvaStruct> avaStructs;
 
     // AMS attributs
     struct AmsStruct
@@ -259,34 +263,51 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
         Wt::WString message;
     };
     vector<AmsStruct> amsStructs;
-
+    
     if (!sRequest.empty())
     {
         try
         {
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
-            
+
             // ALE attributs
             name = result.get("name");
-            value = result.get("value");
             threadSleep = result.get("thread_sleep");
 
             // AVA attributs
-            if (!result.get("key_value").isNull())
+            Wt::Json::Array avaAttributs = result.get("alert_values");
+            for (Wt::Json::Array::const_iterator it = avaAttributs.begin(); it < avaAttributs.end(); ++it)
             {
-                keyValue = result.get("key_value");
-            }
-            else
-            {
-                keyValue = "";
-            }
-            
-            infId = result.get("information_id");
-            astId = result.get("asset_id");
-            plgId = result.get("plugin_id");
-            acrId = result.get("alert_criteria_id");
+                Wt::Json::Object tmp = *it;
+                Wt::WString keyValue = "";
+                if (!tmp.get("key_value").isNull())
+                {
+                    keyValue = tmp.get("key_value");
+                }
 
+                avaStructs.push_back(
+                {
+                    tmp.get("value"),
+                    keyValue,
+                    tmp.get("information_id"),
+                    tmp.get("asset_id"),
+                    tmp.get("plugin_id"),
+                    tmp.get("alert_criteria_id")
+                }
+                );
+            }
+            // ToDo(FPO): Implementation of Sequences
+            if (avaStructs.size() > 1)
+            {
+                res = EReturnCode::NOT_IMPLEMENTED;
+                const string err = "[Alert Resource] Sequence is not implemented";
+                responseMsg = httpCodeToJSON(res, err);
+                return res;
+            }
+
+
+            // AMS attributs
             Wt::Json::Array amsAttributs = result.get("alert_media_specialization");
             for (Wt::Json::Array::const_iterator it = amsAttributs.begin(); it < amsAttributs.end(); ++it)
             {
@@ -353,7 +374,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "                                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                               WHERE"
 "                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
-"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(plgId) +
+"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(avaStructs[0].plgId) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                         )"
 "                                 )"
@@ -363,8 +384,8 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "               )"
 "             AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(infId) +
-"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(astId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(avaStructs[0].infId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(avaStructs[0].astId) +
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   LIMIT 1";
 
@@ -379,7 +400,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             }
 
             Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(acrId)
+                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(avaStructs[0].acrId)
                     .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
             if (!acrPtr)
             {
@@ -405,8 +426,8 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 
             ava->informationData = idaPtr;
             ava->alertCriteria = acrPtr;
-            ava->value = value;
-            ava->keyValue = keyValue;
+            ava->value = avaStructs[0].value;
+            ava->keyValue = avaStructs[0].keyValue;
 
             Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session.add<Echoes::Dbo::AlertValue>(ava);
             newAvaPtr.flush();
@@ -788,7 +809,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
             else
             {
                 res = EReturnCode::BAD_REQUEST;
-                const string err = "[Media Resource] bad nextElement";
+                const string err = "[Alert Resource] bad nextElement";
                 responseMsg = httpCodeToJSON(res, err);
             }
         }
