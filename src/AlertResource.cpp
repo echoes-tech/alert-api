@@ -288,7 +288,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 
                 avaStructs.push_back(
                 {
-                    tmp.get("value"),
+                    Wt::Utils::base64Decode(tmp.get("value")),
                     keyValue,
                     tmp.get("information_id"),
                     tmp.get("asset_id"),
@@ -305,7 +305,6 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 responseMsg = httpCodeToJSON(res, err);
                 return res;
             }
-
 
             // AMS attributs
             Wt::Json::Array amsAttributs = result.get("alert_media_specialization");
