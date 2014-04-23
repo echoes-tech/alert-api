@@ -307,7 +307,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             }
 
             // AMS attributs
-            Wt::Json::Array amsAttributs = result.get("alert_media_specialization");
+            Wt::Json::Array amsAttributs = result.get("alert_media_specializations");
             for (Wt::Json::Array::const_iterator it = amsAttributs.begin(); it < amsAttributs.end(); ++it)
             {
                 Wt::Json::Object tmp = *it;
