@@ -194,9 +194,15 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
 
             for (const Wt::Dbo::ptr<Echoes::Dbo::Plugin> &plgPtr : prbPtr->asset->plugins)
             {
-                for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : plgPtr->sources)
+                if (plgPtr->deleteTag.isNull())
                 {
-                    srcListByAddon[srcPtr->addon].push_back(srcPtr);
+                    for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : plgPtr->sources)
+                    {
+                        if (srcPtr->deleteTag.isNull())
+                        {
+                            srcListByAddon[srcPtr->addon].push_back(srcPtr);
+                        }
+                    }
                 }
             }
 
@@ -216,17 +222,20 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                     boost::property_tree::ptree srpElem;
                     for (const Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> &srpPtr : srcPtrByAdoIt->first->sourceParameters)
                     {
-                        Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session.find<Echoes::Dbo::SourceParameterValue>()
-                                .where(QUOTE(TRIGRAM_SOURCE_PARAMETER ID SEP TRIGRAM_SOURCE_PARAMETER ID) " = ?").bind(srpPtr.id())
-                                .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id())
-                                .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL");
-                        if (spvPtr)
+                        if (srpPtr->deleteTag.isNull())
                         {
-                            srpElem.put(srpPtr->name.toUTF8(), spvPtr->value.toUTF8());
-                        }
-                        else
-                        {
-                            srpElem.put(srpPtr->name.toUTF8(), "");
+                            Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session.find<Echoes::Dbo::SourceParameterValue>()
+                                    .where(QUOTE(TRIGRAM_SOURCE_PARAMETER ID SEP TRIGRAM_SOURCE_PARAMETER ID) " = ?").bind(srpPtr.id())
+                                    .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id())
+                                    .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL");
+                            if (spvPtr)
+                            {
+                                srpElem.put(srpPtr->name.toUTF8(), spvPtr->value.toUTF8());
+                            }
+                            else
+                            {
+                                srpElem.put(srpPtr->name.toUTF8(), "");
+                            }
                         }
                     }
                     srcElem.put_child("params", srpElem);
@@ -234,84 +243,98 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                     boost::property_tree::ptree seaArr;
                     for (const Wt::Dbo::ptr<Echoes::Dbo::Search> &seaPtr : srcPtr->searches)
                     {
-                        boost::property_tree::ptree seaElem;
-                        seaElem.put("id", seaPtr.id());
-                        seaElem.put("idType", seaPtr->searchType.id());
-
-                        boost::property_tree::ptree sepElem;
-                        for (const Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> sepPtr : seaPtr->searchType->searchParameters)
+                        if (seaPtr->deleteTag.isNull())
                         {
-                            Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session.find<Echoes::Dbo::SearchParameterValue>()
-                                    .where(QUOTE(TRIGRAM_SEARCH_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(sepPtr.id())
-                                    .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtr.id())
-                                    .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL");
-                            if (sevPtr)
+                            boost::property_tree::ptree seaElem;
+                            seaElem.put("id", seaPtr.id());
+                            seaElem.put("idType", seaPtr->searchType.id());
+
+                            boost::property_tree::ptree sepElem;
+                            for (const Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> sepPtr : seaPtr->searchType->searchParameters)
                             {
-                                sepElem.put(sepPtr->name.toUTF8(), sevPtr->value.toUTF8());
+                                if (sepPtr->deleteTag.isNull())
+                                {
+                                    Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session.find<Echoes::Dbo::SearchParameterValue>()
+                                            .where(QUOTE(TRIGRAM_SEARCH_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(sepPtr.id())
+                                            .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtr.id())
+                                            .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL");
+                                    if (sevPtr)
+                                    {
+                                        sepElem.put(sepPtr->name.toUTF8(), sevPtr->value.toUTF8());
+                                    }
+                                    else
+                                    {
+                                        sepElem.put(sepPtr->name.toUTF8(), "");
+                                    }
+                                }
+                            }
+                            seaElem.put_child("params", sepElem);
+
+                            seaElem.put("period", seaPtr->period);
+
+                            boost::property_tree::ptree filArr;
+                            for (const Wt::Dbo::ptr<Echoes::Dbo::Filter> &filPtr : seaPtr->filters)
+                            {
+                                if (filPtr->deleteTag.isNull())
+                                {
+                                    boost::property_tree::ptree filElem;
+                                    filElem.put("id", filPtr.id());
+                                    filElem.put("idType", filPtr->filterType.id());
+
+                                    boost::property_tree::ptree fpaElem;
+                                    for (const Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> &fpaPtr : filPtr->filterType->filterParameters)
+                                    {
+                                        if (fpaPtr->deleteTag.isNull())
+                                        {
+                                            Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session.find<Echoes::Dbo::FilterParameterValue>()
+                                                    .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtr.id())
+                                                    .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtr.id())
+                                                    .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL");
+                                            if (fpvPtr)
+                                            {
+                                                fpaElem.put(fpaPtr->name.toUTF8(), fpvPtr->value.toUTF8());
+                                            }
+                                            else
+                                            {
+                                                fpaElem.put(fpaPtr->name.toUTF8(), "");
+                                            }
+                                        }
+                                    }
+                                    filElem.put_child("params", fpaElem);
+
+                                    boost::property_tree::ptree idaArr;
+                                    for (const Wt::Dbo::ptr<Echoes::Dbo::InformationData> &idaPtr : filPtr->informationDatas)
+                                    {
+                                        if (idaPtr->deleteTag.isNull())
+                                        {
+                                            boost::property_tree::ptree idaElem;
+                                            idaElem.put_value(idaPtr.id());
+                                            idaArr.push_back(std::make_pair("", idaElem));
+                                        }
+                                    }
+                                    if (idaArr.size() > 0)
+                                    {
+                                        filElem.put_child("idsIDA", idaArr);
+                                    }
+                                    else
+                                    {
+                                        filElem.put("idsIDA", "[]");
+                                    }
+
+                                    filArr.push_back(std::make_pair("", filElem));
+                                }
+                            }
+                            if (filArr.size() > 0)
+                            {
+                                seaElem.put_child("filters", filArr);
                             }
                             else
                             {
-                                sepElem.put(sepPtr->name.toUTF8(), "");
+                                seaElem.put("filters", "[]");
                             }
+
+                            seaArr.push_back(std::make_pair("", seaElem));
                         }
-                        seaElem.put_child("params", sepElem);
-
-                        seaElem.put("period", seaPtr->period);
-
-                        boost::property_tree::ptree filArr;
-                        for (const Wt::Dbo::ptr<Echoes::Dbo::Filter> &filPtr : seaPtr->filters)
-                        {
-                            boost::property_tree::ptree filElem;
-                            filElem.put("id", filPtr.id());
-                            filElem.put("idType", filPtr->filterType.id());
-
-                            boost::property_tree::ptree fpaElem;
-                            for (const Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> &fpaPtr : filPtr->filterType->filterParameters)
-                            {
-                                Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session.find<Echoes::Dbo::FilterParameterValue>()
-                                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtr.id())
-                                        .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtr.id())
-                                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL");
-                                if (fpvPtr)
-                                {
-                                    fpaElem.put(fpaPtr->name.toUTF8(), fpvPtr->value.toUTF8());
-                                }
-                                else
-                                {
-                                    fpaElem.put(fpaPtr->name.toUTF8(), "");
-                                }
-                                
-                            }
-                            filElem.put_child("params", fpaElem);
-
-                            boost::property_tree::ptree idaArr;
-                            for (const Wt::Dbo::ptr<Echoes::Dbo::InformationData> &idaPtr : filPtr->informationDatas)
-                            {
-                                boost::property_tree::ptree idaElem;
-                                idaElem.put_value(idaPtr.id());
-                                idaArr.push_back(std::make_pair("", idaElem));
-                            }
-                            if (idaArr.size() > 0)
-                            {
-                                filElem.put_child("idsIDA", idaArr);
-                            }
-                            else
-                            {
-                                filElem.put("idsIDA", "[]");
-                            }
-
-                            filArr.push_back(std::make_pair("", filElem));
-                        }
-                        if (filArr.size() > 0)
-                        {
-                            seaElem.put_child("filters", filArr);
-                        }
-                        else
-                        {
-                            seaElem.put("filters", "[]");
-                        }
-
-                        seaArr.push_back(std::make_pair("", seaElem));
                     }
                     if (seaArr.size() > 0)
                     {
