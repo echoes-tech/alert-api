@@ -192,14 +192,11 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
         {
             map<Wt::Dbo::ptr<Echoes::Dbo::Addon>, vector<Wt::Dbo::ptr<Echoes::Dbo::Source>>> srcListByAddon;
 
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = prbPtr->asset->plugins;
-
-            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>::iterator plgPtrIt = plgPtrCol.begin(); plgPtrIt != plgPtrCol.end(); plgPtrIt++)
+            for (const Wt::Dbo::ptr<Echoes::Dbo::Plugin> &plgPtr : prbPtr->asset->plugins)
             {
-                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = plgPtrIt->get()->sources;
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>>::iterator srcPtrIt = srcPtrCol.begin(); srcPtrIt != srcPtrCol.end(); srcPtrIt++)
+                for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : plgPtr->sources)
                 {
-                    srcListByAddon[srcPtrIt->get()->addon].push_back(*srcPtrIt);
+                    srcListByAddon[srcPtr->addon].push_back(srcPtr);
                 }
             }
 
@@ -211,73 +208,87 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                 addonElem.put("id", srcPtrByAdoIt->first.id());
 
                 boost::property_tree::ptree srcArr;
-                for (vector<Wt::Dbo::ptr<Echoes::Dbo::Source>>::iterator srcPtrIt = srcPtrByAdoIt->second.begin(); srcPtrIt != srcPtrByAdoIt->second.end(); ++srcPtrIt)
+                for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : srcPtrByAdoIt->second)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = *srcPtrIt;
-
                     boost::property_tree::ptree srcElem;
                     srcElem.put("id", srcPtr.id());
 
-                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>> srpPtrCol = srcPtrByAdoIt->first->sourceParameters;
                     boost::property_tree::ptree srpElem;
-                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter>>::iterator srpPtrIt = srpPtrCol.begin(); srpPtrIt != srpPtrCol.end(); srpPtrIt++)                    
+                    for (const Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> &srpPtr : srcPtrByAdoIt->first->sourceParameters)
                     {
                         Wt::Dbo::ptr<Echoes::Dbo::SourceParameterValue> spvPtr =  m_session.find<Echoes::Dbo::SourceParameterValue>()
-                                .where(QUOTE(TRIGRAM_SOURCE_PARAMETER ID SEP TRIGRAM_SOURCE_PARAMETER ID) " = ?").bind(srpPtrIt->id())
+                                .where(QUOTE(TRIGRAM_SOURCE_PARAMETER ID SEP TRIGRAM_SOURCE_PARAMETER ID) " = ?").bind(srpPtr.id())
                                 .where(QUOTE(TRIGRAM_SOURCE ID SEP TRIGRAM_SOURCE ID) " = ?").bind(srcPtr.id())
                                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL");
-                        srpElem.put(srpPtrIt->get()->name.toUTF8(), spvPtr->value.toUTF8());
+                        if (spvPtr)
+                        {
+                            srpElem.put(srpPtr->name.toUTF8(), spvPtr->value.toUTF8());
+                        }
+                        else
+                        {
+                            srpElem.put(srpPtr->name.toUTF8(), "");
+                        }
                     }
                     srcElem.put_child("params", srpElem);
-                    
-                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>> seaPtrCol = srcPtr->searches;
+
                     boost::property_tree::ptree seaArr;
-                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Search>>::iterator seaPtrIt = seaPtrCol.begin(); seaPtrIt != seaPtrCol.end(); seaPtrIt++)
+                    for (const Wt::Dbo::ptr<Echoes::Dbo::Search> &seaPtr : srcPtr->searches)
                     {
                         boost::property_tree::ptree seaElem;
-                        seaElem.put("id", seaPtrIt->id());
-                        seaElem.put("idType", seaPtrIt->get()->searchType.id());
+                        seaElem.put("id", seaPtr.id());
+                        seaElem.put("idType", seaPtr->searchType.id());
 
-                        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>> sepPtrCol = seaPtrIt->get()->searchType->searchParameters;
                         boost::property_tree::ptree sepElem;
-                        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter>>::iterator sepPtrIt = sepPtrCol.begin(); sepPtrIt != sepPtrCol.end(); sepPtrIt++)                    
+                        for (const Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> sepPtr : seaPtr->searchType->searchParameters)
                         {
                             Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> sevPtr =  m_session.find<Echoes::Dbo::SearchParameterValue>()
-                                    .where(QUOTE(TRIGRAM_SEARCH_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(sepPtrIt->id())
-                                    .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtrIt->id())
+                                    .where(QUOTE(TRIGRAM_SEARCH_PARAMETER ID SEP TRIGRAM_SEARCH_PARAMETER ID) " = ?").bind(sepPtr.id())
+                                    .where(QUOTE(TRIGRAM_SEARCH ID SEP TRIGRAM_SEARCH ID) " = ?").bind(seaPtr.id())
                                     .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL");
-                            sepElem.put(sepPtrIt->get()->name.toUTF8(), sevPtr->value.toUTF8());
+                            if (sevPtr)
+                            {
+                                sepElem.put(sepPtr->name.toUTF8(), sevPtr->value.toUTF8());
+                            }
+                            else
+                            {
+                                sepElem.put(sepPtr->name.toUTF8(), "");
+                            }
                         }
                         seaElem.put_child("params", sepElem);
-                        
-                        seaElem.put("period", seaPtrIt->get()->period);
-                        
-                        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrCol = seaPtrIt->get()->filters;
+
+                        seaElem.put("period", seaPtr->period);
+
                         boost::property_tree::ptree filArr;
-                        for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Filter>>::iterator filPtrIt = filPtrCol.begin(); filPtrIt != filPtrCol.end(); filPtrIt++)
+                        for (const Wt::Dbo::ptr<Echoes::Dbo::Filter> &filPtr : seaPtr->filters)
                         {
                             boost::property_tree::ptree filElem;
-                            filElem.put("id", filPtrIt->id());
-                            filElem.put("idType", filPtrIt->get()->filterType.id());
+                            filElem.put("id", filPtr.id());
+                            filElem.put("idType", filPtr->filterType.id());
 
-                            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>> fpaPtrCol = filPtrIt->get()->filterType->filterParameters;
                             boost::property_tree::ptree fpaElem;
-                            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter>>::iterator fpaPtrIt = fpaPtrCol.begin(); fpaPtrIt != fpaPtrCol.end(); fpaPtrIt++)                    
+                            for (const Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> &fpaPtr : filPtr->filterType->filterParameters)
                             {
                                 Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fpvPtr =  m_session.find<Echoes::Dbo::FilterParameterValue>()
-                                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtrIt->id())
-                                        .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtrIt->id())
+                                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER ID SEP TRIGRAM_FILTER_PARAMETER ID) " = ?").bind(fpaPtr.id())
+                                        .where(QUOTE(TRIGRAM_FILTER ID SEP TRIGRAM_FILTER ID) " = ?").bind(filPtr.id())
                                         .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL");
-                                fpaElem.put(fpaPtrIt->get()->name.toUTF8(), fpvPtr->value.toUTF8());
+                                if (fpvPtr)
+                                {
+                                    fpaElem.put(fpaPtr->name.toUTF8(), fpvPtr->value.toUTF8());
+                                }
+                                else
+                                {
+                                    fpaElem.put(fpaPtr->name.toUTF8(), "");
+                                }
+                                
                             }
                             filElem.put_child("params", fpaElem);
 
-                            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = filPtrIt->get()->informationDatas;
                             boost::property_tree::ptree idaArr;
-                            for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>::iterator idaPtrIt = idaPtrCol.begin(); idaPtrIt != idaPtrCol.end(); idaPtrIt++)
+                            for (const Wt::Dbo::ptr<Echoes::Dbo::InformationData> &idaPtr : filPtr->informationDatas)
                             {
                                 boost::property_tree::ptree idaElem;
-                                idaElem.put_value(idaPtrIt->id());
+                                idaElem.put_value(idaPtr.id());
                                 idaArr.push_back(std::make_pair("", idaElem));
                             }
                             if (idaArr.size() > 0)
@@ -431,16 +442,16 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
 
                 set<long long> adoIdList;
                 Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = prbPtr->asset->plugins;
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>::iterator plgPtrIt = plgPtrCol.begin(); plgPtrIt != plgPtrCol.end(); plgPtrIt++)
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>::iterator plgPtrIt = plgPtrCol.begin(); plgPtrIt != plgPtrCol.end(); ++plgPtrIt)
                 {
                     Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = plgPtrIt->get()->sources;
-                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>>::iterator srcPtrIt = srcPtrCol.begin(); srcPtrIt != srcPtrCol.end(); srcPtrIt++)
+                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>>::iterator srcPtrIt = srcPtrCol.begin(); srcPtrIt != srcPtrCol.end(); ++srcPtrIt)
                     {
                         adoIdList.insert(srcPtrIt->get()->addon.id());
                     }
                 }
 
-                for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); adoIdIt++)
+                for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); ++adoIdIt)
                 {
                     Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session.find<Echoes::Dbo::AddonPackageParameter>()
                             .where("\"APP_ASA_ASA_ID\" = ?").bind(cppPtr->assetArchitecture.id())
