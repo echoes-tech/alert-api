@@ -230,7 +230,14 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                                     .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL");
                             if (spvPtr)
                             {
-                                srpElem.put(srpPtr->name.toUTF8(), spvPtr->value.toUTF8());
+                                if (srpPtr->format.toUTF8().compare("integer") == 0)
+                                {
+                                    srpElem.put(srpPtr->name.toUTF8(), boost::lexical_cast<int>(spvPtr->value.toUTF8()));
+                                }
+                                else
+                                {
+                                    srpElem.put(srpPtr->name.toUTF8(), spvPtr->value.toUTF8());
+                                }
                             }
                             else
                             {
@@ -260,7 +267,14 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                                             .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL");
                                     if (sevPtr)
                                     {
-                                        sepElem.put(sepPtr->name.toUTF8(), sevPtr->value.toUTF8());
+                                        if (sepPtr->format.toUTF8().compare("integer") == 0)
+                                        {
+                                            srpElem.put(sepPtr->name.toUTF8(), boost::lexical_cast<int>(sevPtr->value.toUTF8()));
+                                        }
+                                        else
+                                        {
+                                            sepElem.put(sepPtr->name.toUTF8(), sevPtr->value.toUTF8());
+                                        }
                                     }
                                     else
                                     {
@@ -386,6 +400,12 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
         res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = httpCodeToJSON(res, e);
     }
+    catch (boost::bad_lexical_cast const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+
     return res;
 }
 
