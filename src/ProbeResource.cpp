@@ -448,7 +448,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                     {
                         const string filename = cppPtr->addonCommonPackage->filename.toUTF8();
                         cpaElem.put("filename", filename);
-                        const string content = PublicApiResource::file2base64("/var/www/wt/common/" + filename);
+                        const string content = PublicApiResource::file2base64("/var/www/wt/probe/addons/common/" + filename);
                         cpaElem.put("content", content);
                         cpaElem.put("version", cppPtr->packageVersion.toUTF8());
                     }
@@ -470,7 +470,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                 {
                     const string filename = pppPtr->probePackage->filename.toUTF8();
                     ppaElem.put("filename", filename);
-                    const string content = PublicApiResource::file2base64("/var/www/wt/probe/" + filename);
+                    const string content = PublicApiResource::file2base64("/var/www/wt/probe/core/" + filename);
                     ppaElem.put("content", content);
                     ppaElem.put("version", pppPtr->packageVersion.toUTF8());
                 }
@@ -484,13 +484,17 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                 ss << ",\n";
 
                 set<long long> adoIdList;
-                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = prbPtr->asset->plugins;
-                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>::iterator plgPtrIt = plgPtrCol.begin(); plgPtrIt != plgPtrCol.end(); ++plgPtrIt)
+                for (const Wt::Dbo::ptr<Echoes::Dbo::Plugin> &plgPtr : prbPtr->asset->plugins)
                 {
-                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>> srcPtrCol = plgPtrIt->get()->sources;
-                    for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Source>>::iterator srcPtrIt = srcPtrCol.begin(); srcPtrIt != srcPtrCol.end(); ++srcPtrIt)
+                    if (plgPtr->deleteTag.isNull())
                     {
-                        adoIdList.insert(srcPtrIt->get()->addon.id());
+                        for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : plgPtr->sources)
+                        {
+                            if (srcPtr->deleteTag.isNull())
+                            {
+                                adoIdList.insert(srcPtr->addon.id());
+                            }
+                        }
                     }
                 }
 
@@ -510,15 +514,16 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                     boost::property_tree::ptree appElem;
                     if(appPtr)
                     {
-                        appElem.put("name", appPtr->addon->name.toUTF8());
+                        const string &name = appPtr->addon->name.toUTF8();
+                        appElem.put("name", name);
                         appElem.put("version", appPtr->addonVersion.toUTF8());
 
                         boost::property_tree::ptree apaElem;
                         if (appPtr->addonPackage)
                         {
-                            const string filename = appPtr->addonPackage->filename.toUTF8();
+                            const string &filename = appPtr->addonPackage->filename.toUTF8();
                             apaElem.put("filename", filename);
-                            const string content = PublicApiResource::file2base64("/var/www/wt/addons/" + filename);
+                            const string content = PublicApiResource::file2base64("/var/www/wt/probe/addons/" + name + "/" + filename);
                             apaElem.put("content", content);
                             apaElem.put("version", appPtr->packageVersion.toUTF8());
                         }
