@@ -269,7 +269,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                                     {
                                         if (sepPtr->format.toUTF8().compare("integer") == 0)
                                         {
-                                            srpElem.put(sepPtr->name.toUTF8(), boost::lexical_cast<int>(sevPtr->value.toUTF8()));
+                                            sepElem.put(sepPtr->name.toUTF8(), boost::lexical_cast<int>(sevPtr->value.toUTF8()));
                                         }
                                         else
                                         {
