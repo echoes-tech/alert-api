@@ -245,7 +245,10 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                             }
                         }
                     }
-                    srcElem.put_child("params", srpElem);
+                    if (srpElem.size() > 0)
+                    {
+                        srcElem.put_child("params", srpElem);
+                    }
 
                     boost::property_tree::ptree seaArr;
                     for (const Wt::Dbo::ptr<Echoes::Dbo::Search> &seaPtr : srcPtr->searches)
@@ -282,7 +285,10 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                                     }
                                 }
                             }
-                            seaElem.put_child("params", sepElem);
+                            if (sepElem.size() > 0)
+                            {
+                                seaElem.put_child("params", sepElem);
+                            }
 
                             seaElem.put("period", seaPtr->period);
 
@@ -314,12 +320,15 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
                                             }
                                         }
                                     }
-                                    filElem.put_child("params", fpaElem);
+                                    if (fpaElem.size() > 0)
+                                    {
+                                        filElem.put_child("params", fpaElem);
+                                    }
 
                                     boost::property_tree::ptree idaArr;
                                     for (const Wt::Dbo::ptr<Echoes::Dbo::InformationData> &idaPtr : filPtr->informationDatas)
                                     {
-                                        if (idaPtr->deleteTag.isNull())
+                                        if (idaPtr->deleteTag.isNull() && idaPtr->filterFieldIndex > 0)
                                         {
                                             boost::property_tree::ptree idaElem;
                                             idaElem.put_value(idaPtr.id());
