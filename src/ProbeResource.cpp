@@ -381,9 +381,9 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
 
                 boost::property_tree::json_parser::write_json(ss, addonElem);
 
-                if (distance(srcListByAddon.begin(), srcPtrByAdoIt) > 1)
+                if (distance(srcPtrByAdoIt, srcListByAddon.end()) > 1)
                 {
-                    string tmp = ss.str().erase(ss.str().size() - 1);
+                    const string tmp = ss.str().erase(ss.str().size() - 1);
                     ss.str("");
                     ss.clear();
                     ss << tmp;
