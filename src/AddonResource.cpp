@@ -69,6 +69,42 @@ EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const lo
     return res;
 }
 
+EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+        
+        const string queryStr =
+        " SELECT sty"
+        "   FROM " QUOTE("TR_SEARCH_TYPE_STY") " sty"
+        "   WHERE"
+        "     " QUOTE(TRIGRAM_SEARCH_TYPE ID) " IN"
+        "       ("
+        "         SELECT " QUOTE("TR_SEARCH_TYPE_STY" SEP TRIGRAM_SEARCH_TYPE ID)
+        "           FROM " QUOTE("TJ_ADO_STY")
+        "           WHERE " QUOTE("TR_ADDON_ADO" SEP TRIGRAM_ADDON ID) " = " + pathElements[1] +
+        "       )"
+        "     AND " QUOTE(TRIGRAM_SEARCH_TYPE SEP "DELETE") " IS NULL"
+        " ORDER BY " QUOTE(TRIGRAM_SEARCH_TYPE ID);
+        
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchType>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchType>>(queryStr);        
+        
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType>> styPtrCol = queryRes.resultList();
+
+        res = serialize(styPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -94,6 +130,10 @@ EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, c
             if (nextElement.empty())
             {
                 res = getAddon(pathElements, orgId, responseMsg);
+            }
+            else if (nextElement.compare("search_type") == 0)
+            {
+                res = getSearchTypeForAddon(pathElements, orgId, responseMsg);                
             }
             else
             {
