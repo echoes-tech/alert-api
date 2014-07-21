@@ -75,20 +75,27 @@ EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathEleme
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
-        
+
         const string queryStr =
         " SELECT sty"
-        "   FROM " QUOTE("TR_SEARCH_TYPE_STY") " sty"
+        "   FROM " QUOTE(TABLE_REFERENCE_PREFIX SEP "SEARCH_TYPE" SEP TRIGRAM_SEARCH_TYPE) " sty"
         "   WHERE"
         "     " QUOTE(TRIGRAM_SEARCH_TYPE ID) " IN"
         "       ("
-        "         SELECT " QUOTE("TR_SEARCH_TYPE_STY" SEP TRIGRAM_SEARCH_TYPE ID)
-        "           FROM " QUOTE("TJ_ADO_STY")
-        "           WHERE " QUOTE("TR_ADDON_ADO" SEP TRIGRAM_ADDON ID) " = " + pathElements[1] +
+        "         SELECT " QUOTE(TABLE_REFERENCE_PREFIX SEP "SEARCH_TYPE" SEP TRIGRAM_SEARCH_TYPE SEP TRIGRAM_SEARCH_TYPE ID)
+        "           FROM " QUOTE(TABLE_JOINT_PREFIX SEP TRIGRAM_ADDON SEP TRIGRAM_SEARCH_TYPE)
+        "           WHERE " QUOTE(TABLE_REFERENCE_PREFIX SEP "ADDON" SEP TRIGRAM_ADDON SEP TRIGRAM_ADDON ID) " ="
+        "             ("
+        "               SELECT " QUOTE(TRIGRAM_ADDON ID)
+        "                 FROM " QUOTE(TABLE_REFERENCE_PREFIX SEP "ADDON" SEP TRIGRAM_ADDON)
+        "                 WHERE"
+        "                   " QUOTE(TRIGRAM_ADDON ID) " = " + pathElements[1] +
+        "                   AND " QUOTE(TRIGRAM_ADDON SEP "DELETE") " IS NULL"
+        "             )"
         "       )"
         "     AND " QUOTE(TRIGRAM_SEARCH_TYPE SEP "DELETE") " IS NULL"
         " ORDER BY " QUOTE(TRIGRAM_SEARCH_TYPE ID);
-        
+
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::SearchType>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::SearchType>>(queryStr);        
         
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchType>> styPtrCol = queryRes.resultList();
@@ -131,7 +138,7 @@ EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, c
             {
                 res = getAddon(pathElements, orgId, responseMsg);
             }
-            else if (nextElement.compare("search_type") == 0)
+            else if (nextElement.compare("search_types") == 0)
             {
                 res = getSearchTypeForAddon(pathElements, orgId, responseMsg);                
             }
