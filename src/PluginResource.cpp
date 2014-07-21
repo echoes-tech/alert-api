@@ -624,7 +624,7 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
             {
                 res = putPlugin(pathElements, sRequest, orgId, responseMsg);
             }
-            if (!nextElement.compare("alias"))
+            else if (nextElement.compare("alias") == 0)
             {
                 res = putAliasForPlugin(pathElements, sRequest, orgId, responseMsg);
             }
