@@ -79,6 +79,11 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
             queryStr += "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_FILTER SEP TRIGRAM_FILTER ID) " = " + boost::lexical_cast<string>(parameters["filter_id"]);
         }
 
+        if (parameters["asset_id"] > 0)
+        {
+            queryStr += "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(parameters["asset_id"]);
+        }
+
         queryStr +=
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_INFORMATION_DATA ID);
@@ -130,6 +135,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
     map<string, long long> parameters;
     
     parameters["filter_id"] = 0;
+    parameters["asset_id"] = 0;
 
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
