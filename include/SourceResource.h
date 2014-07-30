@@ -54,7 +54,7 @@ class SourceResource : public PublicApiResource
         EReturnCode postSource(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putSource(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        EReturnCode putSource(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode deleteSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);

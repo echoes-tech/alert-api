@@ -301,7 +301,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
 
             srcId = result.get("source_id");
             styId = result.get("type_id");
-            period = result.get("period");
+            period = result.get("period").toNumber();
         }
         catch (Wt::Json::ParseError const& e)
         {
