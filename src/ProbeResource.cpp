@@ -457,7 +457,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                     {
                         const string filename = cppPtr->addonCommonPackage->filename.toUTF8();
                         cpaElem.put("filename", filename);
-                        const string content = PublicApiResource::file2base64("/var/www/wt/probe/addons/common/" + filename);
+                        const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/addons/common/" + filename);
                         cpaElem.put("content", content);
                         cpaElem.put("version", cppPtr->packageVersion.toUTF8());
                     }
@@ -479,7 +479,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                 {
                     const string filename = pppPtr->probePackage->filename.toUTF8();
                     ppaElem.put("filename", filename);
-                    const string content = PublicApiResource::file2base64("/var/www/wt/probe/core/" + filename);
+                    const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/core/" + filename);
                     ppaElem.put("content", content);
                     ppaElem.put("version", pppPtr->packageVersion.toUTF8());
                 }
@@ -532,7 +532,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                         {
                             const string &filename = appPtr->addonPackage->filename.toUTF8();
                             apaElem.put("filename", filename);
-                            const string content = PublicApiResource::file2base64("/var/www/wt/probe/addons/" + name + "/" + filename);
+                            const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/addons/" + name + "/" + filename);
                             apaElem.put("content", content);
                             apaElem.put("version", appPtr->packageVersion.toUTF8());
                         }

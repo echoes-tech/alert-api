@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="89">
+<configurationDescriptor version="94">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="etc" displayName="etc" projectFiles="true">
+      <logicalFolder name="default" displayName="default" projectFiles="true">
+        <itemPath>etc/default/ea-api.erb</itemPath>
+      </logicalFolder>
+      <logicalFolder name="init.d" displayName="init.d" projectFiles="true">
+        <itemPath>etc/init.d/ea-api.erb</itemPath>
+      </logicalFolder>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -40,7 +48,6 @@
                    displayName="Resource Files"
                    projectFiles="true">
       <itemPath>wt_config.xml</itemPath>
-      <itemPath>wt_config.xml.erb</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -97,12 +104,12 @@
   <sourceRootList>
     <Elem>src</Elem>
     <Elem>include</Elem>
+    <Elem>etc</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -136,6 +143,10 @@
           <commandLine>-lwthttp</commandLine>
         </linkerTool>
       </compileType>
+      <item path="etc/default/ea-api.erb" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="etc/init.d/ea-api.erb" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="TestFiles">
         <ccTool>
           <incDir>
@@ -282,12 +293,9 @@
       </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="wt_config.xml.erb" ex="false" tool="3" flavor2="0">
-      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -316,7 +324,7 @@
             <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
-            <linkerLibLibItem>wtfcgi</linkerLibLibItem>
+            <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
@@ -324,6 +332,10 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="etc/default/ea-api.erb" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="etc/init.d/ea-api.erb" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="TestFiles/f2">
         <cTool>
           <incDir>
@@ -454,8 +466,6 @@
             flavor2="0">
       </item>
       <item path="wt_config.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="wt_config.xml.erb" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
