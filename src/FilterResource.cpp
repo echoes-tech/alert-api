@@ -325,8 +325,8 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
 
             seaId = result.get("search_id");
             ftyId = result.get("type_id");
-            nbValue = result.get("nb_value");
-            posKeyValue = result.get("position_key_value");
+            nbValue = result.get("nb_value").toNumber();
+            posKeyValue = result.get("position_key_value").toNumber();
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -448,9 +448,92 @@ EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode FilterResource::putFilter(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode FilterResource::putFilter(const std::vector<std::string> &pathElements, const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    if (sRequest.empty())
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Filter Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session, true);
+
+            Wt::Dbo::ptr<Echoes::Dbo::Filter> fltPtr = m_session.find<Echoes::Dbo::Filter>()
+                    .where(QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_FILTER ID) " = ?").bind(pathElements[1]);
+
+            if (!fltPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, fltPtr);
+                return res;
+            }
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >::const_iterator itPlugin = fltPtr.get()->search.get()->source.get()->plugins.begin();
+            if (itPlugin->get()->organization.id() != orgId)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, fltPtr);
+                return res;
+            }
+
+            try
+            {                
+                Wt::Json::Object result;
+                Wt::Json::parse(sRequest, result);
+                Wt::Dbo::ptr<Echoes::Dbo::FilterType> fltTypePtr = fltPtr.get()->filterType;
+            
+                if (result.contains("nb_value"))
+                {
+                    fltPtr.modify()->nbValue = result.get("nb_value").toNumber();
+                }
+                
+                if (result.contains("position_key_value"))
+                {
+                    fltPtr.modify()->posKeyValue = result.get("position_key_value").toNumber();
+                }
+
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameter> >::const_iterator it = fltTypePtr->filterParameters.begin(); it != fltTypePtr->filterParameters.end(); ++it)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue> fltParaValuePtr = m_session.find<Echoes::Dbo::FilterParameterValue>()
+                        .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL")
+                        .where(QUOTE("FIL_ID_FIL_ID") " = ?").bind(fltPtr.id())
+                        .where(QUOTE("FPA_ID_FPA_ID") " = ?").bind(it->id());
+                                            
+                    if(fltParaValuePtr && result.contains(it->get()->name.toUTF8()))
+                    {
+                        fltParaValuePtr.modify()->value = result.get(it->get()->name.toUTF8());
+                    }
+                }
+                
+                res = serialize(fltPtr, responseMsg);
+            }
+            catch (Wt::Json::ParseError const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            catch (Wt::Json::TypeException const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
 
     return res;
 }
@@ -482,7 +565,7 @@ EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putFilter(sRequest, orgId, responseMsg);
+                res = putFilter(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {

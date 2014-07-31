@@ -55,7 +55,7 @@ class FilterResource : public PublicApiResource
         EReturnCode postFilter(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putFilter(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        EReturnCode putFilter(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode deleteFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
