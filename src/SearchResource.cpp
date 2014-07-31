@@ -420,9 +420,88 @@ EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode SearchResource::putSearch(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SearchResource::putSearch(const std::vector<std::string> &pathElements, const string& sRequest, const long long &orgId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    if (sRequest.empty())
+    {            
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Search Resource] sRequest is not empty";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    if (responseMsg.empty())
+    {
+        try
+        {
+            Wt::Dbo::Transaction transaction(m_session, true);
+
+            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = m_session.find<Echoes::Dbo::Search>()
+                    .where(QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_SEARCH ID) " = ?").bind(pathElements[1]);
+
+            if (!seaPtr)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, seaPtr);
+                return res;
+            }
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >::const_iterator itPlugin = seaPtr.get()->source.get()->plugins.begin();
+            if (itPlugin->get()->organization.id() != orgId)
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, seaPtr);
+                return res;
+            }
+
+            try
+            {                
+                Wt::Json::Object result;
+                Wt::Json::parse(sRequest, result);
+            
+                if (result.contains("period"))
+                {
+                    seaPtr.modify()->period = result.get("period").toNumber();
+                }
+                
+                Wt::Dbo::ptr<Echoes::Dbo::SearchType> seaTypePtr = seaPtr.get()->searchType;
+                            
+                for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameter> >::const_iterator it = seaTypePtr->searchParameters.begin(); it != seaTypePtr->searchParameters.end(); ++it)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue> seaParaValuePtr = m_session.find<Echoes::Dbo::SearchParameterValue>()
+                        .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL")
+                        .where(QUOTE("SEA_ID_SEA_ID") " = ?").bind(seaPtr.id())
+                        .where(QUOTE("SEP_ID_SEP_ID") " = ?").bind(it->id());
+                                            
+                    if(seaParaValuePtr && result.contains(it->get()->name.toUTF8()))
+                    {
+                        seaParaValuePtr.modify()->value = result.get(it->get()->name.toUTF8());
+                    }
+                }
+                
+                res = serialize(seaPtr, responseMsg);
+            }
+            catch (Wt::Json::ParseError const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            catch (Wt::Json::TypeException const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            
+            transaction.commit();
+        }
+        catch (Wt::Dbo::Exception const& e)
+        {
+            res = EReturnCode::SERVICE_UNAVAILABLE;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
 
     return res;
 }
@@ -454,7 +533,7 @@ EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putSearch(sRequest, orgId, responseMsg);
+                res = putSearch(pathElements, sRequest, orgId, responseMsg);
             }
             else
             {

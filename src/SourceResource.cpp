@@ -433,12 +433,11 @@ EReturnCode SourceResource::putSource(const std::vector<std::string> &pathElemen
                 return res;
             }
 
-            Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = srcPtr.get()->addon;
-
             try
             {                
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
+                Wt::Dbo::ptr<Echoes::Dbo::Addon> adoPtr = srcPtr.get()->addon;
 
                 for (Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SourceParameter> >::const_iterator it = adoPtr->sourceParameters.begin(); it != adoPtr->sourceParameters.end(); ++it)
                 {
