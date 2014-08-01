@@ -59,17 +59,13 @@ if [ -n $EA_API_SSL_PRIV_KEY ]
 then
   EA_API_SSL_PRIV_KEY_OPT="--ssl-private-key $EA_API_SSL_PRIV_KEY"
 fi
-if [ -n $EA_API_SSL_CA_CERT ]
-then
-  EA_API_SSL_CA_CERT_OPT="--ssl-ca-certificates $EA_API_SSL_CA_CERT"
-fi
 
 DAEMON=<%= install_dir %>/bin/$NAME
-DAEMON_ARGS="$EA_API_SERVERNAME_OPT $EA_API_ACCESS_LOG_OPT --docroot . --approot <%= install_dir %> \
+DAEMON_ARGS="$EA_API_SERVERNAME_OPT $EA_API_ACCESS_LOG_OPT --docroot . \
             $EA_API_IFACE_OPT $EA_API_PORT_OPT \
             $EA_API_HTTPS_IFACE_OPT $EA_API_HTTPS_PORT_OPT \
-            $EA_API_SSL_CERT_OPT  $EA_API_SSL_PRIV_KEY_OPT $EA_API_SSL_CA_CERT_OPT \
-            --ssl-tmp-dh /etc/ssl/dh512.pem -p $PIDFILE"
+            $EA_API_SSL_CERT_OPT  $EA_API_SSL_PRIV_KEY_OPT --ssl-tmp-dh /etc/ssl/dh1024.pem \
+            -p $PIDFILE"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -87,9 +83,9 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	start-stop-daemon --start --quiet --pidfile $PIDFILE -b --exec $DAEMON --test > /dev/null \
+	start-stop-daemon --start --quiet -d <%= install_dir %> --pidfile $PIDFILE -b --exec $DAEMON --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --quiet --pidfile $PIDFILE -b --exec $DAEMON -- \
+	start-stop-daemon --start --quiet -d <%= install_dir %> --pidfile $PIDFILE -b --exec $DAEMON -- \
 		$DAEMON_ARGS \
 		|| return 2
 }
