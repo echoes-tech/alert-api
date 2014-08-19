@@ -238,7 +238,6 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 EReturnCode AlertResource::postAlert(const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
     // ALE attributs
     Wt::WString name;
     int threadSleep;
@@ -252,6 +251,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
         long long astId;
         long long plgId;
         long long acrId;
+        int booleanOperator;
     };
     vector<AvaStruct> avaStructs;
 
@@ -293,17 +293,10 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     tmp.get("information_id"),
                     tmp.get("asset_id"),
                     tmp.get("plugin_id"),
-                    tmp.get("alert_criterion_id")
+                    tmp.get("alert_criterion_id"),
+                    tmp.get("operator")
                 }
                 );
-            }
-            // ToDo(FPO): Implementation of Sequences
-            if (avaStructs.size() > 1)
-            {
-                res = EReturnCode::NOT_IMPLEMENTED;
-                const string err = "[Alert Resource] Sequence is not implemented";
-                responseMsg = httpCodeToJSON(res, err);
-                return res;
             }
 
             // AMS attributs
@@ -341,10 +334,14 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
     if (responseMsg.empty())
     {
         try
-        {
+        {            
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            const string queryStr =
+            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> lastAsePtr;
+            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> firstAsePtr;
+            for(vector<AvaStruct>::iterator it = avaStructs.begin(); it < avaStructs.end(); it++)
+            {
+                const string queryStr =
 " SELECT ida"
 "   FROM " QUOTE("T_INFORMATION_DATA" SEP TRIGRAM_INFORMATION_DATA) " ida"
 "   WHERE"
@@ -373,7 +370,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "                                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                               WHERE"
 "                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
-"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(avaStructs[0].plgId) +
+"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(it->plgId) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                         )"
 "                                 )"
@@ -383,29 +380,60 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "               )"
 "             AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(avaStructs[0].infId) +
-"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(avaStructs[0].astId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(it->infId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(it->astId) +
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   LIMIT 1";
 
-            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
-    
-            Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
-            if (!idaPtr)
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, idaPtr);
-                return res;
-            }
+                Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(avaStructs[0].acrId)
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
-            if (!acrPtr)
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, acrPtr);
-                return res;
+                Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
+                if (!idaPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, idaPtr);
+                    return res;
+                }
+            
+                Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
+                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(it->acrId)
+                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
+                if (!acrPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, acrPtr);
+                    return res;
+                }
+            
+                Echoes::Dbo::AlertValue *ava = new Echoes::Dbo::AlertValue();
+
+                ava->informationData = idaPtr;
+                ava->alertCriteria = acrPtr;
+                ava->value = it->value;
+                ava->keyValue = it->keyValue;
+
+                Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session.add<Echoes::Dbo::AlertValue>(ava);
+                newAvaPtr.flush();     
+                
+                Echoes::Dbo::AlertSequence *ase = new Echoes::Dbo::AlertSequence(); 
+                ase->alertValue = newAvaPtr;          
+                ase->boolOperator = it->booleanOperator;    
+                ase->firstParenthesis = false;  
+                ase->secondParenthesis = false;               
+
+                Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> newAsePtr = m_session.add<Echoes::Dbo::AlertSequence>(ase);          
+                newAsePtr.flush();   
+                
+                if(lastAsePtr)
+                {
+                    lastAsePtr.modify()->alertSequence = newAsePtr;
+                }
+                     
+                if(!firstAsePtr)
+                {
+                    firstAsePtr = newAsePtr;
+                }
+                lastAsePtr = newAsePtr;   
             }
 
             vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
@@ -421,18 +449,8 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 medPtrVector.push_back(medPtr);
             }
 
-            Echoes::Dbo::AlertValue *ava = new Echoes::Dbo::AlertValue();
-
-            ava->informationData = idaPtr;
-            ava->alertCriteria = acrPtr;
-            ava->value = avaStructs[0].value;
-            ava->keyValue = avaStructs[0].keyValue;
-
-            Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session.add<Echoes::Dbo::AlertValue>(ava);
-            newAvaPtr.flush();
-
             Echoes::Dbo::Alert *ale = new Echoes::Dbo::Alert();
-            ale->alertValue = newAvaPtr;
+            ale->alertSequence = firstAsePtr;
             ale->name = name;
             ale->creaDate = Wt::WDateTime::currentDateTime();
             ale->threadSleep = threadSleep;
@@ -662,23 +680,20 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                 }
                 ivaPtrVector.push_back(ivaPtr);
             }
-
-            // Check whether the number and IDs of IVA concord with the alert definition
-            if (alePtr->alertSequence)
-            {
-                for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ::const_iterator it = ivaPtrVector.begin(); it < ivaPtrVector.end(); ++it)
-                {
-                    //TODO(FPO): To Be Coded when we will implement the Alert Sequence
-                }
-            }
-            else
-            {
-                if (ivaPtrVector.size() != 1 || ivaPtrVector[0]->informationData != alePtr->alertValue->informationData)
+                    
+            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+            size_t cpt = 0;
+            while(asePtr)
+            {   
+                if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData)
                 {
                     res = EReturnCode::BAD_REQUEST;
                     const string err = "[Alert Resource] bad size or content of ivaPtrVector";
                     responseMsg = httpCodeToJSON(res, err);
-                }
+                    return res;
+                }                
+                asePtr = asePtr->alertSequence;
+                cpt++;
             }
 
             Wt::WDateTime now = Wt::WDateTime::currentDateTime();
