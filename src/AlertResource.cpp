@@ -685,7 +685,8 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
             size_t cpt = 0;
             while(asePtr)
             {   
-                if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData)
+                if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
+                        (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
                 {
                     res = EReturnCode::BAD_REQUEST;
                     const string err = "[Alert Resource] bad size or content of ivaPtrVector";
