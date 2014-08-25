@@ -56,6 +56,7 @@ class ProbeResource : public PublicApiResource
     protected:
         EReturnCode getProbesList(const long long &orgId, std::string &responseMsg);
         EReturnCode getProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode getJsonForProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);

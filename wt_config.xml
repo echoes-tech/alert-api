@@ -565,7 +565,7 @@
         <property name="alert-mail-sender-name">ECHOES Alert</property>
         <property name="alert-mail-sender-address">noreply-alert@echoes-tech.com</property>
 
-        <property name="db-host">172.16.3.202</property>
+        <property name="db-host">172.16.3.212</property>
         <property name="db-port">5432</property>
         <property name="db-name">echoes</property>
         <property name="db-user">echoes</property>

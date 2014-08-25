@@ -11,6 +11,8 @@
  * 
  */
 
+#include <string>
+#include <boost/regex.hpp>
 #include "ProbeResource.h"
 
 using namespace std;
@@ -145,7 +147,7 @@ EReturnCode ProbeResource::getProbesList(const long long &orgId, string &respons
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe>> prbPtrCol = queryRes.resultList();
 
-        res = serialize(prbPtrCol, responseMsg);
+        res = serialize<Echoes::Dbo::Probe>(prbPtrCol, responseMsg);
 
         transaction.commit();
     }
@@ -169,6 +171,84 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
 
         res = serialize(prbPtr, responseMsg);
 
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {        
+        Wt::Dbo::Transaction transaction(m_session, true);
+        
+        Wt::Dbo::ptr<Echoes::Dbo::Syslog> sloPtr =  m_session
+                .find<Echoes::Dbo::Syslog>()
+                .where(QUOTE(TRIGRAM_SYSLOG SEP TRIGRAM_PROBE SEP TRIGRAM_PROBE ID) " = ?")
+                .bind(pathElements[1])
+                .orderBy("\"SLO_RCPT_DATE\" DESC")
+                .limit(1);
+
+        std::string rep = "false";
+        std::string timer = "61";
+
+        if (sloPtr)
+        {
+            int             maxHbDelay = 61;
+            int             lastHb = sloPtr->rcptDate.secsTo(Wt::WDateTime::currentDateTime());
+            std::string     str = sloPtr->sd.toUTF8();
+            boost::smatch   match;
+            boost::regex    hbRegex(".*0=\"HB\" t=\"([0-9]{1,3})\".*");
+            if (!boost::regex_search(str, match, hbRegex))
+            {
+                cout << "Match size before: " << match.size() << endl;
+                cout << "match[0]: " << match[0] << endl;
+                sloPtr = m_session
+                    .find<Echoes::Dbo::Syslog>()
+                    .where(QUOTE(TRIGRAM_SYSLOG SEP TRIGRAM_PROBE SEP TRIGRAM_PROBE ID) " = ?")
+                    .bind(pathElements[1])
+                    .where("\"SLO_SD\" ~ '0=\"HB\"'")
+                    .orderBy("\"SLO_RCPT_DATE\" DESC")
+                    .limit(1);
+                
+                boost::regex_search(sloPtr->sd.toUTF8(), match, hbRegex);
+                cout << "Match size after: " << match.size() << endl;
+                cout << "match[0]: " << match[0] << endl;
+            }
+            else
+            {
+                cout << "Match size before: " << match.size() << endl;
+            }
+            
+            if (match[0] != "")
+            {
+                timer = match[1];
+                maxHbDelay = boost::lexical_cast<int> (match[1]);
+            }
+            
+            cout << "timer: " << timer << endl << endl;
+            cout << "maxHbDelay: " << maxHbDelay << endl << endl;
+            if (maxHbDelay > lastHb)
+            {
+                rep = "true";
+            }
+        }
+        
+        responseMsg = "{\n    \"probe_heartbeat\": "
+                + rep
+                + ",\n    \"probe_timer\": "
+                + timer
+                + ",\n    \"id\": "
+                + pathElements[1]
+                + "\n}";
+        res = EReturnCode::OK;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e)
@@ -606,6 +686,10 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
             else if (nextElement.compare("packages") == 0)
             {
                 res = getPackagesForProbe(pathElements, orgId, responseMsg);
+            }
+            else if (nextElement.compare("alive") == 0)
+            {
+                res = getAliveProbe(pathElements, orgId, responseMsg);
             }
             else
             {
