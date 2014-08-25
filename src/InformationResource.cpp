@@ -307,7 +307,10 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
                 Echoes::Dbo::Information *newInf = new Echoes::Dbo::Information();
                 newInf->name = name;
                 newInf->display = display;
-                newInf->calculate = calculate;
+                if (!calculate.empty())
+                {
+                    newInf->calculate = calculate;
+                }
                 newInf->desc = desc;
                 newInf->informationUnit = inuPtr;
                 newInf->organization = orgPtr;
