@@ -12,7 +12,6 @@
  */
 
 #include <string>
-#include <boost/regex.hpp>
 #include "ProbeResource.h"
 
 using namespace std;
@@ -184,58 +183,38 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
 EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
     
     try
-    {        
-        Wt::Dbo::Transaction transaction(m_session, true);
-        
-        Wt::Dbo::ptr<Echoes::Dbo::Syslog> sloPtr =  m_session
-                .find<Echoes::Dbo::Syslog>()
-                .where(QUOTE(TRIGRAM_SYSLOG SEP TRIGRAM_PROBE SEP TRIGRAM_PROBE ID) " = ?")
-                .bind(pathElements[1])
-                .orderBy("\"SLO_RCPT_DATE\" DESC")
-                .limit(1);
+    {
+        int id = boost::lexical_cast<int>(pathElements[1]);
 
-        std::string rep = "false";
-        std::string timer = "61";
-
-        if (sloPtr)
+        if (m_mapTimer.find(id) == m_mapTimer.end())
         {
-            int             maxHbDelay = 61;
-            int             lastHb = sloPtr->rcptDate.secsTo(Wt::WDateTime::currentDateTime());
-            std::string     str = sloPtr->sd.toUTF8();
-            boost::smatch   match;
-            boost::regex    hbRegex(".*0=\"HB\" t=\"([0-9]{1,3})\".*");
-            if (!boost::regex_search(str, match, hbRegex))
+            m_mapTimer[id] = 0;
+        }
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        if (m_mapTimer[id] == 0)
+        {
+            if (prbPtr)
             {
-                cout << "Match size before: " << match.size() << endl;
-                cout << "match[0]: " << match[0] << endl;
-                sloPtr = m_session
-                    .find<Echoes::Dbo::Syslog>()
-                    .where(QUOTE(TRIGRAM_SYSLOG SEP TRIGRAM_PROBE SEP TRIGRAM_PROBE ID) " = ?")
-                    .bind(pathElements[1])
-                    .where("\"SLO_SD\" ~ '0=\"HB\"'")
-                    .orderBy("\"SLO_RCPT_DATE\" DESC")
-                    .limit(1);
-                
-                boost::regex_search(sloPtr->sd.toUTF8(), match, hbRegex);
-                cout << "Match size after: " << match.size() << endl;
-                cout << "match[0]: " << match[0] << endl;
+                m_mapTimer[id] = prbPtr->timer + 1;
             }
             else
             {
-                cout << "Match size before: " << match.size() << endl;
+                m_mapTimer[id] = 61;
             }
-            
-            if (match[0] != "")
-            {
-                timer = match[1];
-                maxHbDelay = boost::lexical_cast<int> (match[1]);
-            }
-            
-            cout << "timer: " << timer << endl << endl;
-            cout << "maxHbDelay: " << maxHbDelay << endl << endl;
-            if (maxHbDelay > lastHb)
+        }
+        
+        std::string rep = "false";
+        std::string timer = boost::lexical_cast<string>(m_mapTimer[id]);
+        if (prbPtr)
+        {
+            long long   lastHb = prbPtr->lastlog.secsTo(Wt::WDateTime::currentDateTime());
+
+            if (m_mapTimer[id] > lastHb)
             {
                 rep = "true";
             }
@@ -243,8 +222,6 @@ EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathEle
         
         responseMsg = "{\n    \"probe_heartbeat\": "
                 + rep
-                + ",\n    \"probe_timer\": "
-                + timer
                 + ",\n    \"id\": "
                 + pathElements[1]
                 + "\n}";

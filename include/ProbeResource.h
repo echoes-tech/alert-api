@@ -54,6 +54,8 @@ class ProbeResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> selectProbePackageParameter(const Wt::Dbo::ptr<Echoes::Dbo::Asset> &astPtr, Echoes::Dbo::Session &session);
         
     protected:
+        std::map<long long, int>         m_mapTimer;
+        
         EReturnCode getProbesList(const long long &orgId, std::string &responseMsg);
         EReturnCode getProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);

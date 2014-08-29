@@ -131,8 +131,9 @@
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
             <linkerLibLibItem>stdc++</linkerLibLibItem>
             <linkerLibLibItem>pthread</linkerLibLibItem>
+            <linkerLibLibItem>boost_regex</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-lwthttp -lboost_regex</commandLine>
+          <commandLine>-lwthttp</commandLine>
         </linkerTool>
       </compileType>
       <folder path="TestFiles">
