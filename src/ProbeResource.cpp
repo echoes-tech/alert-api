@@ -12,9 +12,12 @@
  */
 
 #include <string>
+#include <Wt/WTimer>
 #include "ProbeResource.h"
 
 using namespace std;
+
+int ProbeResource::m_defaultTimer = 61;
 
 ProbeResource::ProbeResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
@@ -184,37 +187,35 @@ EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathEle
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    
     try
     {
-        int id = boost::lexical_cast<int>(pathElements[1]);
+        int probeId = boost::lexical_cast<int>(pathElements[1]);
 
-        if (m_mapTimer.find(id) == m_mapTimer.end())
+        if (m_mapTimer.find(probeId) == m_mapTimer.end())
         {
-            m_mapTimer[id] = 0;
+            m_mapTimer[probeId] = 0;
         }
         Wt::Dbo::Transaction transaction(m_session, true);
 
         Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
-        if (m_mapTimer[id] == 0)
+        if (m_mapTimer[probeId] == 0)
         {
             if (prbPtr)
             {
-                m_mapTimer[id] = prbPtr->timer + 1;
+                m_mapTimer[probeId] = prbPtr->timer + 1;
             }
             else
             {
-                m_mapTimer[id] = 61;
+                m_mapTimer[probeId] = m_defaultTimer;
             }
         }
         
         std::string rep = "false";
-        std::string timer = boost::lexical_cast<string>(m_mapTimer[id]);
         if (prbPtr)
         {
             long long   lastHb = prbPtr->lastlog.secsTo(Wt::WDateTime::currentDateTime());
 
-            if (m_mapTimer[id] > lastHb)
+            if (m_mapTimer[probeId] > lastHb)
             {
                 rep = "true";
             }
@@ -691,6 +692,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
 
     long long astId;
     Wt::WString name;
+    int timer;
 
     if (!sRequest.empty())
     {
@@ -701,6 +703,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
 
             astId = result.get("asset_id");
             name = result.get("name");
+            timer = 60;
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -732,6 +735,8 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
                 newPrb->asset = astPtr;
                 newPrb->name = name;
+                newPrb->timer = timer;
+                newPrb->lastlog = Wt::WDateTime::currentDateTime().addSecs(-61);
 
                 Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, m_session);
                 if (pppPtr)
