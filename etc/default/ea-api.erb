@@ -1,0 +1,17 @@
+### File managed with puppet ###
+## Module:           'echoes_alert'
+## Template source:  'MODULES/echoes_alert/templates/api/etc/default/ea-api.erb'
+
+#General options:
+EA_API_SERVERNAME=<%= servername %> # Servername (IP address or DNS name)
+EA_API_ACCESS_LOG=<%= log_dir %>/api_access.log
+
+# HTTP server options:
+EA_API_IFACE=0.0.0.0 # IPv4 (e.g. 0.0.0.0) or IPv6 Address (e.g. 0::0)
+EA_API_PORT=<%= port %> # HTTP port (e.g. 80)
+
+# HTTPS server options:
+EA_API_HTTPS_IFACE=0.0.0.0 # IPv4 (e.g. 0.0.0.0) or IPv6 Address (e.g. 0::0)
+EA_API_HTTPS_PORT=<%= ssl_port %> # HTTPS port (e.g. 443)
+EA_API_SSL_CERT=/etc/ssl/echoes-tech.com/bundle-echoes-tech.com.crt # SSL server certificate chain file
+EA_API_SSL_PRIV_KEY=/etc/ssl/echoes-tech.com/echoes-tech.com.key # SSL server private key file

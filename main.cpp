@@ -109,6 +109,8 @@ int main(int argc, char **argv)
             server.addResource(&itookiAswReceiver,        "/itooki/asw");
 
             Echoes::Dbo::Session::configureAuth();
+            
+            Wt::WString::setDefaultEncoding(Wt::CharEncoding::UTF8);
 
             // démarrage du serveur en arrière plan
             if (server.start())

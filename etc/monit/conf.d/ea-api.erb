@@ -1,0 +1,7 @@
+check process <%= @service_name %> with pidfile /run/<%= @service_name %>.pid                             
+   start program = "/usr/sbin/service <%= @service_name %> start" with timeout 60 seconds                 
+   stop program  = "/usr/sbin/service <%= @service_name %> stop"                                          
+   if failed host 127.0.0.1 port <%= @port %> type tcp then alert                                         
+<%- if @ssl -%>
+   if failed host 127.0.0.1 port <%= @ssl_port %> type tcp then alert                                     
+<%- end -%> 

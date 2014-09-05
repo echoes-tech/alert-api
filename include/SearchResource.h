@@ -55,7 +55,7 @@ class SearchResource : public PublicApiResource
         EReturnCode postSearch(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putSearch(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        EReturnCode putSearch(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode deleteSearch(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
