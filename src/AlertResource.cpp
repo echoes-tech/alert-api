@@ -517,7 +517,9 @@ EReturnCode AlertResource::sendMAIL
 
     mailBody += amsPtr->message.toUTF8();
 
+    Wt::log("info") << "Mail body before: " << mailBody;
     //TODO: à revoir pour les alertes complexes !!
+    /*
     for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
     {
         boost::replace_all(mailBody, "%value%", it->get()->value.toUTF8());
@@ -526,7 +528,29 @@ EReturnCode AlertResource::sendMAIL
         boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
         boost::replace_all(mailBody, "%unit%", it->get()->informationData->informationUnit->name.toUTF8());
     }
-
+    */
+    // Alert complexe version
+    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+    int cpt = 0;
+    while (asePtr)
+    {
+        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
+        {
+            if (it->get()->informationData == asePtr->alertValue->informationData)
+            {
+                boost::replace_all(mailBody, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
+                boost::replace_all(mailBody, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
+                boost::replace_all(mailBody, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
+                boost::replace_all(mailBody, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
+                boost::replace_all(mailBody, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
+            }
+        }
+        asePtr = asePtr->alertSequence;
+        cpt++;
+    }
+    
+    Wt::log("info") << "Mail body after: " << mailBody;
+    
     Wt::log("info") << " [Alert Resource] " << mailBody;
 
     mailMessage.setFrom(Wt::Mail::Mailbox(conf.getAlertMailSenderAddress(), conf.getAlertMailSenderName()));
@@ -561,6 +585,7 @@ EReturnCode AlertResource::sendSMS
     string sms = amsPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
+    /*
     for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
     {
         boost::replace_all(sms, "%value%", it->get()->value.toUTF8());
@@ -568,7 +593,27 @@ EReturnCode AlertResource::sendSMS
         boost::replace_all(sms, "%detection-time%", it->get()->creationDate.toString().toUTF8());
         boost::replace_all(sms, "%alerting-time%", now.toString().toUTF8());
     }
-
+    */
+    // Alert complexe version
+    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+    int cpt = 0;
+    while (asePtr)
+    {
+        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
+        {
+            if (it->get()->informationData == asePtr->alertValue->informationData)
+            {
+                boost::replace_all(sms, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
+                boost::replace_all(sms, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
+                boost::replace_all(sms, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
+                boost::replace_all(sms, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
+                boost::replace_all(sms, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
+            }
+        }
+        asePtr = asePtr->alertSequence;
+        cpt++;
+    }
+    
     Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
 
     ItookiSMSSender itookiSMSSender(m_session, this);
@@ -596,6 +641,7 @@ EReturnCode AlertResource::sendMobileApp
     string mobileApp = amsPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
+    /*
     for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
     {
         boost::replace_all(mobileApp, "%value%", it->get()->value.toUTF8());
@@ -604,7 +650,27 @@ EReturnCode AlertResource::sendMobileApp
         boost::replace_all(mobileApp, "%alerting-time%", now.toString().toUTF8());
         boost::replace_all(mobileApp, "%unit%", it->get()->informationData->informationUnit->name.toUTF8());
     }
-
+    */
+    // Alert complexe version
+    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+    int cpt = 0;
+    while (asePtr)
+    {
+        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
+        {
+            if (it->get()->informationData == asePtr->alertValue->informationData)
+            {
+                boost::replace_all(mobileApp, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
+                boost::replace_all(mobileApp, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
+                boost::replace_all(mobileApp, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
+                boost::replace_all(mobileApp, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
+                boost::replace_all(mobileApp, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
+            }
+        }
+        asePtr = asePtr->alertSequence;
+        cpt++;
+    }
+    
     Wt::log("info") << " [Alert Resource] New Alerte for mobileApp : " << amsPtr->media->value << " : " << mobileApp;
 
     atrPtr.modify()->content = mobileApp;
@@ -805,6 +871,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
 
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
+    Wt::log("--info--") << sRequest;
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
