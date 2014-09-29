@@ -192,7 +192,52 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
     return res;
 }
 
-EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+//EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+//{
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+//
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(m_session, true);
+//        const string queryStr =
+//            " SELECT ast"
+//            "   FROM " QUOTE("T_ASSET_AST") " ast"
+//            "   WHERE"
+//            "     " QUOTE(TRIGRAM_ASSET ID) " IN"
+//            "       ("
+//            "         SELECT " QUOTE("T_ASSET_AST" SEP TRIGRAM_ASSET ID)
+//            "           FROM " QUOTE("TJ_PLG_AST")
+//            "           WHERE " QUOTE("T_PLUGIN_PLG" SEP TRIGRAM_PLUGIN ID) " = " + pathElements[1] +
+//            "       )"
+//            "     AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+//            "     AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
+//
+//            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
+//
+//            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> plgColl = queryRes.resultList();
+//            
+//
+//            if (plgColl.size() > 0)
+//            {
+//                res = serialize(plgColl, responseMsg);
+//            }
+//            else
+//            {
+//                res = EReturnCode::NOT_FOUND;
+//                responseMsg = httpCodeToJSON(res, plgColl);
+//            }
+//
+//        transaction.commit();
+//    }
+//    catch (Wt::Dbo::Exception const& e)
+//    {
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = httpCodeToJSON(res, e);
+//    }
+//    return res;
+//}
+
+EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -200,32 +245,23 @@ EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string
     {
         Wt::Dbo::Transaction transaction(m_session, true);
         const string queryStr =
-            " SELECT ast"
-            "   FROM " QUOTE("T_ASSET_AST") " ast"
-            "   WHERE"
-            "     " QUOTE(TRIGRAM_ASSET ID) " IN"
-            "       ("
-            "         SELECT " QUOTE("T_ASSET_AST" SEP TRIGRAM_ASSET ID)
-            "           FROM " QUOTE("TJ_PLG_AST")
-            "           WHERE " QUOTE("T_PLUGIN_PLG" SEP TRIGRAM_PLUGIN ID) " = " + pathElements[1] +
-            "       )"
-            "     AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
-            "     AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
+            " SELECT ast "
+            " FROM " QUOTE("T_ASSET_AST") " ast "
+            " WHERE " QUOTE(TRIGRAM_ASSET ID) " IN "
+            "   ( "
+            "      SELECT " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID)
+            "        FROM " QUOTE("T_PLUGIN_PLG")
+            "       WHERE " QUOTE(TRIGRAM_PLUGIN ID) " = " + pathElements[1] +
+            "         AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+            "         AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
+            "   )"
+            "   AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+            "   AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
 
-            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
+        Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> ptrAsset = queryRes.resultValue();
 
-            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> plgColl = queryRes.resultList();
-            
-
-            if (plgColl.size() > 0)
-            {
-                res = serialize(plgColl, responseMsg);
-            }
-            else
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, plgColl);
-            }
+        res = serialize(ptrAsset, responseMsg);
 
         transaction.commit();
     }
@@ -276,7 +312,7 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
             }
             else if (nextElement.compare("assets") == 0)
             {
-                res = getAssetsListForPlugin(pathElements, orgId, responseMsg);
+                res = getAssetForPlugin(pathElements, orgId, responseMsg);
             }
             else
             {
@@ -300,7 +336,7 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
     Wt::WString desc;
-//    long long preId;
+    Wt::WString assetId;
 
     if (!sRequest.empty())
     {
@@ -311,7 +347,7 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
 
             name = result.get("name");
             desc = result.get("desc");
-//            preId = result.get("reference_id");
+            assetId = result.get("asset_id");
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -347,11 +383,11 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
                 return res;
             }
 
-//            Wt::Dbo::ptr<Echoes::Dbo::PluginReference> prePtr = m_session.find<Echoes::Dbo::PluginReference>()
-//                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE ID) " = ?").bind(preId)
-//                    .where(QUOTE(TRIGRAM_PLUGIN_REFERENCE SEP "DELETE") " IS NULL");
-//            if (prePtr)
-//            {
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
+                    .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(assetId)
+                    .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL");
+            if (astPtr)
+            {
                 Echoes::Dbo::Plugin *newPlg = new Echoes::Dbo::Plugin();
                 newPlg->organization = orgPtr;
 //                newPlg->pluginReference = prePtr;
@@ -360,16 +396,17 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
                 newPlg->versionClient = "1.0";
                 newPlg->name = name;
                 newPlg->desc = desc;
+                newPlg->asset = astPtr;
                 Wt::Dbo::ptr<Echoes::Dbo::Plugin> newPlgPtr = m_session.add<Echoes::Dbo::Plugin>(newPlg);
                 newPlgPtr.flush();
 
                 res = serialize(newPlgPtr, responseMsg, EReturnCode::CREATED);
-//            }
-//            else
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = httpCodeToJSON(res, prePtr);
-//            }
+            }
+            else
+            {
+                res = EReturnCode::NOT_FOUND;
+                responseMsg = httpCodeToJSON(res, astPtr);
+            }
 
             transaction.commit();
         }
