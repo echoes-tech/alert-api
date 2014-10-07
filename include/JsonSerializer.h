@@ -165,6 +165,10 @@ public:
         }
 //        std::cout << "Out actCollection(const Wt::Dbo::CollectionRef< V> & collec) - " << m_session.tableName<V>() << " - size: " << collec.value().size() << " rank: " << boost::lexical_cast<std::string>(m_rank) << std::endl;
     }
+    void actCollection(const Wt::Dbo::CollectionRef<Echoes::Dbo::Syslog> & collec)
+    {
+        Wt::log("debug") << "[JsonSerializer] - actCollection(const Wt::Dbo::CollectionRef<Echoes::Dbo::Syslog> & collec)";
+    }
     // We do not want to display AuthInfo to our users.
     template<class S>
     void actCollection(const Wt::Dbo::CollectionRef< Wt::Auth::Dbo::AuthInfo<S >> &collec)

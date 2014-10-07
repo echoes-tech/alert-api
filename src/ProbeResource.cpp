@@ -11,9 +11,13 @@
  * 
  */
 
+#include <string>
+#include <Wt/WTimer>
 #include "ProbeResource.h"
 
 using namespace std;
+
+int ProbeResource::m_defaultTimer = 61;
 
 ProbeResource::ProbeResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
@@ -145,7 +149,7 @@ EReturnCode ProbeResource::getProbesList(const long long &orgId, string &respons
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Probe>> prbPtrCol = queryRes.resultList();
 
-        res = serialize(prbPtrCol, responseMsg);
+        res = serialize<Echoes::Dbo::Probe>(prbPtrCol, responseMsg);
 
         transaction.commit();
     }
@@ -169,6 +173,60 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
 
         res = serialize(prbPtr, responseMsg);
 
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try
+    {
+        int probeId = boost::lexical_cast<int>(pathElements[1]);
+
+        if (m_mapTimer.find(probeId) == m_mapTimer.end())
+        {
+            m_mapTimer[probeId] = 0;
+        }
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        if (m_mapTimer[probeId] == 0)
+        {
+            if (prbPtr)
+            {
+                m_mapTimer[probeId] = prbPtr->timer + 1;
+            }
+            else
+            {
+                m_mapTimer[probeId] = m_defaultTimer;
+            }
+        }
+        
+        std::string rep = "false";
+        if (prbPtr)
+        {
+            long long   lastHb = prbPtr->lastlog.secsTo(Wt::WDateTime::currentDateTime());
+
+            if (m_mapTimer[probeId] > lastHb)
+            {
+                rep = "true";
+            }
+        }
+        
+        responseMsg = "{\n    \"probe_heartbeat\": "
+                + rep
+                + ",\n    \"id\": "
+                + pathElements[1]
+                + "\n}";
+        res = EReturnCode::OK;
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e)
@@ -607,6 +665,10 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
             {
                 res = getPackagesForProbe(pathElements, orgId, responseMsg);
             }
+            else if (nextElement.compare("alive") == 0)
+            {
+                res = getAliveProbe(pathElements, orgId, responseMsg);
+            }
             else
             {
                 res = EReturnCode::BAD_REQUEST;
@@ -630,6 +692,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
 
     long long astId;
     Wt::WString name;
+    int timer;
 
     if (!sRequest.empty())
     {
@@ -640,6 +703,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
 
             astId = result.get("asset_id");
             name = result.get("name");
+            timer = 60;
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -671,6 +735,8 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
                 newPrb->asset = astPtr;
                 newPrb->name = name;
+                newPrb->timer = timer;
+                newPrb->lastlog = Wt::WDateTime::currentDateTime().addSecs(-61);
 
                 Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, m_session);
                 if (pppPtr)
