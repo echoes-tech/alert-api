@@ -773,6 +773,10 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                 // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
                 if (!it->get()->lastSend.isValid() || it->get()->lastSend.secsTo(now) >= it->get()->snoozeDuration)
                 {
+                    Wt::log("info") << "=== ALERT INFO ===";
+                    Wt::log("info") << "last send: " << it->get()->lastSend.toString();
+                    Wt::log("info") << "Diff last send | now: " << it->get()->lastSend.secsTo(now);
+                    Wt::log("info") << "snooze duration: " << it->get()->snoozeDuration;
                     const long long mtyID = it->get()->media->mediaType.id();
                     Echoes::Dbo::AlertTracking *newAtr = new Echoes::Dbo::AlertTracking();
 
@@ -871,7 +875,6 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
 
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
-    Wt::log("--info--") << sRequest;
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
