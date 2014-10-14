@@ -238,7 +238,6 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 EReturnCode AlertResource::postAlert(const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
     // ALE attributs
     Wt::WString name;
     int threadSleep;
@@ -252,6 +251,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
         long long astId;
         long long plgId;
         long long acrId;
+        int booleanOperator;
     };
     vector<AvaStruct> avaStructs;
 
@@ -293,17 +293,10 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     tmp.get("information_id"),
                     tmp.get("asset_id"),
                     tmp.get("plugin_id"),
-                    tmp.get("alert_criterion_id")
+                    tmp.get("alert_criterion_id"),
+                    tmp.get("operator")
                 }
                 );
-            }
-            // ToDo(FPO): Implementation of Sequences
-            if (avaStructs.size() > 1)
-            {
-                res = EReturnCode::NOT_IMPLEMENTED;
-                const string err = "[Alert Resource] Sequence is not implemented";
-                responseMsg = httpCodeToJSON(res, err);
-                return res;
             }
 
             // AMS attributs
@@ -341,10 +334,14 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
     if (responseMsg.empty())
     {
         try
-        {
+        {            
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            const string queryStr =
+            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> lastAsePtr;
+            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> firstAsePtr;
+            for(vector<AvaStruct>::iterator it = avaStructs.begin(); it < avaStructs.end(); it++)
+            {
+                const string queryStr =
 " SELECT ida"
 "   FROM " QUOTE("T_INFORMATION_DATA" SEP TRIGRAM_INFORMATION_DATA) " ida"
 "   WHERE"
@@ -373,7 +370,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "                                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                               WHERE"
 "                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
-"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(avaStructs[0].plgId) +
+"                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(it->plgId) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                         )"
 "                                 )"
@@ -383,29 +380,60 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "               )"
 "             AND " QUOTE(TRIGRAM_FILTER SEP "DELETE") " IS NULL"
 "       )"
-"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(avaStructs[0].infId) +
-"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(avaStructs[0].astId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_INFORMATION SEP TRIGRAM_INFORMATION ID) " = " + boost::lexical_cast<string>(it->infId) +
+"     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + boost::lexical_cast<string>(it->astId) +
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
 "   LIMIT 1";
 
-            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
-    
-            Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
-            if (!idaPtr)
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, idaPtr);
-                return res;
-            }
+                Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
 
-            Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(avaStructs[0].acrId)
-                    .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
-            if (!acrPtr)
-            {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, acrPtr);
-                return res;
+                Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
+                if (!idaPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, idaPtr);
+                    return res;
+                }
+            
+                Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
+                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(it->acrId)
+                        .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
+                if (!acrPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, acrPtr);
+                    return res;
+                }
+            
+                Echoes::Dbo::AlertValue *ava = new Echoes::Dbo::AlertValue();
+
+                ava->informationData = idaPtr;
+                ava->alertCriteria = acrPtr;
+                ava->value = it->value;
+                ava->keyValue = it->keyValue;
+
+                Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session.add<Echoes::Dbo::AlertValue>(ava);
+                newAvaPtr.flush();     
+                
+                Echoes::Dbo::AlertSequence *ase = new Echoes::Dbo::AlertSequence(); 
+                ase->alertValue = newAvaPtr;          
+                ase->boolOperator = it->booleanOperator;    
+                ase->firstParenthesis = false;  
+                ase->secondParenthesis = false;               
+
+                Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> newAsePtr = m_session.add<Echoes::Dbo::AlertSequence>(ase);          
+                newAsePtr.flush();   
+                
+                if(lastAsePtr)
+                {
+                    lastAsePtr.modify()->alertSequence = newAsePtr;
+                }
+                     
+                if(!firstAsePtr)
+                {
+                    firstAsePtr = newAsePtr;
+                }
+                lastAsePtr = newAsePtr;   
             }
 
             vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
@@ -421,18 +449,8 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 medPtrVector.push_back(medPtr);
             }
 
-            Echoes::Dbo::AlertValue *ava = new Echoes::Dbo::AlertValue();
-
-            ava->informationData = idaPtr;
-            ava->alertCriteria = acrPtr;
-            ava->value = avaStructs[0].value;
-            ava->keyValue = avaStructs[0].keyValue;
-
-            Wt::Dbo::ptr<Echoes::Dbo::AlertValue> newAvaPtr = m_session.add<Echoes::Dbo::AlertValue>(ava);
-            newAvaPtr.flush();
-
             Echoes::Dbo::Alert *ale = new Echoes::Dbo::Alert();
-            ale->alertValue = newAvaPtr;
+            ale->alertSequence = firstAsePtr;
             ale->name = name;
             ale->creaDate = Wt::WDateTime::currentDateTime();
             ale->threadSleep = threadSleep;
@@ -499,7 +517,9 @@ EReturnCode AlertResource::sendMAIL
 
     mailBody += amsPtr->message.toUTF8();
 
+    Wt::log("info") << "Mail body before: " << mailBody;
     //TODO: à revoir pour les alertes complexes !!
+    /*
     for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
     {
         boost::replace_all(mailBody, "%value%", it->get()->value.toUTF8());
@@ -508,7 +528,29 @@ EReturnCode AlertResource::sendMAIL
         boost::replace_all(mailBody, "%alerting-time%", now.toString().toUTF8());
         boost::replace_all(mailBody, "%unit%", it->get()->informationData->informationUnit->name.toUTF8());
     }
-
+    */
+    // Alert complexe version
+    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+    int cpt = 0;
+    while (asePtr)
+    {
+        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
+        {
+            if (it->get()->informationData == asePtr->alertValue->informationData)
+            {
+                boost::replace_all(mailBody, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
+                boost::replace_all(mailBody, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
+                boost::replace_all(mailBody, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
+                boost::replace_all(mailBody, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
+                boost::replace_all(mailBody, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
+            }
+        }
+        asePtr = asePtr->alertSequence;
+        cpt++;
+    }
+    
+    Wt::log("info") << "Mail body after: " << mailBody;
+    
     Wt::log("info") << " [Alert Resource] " << mailBody;
 
     mailMessage.setFrom(Wt::Mail::Mailbox(conf.getAlertMailSenderAddress(), conf.getAlertMailSenderName()));
@@ -543,6 +585,7 @@ EReturnCode AlertResource::sendSMS
     string sms = amsPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
+    /*
     for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
     {
         boost::replace_all(sms, "%value%", it->get()->value.toUTF8());
@@ -550,7 +593,27 @@ EReturnCode AlertResource::sendSMS
         boost::replace_all(sms, "%detection-time%", it->get()->creationDate.toString().toUTF8());
         boost::replace_all(sms, "%alerting-time%", now.toString().toUTF8());
     }
-
+    */
+    // Alert complexe version
+    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+    int cpt = 0;
+    while (asePtr)
+    {
+        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
+        {
+            if (it->get()->informationData == asePtr->alertValue->informationData)
+            {
+                boost::replace_all(sms, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
+                boost::replace_all(sms, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
+                boost::replace_all(sms, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
+                boost::replace_all(sms, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
+                boost::replace_all(sms, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
+            }
+        }
+        asePtr = asePtr->alertSequence;
+        cpt++;
+    }
+    
     Wt::log("info") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
 
     ItookiSMSSender itookiSMSSender(m_session, this);
@@ -578,6 +641,7 @@ EReturnCode AlertResource::sendMobileApp
     string mobileApp = amsPtr->message.toUTF8();
 
     //TODO: à revoir pour les alertes complexes !!
+    /*
     for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
     {
         boost::replace_all(mobileApp, "%value%", it->get()->value.toUTF8());
@@ -586,7 +650,27 @@ EReturnCode AlertResource::sendMobileApp
         boost::replace_all(mobileApp, "%alerting-time%", now.toString().toUTF8());
         boost::replace_all(mobileApp, "%unit%", it->get()->informationData->informationUnit->name.toUTF8());
     }
-
+    */
+    // Alert complexe version
+    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+    int cpt = 0;
+    while (asePtr)
+    {
+        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
+        {
+            if (it->get()->informationData == asePtr->alertValue->informationData)
+            {
+                boost::replace_all(mobileApp, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
+                boost::replace_all(mobileApp, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
+                boost::replace_all(mobileApp, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
+                boost::replace_all(mobileApp, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
+                boost::replace_all(mobileApp, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
+            }
+        }
+        asePtr = asePtr->alertSequence;
+        cpt++;
+    }
+    
     Wt::log("info") << " [Alert Resource] New Alerte for mobileApp : " << amsPtr->media->value << " : " << mobileApp;
 
     atrPtr.modify()->content = mobileApp;
@@ -662,23 +746,21 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                 }
                 ivaPtrVector.push_back(ivaPtr);
             }
-
-            // Check whether the number and IDs of IVA concord with the alert definition
-            if (alePtr->alertSequence)
-            {
-                for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ::const_iterator it = ivaPtrVector.begin(); it < ivaPtrVector.end(); ++it)
-                {
-                    //TODO(FPO): To Be Coded when we will implement the Alert Sequence
-                }
-            }
-            else
-            {
-                if (ivaPtrVector.size() != 1 || ivaPtrVector[0]->informationData != alePtr->alertValue->informationData)
+                    
+            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+            size_t cpt = 0;
+            while(asePtr)
+            {   
+                if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
+                        (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
                 {
                     res = EReturnCode::BAD_REQUEST;
                     const string err = "[Alert Resource] bad size or content of ivaPtrVector";
                     responseMsg = httpCodeToJSON(res, err);
-                }
+                    return res;
+                }                
+                asePtr = asePtr->alertSequence;
+                cpt++;
             }
 
             Wt::WDateTime now = Wt::WDateTime::currentDateTime();
@@ -691,6 +773,10 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                 // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
                 if (!it->get()->lastSend.isValid() || it->get()->lastSend.secsTo(now) >= it->get()->snoozeDuration)
                 {
+                    Wt::log("info") << "=== ALERT INFO ===";
+                    Wt::log("info") << "last send: " << it->get()->lastSend.toString();
+                    Wt::log("info") << "Diff last send | now: " << it->get()->lastSend.secsTo(now);
+                    Wt::log("info") << "snooze duration: " << it->get()->snoozeDuration;
                     const long long mtyID = it->get()->media->mediaType.id();
                     Echoes::Dbo::AlertTracking *newAtr = new Echoes::Dbo::AlertTracking();
 
