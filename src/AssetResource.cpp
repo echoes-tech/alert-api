@@ -150,13 +150,7 @@ EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements
             const string queryStr =
             " SELECT plg"
             "   FROM " QUOTE("T_PLUGIN_PLG") " plg"
-            "   WHERE"
-            "     " QUOTE(TRIGRAM_PLUGIN ID) " IN"
-            "       ("
-            "         SELECT " QUOTE("T_PLUGIN_PLG" SEP TRIGRAM_PLUGIN ID)
-            "           FROM " QUOTE("TJ_PLG_AST")
-            "           WHERE " QUOTE("T_ASSET_AST" SEP TRIGRAM_ASSET ID) " = " + pathElements[1] +
-            "       )"
+            "   WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + pathElements[1] +
             "     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
             "     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL";
 

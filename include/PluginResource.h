@@ -27,7 +27,7 @@ class PluginResource : public PublicApiResource
         EReturnCode getPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode getAliasForPlugin(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
         EReturnCode getInformationsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAssetsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getAssetForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode postPlugin(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
