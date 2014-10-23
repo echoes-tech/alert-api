@@ -554,6 +554,7 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
     Wt::WString desc;
+    Wt::WString assetId;
 
     if (!sRequest.empty())
     {
@@ -569,6 +570,10 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
             if (result.contains("desc"))
             {
                 desc = result.get("desc");
+            }
+            if (result.contains("asset_id"))
+            {
+                assetId = result.get("asset_id");
             }
         }
         catch (Wt::Json::ParseError const& e)
@@ -594,7 +599,7 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
         try
         {
             Wt::Dbo::Transaction transaction(m_session, true);
-
+            
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
@@ -610,6 +615,16 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
                 if (!desc.empty())
                 {
                     plgPtr.modify()->desc = desc;
+                }
+                if (!assetId.empty())
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
+                        .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(assetId)
+                        .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL");
+                    if (astPtr)
+                    {
+                        plgPtr.modify()->asset = astPtr;
+                    }
                 }
 
                 res = serialize(plgPtr, responseMsg);
