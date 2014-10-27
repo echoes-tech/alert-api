@@ -115,7 +115,7 @@ class AlertResource : public PublicApiResource
 //        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode deleteAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg); 
 };
 #endif	/* ALERTRESOURCE_H */
 
