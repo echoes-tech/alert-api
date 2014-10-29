@@ -720,13 +720,14 @@ EReturnCode AlertResource::sendMobileApp
     return res;
 }
 
-EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::postAlertTracking(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     vector<long long> ivaIds;
     int mediaSpecializationId;
 
-    cout << "[ postAlertTracking ]" << endl;
+    mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
+    
     if (!sRequest.empty())
     {
         try
@@ -735,7 +736,8 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
             Wt::Json::parse(sRequest, result);
 
             Wt::Json::Array array = result.get("information_value_ids");
-            mediaSpecializationId = result.get("alert_media_specialization_id");
+            
+            
             for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
             {
                 ivaIds.push_back(it->toNumber());
@@ -761,7 +763,6 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
 
     if (responseMsg.empty())
     {
-        cout << "[ message exists ]" << endl;
         try
         {
             Wt::Dbo::Transaction transaction(m_session, true);
@@ -774,10 +775,10 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                 return res;
             }
             
-            
             Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
             amsPtr = alePtr->alertMediaSpecializations.find()
-                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP ID) " = ?").bind(mediaSpecializationId);
+                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?")
+                            .bind(mediaSpecializationId);
             
             if (!amsPtr)
             {
@@ -785,8 +786,6 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
                 responseMsg = httpCodeToJSON(res, amsPtr);
                 return res;
             }
-
-            cout << "AlertMediaSpecialization id: " << amsPtr->id << endl;
 
             vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
             for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
@@ -917,13 +916,13 @@ EReturnCode AlertResource::postAlertTracking(const vector<string> &pathElements,
 
 EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
-    cout << "[ processPostRequest ]" << endl;
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
     unsigned short indexPathElement = 1;
     vector<string> pathElements;
     map<string, long long> parameters;
     parameters["alert_media_specialization_id"] = 0;
+    
     
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
@@ -941,7 +940,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.compare("trackings") == 0)
             {
-                res = postAlertTracking(pathElements, sRequest, orgId, responseMsg);
+                res = postAlertTracking(parameters, pathElements, sRequest, orgId, responseMsg);
             }
             else
             {
