@@ -252,6 +252,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
         long long plgId;
         long long acrId;
         int booleanOperator;
+        int flapping;
     };
     vector<AvaStruct> avaStructs;
     
@@ -304,9 +305,11 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     tmp.get("asset_id"),
                     tmp.get("plugin_id"),
                     tmp.get("alert_criterion_id"),
-                    tmp.get("operator")
+                    tmp.get("operator"),
+                    tmp.get("flapping")
                 }
                 );
+                            
             }
             
             // AMS attributs
@@ -320,7 +323,6 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                 Wt::Json::Array atsArray = tmp.get("time_slots");
                 for (unsigned int i = 0 ; i < atsArray.size() ; ++i)
                 {
-                    cout << "i: " << i << endl;
                     struct AtsStruct atsStruct;
                     
                     Wt::Json::Object timeSlot = atsArray[i];
@@ -414,7 +416,6 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "   LIMIT 1";
 
                 Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::InformationData>>(queryStr);
-
                 Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = queryRes.resultValue();
                 if (!idaPtr)
                 {
@@ -422,7 +423,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     responseMsg = httpCodeToJSON(res, idaPtr);
                     return res;
                 }
-            
+
                 Wt::Dbo::ptr<Echoes::Dbo::AlertCriteria> acrPtr = m_session.find<Echoes::Dbo::AlertCriteria>()
                         .where(QUOTE(TRIGRAM_ALERT_CRITERIA ID) " = ?").bind(it->acrId)
                         .where(QUOTE(TRIGRAM_ALERT_CRITERIA SEP "DELETE") " IS NULL");
@@ -432,11 +433,11 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
                     responseMsg = httpCodeToJSON(res, acrPtr);
                     return res;
                 }
-            
                 Echoes::Dbo::AlertValue *ava = new Echoes::Dbo::AlertValue();
 
                 ava->informationData = idaPtr;
                 ava->alertCriteria = acrPtr;
+                ava->flapping = it->flapping;
                 ava->value = it->value;
                 ava->keyValue = it->keyValue;
 
@@ -805,7 +806,7 @@ EReturnCode AlertResource::postAlertTracking(map<string, long long> parameters, 
             Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
             size_t cpt = 0;
             while(asePtr)
-            {   
+            {
                 if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
                         (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
                 {
