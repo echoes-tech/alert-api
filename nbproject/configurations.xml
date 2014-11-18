@@ -312,7 +312,7 @@
             <linkerLibLibItem>wt</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
-            <linkerLibLibItem>wtfcgi</linkerLibLibItem>
+            <linkerLibLibItem>wthttp</linkerLibLibItem>
             <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
