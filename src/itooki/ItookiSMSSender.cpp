@@ -25,7 +25,7 @@ ItookiSMSSender::~ItookiSMSSender()
 {
 }
 
-int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr)
+int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr)
 {
     int res = -1;
 
@@ -102,9 +102,9 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                 {
                     Wt::Dbo::Transaction transaction(m_session, true);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = m_session.find<Echoes::Dbo::AlertTracking>()
-                        .where(QUOTE(TRIGRAM_ALERT_TRACKING ID) " = ?").bind(atrId)
-                        .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP "DELETE") " IS NULL");
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE ID) " = ?").bind(atrId)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
 
                     if (atrPtr)
                     {

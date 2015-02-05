@@ -94,8 +94,8 @@ class SrReception : public Wt::WResource
                 try
                 {
                     Wt::Dbo::Transaction transaction(session);
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> at = session.find<Echoes::Dbo::AlertTracking>().where("\"ATR_ACK_ID\" = ?").bind(messageId);
-                    if (Utils::checkId<Echoes::Dbo::AlertTracking>(at))
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> at = session.find<Echoes::Dbo::Message>().where("\"MSG_ACK_ID\" = ?").bind(messageId);
+                    if (Utils::checkId<Echoes::Dbo::Message>(at))
                     {
                         at.modify()->receiverSrv = gateway;
                         at.modify()->ackGw = gateway;

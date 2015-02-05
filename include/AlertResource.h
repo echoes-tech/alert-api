@@ -57,59 +57,61 @@ class AlertResource : public PublicApiResource
         EReturnCode getAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
         EReturnCode getAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-
-        /**
-         * method to send a MAIL 
-         * @param collection of informations values that matches the alert
-         * @param the alert
-         * @param the alert tracking required and concerned by the sms
-         * @param the media value concern by the alert
-         * @param if the user as use all his sms, the value here is 1 if not it's 0
-         * @return HTTP Code
-         */
-        EReturnCode sendMAIL
-        (
-            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
-            bool overSMSQuota = false
-        );
-
-        /**
-         * method to send an SMS with the call of the API
-         * @param collection of informations values that matches the alert
-         * @param the alert
-         * @param the alert tracking required and concerned by the sms
-         * @param the media value concern by the alert
-         * @return HTTP Code
-         */
-        EReturnCode sendSMS
-        (
-            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
-        );
-
-        /**
-         * method to put a date and content in Alertetracking table 
-         * @param collection of informations values that matches the alert
-         * @param the alert
-         * @param the alert tracking required and concerned by the sms
-         * @param the media value concern by the alert
-         * @return HTTP Code
-         */
-        EReturnCode sendMobileApp
-        (
-         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
-         Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-         Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr,
-         Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
-        );
+        
+//        void replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector, Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr, std::string &message);
+//
+//        /**
+//         * method to send a MAIL 
+//         * @param collection of informations values that matches the alert
+//         * @param the alert
+//         * @param the alert tracking required and concerned by the sms
+//         * @param the media value concern by the alert
+//         * @param if the user as use all his sms, the value here is 1 if not it's 0
+//         * @return HTTP Code
+//         */
+//        EReturnCode sendMAIL
+//        (
+//            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
+//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+//            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
+//            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
+//            bool overSMSQuota = false
+//        );
+//
+//        /**
+//         * method to send an SMS with the call of the API
+//         * @param collection of informations values that matches the alert
+//         * @param the alert
+//         * @param the alert tracking required and concerned by the sms
+//         * @param the media value concern by the alert
+//         * @return HTTP Code
+//         */
+//        EReturnCode sendSMS
+//        (
+//            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
+//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+//            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
+//            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
+//        );
+//
+//        /**
+//         * method to put a date and content in Alertetracking table 
+//         * @param collection of informations values that matches the alert
+//         * @param the alert
+//         * @param the alert tracking required and concerned by the sms
+//         * @param the media value concern by the alert
+//         * @return HTTP Code
+//         */
+//        EReturnCode sendMobileApp
+//        (
+//         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
+//         Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+//         Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
+//         Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
+//        );
         
         EReturnCode postAlert(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        EReturnCode postAlertTracking(map<string, long long> parameters, const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+//        EReturnCode postAlertTracking(map<string, long long> parameters, const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
 //        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);

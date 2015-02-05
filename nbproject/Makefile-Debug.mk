@@ -46,6 +46,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/InformationResource.o \
 	${OBJECTDIR}/src/JsonSerializer.o \
 	${OBJECTDIR}/src/MediaResource.o \
+	${OBJECTDIR}/src/MessageResource.o \
 	${OBJECTDIR}/src/OptionResource.o \
 	${OBJECTDIR}/src/OrganizationResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
@@ -145,6 +146,11 @@ ${OBJECTDIR}/src/MediaResource.o: src/MediaResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MediaResource.o src/MediaResource.cpp
+
+${OBJECTDIR}/src/MessageResource.o: src/MessageResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MessageResource.o src/MessageResource.cpp
 
 ${OBJECTDIR}/src/OptionResource.o: src/OptionResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -368,6 +374,19 @@ ${OBJECTDIR}/src/MediaResource_nomain.o: ${OBJECTDIR}/src/MediaResource.o src/Me
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MediaResource_nomain.o src/MediaResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/MediaResource.o ${OBJECTDIR}/src/MediaResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/MessageResource_nomain.o: ${OBJECTDIR}/src/MessageResource.o src/MessageResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/MessageResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MessageResource_nomain.o src/MessageResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/MessageResource.o ${OBJECTDIR}/src/MessageResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/OptionResource_nomain.o: ${OBJECTDIR}/src/OptionResource.o src/OptionResource.cpp 

@@ -35,7 +35,7 @@ class ItookiSMSSender
 
         Wt::WObject* getParent() const;
 
-        int send(const std::string &number, const std::string &message, Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr);
+        int send(const std::string &number, const std::string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr);
 
     private:
         Wt::WObject *m_parent;
