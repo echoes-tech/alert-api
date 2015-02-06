@@ -81,42 +81,7 @@ class MessageResource : public PublicApiResource
         EReturnCode postAlertMessage(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        /**
-         * method to send a MAIL 
-         * @param the message to be sent
-         * @param if the user as use all his sms, the value here is 1 if not it's 0
-         * @return HTTP Code
-         */
-        EReturnCode sendMAIL
-        (
-            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-            bool overSMSQuota = false
-        );
-
-        /**
-         * method to send an SMS with the call of the API
-         * @param the message to be send
-         * @return HTTP Code
-         */
-        EReturnCode sendSMS
-        (
-            Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr
-        );
-
-        /**
-         * method to put a date and content in Alertetracking table 
-         * @param collection of informations values that matches the alert
-         * @param the alert
-         * @param the alert tracking required and concerned by the sms
-         * @param the media value concern by the alert
-         * @return HTTP Code
-         */
-        EReturnCode sendMobileApp
-        (
-            Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr
-        );
-
-        void replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector, Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr, std::string &message);
+         void replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector, Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr, std::string &message);
 
         /**
          * method to send a MAIL 
@@ -129,11 +94,11 @@ class MessageResource : public PublicApiResource
          */
         EReturnCode sendMAIL
         (
-            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
-            bool overSMSQuota = false
+            Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
+            bool overSMSQuota = false,
+            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector = std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>>(),
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = Wt::Dbo::ptr<Echoes::Dbo::Alert>(),
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr = Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>()
         );
 
         /**
@@ -146,10 +111,10 @@ class MessageResource : public PublicApiResource
          */
         EReturnCode sendSMS
         (
-            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
+            Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
+            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector = std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>>(),
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = Wt::Dbo::ptr<Echoes::Dbo::Alert>(),
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr = Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>()
         );
 
         /**
@@ -162,10 +127,10 @@ class MessageResource : public PublicApiResource
          */
         EReturnCode sendMobileApp
         (
-         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
-         Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-         Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-         Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
+            Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
+            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector = std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>>(),
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = Wt::Dbo::ptr<Echoes::Dbo::Alert>(),
+            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr = Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization>()
         );
 
 

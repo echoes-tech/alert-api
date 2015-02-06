@@ -382,17 +382,17 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
             if (!amsPtr->lastSend.isValid() || amsPtr->lastSend.secsTo(now) >= amsPtr->snoozeDuration)
             {
                 const long long mtyID = amsPtr->media->mediaType.id();
-                Echoes::Dbo::Message *newAtr = new Echoes::Dbo::Message();
+                Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
 
-                newAtr->alert = alePtr;
-                newAtr->media = amsPtr->media;
+                newMsg->alert = alePtr;
+                newMsg->media = amsPtr->media;
                 // WARNING : SendDate must be set by the API when the alert was sent, not before
-                newAtr->sendDate = *(new Wt::WDateTime());
+                newMsg->sendDate = *(new Wt::WDateTime());
 
-                Wt::Dbo::ptr<Echoes::Dbo::Message> newAtrPtr = m_session.add<Echoes::Dbo::Message>(newAtr);
-                newAtrPtr.flush();
+                Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
+                newMsgPtr.flush();
 
-                Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newAtrPtr.id();
+                Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newMsgPtr.id();
 
                 Wt::log("debug") << " [Alert Ressource] " << "snooze = " << amsPtr->snoozeDuration;
 
@@ -416,14 +416,14 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                             Wt::log("debug") << " [Alert Ressource] " << "SMS quota 0 for alert : " << alePtr->name;
                             Wt::log("debug") << " [Alert Ressource] " << "Sending e-mail instead.";
 
-                            sendMAIL(ivaPtrVector, alePtr, newAtrPtr, amsPtr, true);
+                            sendMAIL(newMsgPtr, true, ivaPtrVector, alePtr, amsPtr);
                         }
                         else
                         {
                             Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : " << smsQuota;
                             optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
                             optPtr.flush();
-                            sendSMS(ivaPtrVector, alePtr, newAtrPtr, amsPtr);
+                            sendSMS(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
                         }
                     }
                     catch (boost::bad_lexical_cast const& e)
@@ -435,11 +435,11 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 }
                 case Echoes::Dbo::EMediaType::MAIL:
                     Wt::log("debug") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
-                    sendMAIL(ivaPtrVector, alePtr, newAtrPtr, amsPtr);
+                    sendMAIL(newMsgPtr, false, ivaPtrVector, alePtr, amsPtr);
                     break;
                 case Echoes::Dbo::EMediaType::MOBILE_APP:
                     Wt::log("debug") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
-                    sendMobileApp(ivaPtrVector, alePtr, newAtrPtr, amsPtr);
+                    sendMobileApp(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
                     break;
                 default:
                     Wt::log("error") << "[Alert Resource] Unknown ID Media: " << mtyID;
@@ -549,149 +549,95 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     return res;
 }
 
-
 EReturnCode MessageResource::sendMAIL
 (
- Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
- bool overSMSQuota
+    Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
+    bool overSMSQuota,
+    vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
+    Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+    Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
  )
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
+    Wt::WString mailRecipientName = "";
     Wt::WString mailRecipient;
-    const Wt::WString mailRecipientName = msgPtr->media->user->firstName + " " + msgPtr->media->user->lastName;
+    if (amsPtr.isTransient() == 0)
+    {
+        mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName;
+    }
     string mailBody = "";
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
     Wt::Mail::Message mailMessage;
     Wt::Mail::Client mailClient;
 
-    // Normal case
-    if (!overSMSQuota)
+    if (amsPtr.isTransient() == 0)
     {
-        mailRecipient = msgPtr->media->value;
+        // Normal case
+        if (!overSMSQuota)
+        {
+            mailRecipient = amsPtr->media->value;
+        }
+        else
+        {
+            mailRecipient = amsPtr->media->user->eMail;
+
+            mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
+        }
     }
     else
     {
-        mailRecipient = msgPtr->media->user->eMail;
+        if (!overSMSQuota)
+        {
+            mailRecipient = msgPtr->media->value;
+        }
+        else
+        {
+            mailRecipient = msgPtr->media->user->eMail;
 
-        mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
+            mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
+        } 
     }
 
-    // test .get() to be sure we have a message
-    mailBody += msgPtr->content.get().toUTF8();
-
-    Wt::log("debug") << " [Message Resource] " << mailBody;
-
-    mailMessage.setFrom(Wt::Mail::Mailbox(conf.getAlertMailSenderAddress(), conf.getAlertMailSenderName()));
-    mailMessage.addRecipient(Wt::Mail::To, Wt::Mail::Mailbox(mailRecipient.toUTF8(), mailRecipientName));
-    mailMessage.setSubject("[ECHOES Alert] ");
-    mailMessage.addHtmlBody(mailBody);
-    mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
-    if (mailClient.send(mailMessage))
+    if (amsPtr.isTransient() == 0)
     {
-       Wt::log("debug") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
-
-        msgPtr.modify()->sendDate = now;
-        msgPtr.modify()->content = mailBody; 
+        mailBody += amsPtr->message.toUTF8();
     }
     else
     {
-        //TODO: fail ?
+        mailBody += msgPtr->content.get().toUTF8();
     }
     
-
-    res = EReturnCode::OK;
-
-    return res;
-}
-
-EReturnCode MessageResource::sendSMS
-(
- Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr
- )
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-    string sms = msgPtr->content.get().toUTF8();
-
-    Wt::log("debug") << " [Message Resource] New SMS for " << msgPtr->media->value << " : " << sms;
-
-    ItookiSMSSender itookiSMSSender(m_session, this);
-
-    if (!itookiSMSSender.send(msgPtr->media->value.toUTF8(), sms, msgPtr))
+    if (ivaPtrVector.size() > 0)
     {
-        msgPtr.modify()->sendDate = now;
-        res = EReturnCode::OK;
+        replaceVariablesInMessage(ivaPtrVector, alePtr, mailBody);
     }
-
-    return res;
-}
-
-EReturnCode MessageResource::sendMobileApp
-(
- Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr
- )
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-
-    msgPtr.modify()->sendDate = now;
-
-    res = EReturnCode::OK;
-
-    return res;
-}
-
-EReturnCode MessageResource::sendMAIL
-(
- vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
- Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
- Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
- Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
- bool overSMSQuota
- )
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
-    Wt::WString mailRecipient;
-    const Wt::WString mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName;
-    string mailBody = "";
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
-    Wt::Mail::Message mailMessage;
-    Wt::Mail::Client mailClient;
-
-    // Normal case
-    if (overSMSQuota == 0)
-    {
-        mailRecipient = amsPtr->media->value;
-    }
-    else if (overSMSQuota == 1)
-    {
-        mailRecipient = amsPtr->media->user->eMail;
-
-        mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
-    }
-
-    mailBody += amsPtr->message.toUTF8();
-
-    replaceVariablesInMessage(ivaPtrVector, alePtr, mailBody);
     
     Wt::log("debug") << " [Alert Resource] " << mailBody;
 
     mailMessage.setFrom(Wt::Mail::Mailbox(conf.getAlertMailSenderAddress(), conf.getAlertMailSenderName()));
     mailMessage.addRecipient(Wt::Mail::To, Wt::Mail::Mailbox(mailRecipient.toUTF8(), mailRecipientName));
-    mailMessage.setSubject("[Echoes Alert] " + alePtr->name);
+    if (alePtr.isTransient() == 0)
+    {
+        mailMessage.setSubject("[Echoes Alert] " + alePtr->name);
+    }
+    else
+    {
+        mailMessage.setSubject("[Echoes Alert]");
+    }
+    
     mailMessage.addHtmlBody(mailBody);
     mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
     mailClient.send(mailMessage);
 
     Wt::log("debug") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
-    amsPtr.modify()->lastSend = now;
+    if (amsPtr.isTransient() == 0)
+    {
+        amsPtr.modify()->lastSend = now;
+    }
 
-    atrPtr.modify()->sendDate = now;
-    atrPtr.modify()->content = mailBody;
+    msgPtr.modify()->sendDate = now;
+    msgPtr.modify()->content = mailBody;
 
     res = EReturnCode::OK;
 
@@ -700,53 +646,89 @@ EReturnCode MessageResource::sendMAIL
 
 EReturnCode MessageResource::sendSMS
 (
+ Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
  vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
  Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
- Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
  Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
  )
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-    string sms = amsPtr->message.toUTF8();
-
-    replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
+    string sms;
+    if (amsPtr.isTransient() == 0)
+    {
+        sms = amsPtr->message.toUTF8();
+        if (ivaPtrVector.size() > 0)
+        {
+            replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
+        }
+    }
+    else
+    {
+        sms = msgPtr->content.get().toUTF8();
+    }
     
-    Wt::log("debug") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
+    Wt::WString phoneNumber;
+    if (amsPtr.isTransient() == 0)
+    {
+        phoneNumber = msgPtr->media->value;
+    }
+    else
+    {
+        phoneNumber = msgPtr->media->value;
+    }
+    
+    Wt::log("debug") << " [Alert Resource] New SMS for " << phoneNumber << " : " << sms;
 
     ItookiSMSSender itookiSMSSender(m_session, this);
 
-    if (!itookiSMSSender.send(amsPtr->media->value.toUTF8(), sms, atrPtr))
+    if (!itookiSMSSender.send(phoneNumber.toUTF8(), sms, msgPtr))
     {
-        amsPtr.modify()->lastSend = now;
+        if (amsPtr.isTransient() == 0)
+        {
+            amsPtr.modify()->lastSend = now;
+        }
+        msgPtr.modify()->sendDate = now;
         res = EReturnCode::OK;
     }
 
     return res;
+    
 }
 
 EReturnCode MessageResource::sendMobileApp
 (
- vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
- Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
- Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
- Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
- )
+    Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr,
+    vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
+    Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
+    Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
+)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
-    string mobileApp = amsPtr->message.toUTF8();
-
-    replaceVariablesInMessage(ivaPtrVector, alePtr, mobileApp);
     
-    Wt::log("debug") << " [Alert Resource] New Alert for mobileApp : " << amsPtr->media->value << " : " << mobileApp;
-
-    atrPtr.modify()->content = mobileApp;
-    atrPtr.modify()->sendDate = now;
-
-    amsPtr.modify()->lastSend = now;
+    string mobileApp;
+    Wt::WString mobileName;
+    
+    if (amsPtr.isTransient() == 0)
+    {
+        mobileApp = amsPtr->message.toUTF8();
+        replaceVariablesInMessage(ivaPtrVector, alePtr, mobileApp);
+        mobileName = amsPtr->media->value;
+        msgPtr.modify()->content = mobileApp;
+        amsPtr.modify()->lastSend = now;
+    }
+    else
+    {
+        mobileApp = msgPtr->content.get().toUTF8();
+        mobileName = msgPtr->media->value;
+    }
+    msgPtr.modify()->sendDate = now;
+    
+    Wt::log("debug") << " [Alert Resource] New Alert for mobileApp : " << mobileName << " : " << mobileApp;
+    
     res = EReturnCode::OK;
 
     return res;
