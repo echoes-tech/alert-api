@@ -150,39 +150,39 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
     return res;
 }
 
-EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
-    if (parameters["media_id"] <= 0)
-    {
-        res = EReturnCode::BAD_REQUEST;
-        const string err = "[Alert Resource] media is empty";
-        responseMsg = httpCodeToJSON(res, err);
-    }
-
-    try
-    {
-        Wt::Dbo::Transaction transaction(m_session, true);
-
-        //ToDo(FPO): Check rights
-        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::Message >> atrPtrCol = m_session.find<Echoes::Dbo::Message>()
-                .where(QUOTE(TRIGRAM_MESSAGE SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ? ").bind(parameters["media_id"])
-                .where(QUOTE(TRIGRAM_MESSAGE SEP "SEND_DATE") " IS NOT NULL")
-                .orderBy(QUOTE(TRIGRAM_MESSAGE SEP "SEND_DATE") " DESC")
-                .limit(20);
-
-        res = serialize(atrPtrCol, responseMsg);
-
-        transaction.commit();
-    }
-    catch (Wt::Dbo::Exception const& e)
-    {
-        res = EReturnCode::SERVICE_UNAVAILABLE;
-        responseMsg = httpCodeToJSON(res, e);
-    }
-    return res;
-}
+//EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
+//{
+//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+//
+//    if (parameters["media_id"] <= 0)
+//    {
+//        res = EReturnCode::BAD_REQUEST;
+//        const string err = "[Alert Resource] media is empty";
+//        responseMsg = httpCodeToJSON(res, err);
+//    }
+//
+//    try
+//    {
+//        Wt::Dbo::Transaction transaction(m_session, true);
+//
+//        //ToDo(FPO): Check rights
+//        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::Message >> atrPtrCol = m_session.find<Echoes::Dbo::Message>()
+//                .where(QUOTE(TRIGRAM_MESSAGE SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ? ").bind(parameters["media_id"])
+//                .where(QUOTE(TRIGRAM_MESSAGE SEP "SEND_DATE") " IS NOT NULL")
+//                .orderBy(QUOTE(TRIGRAM_MESSAGE SEP "SEND_DATE") " DESC")
+//                .limit(20);
+//
+//        res = serialize(atrPtrCol, responseMsg);
+//
+//        transaction.commit();
+//    }
+//    catch (Wt::Dbo::Exception const& e)
+//    {
+//        res = EReturnCode::SERVICE_UNAVAILABLE;
+//        responseMsg = httpCodeToJSON(res, e);
+//    }
+//    return res;
+//}
 
 EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
@@ -204,10 +204,10 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
     {
         res = getAlertsList(parameters, orgId, responseMsg);
     }
-    else if (nextElement.compare("trackings") == 0)
-    {
-        res = getTrackingsForAlertsList(parameters, orgId,responseMsg);
-    }
+//    else if (nextElement.compare("trackings") == 0)
+//    {
+//        res = getTrackingsForAlertsList(parameters, orgId,responseMsg);
+//    }
     else
     {
         try

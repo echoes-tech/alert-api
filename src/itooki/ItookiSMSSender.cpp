@@ -112,12 +112,12 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                             atrPtr.modify()->ackGw = "itooki.fr";
                             atrPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
 
-                            Echoes::Dbo::AlertTrackingEvent *newAte = new Echoes::Dbo::AlertTrackingEvent();
-                            newAte->alertTracking = atrPtr;
-                            newAte->date = Wt::WDateTime::currentDateTime();
-                            newAte->value = splitResult[0];
+                            Echoes::Dbo::MessageTrackingEvent *newMte = new Echoes::Dbo::MessageTrackingEvent();
+                            newMte->message = atrPtr;
+                            newMte->date = Wt::WDateTime::currentDateTime();
+                            newMte->value = splitResult[0];
 
-                            Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAtePtr = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newAte);
+                            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newAtePtr = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newMte);
                             newAtePtr.flush();
                     }
                     else

@@ -280,6 +280,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     vector<long long> ivaIds;
     int mediaSpecializationId;
+    long long alertId;
 
     mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
     
@@ -291,7 +292,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
             Wt::Json::parse(sRequest, result);
 
             Wt::Json::Array array = result.get("information_value_ids");
-            
+            alertId = result.get("alert_id");
             
             for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
             {
@@ -322,7 +323,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, orgId, m_session);
             if (!alePtr)
             {
                 res = EReturnCode::NOT_FOUND;

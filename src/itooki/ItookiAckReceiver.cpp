@@ -93,21 +93,21 @@ void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http
                 atrPtr.modify()->ackGw = gateway;
 //                        at.modify()->ackPort = port;
 
-                Echoes::Dbo::AlertTrackingEvent *ate = new Echoes::Dbo::AlertTrackingEvent();
-                ate->alertTracking = atrPtr;
-                ate->value = eventReason;
-                ate->date = Wt::WDateTime::currentDateTime();
+                Echoes::Dbo::MessageTrackingEvent *mte = new Echoes::Dbo::MessageTrackingEvent();
+                mte->message = atrPtr;
+                mte->value = eventReason;
+                mte->date = Wt::WDateTime::currentDateTime();
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = m_session.add(ate);
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> ptrAte = m_session.add(mte);
             }
             else
             {
                 Wt::log("error") << "[ACK ITOOKI] Alert tracking not found, inserting event without the tracking reference";
-                Echoes::Dbo::AlertTrackingEvent *ate = new Echoes::Dbo::AlertTrackingEvent();
+                Echoes::Dbo::MessageTrackingEvent *ate = new Echoes::Dbo::MessageTrackingEvent();
                 ate->value = eventReason;
                 ate->date = Wt::WDateTime::currentDateTime();
 
-                Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = m_session.add(ate);
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> ptrAte = m_session.add(ate);
                 //TODO error behavior
             }
         }

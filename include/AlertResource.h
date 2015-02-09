@@ -52,7 +52,7 @@ class AlertResource : public PublicApiResource
 
     protected:
 //        EReturnCode getRecipientsForAlert(const long long &orgId, std::string &responseMsg);       
-        EReturnCode getTrackingsForAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
+//        EReturnCode getTrackingsForAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
 //        EReturnCode getTrackingAlertList(const long long &orgId, std::string &responseMsg);
         EReturnCode getAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
         EReturnCode getAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
