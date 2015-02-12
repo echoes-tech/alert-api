@@ -25,7 +25,7 @@ ItookiSMSSender::~ItookiSMSSender()
 {
 }
 
-int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr)
+int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr)
 {
     int res = -1;
 
@@ -102,9 +102,9 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                 {
                     Wt::Dbo::Transaction transaction(m_session, true);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> atrPtr = m_session.find<Echoes::Dbo::AlertTracking>()
-                        .where(QUOTE(TRIGRAM_ALERT_TRACKING ID) " = ?").bind(atrId)
-                        .where(QUOTE(TRIGRAM_ALERT_TRACKING SEP "DELETE") " IS NULL");
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE ID) " = ?").bind(atrId)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
 
                     if (atrPtr)
                     {
@@ -112,12 +112,12 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                             atrPtr.modify()->ackGw = "itooki.fr";
                             atrPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
 
-                            Echoes::Dbo::AlertTrackingEvent *newAte = new Echoes::Dbo::AlertTrackingEvent();
-                            newAte->alertTracking = atrPtr;
-                            newAte->date = Wt::WDateTime::currentDateTime();
-                            newAte->value = splitResult[0];
+                            Echoes::Dbo::MessageTrackingEvent *newMte = new Echoes::Dbo::MessageTrackingEvent();
+                            newMte->message = atrPtr;
+                            newMte->date = Wt::WDateTime::currentDateTime();
+                            newMte->value = splitResult[0];
 
-                            Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAtePtr = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newAte);
+                            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newAtePtr = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newMte);
                             newAtePtr.flush();
                     }
                     else

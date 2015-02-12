@@ -21,6 +21,7 @@
 
 #include "AddonResource.h"
 #include "AlertResource.h"
+#include "MessageResource.h"
 #include "AssetResource.h"
 #include "CriterionResource.h"
 #include "FilterResource.h"
@@ -71,6 +72,7 @@ int main(int argc, char **argv)
 
             AddonResource           addonResource(session);
             AlertResource           alertResource(session);
+            MessageResource         messageResource(session);
             AssetResource           assetResource(session);
             CriterionResource       criteriaResource(session);
             FilterResource          filterResource(session);
@@ -93,6 +95,7 @@ int main(int argc, char **argv)
             
             server.addResource(&addonResource,            "/addons");
             server.addResource(&alertResource,            "/alerts");
+            server.addResource(&messageResource,          "/messages");
             server.addResource(&assetResource,            "/assets");
             server.addResource(&criteriaResource,         "/criteria");
             server.addResource(&filterResource,           "/filters");

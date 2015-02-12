@@ -22,6 +22,7 @@
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/JsonSerializer.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
+      <itemPath>include/MessageResource.h</itemPath>
       <itemPath>include/OptionResource.h</itemPath>
       <itemPath>include/OrganizationResource.h</itemPath>
       <itemPath>include/PluginResource.h</itemPath>
@@ -60,6 +61,7 @@
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/JsonSerializer.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
+        <itemPath>src/MessageResource.cpp</itemPath>
         <itemPath>src/OptionResource.cpp</itemPath>
         <itemPath>src/OrganizationResource.cpp</itemPath>
         <itemPath>src/PluginResource.cpp</itemPath>
@@ -187,6 +189,8 @@
       </item>
       <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MessageResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/OptionResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
@@ -240,6 +244,8 @@
       <item path="src/JsonSerializer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MessageResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/OptionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -357,6 +363,8 @@
       </item>
       <item path="include/MediaResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MessageResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/OptionResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
@@ -410,6 +418,8 @@
       <item path="src/JsonSerializer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MediaResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MessageResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/OptionResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

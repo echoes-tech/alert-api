@@ -94,29 +94,29 @@ class SrReception : public Wt::WResource
                 try
                 {
                     Wt::Dbo::Transaction transaction(session);
-                    Wt::Dbo::ptr<Echoes::Dbo::AlertTracking> at = session.find<Echoes::Dbo::AlertTracking>().where("\"ATR_ACK_ID\" = ?").bind(messageId);
-                    if (Utils::checkId<Echoes::Dbo::AlertTracking>(at))
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> msg = session.find<Echoes::Dbo::Message>().where("\"MSG_ACK_ID\" = ?").bind(messageId);
+                    if (Utils::checkId<Echoes::Dbo::Message>(msg))
                     {
-                        at.modify()->receiverSrv = gateway;
-                        at.modify()->ackGw = gateway;
-                        at.modify()->ackPort = port;
+                        msg.modify()->receiverSrv = gateway;
+                        msg.modify()->ackGw = gateway;
+                        msg.modify()->ackPort = port;
 //                        at.modify()->ackEvent = eventReason;
 
-                        Echoes::Dbo::AlertTrackingEvent *ate = new Echoes::Dbo::AlertTrackingEvent();
-                        ate->alertTracking = at;
-                        ate->value = eventReason;
-                        ate->date = Wt::WDateTime::currentDateTime();
+                        Echoes::Dbo::MessageTrackingEvent *mte = new Echoes::Dbo::MessageTrackingEvent();
+                        mte->message = msg;
+                        mte->value = eventReason;
+                        mte->date = Wt::WDateTime::currentDateTime();
 
-                        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = session.add(ate);
+                        Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> ptrAte = session.add(mte);
                     }
                     else
                     {
                         Wt::log("error") << "[SR] Alert tracking not found, inserting event without the tracking reference";
-                        Echoes::Dbo::AlertTrackingEvent *ate = new Echoes::Dbo::AlertTrackingEvent();
+                        Echoes::Dbo::MessageTrackingEvent *ate = new Echoes::Dbo::MessageTrackingEvent();
                         ate->value = eventReason;
                         ate->date = Wt::WDateTime::currentDateTime();
 
-                        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> ptrAte = session.add(ate);
+                        Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> ptrAte = session.add(ate);
                         //TODO error behavior
                     }
                 }
