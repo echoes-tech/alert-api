@@ -64,11 +64,20 @@ namespace boost
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
 #include <tools/Enums.h>
+#include <boost/regex.hpp>
 
 #include "JsonSerializer.h"
 #include "Enums.h"
 #include "Conf.h"
 #include "Utils.h"
+
+template<class C>
+struct Call {
+    std::string method;
+    boost::regex path;
+    EReturnCode (C::*function)(const std::vector<std::string> &, const long long &, string &);
+};
+
 
 class PublicApiResource : public Wt::WResource {
 public:
@@ -91,7 +100,7 @@ protected:
     virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-
+    
     // a priori, useless
     template<class C>
     EReturnCode serialize(C &obj, std::string &responseMsg, EReturnCode successRes = EReturnCode::INTERNAL_SERVER_ERROR)

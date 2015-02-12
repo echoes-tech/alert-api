@@ -61,9 +61,10 @@ int main(int argc, char **argv)
         // in the Wt configuration file
         Wt::WServer server(argv[0]);
 
+        cout << "Avant configurations" << endl;
         // On définit la configuration du serveur en lui passant les paramètres d'entrée et son fichier de configuration
         server.setServerConfiguration(argc, argv);
-
+        
         if (conf.readProperties(server))
         {
             Echoes::Dbo::Session session(conf.getSessConnectParams());
@@ -84,10 +85,12 @@ int main(int argc, char **argv)
             SourceResource          sourceResource(session);
             UnitResource            unitResource(session);
             UserResource            userResource(session);
+            cout << "Avant proprietes" << endl;
             RoleResource            roleResource(session);
+            cout << "Avant lancement" << endl;
             ItookiAckReceiver       itookiAckReceiver(session);
             ItookiAswReceiver       itookiAswReceiver(session);
-
+            
             server.addResource(&addonResource,            "/addons");
             server.addResource(&alertResource,            "/alerts");
             server.addResource(&assetResource,            "/assets");
@@ -112,6 +115,7 @@ int main(int argc, char **argv)
             
             Wt::WString::setDefaultEncoding(Wt::CharEncoding::UTF8);
 
+            
             // démarrage du serveur en arrière plan
             if (server.start())
             {
