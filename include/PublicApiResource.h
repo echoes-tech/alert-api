@@ -75,6 +75,8 @@ template<class C>
 struct Call {
     std::string method;
     boost::regex path;
+    //auto function;
+    //boost::function<EReturnCode ()>;
     EReturnCode (C::*function)(const std::vector<std::string> &, const long long &, string &);
 };
 

@@ -62,7 +62,6 @@ int main(int argc, char **argv)
         // in the Wt configuration file
         Wt::WServer server(argv[0]);
 
-        cout << "Avant configurations" << endl;
         // On définit la configuration du serveur en lui passant les paramètres d'entrée et son fichier de configuration
         server.setServerConfiguration(argc, argv);
         
@@ -87,9 +86,7 @@ int main(int argc, char **argv)
             SourceResource          sourceResource(session);
             UnitResource            unitResource(session);
             UserResource            userResource(session);
-            cout << "Avant proprietes" << endl;
             RoleResource            roleResource(session);
-            cout << "Avant lancement" << endl;
             ItookiAckReceiver       itookiAckReceiver(session);
             ItookiAswReceiver       itookiAswReceiver(session);
             

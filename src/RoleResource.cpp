@@ -17,19 +17,6 @@ using namespace std;
 
 RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call<RoleResource> tmp;
-    tmp.method = "GET";
-    tmp.path = "";
-    tmp.function = &RoleResource::getRolesList;
-    calls.push_back(tmp);
-    tmp.method = "GET";
-    tmp.path = "/[0-9]+";
-    tmp.function = &RoleResource::getRole;
-    calls.push_back(tmp);
-    tmp.method = "GET";
-    tmp.path = "/(\\D)*";
-    tmp.function = &RoleResource::Error;
-    calls.push_back(tmp);
 }
 
 RoleResource::~RoleResource()
@@ -365,7 +352,10 @@ EReturnCode RoleResource::processRequest(const Wt::Http::Request &request, const
         res = (this->*function)(pathElements, orgId, responseMsg);
     }
     else
+    {
         res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, (const string)("[Role Resource] bad nextElement"));
+    }
     return res;
 }
 
