@@ -19,15 +19,11 @@
 class RoleResource : public PublicApiResource
 {
     
-     std::vector<Call<RoleResource>> calls;
-    
     public :
         RoleResource(Echoes::Dbo::Session& session);
         virtual ~RoleResource();
 
     protected :
-        void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        EReturnCode processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
         
         EReturnCode getRolesList(const std::vector<std::string> &pathElements, const long long &orgId, std::string &response);
         EReturnCode getRole(const std::vector<std::string> &pathElements, const long long &orgId, std::string &response);

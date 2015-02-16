@@ -19,28 +19,24 @@
 class UnitResource : public PublicApiResource
 {
     
-    std::vector<Call<UnitResource>> calls;
-    
     public :
         UnitResource(Echoes::Dbo::Session& session);
         virtual ~UnitResource();
 
     protected :
-        void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-        EReturnCode processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
         
-        EReturnCode getUnitsList(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getUnit(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getUnitsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL);
+        EReturnCode getUnit     (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-        EReturnCode Error(const std::vector<std::string> &pathElements, const long long &orgId, std::string &response);
+        EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL);
         
-        EReturnCode postUnit(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
+        EReturnCode postUnit    (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode putUnit(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        EReturnCode putUnit     (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL);
         virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteUnit(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode deleteUnit  (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL);
         virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 

@@ -71,13 +71,11 @@ namespace boost
 #include "Conf.h"
 #include "Utils.h"
 
-template<class C>
 struct Call {
     std::string method;
     boost::regex path;
-    //auto function;
-    //boost::function<EReturnCode ()>;
-    EReturnCode (C::*function)(const std::vector<std::string> &, const long long &, string &);
+    boost::function<EReturnCode (const long long &, std::string &, const std::vector<std::string> &, const std::string &)> function;
+    //EReturnCode (C::*function)(const long long &, std::string &, const std::vector<std::string> &, const std::string &);
 };
 
 
@@ -88,6 +86,7 @@ public:
     
 protected:
     Echoes::Dbo::Session& m_session;
+    std::vector<Call> calls;
 
     static std::string file2base64(const std::string &path);
     
@@ -100,7 +99,8 @@ protected:
     virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
     virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
     virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-
+    EReturnCode processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
     
     // a priori, useless

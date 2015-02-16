@@ -309,6 +309,37 @@ EReturnCode PublicApiResource::processDeleteRequest(const Wt::Http::Request &req
     return res;
 }
 
+EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    vector<Call>::iterator it = calls.begin();
+    vector<string> pathElements;
+    map<string, long long> parameters;
+
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+    
+    /* search in vector calls filled at initialisation
+     * the iterator with the method and the path given 
+     */
+    while(!(!request.method().compare(it.base()->method)
+            && boost::regex_match(request.pathInfo(), it.base()->path) )
+            && (it != calls.end()))
+    {
+        it++;
+    }
+    //if we find a match, execute the function corresponding
+    if (it != calls.end())
+    {
+        res = it.base()->function(orgId, responseMsg, pathElements, sRequest);
+    }
+    else
+    {
+        res = EReturnCode::METHOD_NOT_ALLOWED;
+        responseMsg = "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
+    }
+    return res;
+}
+
 void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
     Wt::log("info") << "[PUBLIC API] Identifying";
@@ -509,6 +540,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 responseMsg = "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
                 break;
         }
+        //res = processRequest(request, orgId, responseMsg);
 
         response.setStatus(res);
         response.out() << responseMsg;
