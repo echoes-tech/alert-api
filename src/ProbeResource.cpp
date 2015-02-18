@@ -520,91 +520,92 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
                         cpaElem.put("version", cppPtr->packageVersion.toUTF8());
                     }
                     cppElem.put_child("package", cpaElem);
-                }
-                boost::property_tree::json_parser::write_json(ss, cppElem);
-                string tmp = ss.str().erase(ss.str().size() - 1);
-                ss.str("");
-                ss.clear();
-                ss << tmp;
-                ss << ",\n";
+                
+                    boost::property_tree::json_parser::write_json(ss, cppElem);
+                    string tmp = ss.str().erase(ss.str().size() - 1);
+                    ss.str("");
+                    ss.clear();
+                    ss << tmp;
+                    ss << ",\n";
 
-                boost::property_tree::ptree pppElem;
-                pppElem.put<std::string>("name", "core");
-                pppElem.put("version", pppPtr->probeVersion.toUTF8());
+                    boost::property_tree::ptree pppElem;
+                    pppElem.put<std::string>("name", "core");
+                    pppElem.put("version", pppPtr->probeVersion.toUTF8());
 
-                boost::property_tree::ptree ppaElem;
-                if (pppPtr->probePackage)
-                {
-                    const string filename = pppPtr->probePackage->filename.toUTF8();
-                    ppaElem.put("filename", filename);
-                    const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/core/" + filename);
-                    ppaElem.put("content", content);
-                    ppaElem.put("version", pppPtr->packageVersion.toUTF8());
-                }
-                pppElem.put_child("package", ppaElem);
-
-                boost::property_tree::json_parser::write_json(ss, pppElem);
-                tmp = ss.str().erase(ss.str().size() - 1);
-                ss.str("");
-                ss.clear();
-                ss << tmp;
-                ss << ",\n";
-
-                set<long long> adoIdList;
-                for (const Wt::Dbo::ptr<Echoes::Dbo::Plugin> &plgPtr : prbPtr->asset->plugins)
-                {
-                    if (plgPtr->deleteTag.isNull())
+                    boost::property_tree::ptree ppaElem;
+                    if (pppPtr->probePackage)
                     {
-                        for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : plgPtr->sources)
+                        const string filename = pppPtr->probePackage->filename.toUTF8();
+                        ppaElem.put("filename", filename);
+                        const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/core/" + filename);
+                        ppaElem.put("content", content);
+                        ppaElem.put("version", pppPtr->packageVersion.toUTF8());
+                    }
+                    pppElem.put_child("package", ppaElem);
+
+                    boost::property_tree::json_parser::write_json(ss, pppElem);
+                    tmp = ss.str().erase(ss.str().size() - 1);
+                    ss.str("");
+                    ss.clear();
+                    ss << tmp;
+                    ss << ",\n";
+
+                    set<long long> adoIdList;
+                    for (const Wt::Dbo::ptr<Echoes::Dbo::Plugin> &plgPtr : prbPtr->asset->plugins)
+                    {
+                        if (plgPtr->deleteTag.isNull())
                         {
-                            if (srcPtr->deleteTag.isNull())
+                            for (const Wt::Dbo::ptr<Echoes::Dbo::Source> &srcPtr : plgPtr->sources)
                             {
-                                adoIdList.insert(srcPtr->addon.id());
+                                if (srcPtr->deleteTag.isNull())
+                                {
+                                    adoIdList.insert(srcPtr->addon.id());
+                                }
                             }
                         }
                     }
-                }
 
-                for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); ++adoIdIt)
-                {
-                    Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session.find<Echoes::Dbo::AddonPackageParameter>()
-                            .where("\"APP_ASA_ASA_ID\" = ?").bind(cppPtr->assetArchitecture.id())
-                            .where("\"APP_ASD_ASD_ID\" = ?").bind(cppPtr->assetDistribution.id())
-                            .where("\"APP_ASR_ASR_ID\" = ?").bind(cppPtr->assetRelease.id())
-                            .where("\"APP_CPP_MINIMUM_VERSION\" <= ?").bind(cppPtr->addonCommonVersion)
-                            // Compares major version number: substring('2.1.1', '^(\\d*)\\.') return '2'
-                            .where("substring(\"APP_ADDON_VERSION\", '^(\\d*)\\.') = substring(?, '^(\\d*)\\.')").bind(cppPtr->addonCommonVersion)
-                            .where("\"APP_ADO_ADO_ID\" = ?").bind(*adoIdIt)
-                            .where("\"APP_DELETE\" IS NULL")
-                            .orderBy("\"APP_ADDON_VERSION\" DESC, \"APP_PACKAGE_VERSION\" DESC")
-                            .limit(1);
-                    boost::property_tree::ptree appElem;
-                    if(appPtr)
+                    for (set<long long>::iterator adoIdIt = adoIdList.begin(); adoIdIt != adoIdList.end(); ++adoIdIt)
                     {
-                        const string &name = appPtr->addon->name.toUTF8();
-                        appElem.put("name", name);
-                        appElem.put("version", appPtr->addonVersion.toUTF8());
-
-                        boost::property_tree::ptree apaElem;
-                        if (appPtr->addonPackage)
+                        Wt::Dbo::ptr<Echoes::Dbo::AddonPackageParameter> appPtr = m_session.find<Echoes::Dbo::AddonPackageParameter>()
+                                .where("\"APP_ASA_ASA_ID\" = ?").bind(cppPtr->assetArchitecture.id())
+                                .where("\"APP_ASD_ASD_ID\" = ?").bind(cppPtr->assetDistribution.id())
+                                .where("\"APP_ASR_ASR_ID\" = ?").bind(cppPtr->assetRelease.id())
+                                .where("\"APP_CPP_MINIMUM_VERSION\" <= ?").bind(cppPtr->addonCommonVersion)
+                                // Compares major version number: substring('2.1.1', '^(\\d*)\\.') return '2'
+                                .where("substring(\"APP_ADDON_VERSION\", '^(\\d*)\\.') = substring(?, '^(\\d*)\\.')").bind(cppPtr->addonCommonVersion)
+                                .where("\"APP_ADO_ADO_ID\" = ?").bind(*adoIdIt)
+                                .where("\"APP_DELETE\" IS NULL")
+                                .orderBy("\"APP_ADDON_VERSION\" DESC, \"APP_PACKAGE_VERSION\" DESC")
+                                .limit(1);
+                        boost::property_tree::ptree appElem;
+                        if(appPtr)
                         {
-                            const string &filename = appPtr->addonPackage->filename.toUTF8();
-                            apaElem.put("filename", filename);
-                            const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/addons/" + name + "/" + filename);
-                            apaElem.put("content", content);
-                            apaElem.put("version", appPtr->packageVersion.toUTF8());
-                        }
-                        appElem.put_child("package", apaElem);
-                    }
-                    boost::property_tree::json_parser::write_json(ss, appElem);
+                            const string &name = appPtr->addon->name.toUTF8();
+                            appElem.put("name", name);
+                            appElem.put("version", appPtr->addonVersion.toUTF8());
 
-                    if (distance(adoIdList.begin(), adoIdIt) > 1)
-                    {
-                        tmp = ss.str().erase(ss.str().size() - 1);
-                        ss.str("");
-                        ss.clear();
-                        ss << tmp;
-                        ss << ",\n";
+                            boost::property_tree::ptree apaElem;
+                            if (appPtr->addonPackage)
+                            {
+                                const string &filename = appPtr->addonPackage->filename.toUTF8();
+                                apaElem.put("filename", filename);
+                                const string content = PublicApiResource::file2base64(Wt::WApplication::instance()->appRoot() + "probe/addons/" + name + "/" + filename);
+                                apaElem.put("content", content);
+                                apaElem.put("version", appPtr->packageVersion.toUTF8());
+                            }
+                            appElem.put_child("package", apaElem);
+                        }
+                        boost::property_tree::json_parser::write_json(ss, appElem);
+
+                        if (distance(adoIdList.begin(), adoIdIt) > 1)
+                        {
+                            tmp = ss.str().erase(ss.str().size() - 1);
+                            ss.str("");
+                            ss.clear();
+                            ss << tmp;
+                            ss << ",\n";
+                        }
                     }
                 }
             }

@@ -489,7 +489,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
         string responseMsg = "";
-
         switch (retrieveCurrentHttpMethod(request.method()))
         {
             case Wt::Http::Get:
