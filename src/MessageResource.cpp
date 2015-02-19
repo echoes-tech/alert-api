@@ -331,10 +331,11 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 return res;
             }
             
+            cout << "AMS : " << mediaSpecializationId << endl;
             Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
-            amsPtr = alePtr->alertMediaSpecializations.find()
-                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?")
-                            .bind(mediaSpecializationId);
+            amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
+                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
+                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
             
             if (!amsPtr)
             {
@@ -525,6 +526,7 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     map<string, long long> parameters;
     
     parameters["simple_message"] = 0;
+    parameters["alert_media_specialization_id"] = 0;
                
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
