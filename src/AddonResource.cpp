@@ -17,13 +17,42 @@ using namespace std;
 
 AddonResource::AddonResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    Call structFillTmp;
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&AddonResource::getAddonsList, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&AddonResource::getAddon, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/search_types/(.)*";
+    structFillTmp.function = boost::bind(&AddonResource::getSearchTypeForAddon, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&AddonResource::getSearchTypeForAddon, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&AddonResource::Error, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "PUT";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&AddonResource::Error, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&AddonResource::Error, this, _1, _2, _3, _4);
+    calls.push_back(structFillTmp);
 }
 
 AddonResource::~AddonResource()
 {
 }
 
-EReturnCode AddonResource::getAddonsList(const long long &orgId, string& responseMsg)
+EReturnCode AddonResource::getAddonsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -46,7 +75,7 @@ EReturnCode AddonResource::getAddonsList(const long long &orgId, string& respons
     return res;
 }
 
-EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode AddonResource::getAddon(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -69,7 +98,7 @@ EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const lo
     return res;
 }
 
-EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode AddonResource::getSearchTypeForAddon(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -112,6 +141,16 @@ EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathEleme
     return res;
 }
 
+EReturnCode AddonResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[Addon Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
+}
+
 EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -136,11 +175,11 @@ EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAddon(pathElements, orgId, responseMsg);
+                res = getAddon(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("search_types") == 0)
             {
-                res = getSearchTypeForAddon(pathElements, orgId, responseMsg);                
+                res = getSearchTypeForAddon(orgId, responseMsg, pathElements);                
             }
             else
             {

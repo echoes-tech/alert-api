@@ -18,49 +18,60 @@ using namespace std;
 UnitResource::UnitResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
     Call structFillTmp;
+    
     structFillTmp.method = "GET";
     structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UnitResource::getUnitsList, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::getUnitsList, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "GET";
     structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&UnitResource::getUnit, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::getUnit, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "GET";
     structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "POST";
     structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UnitResource::postUnit, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::postUnit, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "POST";
     structFillTmp.path = ".+";
-    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "PUT";
     structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "PUT";
     structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&UnitResource::putUnit, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::putUnit, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "PUT";
     structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "DELETE";
     structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&UnitResource::deleteUnit, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::deleteUnit, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4);
+    structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
 }
 
@@ -68,7 +79,7 @@ UnitResource::~UnitResource()
 {
 }
 
-EReturnCode UnitResource::getUnitsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+EReturnCode UnitResource::getUnitsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -91,7 +102,7 @@ EReturnCode UnitResource::getUnitsList(const long long &orgId, std::string &resp
     return res;
 }
 
-EReturnCode UnitResource::getUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+EReturnCode UnitResource::getUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -114,7 +125,7 @@ EReturnCode UnitResource::getUnit(const long long &orgId, std::string &responseM
     return res;
 }
 
-EReturnCode UnitResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+EReturnCode UnitResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -167,7 +178,7 @@ EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode UnitResource::postUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+EReturnCode UnitResource::postUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long iutId;
@@ -289,7 +300,7 @@ EReturnCode UnitResource::processPostRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode UnitResource::putUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+EReturnCode UnitResource::putUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -407,7 +418,7 @@ EReturnCode UnitResource::processPutRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode UnitResource::deleteUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest)
+EReturnCode UnitResource::deleteUnit(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 

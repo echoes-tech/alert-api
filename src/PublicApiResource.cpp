@@ -315,8 +315,6 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
     vector<Call>::iterator it = calls.begin();
     vector<string> pathElements;
     map<string, long long> parameters;
-
-    const string sRequest = processRequestParameters(request, pathElements, parameters);
     
     /* search in vector calls filled at initialisation
      * the iterator with the method and the path given 
@@ -327,10 +325,18 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
     {
         it++;
     }
+    
+    
+        ;
     //if we find a match, execute the function corresponding
     if (it != calls.end())
     {
-        res = it.base()->function(orgId, responseMsg, pathElements, sRequest);
+        for(int i = 0; i < it.base()->parameters.size(); i++)
+            parameters[it.base()->parameters[i]] = 0;
+        
+        const string sRequest = processRequestParameters(request, pathElements, parameters);
+      
+        res = it.base()->function(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {

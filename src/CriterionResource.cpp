@@ -17,13 +17,72 @@ using namespace std;
 
 CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&CriterionResource::getCriteriaList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&CriterionResource::getCriterion, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/alias";
+    structFillTmp.parameters.push_back("media_type_id");
+    structFillTmp.parameters.push_back("user_role_id");
+    structFillTmp.parameters.push_back("information_id");
+    structFillTmp.function = boost::bind(&CriterionResource::getAliasForCriterion, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+/alias";
+    structFillTmp.function = boost::bind(&CriterionResource::putAliasForCriterion, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
 }
 
 CriterionResource::~CriterionResource()
 {
 }
 
-EReturnCode CriterionResource::getCriteriaList(const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[Criterion Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
+}
+
+EReturnCode CriterionResource::getCriteriaList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -46,7 +105,7 @@ EReturnCode CriterionResource::getCriteriaList(const long long &orgId, string &r
     return res;
 }
 
-EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::getCriterion(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -69,7 +128,7 @@ EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, 
     return res;
 }
 
-EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::getAliasForCriterion(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -147,11 +206,11 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getCriterion(pathElements, orgId, responseMsg);
+                res = getCriterion(orgId, responseMsg, pathElements);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForCriterion(pathElements, parameters, orgId, responseMsg);
+                res = getAliasForCriterion(orgId, responseMsg, pathElements, sRequest, parameters);
             }
             else
             {
@@ -170,7 +229,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     return res;
 }
 
-EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::putAliasForCriterion(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -315,7 +374,7 @@ EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &reques
 
             if (!nextElement.compare("alias"))
             {
-                res = putAliasForCriterion(pathElements, sRequest, orgId, responseMsg);
+                res = putAliasForCriterion(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {

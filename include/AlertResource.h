@@ -54,8 +54,8 @@ class AlertResource : public PublicApiResource
 //        EReturnCode getRecipientsForAlert(const long long &orgId, std::string &responseMsg);       
 //        EReturnCode getTrackingsForAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
 //        EReturnCode getTrackingAlertList(const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode getAlertsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL, std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode getAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL, std::map<string, long long> parameters = map<string, long long>());
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
         
 //        void replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector, Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr, std::string &message);
@@ -110,14 +110,17 @@ class AlertResource : public PublicApiResource
 //         Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
 //        );
         
-        EReturnCode postAlert(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
+        EReturnCode postAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL, std::map<string, long long> parameters = map<string, long long>());
 //        EReturnCode postAlertTracking(map<string, long long> parameters, const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
 //        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode deleteAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg); 
+        EReturnCode deleteAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL, std::map<string, long long> parameters = map<string, long long>());
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        
+        EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = NULL, std::map<string, long long> parameters = map<string, long long>());
+
 };
 #endif	/* ALERTRESOURCE_H */
 

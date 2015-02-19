@@ -74,7 +74,8 @@ namespace boost
 struct Call {
     std::string method;
     boost::regex path;
-    boost::function<EReturnCode (const long long &, std::string &, const std::vector<std::string> &, const std::string &)> function;
+    std::vector<std::string> parameters;
+    boost::function<EReturnCode (const long long &, std::string &, const std::vector<std::string> &, const std::string &, map<string, long long>)> function;
     //EReturnCode (C::*function)(const long long &, std::string &, const std::vector<std::string> &, const std::string &);
 };
 

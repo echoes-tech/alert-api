@@ -16,6 +16,45 @@ using namespace std;
 
 AlertResource::AlertResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+   Call structFillTmp;
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.parameters.push_back("media_type");
+    structFillTmp.parameters.push_back("media_id");
+    structFillTmp.function = boost::bind(&AlertResource::getAlertsList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&AlertResource::getAlert, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "POST";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&AlertResource::postAlert, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".+";
+    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "PUT";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&AlertResource::deleteAlert, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp); 
 }
 
 AlertResource::~AlertResource()
@@ -69,7 +108,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId,
     return queryRes.resultValue();
 }
 
-EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::getAlertsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -128,7 +167,7 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
     return res;
 }
 
-EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::getAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -147,6 +186,16 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
         res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = httpCodeToJSON(res, e);
     }
+    return res;
+}
+
+EReturnCode AlertResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[Alert Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
     return res;
 }
 
@@ -202,7 +251,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 
     if (nextElement.empty())
     {
-        res = getAlertsList(parameters, orgId, responseMsg);
+        res = getAlertsList(orgId, responseMsg, std::vector<std::basic_string<char>>(), NULL, parameters);
     }
 //    else if (nextElement.compare("trackings") == 0)
 //    {
@@ -216,7 +265,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAlert(pathElements, orgId, responseMsg);
+                res = getAlert(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -235,7 +284,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AlertResource::postAlert(const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::postAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     // ALE attributs
@@ -869,7 +918,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postAlert(sRequest,orgId, responseMsg);
+        res = postAlert(orgId, responseMsg, std::vector<std::basic_string<char>>(), sRequest);
     }
     else
     {
@@ -881,7 +930,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::deleteAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -940,7 +989,7 @@ EReturnCode AlertResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteAlert(pathElements, orgId, responseMsg);
+                res = deleteAlert(orgId, responseMsg, pathElements);
             }
             else
             {
