@@ -251,7 +251,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 
     if (nextElement.empty())
     {
-        res = getAlertsList(orgId, responseMsg, std::vector<std::basic_string<char>>(), NULL, parameters);
+        res = getAlertsList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
 //    else if (nextElement.compare("trackings") == 0)
 //    {

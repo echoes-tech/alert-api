@@ -174,7 +174,7 @@ EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, co
             responseMsg = httpCodeToJSON(res, e);
         }
     }
-
+    
     return res;
 }
 

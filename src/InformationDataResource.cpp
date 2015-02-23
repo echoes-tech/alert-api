@@ -12,7 +12,6 @@
  */
 
 #include "InformationDataResource.h"
-#include "SrReception.h"
 
 using namespace std;
 

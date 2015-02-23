@@ -108,7 +108,7 @@ EReturnCode InformationResource::Error(const long long &orgId, std::string &resp
     return res;
 }
 
-EReturnCode InformationResource::getInformationsList(const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getInformationsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -132,7 +132,7 @@ EReturnCode InformationResource::getInformationsList(const long long &orgId, str
     return res;
 }
 
-EReturnCode InformationResource::getInformation(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -156,7 +156,7 @@ EReturnCode InformationResource::getInformation(const vector<string> &pathElemen
     return res;
 }
 
-EReturnCode InformationResource::getAliasForInformation(const vector<string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getAliasForInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -205,7 +205,7 @@ EReturnCode InformationResource::getAliasForInformation(const vector<string> &pa
     return res;
 }
 
-EReturnCode InformationResource::getPluginsListForInformation(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getPluginsListForInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -324,7 +324,7 @@ EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &requ
     return res;
 }
 
-EReturnCode InformationResource::postInformation(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode InformationResource::postInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -448,7 +448,7 @@ EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &req
     return res;
 }
 
-EReturnCode InformationResource::putInformation(const vector<string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
+EReturnCode InformationResource::putInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameterss)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -570,7 +570,7 @@ EReturnCode InformationResource::putInformation(const vector<string> &pathElemen
     return res;
 }
 
-EReturnCode InformationResource::putAliasForInformation(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::putAliasForInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -724,7 +724,7 @@ EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &requ
     return res;
 }
 
-EReturnCode InformationResource::deleteInformation(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode InformationResource::deleteInformation(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 

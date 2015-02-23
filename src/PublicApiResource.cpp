@@ -331,7 +331,7 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
     //if we find a match, execute the function corresponding
     if (it != calls.end())
     {
-        for(int i = 0; i < it.base()->parameters.size(); i++)
+        for(int i = 0; i < (int)it.base()->parameters.size(); i++)
             parameters[it.base()->parameters[i]] = 0;
         
         const string sRequest = processRequestParameters(request, pathElements, parameters);
@@ -521,7 +521,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
     // set Content-Type
     response.setMimeType("application/json; charset=utf-8");
-
+    
     if (authentified)
     {
         EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -546,7 +546,6 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 break;
         }
         //res = processRequest(request, orgId, responseMsg);
-
         response.setStatus(res);
         response.out() << responseMsg;
 

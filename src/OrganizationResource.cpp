@@ -17,13 +17,54 @@ using namespace std;
 
 OrganizationResource::OrganizationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&OrganizationResource::getOrganizationsList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&OrganizationResource::getOrganization, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&OrganizationResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&OrganizationResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&OrganizationResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&OrganizationResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
 }
 
 OrganizationResource::~OrganizationResource()
 {
 }
 
-EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, string &responseMsg)
+EReturnCode OrganizationResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[Organisation Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
+}
+
+EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -47,7 +88,7 @@ EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, s
     return res;
 }
 
-EReturnCode OrganizationResource::getOrganization(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode OrganizationResource::getOrganization(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -95,7 +136,7 @@ EReturnCode OrganizationResource::processGetRequest(const Wt::Http::Request &req
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getOrganization(pathElements, orgId, responseMsg);
+                res = getOrganization(orgId, responseMsg, pathElements);
             }
             else
             {

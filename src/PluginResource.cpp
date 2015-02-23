@@ -17,13 +17,101 @@ using namespace std;
 
 PluginResource::PluginResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::getPluginsList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&PluginResource::getPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/alias";
+    structFillTmp.parameters.push_back("media_type_id");
+    structFillTmp.parameters.push_back("user_role_id");
+    structFillTmp.function = boost::bind(&PluginResource::getAliasForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/informations";
+    structFillTmp.function = boost::bind(&PluginResource::getInformationsListForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/assets";
+    structFillTmp.function = boost::bind(&PluginResource::getAssetForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::postPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".+";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&PluginResource::putPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+/alias";
+    structFillTmp.function = boost::bind(&PluginResource::putAliasForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&PluginResource::deletePlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
 }
 
 PluginResource::~PluginResource()
 {
 }
 
-EReturnCode PluginResource::getPluginsList(const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[Unit Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
+}
+
+EReturnCode PluginResource::getPluginsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -47,7 +135,7 @@ EReturnCode PluginResource::getPluginsList(const long long &orgId, string &respo
     return res;
 }
 
-EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode PluginResource::getPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -71,7 +159,7 @@ EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getAliasForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -120,7 +208,7 @@ EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pa
     return res;
 }
 
-EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getInformationsListForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -237,7 +325,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 //    return res;
 //}
 
-EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getAssetForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -300,19 +388,19 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getPlugin(pathElements, orgId, responseMsg);
+                res = getPlugin(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("alias") == 0)
             {
-                res = getAliasForPlugin(pathElements, parameters, orgId, responseMsg);
+                res = getAliasForPlugin(orgId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (nextElement.compare("informations") == 0)
             {
-                res = getInformationsListForPlugin(pathElements, orgId, responseMsg);
+                res = getInformationsListForPlugin(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("assets") == 0)
             {
-                res = getAssetForPlugin(pathElements, orgId, responseMsg);
+                res = getAssetForPlugin(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -331,7 +419,7 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode PluginResource::postPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -433,7 +521,7 @@ EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postPlugin(sRequest, orgId, responseMsg);
+        res = postPlugin(orgId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -445,7 +533,7 @@ EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::putAliasForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -549,7 +637,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
     return res; 
 }
 
-EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::putPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -674,11 +762,11 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putPlugin(pathElements, sRequest, orgId, responseMsg);
+                res = putPlugin(orgId, responseMsg, pathElements, sRequest);
             }
             else if (nextElement.compare("alias") == 0)
             {
-                res = putAliasForPlugin(pathElements, sRequest, orgId, responseMsg);
+                res = putAliasForPlugin(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -697,7 +785,7 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode PluginResource::deletePlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -769,7 +857,7 @@ EReturnCode PluginResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deletePlugin(pathElements, orgId, responseMsg);
+                res = deletePlugin(orgId, responseMsg, pathElements);
             }
             else
             {

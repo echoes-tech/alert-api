@@ -17,6 +17,76 @@ using namespace std;
 
 SourceResource::SourceResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.parameters.push_back("addon_id");
+    structFillTmp.parameters.push_back("plugin_id");
+    structFillTmp.function = boost::bind(&SourceResource::getSourcesList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/parameters";
+    structFillTmp.parameters.push_back("addon_id");
+    structFillTmp.parameters.push_back("plugin_id");
+    structFillTmp.function = boost::bind(&SourceResource::getParametersList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&SourceResource::getSource, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/parameters";
+    structFillTmp.function = boost::bind(&SourceResource::getParametersListForSource, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&SourceResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&SourceResource::postSource, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".+";
+    structFillTmp.function = boost::bind(&SourceResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&SourceResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&SourceResource::putSource, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&SourceResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&SourceResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&SourceResource::deleteSource, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&SourceResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
 }
 
 SourceResource::~SourceResource()
@@ -61,7 +131,17 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
     return queryRes.resultValue();
 }
 
-EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[Unit Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
+    return res;
+}
+
+EReturnCode SourceResource::getSourcesList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -111,7 +191,7 @@ EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, c
     return res;
 }
 
-EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getSource(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -133,7 +213,7 @@ EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode SourceResource::getParametersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getParametersList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -183,7 +263,7 @@ EReturnCode SourceResource::getParametersList(map<string, long long> &parameters
     return res;
 }
 
-EReturnCode SourceResource::getParametersListForSource(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getParametersListForSource(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -224,11 +304,11 @@ EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getSourcesList(parameters, orgId, responseMsg);
+        res = getSourcesList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersList(parameters, orgId, responseMsg);
+        res = getParametersList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -239,11 +319,11 @@ EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getSource(pathElements, orgId, responseMsg);
+                res = getSource(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForSource(pathElements, orgId, responseMsg);
+                res = getParametersListForSource(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -262,7 +342,7 @@ EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SourceResource::postSource(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SourceResource::postSource(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long adoId;
@@ -385,7 +465,7 @@ EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postSource(sRequest, orgId, responseMsg);
+        res = postSource(orgId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -397,7 +477,7 @@ EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode SourceResource::putSource(const std::vector<std::string> &pathElements, const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SourceResource::putSource(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -504,7 +584,7 @@ EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putSource(pathElements, sRequest, orgId, responseMsg);
+                res = putSource(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -523,7 +603,7 @@ EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode SourceResource::deleteSource(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parametersg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -594,7 +674,7 @@ EReturnCode SourceResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deleteSource(pathElements, orgId, responseMsg);
+                res = deleteSource(orgId, responseMsg, pathElements);
             }
             else
             {

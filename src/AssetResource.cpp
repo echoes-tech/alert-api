@@ -281,7 +281,7 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
     
     parameters["media_type_id"] = 0;
     parameters["user_role_id"] = 0;
-
+    
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
@@ -302,11 +302,11 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForAsset(orgId, responseMsg, pathElements, NULL, parameters);
+                res = getAliasForAsset(orgId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (!nextElement.compare("plugins"))
             {
-                res = getPluginsForAsset( orgId, responseMsg, pathElements, NULL, parameters);
+                res = getPluginsForAsset( orgId, responseMsg, pathElements, sRequest, parameters);
             }
             else
             {
