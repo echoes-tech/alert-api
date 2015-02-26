@@ -128,7 +128,6 @@ EReturnCode MediaResource::getMediasList(const long long &orgId, std::string &re
 
     try
     {
-        cout << "hello4" << endl;
         Wt::Dbo::Transaction transaction(m_session, true);
         string queryStr =
 " SELECT med"
@@ -141,7 +140,6 @@ EReturnCode MediaResource::getMediasList(const long long &orgId, std::string &re
 "           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
-cout << "hello6" << endl;
         if (parameters["type_id"] > 0)
         {
             queryStr +=
@@ -151,7 +149,6 @@ cout << "hello6" << endl;
         queryStr +=
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
-cout << "hello7" << endl;
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrCol = queryRes.resultList();

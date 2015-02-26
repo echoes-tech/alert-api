@@ -526,7 +526,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     {
         EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
         string responseMsg = "";
-        switch (retrieveCurrentHttpMethod(request.method()))
+        /*switch (retrieveCurrentHttpMethod(request.method()))
         {
             case Wt::Http::Get:
                 res = processGetRequest(request, orgId, responseMsg);
@@ -544,8 +544,8 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 res = EReturnCode::METHOD_NOT_ALLOWED;
                 responseMsg = "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
                 break;
-        }
-        //res = processRequest(request, orgId, responseMsg);
+        }*/
+        res = processRequest(request, orgId, responseMsg);
         response.setStatus(res);
         response.out() << responseMsg;
 

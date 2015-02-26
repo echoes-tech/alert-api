@@ -41,14 +41,6 @@ MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResou
     structFillTmp.function = boost::bind(&MessageResource::postAlertMessage, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
     
-    //WARNING : this is not actual mode
-    //see with main developper to change it
-    structFillTmp.method = "POST";
-    structFillTmp.path = "/simple_message";
-    structFillTmp.parameters.push_back("alert_media_specialization_id");   
-    structFillTmp.function = boost::bind(&MessageResource::postSimpleMessage, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
     structFillTmp.method = "POST";
     structFillTmp.path = ".+";
     structFillTmp.function = boost::bind(&MessageResource::Error, this, _1, _2, _3, _4, _5);
