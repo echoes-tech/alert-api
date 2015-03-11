@@ -77,7 +77,6 @@ class MessageResource : public PublicApiResource
         
         EReturnCode getMessages(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
         EReturnCode getMessage(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg);
-        EReturnCode postSimpleMessage(const string& sRequest, const long long &orgId, string& responseMsg);
         EReturnCode postAlertMessage(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 

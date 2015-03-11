@@ -149,66 +149,137 @@ EReturnCode MessageResource::getMessage(const std::vector<std::string> &pathElem
     return res;
 }
 
-EReturnCode MessageResource::postSimpleMessage(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    vector<long long> ivaIds;
+    int mediaSpecializationId;
+    long long alertId;
 
-    long long medId;
-    Wt::WString message;
-
-    if (!sRequest.empty())
+    if ((parameters["alert_media_specialization_id"]) > 0)
     {
-        try
-        {
-            Wt::Json::Object result;
-            Wt::Json::parse(sRequest, result);
-            medId = result.get("media_id");
-            message = result.get("message");
-        }
-        catch (Wt::Json::ParseError const& e)
-        {
-            res = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-        catch (Wt::Json::TypeException const& e)
-        {
-            res = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-    }
-    else
-    {
-        res = EReturnCode::BAD_REQUEST;
-        const string err = "[Message Resource] sRequest is not empty";
-        responseMsg = httpCodeToJSON(res, err);
-    }
+    
+        mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
 
-    if (responseMsg.empty())
-    {
-        try
+        if (!sRequest.empty())
         {
-            //message creation in DB
-            Wt::Dbo::Transaction transaction(m_session, true);
-
-            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
-            if (medPtr)
+            try
             {
-                Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
-                newMsg->media = medPtr;
-                newMsg->content = message;
+                Wt::Json::Object result;
+                Wt::Json::parse(sRequest, result);
 
-                Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
-                newMsgPtr.flush();
-                res = serialize(newMsgPtr, responseMsg, EReturnCode::CREATED);
-                
-                //message actual sending
-                
-                const long long mtyId = medPtr->mediaType.id();
-                switch (mtyId)
+                Wt::Json::Array array = result.get("information_value_ids");
+                alertId = result.get("alert_id");
+
+                for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
                 {
+                    ivaIds.push_back(it->toNumber());
+                }
+            }
+            catch (Wt::Json::ParseError const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            catch (Wt::Json::TypeException const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+        }
+        else
+        {
+            res = EReturnCode::BAD_REQUEST;
+            const string err = "[Alert Resource] sRequest is not empty";
+            responseMsg = httpCodeToJSON(res, err);
+        }
+
+        if (responseMsg.empty())
+        {
+            try
+            {
+                Wt::Dbo::Transaction transaction(m_session, true);
+
+                Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, orgId, m_session);
+                if (!alePtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, alePtr);
+                    return res;
+                }
+
+                cout << "AMS : " << mediaSpecializationId << endl;
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
+                amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
+                                .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
+                                .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
+
+                if (!amsPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, amsPtr);
+                    return res;
+                }
+
+                vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
+                for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session.find<Echoes::Dbo::InformationValue>()
+                            .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
+                            .where(QUOTE(TRIGRAM_INFORMATION_VALUE SEP "DELETE") " IS NULL");
+                    if (!ivaPtr)
+                    {
+                        res = EReturnCode::NOT_FOUND;
+                        responseMsg = httpCodeToJSON(res, ivaPtr);
+                        return res;
+                    }
+                    ivaPtrVector.push_back(ivaPtr);
+                }
+
+                Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+                size_t cpt = 0;
+                while(asePtr)
+                {
+                    if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
+                            (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
+                    {
+                        res = EReturnCode::BAD_REQUEST;
+                        const string err = "[Alert Resource] bad size or content of ivaPtrVector";
+                        responseMsg = httpCodeToJSON(res, err);
+                        return res;
+                    }                
+                    asePtr = asePtr->alertSequence;
+                    cpt++;
+                }
+
+                Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+
+                alePtr.modify()->lastAttempt = now;
+
+                // it is the first time we send the alert there is no last send date filled
+                // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
+                if (!amsPtr->lastSend.isValid() || amsPtr->lastSend.secsTo(now) >= amsPtr->snoozeDuration)
+                {
+                    const long long mtyID = amsPtr->media->mediaType.id();
+                    Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
+
+                    newMsg->alert = alePtr;
+                    newMsg->media = amsPtr->media;
+                    // WARNING : SendDate must be set by the API when the alert was sent, not before
+                    newMsg->sendDate = *(new Wt::WDateTime());
+
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
+                    newMsgPtr.flush();
+
+                    Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newMsgPtr.id();
+
+                    Wt::log("debug") << " [Alert Ressource] " << "snooze = " << amsPtr->snoozeDuration;
+
+                    switch (mtyID)
+                    {
                     case Echoes::Dbo::EMediaType::SMS:
                     {
-                        Wt::log("debug") << " [Message Ressource] " << "Media SMS";
+                        Wt::log("debug") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
 
                         // Verifying the quota of sms
                         Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
@@ -221,17 +292,17 @@ EReturnCode MessageResource::postSimpleMessage(const string& sRequest, const lon
                             const int smsQuota = boost::lexical_cast<int>(optPtr->value);
                             if (smsQuota == 0)
                             {
-                                Wt::log("debug") << " [Message Ressource] " << "SMS quota 0";
-                                Wt::log("debug") << " [Message Ressource] " << "Sending e-mail instead.";
+                                Wt::log("debug") << " [Alert Ressource] " << "SMS quota 0 for alert : " << alePtr->name;
+                                Wt::log("debug") << " [Alert Ressource] " << "Sending e-mail instead.";
 
-                                sendMAIL(newMsgPtr, true);
+                                sendMAIL(newMsgPtr, true, ivaPtrVector, alePtr, amsPtr);
                             }
                             else
                             {
-                                Wt::log("debug") << " [Message Ressource] " << "We send a SMS, quota : " << smsQuota;
+                                Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : " << smsQuota;
                                 optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
                                 optPtr.flush();
-                                sendSMS(newMsgPtr);
+                                sendSMS(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
                             }
                         }
                         catch (boost::bad_lexical_cast const& e)
@@ -242,232 +313,159 @@ EReturnCode MessageResource::postSimpleMessage(const string& sRequest, const lon
                         break;
                     }
                     case Echoes::Dbo::EMediaType::MAIL:
-                        Wt::log("debug") << " [Message Ressource] " << "Media MAIL";
-                        sendMAIL(newMsgPtr);
+                        Wt::log("debug") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
+                        sendMAIL(newMsgPtr, false, ivaPtrVector, alePtr, amsPtr);
                         break;
                     case Echoes::Dbo::EMediaType::MOBILE_APP:
-                        Wt::log("debug") << " [Message Ressource] " << "Media MOBILE APP";
-                        sendMobileApp(newMsgPtr);
+                        Wt::log("debug") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
+                        sendMobileApp(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
                         break;
                     default:
-                        Wt::log("error") << "[Message Resource] Unknown ID Media: " << mtyId;
+                        Wt::log("error") << "[Alert Resource] Unknown ID Media: " << mtyID;
                         break;
+                    }
                 }
-                
-                
+                else
+                {
+                    Wt::log("debug") << "[Alert Resource] "
+                            << "Last time we send the alert : " << alePtr->name
+                            << "was : " << amsPtr->lastSend.toString()
+                            << "the snooze for the media " << amsPtr->media->mediaType->name
+                            << " is : " << amsPtr->snoozeDuration << "secs,  it's not the time to send the alert";
+                }
+
+                res = EReturnCode::CREATED;
+
                 transaction.commit();
             }
-            else
+            catch (Wt::Dbo::Exception const& e)
             {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, medPtr);
+                res = EReturnCode::SERVICE_UNAVAILABLE;
+                responseMsg = httpCodeToJSON(res, e);
             }
-        }
-        catch (Wt::Dbo::Exception const& e)
-        {
-            res = EReturnCode::SERVICE_UNAVAILABLE;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-        
-        
-    }
-
-    return res;
-}
-
-EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    vector<long long> ivaIds;
-    int mediaSpecializationId;
-    long long alertId;
-
-    mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
-    
-    if (!sRequest.empty())
-    {
-        try
-        {
-            Wt::Json::Object result;
-            Wt::Json::parse(sRequest, result);
-
-            Wt::Json::Array array = result.get("information_value_ids");
-            alertId = result.get("alert_id");
-            
-            for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
-            {
-                ivaIds.push_back(it->toNumber());
-            }
-        }
-        catch (Wt::Json::ParseError const& e)
-        {
-            res = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-        catch (Wt::Json::TypeException const& e)
-        {
-            res = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(res, e);
         }
     }
     else
     {
-        res = EReturnCode::BAD_REQUEST;
-        const string err = "[Alert Resource] sRequest is not empty";
-        responseMsg = httpCodeToJSON(res, err);
-    }
+        long long medId;
+        Wt::WString message;
 
-    if (responseMsg.empty())
-    {
-        try
+        if (!sRequest.empty())
         {
-            Wt::Dbo::Transaction transaction(m_session, true);
-
-            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, orgId, m_session);
-            if (!alePtr)
+            try
             {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, alePtr);
-                return res;
+                Wt::Json::Object result;
+                Wt::Json::parse(sRequest, result);
+                medId = result.get("media_id");
+                message = result.get("message");
             }
-            
-            cout << "AMS : " << mediaSpecializationId << endl;
-            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
-            amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
-                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
-                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
-            
-            if (!amsPtr)
+            catch (Wt::Json::ParseError const& e)
             {
-                res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, amsPtr);
-                return res;
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
             }
-
-            vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
-            for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
+            catch (Wt::Json::TypeException const& e)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session.find<Echoes::Dbo::InformationValue>()
-                        .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
-                        .where(QUOTE(TRIGRAM_INFORMATION_VALUE SEP "DELETE") " IS NULL");
-                if (!ivaPtr)
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+        }
+        else
+        {
+            res = EReturnCode::BAD_REQUEST;
+            const string err = "[Message Resource] sRequest is not empty";
+            responseMsg = httpCodeToJSON(res, err);
+        }
+
+        if (responseMsg.empty())
+        {
+            try
+            {
+                //message creation in DB
+                Wt::Dbo::Transaction transaction(m_session, true);
+
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
+                if (medPtr)
+                {
+                    Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
+                    newMsg->media = medPtr;
+                    newMsg->content = message;
+
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
+                    newMsgPtr.flush();
+                    res = serialize(newMsgPtr, responseMsg, EReturnCode::CREATED);
+
+                    //message actual sending
+
+                    const long long mtyId = medPtr->mediaType.id();
+                    switch (mtyId)
+                    {
+                        case Echoes::Dbo::EMediaType::SMS:
+                        {
+                            Wt::log("debug") << " [Message Ressource] " << "Media SMS";
+
+                            // Verifying the quota of sms
+                            Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                                    .limit(1);
+
+                            try
+                            {
+                                const int smsQuota = boost::lexical_cast<int>(optPtr->value);
+                                if (smsQuota == 0)
+                                {
+                                    Wt::log("debug") << " [Message Ressource] " << "SMS quota 0";
+                                    Wt::log("debug") << " [Message Ressource] " << "Sending e-mail instead.";
+
+                                    sendMAIL(newMsgPtr, true);
+                                }
+                                else
+                                {
+                                    Wt::log("debug") << " [Message Ressource] " << "We send a SMS, quota : " << smsQuota;
+                                    optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
+                                    optPtr.flush();
+                                    sendSMS(newMsgPtr);
+                                }
+                            }
+                            catch (boost::bad_lexical_cast const& e)
+                            {
+                                res = EReturnCode::SERVICE_UNAVAILABLE;
+                                responseMsg = httpCodeToJSON(res, e);
+                            }
+                            break;
+                        }
+                        case Echoes::Dbo::EMediaType::MAIL:
+                            Wt::log("debug") << " [Message Ressource] " << "Media MAIL";
+                            sendMAIL(newMsgPtr);
+                            break;
+                        case Echoes::Dbo::EMediaType::MOBILE_APP:
+                            Wt::log("debug") << " [Message Ressource] " << "Media MOBILE APP";
+                            sendMobileApp(newMsgPtr);
+                            break;
+                        default:
+                            Wt::log("error") << "[Message Resource] Unknown ID Media: " << mtyId;
+                            break;
+                    }
+
+
+                    transaction.commit();
+                }
+                else
                 {
                     res = EReturnCode::NOT_FOUND;
-                    responseMsg = httpCodeToJSON(res, ivaPtr);
-                    return res;
-                }
-                ivaPtrVector.push_back(ivaPtr);
-            }
-                    
-            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
-            size_t cpt = 0;
-            while(asePtr)
-            {
-                if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
-                        (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
-                {
-                    res = EReturnCode::BAD_REQUEST;
-                    const string err = "[Alert Resource] bad size or content of ivaPtrVector";
-                    responseMsg = httpCodeToJSON(res, err);
-                    return res;
-                }                
-                asePtr = asePtr->alertSequence;
-                cpt++;
-            }
-
-            Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-
-            alePtr.modify()->lastAttempt = now;
-
-            // it is the first time we send the alert there is no last send date filled
-            // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
-            if (!amsPtr->lastSend.isValid() || amsPtr->lastSend.secsTo(now) >= amsPtr->snoozeDuration)
-            {
-                const long long mtyID = amsPtr->media->mediaType.id();
-                Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
-
-                newMsg->alert = alePtr;
-                newMsg->media = amsPtr->media;
-                // WARNING : SendDate must be set by the API when the alert was sent, not before
-                newMsg->sendDate = *(new Wt::WDateTime());
-
-                Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
-                newMsgPtr.flush();
-
-                Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newMsgPtr.id();
-
-                Wt::log("debug") << " [Alert Ressource] " << "snooze = " << amsPtr->snoozeDuration;
-
-                switch (mtyID)
-                {
-                case Echoes::Dbo::EMediaType::SMS:
-                {
-                    Wt::log("debug") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
-
-                    // Verifying the quota of sms
-                    Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
-                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
-                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
-                            .limit(1);
-
-                    try
-                    {
-                        const int smsQuota = boost::lexical_cast<int>(optPtr->value);
-                        if (smsQuota == 0)
-                        {
-                            Wt::log("debug") << " [Alert Ressource] " << "SMS quota 0 for alert : " << alePtr->name;
-                            Wt::log("debug") << " [Alert Ressource] " << "Sending e-mail instead.";
-
-                            sendMAIL(newMsgPtr, true, ivaPtrVector, alePtr, amsPtr);
-                        }
-                        else
-                        {
-                            Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : " << smsQuota;
-                            optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
-                            optPtr.flush();
-                            sendSMS(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
-                        }
-                    }
-                    catch (boost::bad_lexical_cast const& e)
-                    {
-                        res = EReturnCode::SERVICE_UNAVAILABLE;
-                        responseMsg = httpCodeToJSON(res, e);
-                    }
-                    break;
-                }
-                case Echoes::Dbo::EMediaType::MAIL:
-                    Wt::log("debug") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
-                    sendMAIL(newMsgPtr, false, ivaPtrVector, alePtr, amsPtr);
-                    break;
-                case Echoes::Dbo::EMediaType::MOBILE_APP:
-                    Wt::log("debug") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
-                    sendMobileApp(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
-                    break;
-                default:
-                    Wt::log("error") << "[Alert Resource] Unknown ID Media: " << mtyID;
-                    break;
+                    responseMsg = httpCodeToJSON(res, medPtr);
                 }
             }
-            else
+            catch (Wt::Dbo::Exception const& e)
             {
-                Wt::log("debug") << "[Alert Resource] "
-                        << "Last time we send the alert : " << alePtr->name
-                        << "was : " << amsPtr->lastSend.toString()
-                        << "the snooze for the media " << amsPtr->media->mediaType->name
-                        << " is : " << amsPtr->snoozeDuration << "secs,  it's not the time to send the alert";
+                res = EReturnCode::SERVICE_UNAVAILABLE;
+                responseMsg = httpCodeToJSON(res, e);
             }
 
-            res = EReturnCode::CREATED;
 
-            transaction.commit();
-        }
-        catch (Wt::Dbo::Exception const& e)
-        {
-            res = EReturnCode::SERVICE_UNAVAILABLE;
-            responseMsg = httpCodeToJSON(res, e);
-        }
+        } 
     }
-
     return res;
 }
 
@@ -525,7 +523,6 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     vector<string> pathElements;
     map<string, long long> parameters;
     
-    parameters["simple_message"] = 0;
     parameters["alert_media_specialization_id"] = 0;
                
     const string sRequest = processRequestParameters(request, pathElements, parameters);
@@ -533,14 +530,7 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        if (parameters["simple_message"] == 1)
-        {
-            res = postSimpleMessage(sRequest,orgId, responseMsg);
-        }
-        else
-        {
-            res = postAlertMessage(parameters, pathElements, sRequest, orgId, responseMsg);
-        }
+        res = postAlertMessage(parameters, pathElements, sRequest, orgId, responseMsg);
     }
     else
     {
