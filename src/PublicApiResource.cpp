@@ -169,12 +169,155 @@ std::string PublicApiResource::getTableName<string>(string const& string)
 PublicApiResource::PublicApiResource(Echoes::Dbo::Session& session) : Wt::WResource(),
 m_session(session)
 {
+    functionMap["Error"] = boost::bind(&PublicApiResource::Error, this, _1, _2, _3, _4, _5);
 }
 
 PublicApiResource::~PublicApiResource()
 {
     beingDeleted();
 }
+
+std::string PublicApiResource::upFirstLetter(std::string source)
+{
+    std::string returnValue = source;
+    if(returnValue.size() >= 1)
+        returnValue[0] = std::toupper(returnValue[0]);
+    return returnValue;
+}
+
+std::vector<Call> PublicApiResource::FillCallsVector()
+{
+    std::vector<Call> retour;
+    //load yaml file
+    YAML::Node contenu = YAML::LoadFile("swagger.yaml");
+    //get differents paths
+    YAML::Node pathsNodes = contenu["paths"];
+    
+    //for each path if it's a path of the ressource
+    //get method and path, extract name of coresponding function
+    //get eventuals parameters
+    //and then fill the vector wich will be back
+    for (YAML::const_iterator pathNode = pathsNodes.begin(); pathNode != pathsNodes.end(); pathNode++)
+    {
+      //there we get path in a vector of string
+      std::string path = pathNode->first.as<std::string>();
+      path.erase(path.begin());
+      std::vector<std::string> splitedPath;
+      boost::split(splitedPath, path, boost::is_any_of("/"), boost::token_compress_on);
+      
+      //check if it's a coresponding ressource
+      if(splitedPath.size() > 0)
+      {
+        //then for each method of this path we fill the vector of calls
+        YAML::Node methodsNodes = pathNode->second;
+        for (YAML::const_iterator methodNode = methodsNodes.begin(); methodNode != methodsNodes.end(); methodNode++)
+          {
+            std::vector<std::string> infoMethode;
+            boost::split(infoMethode, methodNode->second["operationId"].as<std::string>(), boost::is_any_of("::"), boost::token_compress_on);            
+            
+            if (infoMethode.size() == 2 && infoMethode[0] == resourceClassName)
+            {
+                Call callTmp;
+                std::cout << "ici" << std::endl;
+                YAML::Node parametersList = methodNode->second["parameters"];
+                
+                //fill METHOD
+                callTmp.method = boost::to_upper_copy(methodNode->first.as<std::string>());
+                
+                std::cout << "ici2" << std::endl;
+                //fill PATH
+                std::string pathTmp = "";
+                for(int i = 1; i < (int)splitedPath.size(); i++)
+                  {
+                    if(splitedPath[i][0] == '{'
+                            && splitedPath[i][splitedPath[i].size() - 1] == '}')
+                    {
+                        std::cout << "ici3.1" << std::endl;
+                        for (std::size_t i = 0; i < parametersList.size(); i++)
+                        {
+                            std::cout << "ici3.2 =>" << ("{" + parametersList[i]["name"].as<std::string>() + "}") << std::endl;
+                            if (("{" + parametersList[i]["name"].as<std::string>() + "}") == splitedPath[i])
+                            {
+                                std::cout << "ici3.3" << std::endl;
+                                if(parametersList[i]["type"].as<std::string>() == "string")
+                                {
+                                    std::cout << "ici3.3a" << std::endl;
+                                    pathTmp += ("/\\w+");
+                                }
+                                else if(parametersList[i]["type"].as<std::string>() == "number")
+                                {
+                                    std::cout << "ici3.3b" << std::endl;
+                                    pathTmp += ("/[0-9]+");
+                                }
+                                else if(parametersList[i]["type"].as<std::string>() == "integer")
+                                {
+                                    std::cout << "ici3.3c" << std::endl;
+                                    pathTmp += ("/[0-9]+");
+                                }
+                                else if(parametersList[i]["type"].as<std::string>() == "boolean")
+                                {
+                                    std::cout << "ici3.3d" << std::endl;
+                                    pathTmp += ("/[0-1]");
+                                }
+                                else
+                                {
+                                    std::cout << "ici3.3e" << std::endl;
+                                    pathTmp += ("/\\w+");
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        pathTmp += ("/" + splitedPath[i]);
+                    }
+                  }
+                callTmp.path = pathTmp;
+                
+                std::cout << "ici4" << std::endl;
+                //fill FUNCTION
+                if (functionMap.find(infoMethode[1]) != functionMap.end())
+                {
+                    callTmp.function = functionMap[infoMethode[1]];
+                }
+                else
+                {
+                    callTmp.function = functionMap["Error"];
+                }
+                
+                //fill PARAMETERS
+                for (std::size_t i = 0; i < parametersList.size(); i++)
+                {
+                    if (parametersList[i]["in"].as<std::string>() != "path")
+                    {
+                        callTmp.parameters.push_back(parametersList[i]["name"].as<std::string>());
+                    }
+                }
+                //insert into return vector
+                retour.push_back(callTmp);
+                std::cout << "path               : " << pathTmp << std::endl;
+                std::cout << "methode            : " << callTmp.method << std::endl;
+                std::cout << "Nom de la fonction : " << infoMethode[1] << std::endl;
+                for(int i = 0; i < (int)callTmp.parameters.size(); i++)
+                    std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;
+            }
+          }
+      }
+    }
+    return retour;
+}
+
+EReturnCode PublicApiResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    res = EReturnCode::BAD_REQUEST;
+    const string err = "[" + resourceClassName + " Resource] bad nextElement";
+    responseMsg = httpCodeToJSON(res, err);
+
+    return res;
+}
+
 
 string PublicApiResource::file2base64(const string &path)
 {         
@@ -326,14 +469,13 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
         it++;
     }
     
-    
-        ;
     //if we find a match, execute the function corresponding
     if (it != calls.end())
     {
         for(int i = 0; i < (int)it.base()->parameters.size(); i++)
+        {
             parameters[it.base()->parameters[i]] = 0;
-        
+        }
         const string sRequest = processRequestParameters(request, pathElements, parameters);
       
         res = it.base()->function(orgId, responseMsg, pathElements, sRequest, parameters);
@@ -341,7 +483,7 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
     else
     {
         res = EReturnCode::METHOD_NOT_ALLOWED;
-        responseMsg = "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
+        responseMsg = "{\n\t\"message\": \"Sorry, there is no corresponding method in the API.\n\"}";
     }
     return res;
 }

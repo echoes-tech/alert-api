@@ -17,7 +17,7 @@ using namespace std;
 
 UserResource::UserResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -67,21 +67,11 @@ UserResource::UserResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     structFillTmp.method = "DELETE";
     structFillTmp.path = ".*";
     structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 UserResource::~UserResource()
 {
-}
-
-EReturnCode UserResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Unit Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode UserResource::getUsersList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)

@@ -118,9 +118,6 @@ class AlertResource : public PublicApiResource
 
         EReturnCode deleteAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
         virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-        
-        EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
-
 };
 #endif	/* ALERTRESOURCE_H */
 

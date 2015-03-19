@@ -17,7 +17,7 @@ using namespace std;
 
 MediaResource::MediaResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -73,7 +73,7 @@ MediaResource::MediaResource(Echoes::Dbo::Session& session) : PublicApiResource:
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/(\\D)*";
     structFillTmp.function = boost::bind(&MediaResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 MediaResource::~MediaResource()
@@ -110,16 +110,6 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
     Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
     return queryRes.resultValue();
-}
-
-EReturnCode MediaResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Media Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode MediaResource::getMediasList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)

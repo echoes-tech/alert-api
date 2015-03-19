@@ -17,7 +17,7 @@ using namespace std;
 
 PluginResource::PluginResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -94,21 +94,11 @@ PluginResource::PluginResource(Echoes::Dbo::Session& session) : PublicApiResourc
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/(\\D)*";
     structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 PluginResource::~PluginResource()
 {
-}
-
-EReturnCode PluginResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Unit Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode PluginResource::getPluginsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)

@@ -17,7 +17,7 @@ using namespace std;
 
 RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -31,7 +31,7 @@ RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     
     structFillTmp.method = "GET";
     structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
+    //structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
     
     structFillTmp.method = "POST";
@@ -41,7 +41,7 @@ RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     
     structFillTmp.method = "POST";
     structFillTmp.path = ".+";
-    structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
+    //structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
     
     structFillTmp.method = "PUT";
@@ -62,21 +62,11 @@ RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     structFillTmp.method = "DELETE";
     structFillTmp.path = ".*";
     structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 RoleResource::~RoleResource()
 {
-}
-
-EReturnCode RoleResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Role Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode RoleResource::getRolesList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)

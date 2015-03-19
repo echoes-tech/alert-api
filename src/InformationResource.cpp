@@ -17,7 +17,7 @@ using namespace std;
 
 InformationResource::InformationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -91,21 +91,11 @@ InformationResource::InformationResource(Echoes::Dbo::Session& session) : Public
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/(\\D)*";
     structFillTmp.function = boost::bind(&InformationResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 InformationResource::~InformationResource()
 {
-}
-
-EReturnCode InformationResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Information Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode InformationResource::getInformationsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)

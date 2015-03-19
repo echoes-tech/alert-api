@@ -40,6 +40,7 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>swagger.yaml</itemPath>
       <itemPath>wt_config.xml</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
@@ -124,6 +125,7 @@
           </linkerAddLib>
           <commandlineTool>distcc g++-4.7</commandlineTool>
           <linkerLibItems>
+            <linkerLibLibItem>yaml-cpp</linkerLibLibItem>
             <linkerLibLibItem>dbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbo</linkerLibLibItem>
             <linkerLibLibItem>wtdbopostgres</linkerLibLibItem>
@@ -272,6 +274,8 @@
       <item path="src/itooki/ItookiAswReceiver.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="swagger.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"
@@ -446,6 +450,8 @@
       <item path="src/itooki/ItookiAswReceiver.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="swagger.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"

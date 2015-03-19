@@ -26,6 +26,5 @@ class Utils
         }
 };
 
-
 #endif	/* UTILS_H */
 

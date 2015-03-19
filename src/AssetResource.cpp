@@ -17,7 +17,21 @@ using namespace std;
 
 AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    resourceClassName = "asset";
+    
+    functionMap["getAssetsList"] = boost::bind(&AssetResource::getAssetsList, this, _1, _2, _3, _4, _5);
+    functionMap["getAsset"] = boost::bind(&AssetResource::getAsset, this, _1, _2, _3, _4, _5);
+    functionMap["getAliasForAsset"] = boost::bind(&AssetResource::getAliasForAsset, this, _1, _2, _3, _4, _5);
+    functionMap["getPluginsForAsset"] = boost::bind(&AssetResource::getPluginsForAsset, this, _1, _2, _3, _4, _5);
+    functionMap["postAsset"] = boost::bind(&AssetResource::postAsset, this, _1, _2, _3, _4, _5);
+    functionMap["postPluginsForAsset"] = boost::bind(&AssetResource::postPluginsForAsset, this, _1, _2, _3, _4, _5);
+    functionMap["putAsset"] = boost::bind(&AssetResource::putAsset, this, _1, _2, _3, _4, _5);
+    functionMap["putAliasForAsset"] = boost::bind(&AssetResource::putAliasForAsset, this, _1, _2, _3, _4, _5);
+    functionMap["deleteAsset"] = boost::bind(&AssetResource::deleteAsset, this, _1, _2, _3, _4, _5);
+    
+    //calls = FillCallsVector();
+    
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -55,7 +69,7 @@ AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource:
     
     structFillTmp.method = "POST";
     structFillTmp.path = "/plugins";
-    structFillTmp.function = boost::bind(&AssetResource::postPluginForAsset, this, _1, _2, _3, _4, _5);
+    structFillTmp.function = boost::bind(&AssetResource::postPluginsForAsset, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
     
     structFillTmp.method = "POST";
@@ -96,7 +110,7 @@ AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource:
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/(\\D)*";
     structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 AssetResource::~AssetResource()
@@ -119,16 +133,6 @@ Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId,
             .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(astId)
             .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
             .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
-}
-
-EReturnCode AssetResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Asset Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode AssetResource::getAssetsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
@@ -455,7 +459,7 @@ EReturnCode AssetResource::postAsset(const long long &orgId, std::string &respon
     return res;
 }
 
-EReturnCode AssetResource::postPluginForAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::postPluginsForAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -630,7 +634,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.compare("plugins") == 0)
             {
-                res = postPluginForAsset(orgId, responseMsg, pathElements, sRequest);
+                res = postPluginsForAsset(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {

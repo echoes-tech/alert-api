@@ -1,0 +1,115 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Uber API
+  description: Move your app forward with the Uber API
+  version: "1.0.0"
+# the domain of the service
+host: uber.com
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /probe:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::getProbesList
+      responses:
+        "200":
+          description: successful operation
+    post:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::postProbe
+      responses:
+        "200":
+          description: successful operation
+  /probe/{id}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::getProbe
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted probe
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::putProbe
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted probe
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    delete:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::deleteProbe
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted probe
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /probe/{id}/json:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::getJsonForProbe
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted probe
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /probe/{id}/alive:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::getAliveForProbe
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted probe
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /probe/{id}/packages:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: ProbeResource::getPackagesForProbe
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted probe
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+definitions:

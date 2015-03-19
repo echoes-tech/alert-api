@@ -17,7 +17,16 @@ using namespace std;
 
 CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    resourceClassName = "criteria";
+    
+    functionMap["getCriteriasList"] = boost::bind(&CriterionResource::getCriteriasList, this, _1, _2, _3, _4, _5);
+    functionMap["getCriteria"] = boost::bind(&CriterionResource::getCriteria, this, _1, _2, _3, _4, _5);
+    functionMap["getAliasForCriteria"] = boost::bind(&CriterionResource::getAliasForCriteria, this, _1, _2, _3, _4, _5);
+    functionMap["putAliasForCriteria"] = boost::bind(&CriterionResource::putAliasForCriteria, this, _1, _2, _3, _4, _5);
+    
+    //calls = FillCallsVector();
+    
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -65,24 +74,14 @@ CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiR
     structFillTmp.method = "DELETE";
     structFillTmp.path = ".*";
     structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 CriterionResource::~CriterionResource()
 {
 }
 
-EReturnCode CriterionResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Criterion Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
-}
-
-EReturnCode CriterionResource::getCriteriaList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getCriteriasList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -105,7 +104,7 @@ EReturnCode CriterionResource::getCriteriaList(const long long &orgId, std::stri
     return res;
 }
 
-EReturnCode CriterionResource::getCriterion(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getCriteria(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -128,7 +127,7 @@ EReturnCode CriterionResource::getCriterion(const long long &orgId, std::string 
     return res;
 }
 
-EReturnCode CriterionResource::getAliasForCriterion(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getAliasForCriteria(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -195,7 +194,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getCriteriaList(orgId, responseMsg);
+        res = getCriteriasList(orgId, responseMsg);
     }
     else
     {
@@ -206,11 +205,11 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getCriterion(orgId, responseMsg, pathElements);
+                res = getCriteria(orgId, responseMsg, pathElements);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForCriterion(orgId, responseMsg, pathElements, sRequest, parameters);
+                res = getAliasForCriteria(orgId, responseMsg, pathElements, sRequest, parameters);
             }
             else
             {
@@ -229,7 +228,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     return res;
 }
 
-EReturnCode CriterionResource::putAliasForCriterion(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::putAliasForCriteria(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -374,7 +373,7 @@ EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &reques
 
             if (!nextElement.compare("alias"))
             {
-                res = putAliasForCriterion(orgId, responseMsg, pathElements, sRequest);
+                res = putAliasForCriteria(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {

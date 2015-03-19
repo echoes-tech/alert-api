@@ -16,7 +16,7 @@ using namespace std;
 
 MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -54,7 +54,7 @@ MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResou
     structFillTmp.method = "DELETE";
     structFillTmp.path = ".*";
     structFillTmp.function = boost::bind(&MessageResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 MessageResource::~MessageResource()
@@ -130,16 +130,6 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleI
     Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
 
     return queryRes.resultValue();
-}
-
-EReturnCode MessageResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Unit Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
 }
 
 EReturnCode MessageResource::getMessages(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)

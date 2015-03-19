@@ -17,7 +17,7 @@ using namespace std;
 
 UnitResource::UnitResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -72,7 +72,7 @@ UnitResource::UnitResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     structFillTmp.method = "DELETE";
     structFillTmp.path = "/(\\D)*";
     structFillTmp.function = boost::bind(&UnitResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
+    calls.push_back(structFillTmp);*/
 }
 
 UnitResource::~UnitResource()
@@ -122,16 +122,6 @@ EReturnCode UnitResource::getUnit(const long long &orgId, std::string &responseM
         res = EReturnCode::SERVICE_UNAVAILABLE;
         responseMsg = httpCodeToJSON(res, e);
     }
-    return res;
-}
-
-EReturnCode UnitResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Unit Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
     return res;
 }
 

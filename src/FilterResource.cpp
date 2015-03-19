@@ -17,7 +17,19 @@ using namespace std;
 
 FilterResource::FilterResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    Call structFillTmp;
+    resourceClassName = "filters";
+    
+    functionMap["getFilterssList"] = boost::bind(&FilterResource::getFilterssList, this, _1, _2, _3, _4, _5);
+    functionMap["getFilters"] = boost::bind(&FilterResource::getFilters, this, _1, _2, _3, _4, _5);
+    functionMap["getParametersListForFilterss"] = boost::bind(&FilterResource::getParametersListForFilterss, this, _1, _2, _3, _4, _5);
+    functionMap["getParametersListForFilters"] = boost::bind(&FilterResource::getParametersListForFilters, this, _1, _2, _3, _4, _5);
+    functionMap["postFilters"] = boost::bind(&FilterResource::postFilters, this, _1, _2, _3, _4, _5);
+    functionMap["putFilters"] = boost::bind(&FilterResource::putFilters, this, _1, _2, _3, _4, _5);
+    functionMap["deleteFilters"] = boost::bind(&FilterResource::deleteFilters, this, _1, _2, _3, _4, _5);
+    
+    //calls = FillCallsVector();
+    
+    /*Call structFillTmp;
     
     structFillTmp.method = "GET";
     structFillTmp.path = "";
@@ -34,7 +46,7 @@ FilterResource::FilterResource(Echoes::Dbo::Session& session) : PublicApiResourc
     structFillTmp.parameters.push_back("plugin_id");
     structFillTmp.parameters.push_back("source_id");
     structFillTmp.parameters.push_back("search_id");
-    structFillTmp.function = boost::bind(&FilterResource::getParametersList, this, _1, _2, _3, _4, _5);
+    structFillTmp.function = boost::bind(&FilterResource::getParametersForFilterss, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
     
     structFillTmp.method = "GET";
@@ -91,6 +103,7 @@ FilterResource::FilterResource(Echoes::Dbo::Session& session) : PublicApiResourc
     structFillTmp.path = "/(\\D)*";
     structFillTmp.function = boost::bind(&FilterResource::Error, this, _1, _2, _3, _4, _5);
     calls.push_back(structFillTmp);
+    */
 }
 
 FilterResource::~FilterResource()
@@ -149,17 +162,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &fil
     return queryRes.resultValue();
 }
 
-EReturnCode FilterResource::Error(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
-{
-    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-    
-    res = EReturnCode::BAD_REQUEST;
-    const string err = "[Filter Resource] bad nextElement";
-    responseMsg = httpCodeToJSON(res, err);
-    return res;
-}
-
-EReturnCode FilterResource::getFiltersList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getFilterssList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -239,7 +242,7 @@ EReturnCode FilterResource::getFiltersList(const long long &orgId, std::string &
     return res;
 }
 
-EReturnCode FilterResource::getFilter(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -261,7 +264,7 @@ EReturnCode FilterResource::getFilter(const long long &orgId, std::string &respo
     return res;
 }
 
-EReturnCode FilterResource::getParametersList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getParametersListForFilterss(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -311,7 +314,7 @@ EReturnCode FilterResource::getParametersList(const long long &orgId, std::strin
     return res;
 }
 
-EReturnCode FilterResource::getParametersListForFilter(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getParametersListForFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -354,11 +357,11 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getFiltersList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getFilterssList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getParametersListForFilterss(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -369,11 +372,11 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getFilter(orgId, responseMsg, pathElements);
+                res = getFilters(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForFilter(orgId, responseMsg, pathElements);
+                res = getParametersListForFilters(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -392,7 +395,7 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode FilterResource::postFilter(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::postFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long seaId;
@@ -521,7 +524,7 @@ EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postFilter(orgId, responseMsg, pathElements, sRequest);
+        res = postFilters(orgId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -532,7 +535,7 @@ EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode FilterResource::putFilter(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::putFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -649,7 +652,7 @@ EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putFilter(orgId, responseMsg, pathElements, sRequest);
+                res = putFilters(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -668,7 +671,7 @@ EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode FilterResource::deleteFilter(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::deleteFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -739,7 +742,7 @@ EReturnCode FilterResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deleteFilter(orgId, responseMsg, pathElements);
+                res = deleteFilters(orgId, responseMsg, pathElements);
             }
             else
             {
