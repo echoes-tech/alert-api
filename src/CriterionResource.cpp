@@ -19,12 +19,12 @@ CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiR
 {
     resourceClassName = "criteria";
     
-    functionMap["getCriteriasList"] = boost::bind(&CriterionResource::getCriteriasList, this, _1, _2, _3, _4, _5);
+    functionMap["getCriteriaList"] = boost::bind(&CriterionResource::getCriteriaList, this, _1, _2, _3, _4, _5);
     functionMap["getCriteria"] = boost::bind(&CriterionResource::getCriteria, this, _1, _2, _3, _4, _5);
     functionMap["getAliasForCriteria"] = boost::bind(&CriterionResource::getAliasForCriteria, this, _1, _2, _3, _4, _5);
     functionMap["putAliasForCriteria"] = boost::bind(&CriterionResource::putAliasForCriteria, this, _1, _2, _3, _4, _5);
     
-    //calls = FillCallsVector();
+    calls = FillCallsVector();
     
     /*Call structFillTmp;
     
@@ -81,7 +81,7 @@ CriterionResource::~CriterionResource()
 {
 }
 
-EReturnCode CriterionResource::getCriteriasList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getCriteriaList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -194,7 +194,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getCriteriasList(orgId, responseMsg);
+        res = getCriteriaList(orgId, responseMsg);
     }
     else
     {

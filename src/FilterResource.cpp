@@ -19,15 +19,15 @@ FilterResource::FilterResource(Echoes::Dbo::Session& session) : PublicApiResourc
 {
     resourceClassName = "filters";
     
-    functionMap["getFilterssList"] = boost::bind(&FilterResource::getFilterssList, this, _1, _2, _3, _4, _5);
+    functionMap["getFiltersList"] = boost::bind(&FilterResource::getFiltersList, this, _1, _2, _3, _4, _5);
     functionMap["getFilters"] = boost::bind(&FilterResource::getFilters, this, _1, _2, _3, _4, _5);
-    functionMap["getParametersListForFilterss"] = boost::bind(&FilterResource::getParametersListForFilterss, this, _1, _2, _3, _4, _5);
     functionMap["getParametersListForFilters"] = boost::bind(&FilterResource::getParametersListForFilters, this, _1, _2, _3, _4, _5);
+    functionMap["getParametersForFilter"] = boost::bind(&FilterResource::getParametersForFilter, this, _1, _2, _3, _4, _5);
     functionMap["postFilters"] = boost::bind(&FilterResource::postFilters, this, _1, _2, _3, _4, _5);
     functionMap["putFilters"] = boost::bind(&FilterResource::putFilters, this, _1, _2, _3, _4, _5);
     functionMap["deleteFilters"] = boost::bind(&FilterResource::deleteFilters, this, _1, _2, _3, _4, _5);
     
-    //calls = FillCallsVector();
+    calls = FillCallsVector();
     
     /*Call structFillTmp;
     
@@ -162,7 +162,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &fil
     return queryRes.resultValue();
 }
 
-EReturnCode FilterResource::getFilterssList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getFiltersList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -264,7 +264,7 @@ EReturnCode FilterResource::getFilters(const long long &orgId, std::string &resp
     return res;
 }
 
-EReturnCode FilterResource::getParametersListForFilterss(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getParametersListForFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -314,7 +314,7 @@ EReturnCode FilterResource::getParametersListForFilterss(const long long &orgId,
     return res;
 }
 
-EReturnCode FilterResource::getParametersListForFilters(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode FilterResource::getParametersForFilter(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -357,11 +357,11 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getFilterssList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getFiltersList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersListForFilterss(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getParametersListForFilters(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -376,7 +376,7 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForFilters(orgId, responseMsg, pathElements);
+                res = getParametersForFilter(orgId, responseMsg, pathElements);
             }
             else
             {

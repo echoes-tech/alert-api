@@ -218,13 +218,11 @@ std::vector<Call> PublicApiResource::FillCallsVector()
             if (infoMethode.size() == 2 && infoMethode[0] == resourceClassName)
             {
                 Call callTmp;
-                std::cout << "ici" << std::endl;
                 YAML::Node parametersList = methodNode->second["parameters"];
                 
                 //fill METHOD
                 callTmp.method = boost::to_upper_copy(methodNode->first.as<std::string>());
                 
-                std::cout << "ici2" << std::endl;
                 //fill PATH
                 std::string pathTmp = "";
                 for(int i = 1; i < (int)splitedPath.size(); i++)
@@ -232,36 +230,28 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                     if(splitedPath[i][0] == '{'
                             && splitedPath[i][splitedPath[i].size() - 1] == '}')
                     {
-                        std::cout << "ici3.1" << std::endl;
                         for (std::size_t i = 0; i < parametersList.size(); i++)
                         {
-                            std::cout << "ici3.2 =>" << ("{" + parametersList[i]["name"].as<std::string>() + "}") << std::endl;
                             if (("{" + parametersList[i]["name"].as<std::string>() + "}") == splitedPath[i])
                             {
-                                std::cout << "ici3.3" << std::endl;
                                 if(parametersList[i]["type"].as<std::string>() == "string")
                                 {
-                                    std::cout << "ici3.3a" << std::endl;
                                     pathTmp += ("/\\w+");
                                 }
                                 else if(parametersList[i]["type"].as<std::string>() == "number")
                                 {
-                                    std::cout << "ici3.3b" << std::endl;
                                     pathTmp += ("/[0-9]+");
                                 }
                                 else if(parametersList[i]["type"].as<std::string>() == "integer")
                                 {
-                                    std::cout << "ici3.3c" << std::endl;
                                     pathTmp += ("/[0-9]+");
                                 }
                                 else if(parametersList[i]["type"].as<std::string>() == "boolean")
                                 {
-                                    std::cout << "ici3.3d" << std::endl;
                                     pathTmp += ("/[0-1]");
                                 }
                                 else
                                 {
-                                    std::cout << "ici3.3e" << std::endl;
                                     pathTmp += ("/\\w+");
                                 }
                             }
@@ -273,8 +263,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                     }
                   }
                 callTmp.path = pathTmp;
-                
-                std::cout << "ici4" << std::endl;
+
                 //fill FUNCTION
                 if (functionMap.find(infoMethode[1]) != functionMap.end())
                 {
@@ -295,11 +284,11 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                 }
                 //insert into return vector
                 retour.push_back(callTmp);
-                std::cout << "path               : " << pathTmp << std::endl;
+                /*std::cout << "path               : " << pathTmp << std::endl;
                 std::cout << "methode            : " << callTmp.method << std::endl;
                 std::cout << "Nom de la fonction : " << infoMethode[1] << std::endl;
                 for(int i = 0; i < (int)callTmp.parameters.size(); i++)
-                    std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;
+                    std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;*/
             }
           }
       }

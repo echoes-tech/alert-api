@@ -15,6 +15,7 @@ basePath: /v1
 produces:
   - application/json
 paths:
+# paths for PROBE
   /probe:
     get:
       summary: sommaire
@@ -112,4 +113,387 @@ paths:
       responses:
         "200":
           description: successful operation
-definitions:
+# paths for ADDON
+  /addons:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AddonResource::getAddonsList
+      responses:
+        "200":
+          description: successful operation
+  /addons/{id}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AddonResource::getAddon
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted addon
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /addons/{id}/search_types:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AddonResource::getSearch_typesForAddon
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted addon
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+# paths for ALERT
+  /alerts:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::getAlertsList
+      responses:
+        "200":
+          description: successful operation
+    post:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::postAlert
+      responses:
+        "200":
+          description: successful operation
+  /alerts/{id}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::getAlert
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted alert
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::putAlert
+      parameters:
+        - in: path
+          name: id
+          description: id of alert to modify
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+# paths for ASSET
+  /assets:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::getAssetsList
+      responses:
+        "200":
+          description: successful operation
+    post:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::postAsset
+      responses:
+        "200":
+          description: successful operation
+    delete:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::deleteAsset
+      responses:
+        "200":
+          description: successful operation
+  /assets/{id}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::getAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::putAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /assets/{id}/alias:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::getAliasForAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
+        - in: query
+          name: media_type_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: user_role_id
+          description: idk
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::putAliasForAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /assets/{id}/plugins:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::getPluginsForAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
+        - in: query
+          name: media_type_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: user_role_id
+          description: idk
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /assets/plugins:
+    post:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::postPluginsForAsset
+      responses:
+        "200":
+          description: successful operation
+# paths for CRITERIA
+  /criteria:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: CriterionResource::getCriteriasList
+      responses:
+        "200":
+          description: successful operation
+  /criteria/{id}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: CriterionResource::getCriteria
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted criteria
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /criteria/{id}/alias:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: CriterionResource::getAliasForCriteria
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted criteria
+          required: true
+          type: integer
+        - in: query
+          name: media_type_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: user_role_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: information_id
+          description: idk
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: CriterionResource::putAliasForCriteria
+      parameters:
+        - in: path
+          name: id
+          description: id of criteria to modify
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+# paths for FILTER
+  /filters:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::getFiltersList
+      parameters:
+        - in: query
+          name: type_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: plugin_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: source_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: search_id
+          description: idk
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    post:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::postFilters
+      responses:
+        "200":
+          description: successful operation
+  /filters/{id}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::getFilter
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted filter
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::putFilters
+      parameters:
+        - in: path
+          name: id
+          description: id of filter to modify
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    delete:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::deleteFilters
+      parameters:
+        - in: path
+          name: id
+          description: id of filter to modify
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /filters/parameters:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::getParametersListForFilters
+      parameters:
+        - in: query
+          name: type_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: plugin_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: source_id
+          description: idk
+          required: false
+          type: integer
+        - in: query
+          name: search_id
+          description: idk
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: successful operatio
+  /filters/{id}/parameters:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: FilterResource::getParametersForFilter
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted filter
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operatio

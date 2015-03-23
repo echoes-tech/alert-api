@@ -17,13 +17,13 @@ using namespace std;
 
 AddonResource::AddonResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    resourceClassName = "addon";
+    resourceClassName = "AddonResource";
     
     functionMap["getAddonsList"] = boost::bind(&AddonResource::getAddonsList, this, _1, _2, _3, _4);
     functionMap["getAddon"] = boost::bind(&AddonResource::getAddon, this, _1, _2, _3, _4);
     functionMap["getSearch_typesForAddon"] = boost::bind(&AddonResource::getSearch_typesForAddon, this, _1, _2, _3, _4);
     
-    //calls = FillCallsVector();
+    calls = FillCallsVector();
     
     /*Call structFillTmp;
     structFillTmp.method = "GET";
