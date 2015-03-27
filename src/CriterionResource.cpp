@@ -17,7 +17,7 @@ using namespace std;
 
 CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    resourceClassName = "criteria";
+    resourceClassName = "CriterionResource";
     
     functionMap["getCriteriaList"] = boost::bind(&CriterionResource::getCriteriaList, this, _1, _2, _3, _4, _5);
     functionMap["getCriteria"] = boost::bind(&CriterionResource::getCriteria, this, _1, _2, _3, _4, _5);

@@ -17,6 +17,15 @@ using namespace std;
 
 RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "RoleResource";
+
+    functionMap["getRolesList"] = boost::bind(&RoleResource::getRolesList, this, _1, _2, _3, _4, _5);
+    functionMap["getRole"] = boost::bind(&RoleResource::getRole, this, _1, _2, _3, _4, _5);
+    functionMap["postRole"] = boost::bind(&RoleResource::postRole, this, _1, _2, _3, _4, _5);
+    functionMap["putRole"] = boost::bind(&RoleResource::putRole, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

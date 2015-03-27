@@ -17,6 +17,18 @@ using namespace std;
 
 SearchResource::SearchResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "SearchResource";
+
+    functionMap["getSearchsList"] = boost::bind(&SearchResource::getSearchsList, this, _1, _2, _3, _4, _5);
+    functionMap["getSearch"] = boost::bind(&SearchResource::getSearch, this, _1, _2, _3, _4, _5);
+    functionMap["getParametersList"] = boost::bind(&SearchResource::getParametersList, this, _1, _2, _3, _4, _5);
+    functionMap["getParametersListForSearch"] = boost::bind(&SearchResource::getParametersListForSearch, this, _1, _2, _3, _4, _5);
+    functionMap["postSearch"] = boost::bind(&SearchResource::postSearch, this, _1, _2, _3, _4, _5);
+    functionMap["putSearch"] = boost::bind(&SearchResource::putSearch, this, _1, _2, _3, _4, _5);
+    functionMap["deleteSearch"] = boost::bind(&SearchResource::deleteSearch, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

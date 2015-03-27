@@ -45,8 +45,6 @@ class MediaResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Media> selectMedia(const std::string &medId, const std::string &orgId, Echoes::Dbo::Session &session);
 
     protected :
-        EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
-
         EReturnCode getMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
         EReturnCode getMediasList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);

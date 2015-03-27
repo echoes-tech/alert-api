@@ -17,7 +17,7 @@ using namespace std;
 
 FilterResource::FilterResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    resourceClassName = "filters";
+    resourceClassName = "FilterResource";
     
     functionMap["getFiltersList"] = boost::bind(&FilterResource::getFiltersList, this, _1, _2, _3, _4, _5);
     functionMap["getFilters"] = boost::bind(&FilterResource::getFilters, this, _1, _2, _3, _4, _5);

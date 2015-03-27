@@ -17,6 +17,13 @@ using namespace std;
 
 OrganizationResource::OrganizationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "OrganizationResource";
+
+    functionMap["getOrganizationsList"] = boost::bind(&OrganizationResource::getOrganizationsList, this, _1, _2, _3, _4, _5);
+    functionMap["getOrganization"] = boost::bind(&OrganizationResource::getOrganization, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

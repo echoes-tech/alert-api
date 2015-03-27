@@ -17,6 +17,13 @@ using namespace std;
 
 OptionResource::OptionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "OptionResource";
+
+    functionMap["getOptionsList"] = boost::bind(&OptionResource::getOptionsList, this, _1, _2, _3, _4, _5); 
+    functionMap["getOption"] = boost::bind(&OptionResource::getOption, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

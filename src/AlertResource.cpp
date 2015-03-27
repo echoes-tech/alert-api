@@ -23,7 +23,7 @@ AlertResource::AlertResource(Echoes::Dbo::Session& session) : PublicApiResource:
     functionMap["postAlert"] = boost::bind(&AlertResource::postAlert, this, _1, _2, _3, _4, _5);
     functionMap["deleteAlert"] = boost::bind(&AlertResource::deleteAlert, this, _1, _2, _3, _4, _5);
     
-    //calls = FillCallsVector();
+    calls = FillCallsVector();
     
     /*Call structFillTmp;
     

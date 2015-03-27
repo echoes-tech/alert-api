@@ -17,6 +17,16 @@ using namespace std;
 
 MediaResource::MediaResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "MediaResource";
+
+    functionMap["getMediasList"] = boost::bind(&MediaResource::getMediasList, this, _1, _2, _3, _4, _5);
+    functionMap["getMedia"] = boost::bind(&MediaResource::getMedia, this, _1, _2, _3, _4, _5);
+    functionMap["postMedia"] = boost::bind(&MediaResource::postMedia, this, _1, _2, _3, _4, _5);
+    functionMap["putMedia"] = boost::bind(&MediaResource::putMedia, this, _1, _2, _3, _4, _5);
+    functionMap["deleteMedia"] = boost::bind(&MediaResource::deleteMedia, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

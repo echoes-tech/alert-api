@@ -17,6 +17,20 @@ using namespace std;
 
 PluginResource::PluginResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "PluginResource";
+
+    functionMap["getPluginsList"] = boost::bind(&PluginResource::getPluginsList, this, _1, _2, _3, _4, _5);
+    functionMap["getPlugin"] = boost::bind(&PluginResource::getPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["getAliasForPlugin"] = boost::bind(&PluginResource::getAliasForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["getInformationsListForPlugin"] = boost::bind(&PluginResource::getInformationsListForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["getAssetForPlugin"] = boost::bind(&PluginResource::getAssetForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["postPlugin"] = boost::bind(&PluginResource::postPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["putPlugin"] = boost::bind(&PluginResource::putPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["putAliasForPlugin"] = boost::bind(&PluginResource::putAliasForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["deletePlugin"] = boost::bind(&PluginResource::deletePlugin, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

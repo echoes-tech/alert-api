@@ -17,6 +17,16 @@ using namespace std;
 
 UnitResource::UnitResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "UnitResource";
+
+    functionMap["getUnitsList"] = boost::bind(&UnitResource::getUnitsList, this, _1, _2, _3, _4, _5);
+    functionMap["getUnit"] = boost::bind(&UnitResource::getUnit, this, _1, _2, _3, _4, _5);
+    functionMap["postUnit"] = boost::bind(&UnitResource::postUnit, this, _1, _2, _3, _4, _5);
+    functionMap["putUnit"] = boost::bind(&UnitResource::putUnit, this, _1, _2, _3, _4, _5);
+    functionMap["deleteUnit"] = boost::bind(&UnitResource::deleteUnit, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

@@ -17,6 +17,15 @@ using namespace std;
 
 UserResource::UserResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "UserResource";
+
+    functionMap["getUsersList"] = boost::bind(&UserResource::getUsersList, this, _1, _2, _3, _4, _5);
+    functionMap["getUser"] = boost::bind(&UserResource::getUser, this, _1, _2, _3, _4, _5);
+    functionMap["postActionForUser"] = boost::bind(&UserResource::postActionForUser, this, _1, _2, _3, _4, _5);
+    functionMap["putUser"] = boost::bind(&UserResource::putUser, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

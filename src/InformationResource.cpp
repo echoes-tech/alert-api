@@ -17,6 +17,19 @@ using namespace std;
 
 InformationResource::InformationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "InformationResource";
+
+    functionMap["getInformationsList"] = boost::bind(&InformationResource::getInformationsList, this, _1, _2, _3, _4, _5); 
+    functionMap["getInformation"] = boost::bind(&InformationResource::getInformation, this, _1, _2, _3, _4, _5);
+    functionMap["getAliasForInformation"] = boost::bind(&InformationResource::getAliasForInformation, this, _1, _2, _3, _4, _5);
+    functionMap["getPluginsListForInformation"] = boost::bind(&InformationResource::getPluginsListForInformation, this, _1, _2, _3, _4, _5);
+    functionMap["postInformation"] = boost::bind(&InformationResource::postInformation, this, _1, _2, _3, _4, _5);
+    functionMap["putInformation"] = boost::bind(&InformationResource::putInformation, this, _1, _2, _3, _4, _5);
+    functionMap["putAliasForInformation"] = boost::bind(&InformationResource::putAliasForInformation, this, _1, _2, _3, _4, _5);
+    functionMap["deleteInformation"] = boost::bind(&InformationResource::deleteInformation, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

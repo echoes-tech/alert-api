@@ -17,7 +17,7 @@ using namespace std;
 
 AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
-    resourceClassName = "asset";
+    resourceClassName = "AssetResource";
     
     functionMap["getAssetsList"] = boost::bind(&AssetResource::getAssetsList, this, _1, _2, _3, _4, _5);
     functionMap["getAsset"] = boost::bind(&AssetResource::getAsset, this, _1, _2, _3, _4, _5);
@@ -29,7 +29,7 @@ AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource:
     functionMap["putAliasForAsset"] = boost::bind(&AssetResource::putAliasForAsset, this, _1, _2, _3, _4, _5);
     functionMap["deleteAsset"] = boost::bind(&AssetResource::deleteAsset, this, _1, _2, _3, _4, _5);
     
-    //calls = FillCallsVector();
+    calls = FillCallsVector();
     
     /*Call structFillTmp;
     

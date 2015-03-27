@@ -16,6 +16,15 @@ using namespace std;
 
 MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "MessageResource";
+
+    functionMap["getMessages"] = boost::bind(&MessageResource::getMessages, this, _1, _2, _3, _4, _5);
+    functionMap["getMessage"] = boost::bind(&MessageResource::getMessage, this, _1, _2, _3, _4, _5);
+    functionMap["postSimpleMessage"] = boost::bind(&MessageResource::postSimpleMessage, this, _1, _2, _3, _4, _5);
+    functionMap["postAlertMessage"] = boost::bind(&MessageResource::postAlertMessage, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
     /*Call structFillTmp;
     
     structFillTmp.method = "GET";

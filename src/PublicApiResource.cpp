@@ -222,31 +222,33 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                 
                 //fill METHOD
                 callTmp.method = boost::to_upper_copy(methodNode->first.as<std::string>());
+                std::cout << "methode            : " << callTmp.method << std::endl;
                 
                 //fill PATH
                 std::string pathTmp = "";
-                for(int i = 1; i < (int)splitedPath.size(); i++)
+                for(int posPath = 1; posPath < (int)splitedPath.size(); posPath++)
                   {
-                    if(splitedPath[i][0] == '{'
-                            && splitedPath[i][splitedPath[i].size() - 1] == '}')
+                    if(splitedPath[posPath][0] == '{'
+                            && splitedPath[posPath][splitedPath[posPath].size() - 1] == '}')
                     {
-                        for (std::size_t i = 0; i < parametersList.size(); i++)
+                        for (int posListParam = 0; posListParam < (int)parametersList.size(); posListParam++)
                         {
-                            if (("{" + parametersList[i]["name"].as<std::string>() + "}") == splitedPath[i])
+                            if (("{" + parametersList[posListParam]["name"].as<std::string>() + "}") == splitedPath[posPath])
                             {
-                                if(parametersList[i]["type"].as<std::string>() == "string")
+                                std::cout << "info trouvé"<< std::endl;
+                                if(parametersList[posListParam]["type"].as<std::string>() == "string")
                                 {
                                     pathTmp += ("/\\w+");
                                 }
-                                else if(parametersList[i]["type"].as<std::string>() == "number")
+                                else if(parametersList[posListParam]["type"].as<std::string>() == "number")
                                 {
                                     pathTmp += ("/[0-9]+");
                                 }
-                                else if(parametersList[i]["type"].as<std::string>() == "integer")
+                                else if(parametersList[posListParam]["type"].as<std::string>() == "integer")
                                 {
                                     pathTmp += ("/[0-9]+");
                                 }
-                                else if(parametersList[i]["type"].as<std::string>() == "boolean")
+                                else if(parametersList[posListParam]["type"].as<std::string>() == "boolean")
                                 {
                                     pathTmp += ("/[0-1]");
                                 }
@@ -259,11 +261,12 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                     }
                     else
                     {
-                        pathTmp += ("/" + splitedPath[i]);
+                        pathTmp += ("/" + splitedPath[posPath]);
                     }
                   }
+                std::cout << "path               : " << pathTmp << std::endl;
                 callTmp.path = pathTmp;
-
+                    
                 //fill FUNCTION
                 if (functionMap.find(infoMethode[1]) != functionMap.end())
                 {
@@ -273,22 +276,22 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                 {
                     callTmp.function = functionMap["Error"];
                 }
+                std::cout << "Nom de la fonction : " << infoMethode[1] << std::endl;
+                
                 
                 //fill PARAMETERS
                 for (std::size_t i = 0; i < parametersList.size(); i++)
                 {
-                    if (parametersList[i]["in"].as<std::string>() != "path")
+                    if (parametersList[i]["in"].as<std::string>() == "query")
                     {
                         callTmp.parameters.push_back(parametersList[i]["name"].as<std::string>());
                     }
                 }
+                for(int i = 0; i < (int)callTmp.parameters.size(); i++)
+                    std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;
                 //insert into return vector
                 retour.push_back(callTmp);
-                /*std::cout << "path               : " << pathTmp << std::endl;
-                std::cout << "methode            : " << callTmp.method << std::endl;
-                std::cout << "Nom de la fonction : " << infoMethode[1] << std::endl;
-                for(int i = 0; i < (int)callTmp.parameters.size(); i++)
-                    std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;*/
+                
             }
           }
       }
@@ -451,9 +454,10 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
     /* search in vector calls filled at initialisation
      * the iterator with the method and the path given 
      */
-    while(!(!request.method().compare(it.base()->method)
-            && boost::regex_match(request.pathInfo(), it.base()->path) )
-            && (it != calls.end()))
+
+    while((it != calls.end()) &&
+            !((request.method() == it.base()->method)
+                && boost::regex_match(request.pathInfo(), it.base()->path)))
     {
         it++;
     }
