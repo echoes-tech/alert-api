@@ -222,7 +222,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                 
                 //fill METHOD
                 callTmp.method = boost::to_upper_copy(methodNode->first.as<std::string>());
-                std::cout << "methode            : " << callTmp.method << std::endl;
+                //std::cout << "methode            : " << callTmp.method << std::endl;
                 
                 //fill PATH
                 std::string pathTmp = "";
@@ -235,7 +235,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                         {
                             if (("{" + parametersList[posListParam]["name"].as<std::string>() + "}") == splitedPath[posPath])
                             {
-                                std::cout << "info trouvé"<< std::endl;
+                                //std::cout << "info trouvé"<< std::endl;
                                 if(parametersList[posListParam]["type"].as<std::string>() == "string")
                                 {
                                     pathTmp += ("/\\w+");
@@ -264,7 +264,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                         pathTmp += ("/" + splitedPath[posPath]);
                     }
                   }
-                std::cout << "path               : " << pathTmp << std::endl;
+                //std::cout << "path               : " << pathTmp << std::endl;
                 callTmp.path = pathTmp;
                     
                 //fill FUNCTION
@@ -276,7 +276,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                 {
                     callTmp.function = functionMap["Error"];
                 }
-                std::cout << "Nom de la fonction : " << infoMethode[1] << std::endl;
+                //std::cout << "Nom de la fonction : " << infoMethode[1] << std::endl;
                 
                 
                 //fill PARAMETERS
@@ -287,8 +287,8 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                         callTmp.parameters.push_back(parametersList[i]["name"].as<std::string>());
                     }
                 }
-                for(int i = 0; i < (int)callTmp.parameters.size(); i++)
-                    std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;
+                //for(int i = 0; i < (int)callTmp.parameters.size(); i++)
+                    //std::cout << "parametre     " << i << "    : " << callTmp.parameters[i] << std::endl;
                 //insert into return vector
                 retour.push_back(callTmp);
                 

@@ -111,13 +111,6 @@ paths:
       responses:
         "200":
           description: successful operation
-    delete:
-      summary: sommaire
-      description: blabla
-      operationId: AssetResource::deleteAsset
-      responses:
-        "200":
-          description: successful operation
   /assets/{id}:
     get:
       summary: sommaire
@@ -136,6 +129,19 @@ paths:
       summary: sommaire
       description: blabla
       operationId: AssetResource::putAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+    delete:
+      summary: sommaire
+      description: blabla
+      operationId: AssetResource::deleteAsset
       parameters:
         - in: path
           name: id
