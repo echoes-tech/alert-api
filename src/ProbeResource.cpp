@@ -695,6 +695,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
     Wt::WString name;
     bool sendAlertIfDown;
     int timer;
+    int snoozeBeforeNextWarning;
 
     if (!sRequest.empty())
     {
@@ -707,6 +708,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
             name = result.get("name");
             sendAlertIfDown = result.get("send_alert_if_down");
             timer = 60;
+            snoozeBeforeNextWarning = result.get("snooze_before_next_warning");
         }
         catch (Wt::Json::ParseError const& e)
         {
@@ -741,6 +743,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
                 newPrb->timer = timer;
                 newPrb->lastlog = Wt::WDateTime::currentDateTime().addSecs(-61);
                 newPrb->sendAlertIfDown = sendAlertIfDown;
+                newPrb->snoozeBeforeNextWarning = snoozeBeforeNextWarning;
 
                 Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> pppPtr = selectProbePackageParameter(astPtr, m_session);
                 if (pppPtr)
@@ -802,6 +805,7 @@ EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
     bool sendAlertIfDown;
+    int snoozeBeforeNextWarning;
 
     if (!sRequest.empty())
     {
@@ -817,6 +821,10 @@ EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements
             if (result.contains("send_alert_if_down"))
             {
                 sendAlertIfDown = result.get("send_alert_if_down");
+            }
+            if (result.contains("snooze_before_next_warning"))
+            {
+                snoozeBeforeNextWarning = result.get("snooze_before_next_warning");
             }
         }
         catch (Wt::Json::ParseError const& e)
@@ -851,6 +859,7 @@ EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements
                 {
                     prbPtr.modify()->name = name;
                     prbPtr.modify()->sendAlertIfDown = sendAlertIfDown;
+                    prbPtr.modify()->snoozeBeforeNextWarning = snoozeBeforeNextWarning;
                 }
 
                 res = serialize(prbPtr, responseMsg);
