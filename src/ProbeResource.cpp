@@ -750,13 +750,9 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
                 {
                     newPrb->probePackageParameter = pppPtr;
                 } 
-                cout << "1" << endl;
                 Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session.add<Echoes::Dbo::Probe>(newPrb);
-                cout << "2" << endl;
                 newPrbPtr.flush();
-                cout << "3" << endl;
                 res = serialize(newPrbPtr, responseMsg, EReturnCode::CREATED);
-                cout << "4" << endl;
                 transaction.commit();
             }
             else
