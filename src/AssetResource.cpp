@@ -347,7 +347,6 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
                 }
                 newAst->assetRelease = asrPtr;
             }
-
             Wt::Dbo::ptr<Echoes::Dbo::Asset> newAstPtr = m_session.add<Echoes::Dbo::Asset>(newAst);
             newAstPtr.flush();
 
