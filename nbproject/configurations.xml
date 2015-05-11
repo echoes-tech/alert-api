@@ -18,13 +18,13 @@
       <itemPath>include/CriterionResource.h</itemPath>
       <itemPath>include/Enums.h</itemPath>
       <itemPath>include/FilterResource.h</itemPath>
+      <itemPath>include/GroupResource.h</itemPath>
       <itemPath>include/InformationDataResource.h</itemPath>
       <itemPath>include/InformationResource.h</itemPath>
       <itemPath>include/JsonSerializer.h</itemPath>
       <itemPath>include/MediaResource.h</itemPath>
       <itemPath>include/MessageResource.h</itemPath>
       <itemPath>include/OptionResource.h</itemPath>
-      <itemPath>include/OrganizationResource.h</itemPath>
       <itemPath>include/PluginResource.h</itemPath>
       <itemPath>include/ProbeResource.h</itemPath>
       <itemPath>include/PublicApiResource.h</itemPath>
@@ -57,13 +57,13 @@
         <itemPath>src/Conf.cpp</itemPath>
         <itemPath>src/CriterionResource.cpp</itemPath>
         <itemPath>src/FilterResource.cpp</itemPath>
+        <itemPath>src/GroupResource.cpp</itemPath>
         <itemPath>src/InformationDataResource.cpp</itemPath>
         <itemPath>src/InformationResource.cpp</itemPath>
         <itemPath>src/JsonSerializer.cpp</itemPath>
         <itemPath>src/MediaResource.cpp</itemPath>
         <itemPath>src/MessageResource.cpp</itemPath>
         <itemPath>src/OptionResource.cpp</itemPath>
-        <itemPath>src/OrganizationResource.cpp</itemPath>
         <itemPath>src/PluginResource.cpp</itemPath>
         <itemPath>src/ProbeResource.cpp</itemPath>
         <itemPath>src/PublicApiResource.cpp</itemPath>
@@ -181,6 +181,8 @@
       </item>
       <item path="include/FilterResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/GroupResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationDataResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
@@ -192,8 +194,6 @@
       <item path="include/MessageResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/OptionResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -237,6 +237,8 @@
       </item>
       <item path="src/FilterResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/GroupResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/InformationDataResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
@@ -248,8 +250,6 @@
       <item path="src/MessageResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/OptionResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -355,6 +355,8 @@
       </item>
       <item path="include/FilterResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/GroupResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/InformationDataResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/InformationResource.h" ex="false" tool="3" flavor2="0">
@@ -366,8 +368,6 @@
       <item path="include/MessageResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/OptionResource.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/OrganizationResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PluginResource.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -411,6 +411,8 @@
       </item>
       <item path="src/FilterResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/GroupResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/InformationDataResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/InformationResource.cpp" ex="false" tool="1" flavor2="0">
@@ -422,8 +424,6 @@
       <item path="src/MessageResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/OptionResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/OrganizationResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PluginResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

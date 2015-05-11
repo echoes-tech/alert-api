@@ -27,17 +27,17 @@ ProbeResource::~ProbeResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const long long &prbId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const long long &prbId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectProbe(boost::lexical_cast<string>(prbId), boost::lexical_cast<string>(orgId), session);
+    return selectProbe(boost::lexical_cast<string>(prbId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectProbe(prbId, boost::lexical_cast<string>(orgId), session);
+    return selectProbe(prbId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId, const string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT prb"
@@ -48,7 +48,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Probe> ProbeResource::selectProbe(const string &prbId,
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL"
@@ -124,7 +124,7 @@ Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> ProbeResource::selectProbePacka
     return pppPtr;
 }
 
-EReturnCode ProbeResource::getProbesList(const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::getProbesList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -139,7 +139,7 @@ EReturnCode ProbeResource::getProbesList(const long long &orgId, string &respons
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_PROBE SEP "DELETE") " IS NULL"
@@ -161,7 +161,7 @@ EReturnCode ProbeResource::getProbesList(const long long &orgId, string &respons
     return res;
 }
 
-EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -169,7 +169,7 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], grpId, m_session);
 
         res = serialize(prbPtr, responseMsg);
 
@@ -183,7 +183,7 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
     return res;
 }
 
-EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -197,7 +197,7 @@ EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathEle
         }
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], grpId, m_session);
         if (m_mapTimer[probeId] == 0)
         {
             if (prbPtr)
@@ -237,7 +237,7 @@ EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathEle
     return res;
 }
 
-EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -245,7 +245,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], grpId, m_session);
         if (prbPtr)
         {
             map<Wt::Dbo::ptr<Echoes::Dbo::Addon>, vector<Wt::Dbo::ptr<Echoes::Dbo::Source>>> srcListByAddon;
@@ -476,7 +476,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
     return res;
 }
 
-EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -484,7 +484,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], grpId, m_session);
         if (prbPtr)
         {
             stringstream ss;
@@ -632,7 +632,7 @@ EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &p
     return res;
 }
 
-EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -645,7 +645,7 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getProbesList(orgId, responseMsg);
+        res = getProbesList(grpId, responseMsg);
     }
     else
     {
@@ -656,19 +656,19 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getProbe(pathElements, orgId, responseMsg);
+                res = getProbe(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("json") == 0)
             {
-                res = getJsonForProbe(pathElements, orgId, responseMsg);
+                res = getJsonForProbe(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("packages") == 0)
             {
-                res = getPackagesForProbe(pathElements, orgId, responseMsg);
+                res = getPackagesForProbe(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("alive") == 0)
             {
-                res = getAliveProbe(pathElements, orgId, responseMsg);
+                res = getAliveProbe(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -687,7 +687,7 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -734,7 +734,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = AssetResource::selectAsset(astId, grpId, m_session);
             if (astPtr)
             {
                 Echoes::Dbo::Probe *newPrb = new Echoes::Dbo::Probe();
@@ -774,7 +774,7 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
     return res;
 }
 
-EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -787,7 +787,7 @@ EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postProbe(sRequest, orgId, responseMsg);
+        res = postProbe(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -799,7 +799,7 @@ EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -850,7 +850,7 @@ EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], grpId, m_session);
 
             if (prbPtr)
             {
@@ -881,7 +881,7 @@ EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements
     return res;
 }
 
-EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -908,7 +908,7 @@ EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, c
 
             if (nextElement.empty())
             {
-                res = putProbe(pathElements, sRequest, orgId, responseMsg);
+                res = putProbe(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -927,7 +927,7 @@ EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -935,7 +935,7 @@ EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathEleme
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Probe> prbPtr = selectProbe(pathElements[1], grpId, m_session);
 
         if (prbPtr)
         {
@@ -959,7 +959,7 @@ EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathEleme
     return res;
 }
 
-EReturnCode ProbeResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode ProbeResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -986,7 +986,7 @@ EReturnCode ProbeResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteProbe(pathElements, orgId, responseMsg);
+                res = deleteProbe(pathElements, grpId, responseMsg);
             }
             else
             {

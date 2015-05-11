@@ -26,40 +26,40 @@ class FilterResource : public PublicApiResource
         /**
          * Select a Filter
          * @param filId Identifier of Filter
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Filter Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const long long &filId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const long long &filId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select an Filter with a string of identifier of Filter
          * @param filId String of Identifier of Filter
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Filter Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select a Filter with a ID string
          * @param filId String of Identifier of Filter
-         * @param orgId String of Identifier of Organization
+         * @param grpId String of Identifier of Group
          * @return Filter Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const std::string &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Filter> selectFilter(const std::string &filId, const std::string &grpId, Echoes::Dbo::Session &session);
 
     private:
-        EReturnCode getFiltersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getParametersListForFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getFiltersList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        EReturnCode getFilter(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        EReturnCode getParametersListForFilter(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode postFilter(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode postFilter(const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode putFilter(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putFilter(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode deleteFilter(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode deleteFilter(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 #endif	/* FILTERRESOURCE_H */

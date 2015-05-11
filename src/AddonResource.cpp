@@ -46,7 +46,7 @@ EReturnCode AddonResource::getAddonsList(const long long &grpId, string& respons
     return res;
 }
 
-EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -69,7 +69,7 @@ EReturnCode AddonResource::getAddon(const vector<string> &pathElements, const lo
     return res;
 }
 
-EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -112,7 +112,7 @@ EReturnCode AddonResource::getSearchTypeForAddon(const vector<string> &pathEleme
     return res;
 }
 
-EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -126,7 +126,7 @@ EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, c
 
     if (nextElement.empty())
     {
-        res = getAddonsList(orgId, responseMsg);
+        res = getAddonsList(grpId, responseMsg);
     }
     else
     {
@@ -136,11 +136,11 @@ EReturnCode AddonResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAddon(pathElements, orgId, responseMsg);
+                res = getAddon(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("search_types") == 0)
             {
-                res = getSearchTypeForAddon(pathElements, orgId, responseMsg);                
+                res = getSearchTypeForAddon(pathElements, grpId, responseMsg);                
             }
             else
             {

@@ -42,13 +42,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Conf.o \
 	${OBJECTDIR}/src/CriterionResource.o \
 	${OBJECTDIR}/src/FilterResource.o \
+	${OBJECTDIR}/src/GroupResource.o \
 	${OBJECTDIR}/src/InformationDataResource.o \
 	${OBJECTDIR}/src/InformationResource.o \
 	${OBJECTDIR}/src/JsonSerializer.o \
 	${OBJECTDIR}/src/MediaResource.o \
 	${OBJECTDIR}/src/MessageResource.o \
 	${OBJECTDIR}/src/OptionResource.o \
-	${OBJECTDIR}/src/OrganizationResource.o \
 	${OBJECTDIR}/src/PluginResource.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
@@ -127,6 +127,11 @@ ${OBJECTDIR}/src/FilterResource.o: src/FilterResource.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FilterResource.o src/FilterResource.cpp
 
+${OBJECTDIR}/src/GroupResource.o: src/GroupResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GroupResource.o src/GroupResource.cpp
+
 ${OBJECTDIR}/src/InformationDataResource.o: src/InformationDataResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -156,11 +161,6 @@ ${OBJECTDIR}/src/OptionResource.o: src/OptionResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OptionResource.o src/OptionResource.cpp
-
-${OBJECTDIR}/src/OrganizationResource.o: src/OrganizationResource.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp
 
 ${OBJECTDIR}/src/PluginResource.o: src/PluginResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -324,6 +324,19 @@ ${OBJECTDIR}/src/FilterResource_nomain.o: ${OBJECTDIR}/src/FilterResource.o src/
 	    ${CP} ${OBJECTDIR}/src/FilterResource.o ${OBJECTDIR}/src/FilterResource_nomain.o;\
 	fi
 
+${OBJECTDIR}/src/GroupResource_nomain.o: ${OBJECTDIR}/src/GroupResource.o src/GroupResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/GroupResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GroupResource_nomain.o src/GroupResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/GroupResource.o ${OBJECTDIR}/src/GroupResource_nomain.o;\
+	fi
+
 ${OBJECTDIR}/src/InformationDataResource_nomain.o: ${OBJECTDIR}/src/InformationDataResource.o src/InformationDataResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/InformationDataResource.o`; \
@@ -400,19 +413,6 @@ ${OBJECTDIR}/src/OptionResource_nomain.o: ${OBJECTDIR}/src/OptionResource.o src/
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OptionResource_nomain.o src/OptionResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/OptionResource.o ${OBJECTDIR}/src/OptionResource_nomain.o;\
-	fi
-
-${OBJECTDIR}/src/OrganizationResource_nomain.o: ${OBJECTDIR}/src/OrganizationResource.o src/OrganizationResource.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/OrganizationResource.o`; \
-	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
-	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
-	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
-	then  \
-	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OrganizationResource_nomain.o src/OrganizationResource.cpp;\
-	else  \
-	    ${CP} ${OBJECTDIR}/src/OrganizationResource.o ${OBJECTDIR}/src/OrganizationResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/PluginResource_nomain.o: ${OBJECTDIR}/src/PluginResource.o src/PluginResource.cpp 

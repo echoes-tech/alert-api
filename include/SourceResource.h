@@ -25,40 +25,40 @@ class SourceResource : public PublicApiResource
         /**
          * Select a Source
          * @param srcId Identifier of Source
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Source Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const long long &srcId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const long long &srcId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select an Source with a string of identifier of Source
          * @param srcId String of Identifier of Source
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Source Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select a Source with a ID string
          * @param srcId String of Identifier of Source
-         * @param orgId String of Identifier of Organization
+         * @param grpId String of Identifier of Group
          * @return Source Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const std::string &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Source> selectSource(const std::string &srcId, const std::string &grpId, Echoes::Dbo::Session &session);
 
     private:
-        EReturnCode getSourcesList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getParametersListForSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getSourcesList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        EReturnCode getSource(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getParametersList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        EReturnCode getParametersListForSource(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode postSource(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode postSource(const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode putSource(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putSource(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode deleteSource(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode deleteSource(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 #endif	/* SOURCERESOURCE_H */

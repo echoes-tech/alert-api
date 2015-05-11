@@ -23,7 +23,7 @@ OptionResource::~OptionResource()
 {
 }
 
-EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -32,14 +32,14 @@ EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &par
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Option>> queryRes = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .orderBy(QUOTE(TRIGRAM_OPTION ID));
 
         if (parameters["type_id"] > 0)
         {
             queryRes = queryRes.where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?");
             // FPO: I don't know why but we have to bind every marker here to make the binding.
-            queryRes.bind(orgId).bind(parameters["type_id"]);
+            queryRes.bind(grpId).bind(parameters["type_id"]);
         }
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Option>> optPtrCol =  queryRes.resultList();
@@ -56,7 +56,7 @@ EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &par
     return res;
 }
 
-EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -66,7 +66,7 @@ EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElemen
         Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                 .where(QUOTE(TRIGRAM_OPTION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_OPTION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
         res = serialize(optPtr, responseMsg);
 
@@ -80,7 +80,7 @@ EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -95,7 +95,7 @@ EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getOptionsList(parameters, orgId, responseMsg);
+        res = getOptionsList(parameters, grpId, responseMsg);
     }
     else
     {
@@ -106,7 +106,7 @@ EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getOption(pathElements, orgId, responseMsg);
+                res = getOption(pathElements, grpId, responseMsg);
             }
             else
             {

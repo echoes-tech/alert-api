@@ -23,17 +23,17 @@ SourceResource::~SourceResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const long long &srcId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const long long &srcId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectSource(boost::lexical_cast<string>(srcId), boost::lexical_cast<string>(orgId), session);
+    return selectSource(boost::lexical_cast<string>(srcId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectSource(srcId, boost::lexical_cast<string>(orgId), session);
+    return selectSource(srcId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &srcId, const string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
             " SELECT src"
@@ -48,7 +48,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
             "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
             "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
             "                 WHERE"
-            "                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+            "                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
             "                   AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
             "             )"
             "             AND " QUOTE("T_SOURCE" SEP TRIGRAM_SOURCE SEP TRIGRAM_SOURCE ID) " = " + srcId +
@@ -61,7 +61,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Source> SourceResource::selectSource(const string &src
     return queryRes.resultValue();
 }
 
-EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -81,7 +81,7 @@ EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, c
                 "               SELECT " QUOTE(TRIGRAM_PLUGIN ID)
                 "                 FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
                 "                 WHERE"
-                "                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId);
+                "                   " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId);
 
         if (parameters["plugin_id"] > 0)
         {
@@ -111,7 +111,7 @@ EReturnCode SourceResource::getSourcesList(map<string, long long> &parameters, c
     return res;
 }
 
-EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -119,7 +119,7 @@ EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElemen
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], grpId, m_session);
 
         res = serialize(srcPtr, responseMsg);
 
@@ -133,7 +133,7 @@ EReturnCode SourceResource::getSource(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode SourceResource::getParametersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getParametersList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -183,14 +183,14 @@ EReturnCode SourceResource::getParametersList(map<string, long long> &parameters
     return res;
 }
 
-EReturnCode SourceResource::getParametersListForSource(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode SourceResource::getParametersListForSource(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], grpId, m_session);
 
         Wt::Dbo::collection<Wt::Dbo::ptr < Echoes::Dbo::SourceParameterValue>> spvPtrCol = m_session.find<Echoes::Dbo::SourceParameterValue>()
                 .where(QUOTE(TRIGRAM_SOURCE_PARAMETER_VALUE SEP "DELETE") " IS NULL")
@@ -208,7 +208,7 @@ EReturnCode SourceResource::getParametersListForSource(const std::vector<std::st
     return res;
 }
 
-EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -224,11 +224,11 @@ EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getSourcesList(parameters, orgId, responseMsg);
+        res = getSourcesList(parameters, grpId, responseMsg);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersList(parameters, orgId, responseMsg);
+        res = getParametersList(parameters, grpId, responseMsg);
     }
     else
     {
@@ -239,11 +239,11 @@ EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getSource(pathElements, orgId, responseMsg);
+                res = getSource(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForSource(pathElements, orgId, responseMsg);
+                res = getParametersListForSource(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -262,7 +262,7 @@ EReturnCode SourceResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SourceResource::postSource(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SourceResource::postSource(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long adoId;
@@ -305,7 +305,7 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                     .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(plgId)
                     .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                    .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
             if (!plgPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -372,7 +372,7 @@ EReturnCode SourceResource::postSource(const string& sRequest, const long long &
     return res;
 }
 
-EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -385,7 +385,7 @@ EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postSource(sRequest, orgId, responseMsg);
+        res = postSource(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -397,7 +397,7 @@ EReturnCode SourceResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode SourceResource::putSource(const std::vector<std::string> &pathElements, const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SourceResource::putSource(const std::vector<std::string> &pathElements, const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -426,7 +426,7 @@ EReturnCode SourceResource::putSource(const std::vector<std::string> &pathElemen
             }
             
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >::const_iterator itPlugin = srcPtr.get()->plugins.begin();
-            if (itPlugin->get()->organization.id() != orgId)
+            if (itPlugin->get()->group.id() != grpId)
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, srcPtr);
@@ -477,7 +477,7 @@ EReturnCode SourceResource::putSource(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -504,7 +504,7 @@ EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putSource(pathElements, sRequest, orgId, responseMsg);
+                res = putSource(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -523,7 +523,7 @@ EReturnCode SourceResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -531,7 +531,7 @@ EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathEle
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = selectSource(pathElements[1], grpId, m_session);
 
         if (srcPtr)
         {
@@ -567,7 +567,7 @@ EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathEle
     return res;
 }
 
-EReturnCode SourceResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SourceResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -594,7 +594,7 @@ EReturnCode SourceResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deleteSource(pathElements, orgId, responseMsg);
+                res = deleteSource(pathElements, grpId, responseMsg);
             }
             else
             {

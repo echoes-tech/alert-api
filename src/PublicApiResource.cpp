@@ -277,7 +277,7 @@ string PublicApiResource::processRequestParameters(const Wt::Http::Request &requ
     return request2string(request);
 }
 
-EReturnCode PublicApiResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PublicApiResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::BAD_REQUEST;
     const string err = "[Public Api Resource] GET Method not implemented";
@@ -285,7 +285,7 @@ EReturnCode PublicApiResource::processGetRequest(const Wt::Http::Request &reques
     return res;
 }
 
-EReturnCode PublicApiResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PublicApiResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::BAD_REQUEST;
     const string err = "[Public Api Resource] POST Method not implemented";
@@ -293,7 +293,7 @@ EReturnCode PublicApiResource::processPostRequest(const Wt::Http::Request &reque
     return res;
 }
 
-EReturnCode PublicApiResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PublicApiResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::BAD_REQUEST;
     const string err = "[Public Api Resource] PUT Method not implemented";
@@ -301,7 +301,7 @@ EReturnCode PublicApiResource::processPutRequest(const Wt::Http::Request &reques
     return res;
 }
 
-EReturnCode PublicApiResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PublicApiResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::BAD_REQUEST;
     const string err = "[Public Api Resource] DELETE Method not implemented";
@@ -322,7 +322,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
     string token = "";
     string eno_token = "";
 
-    long long orgId = 0;
+    long long grpId = 0;
 
     if (request.getParameter("login") != 0)
     {
@@ -352,7 +352,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         eno_token = *request.getParameter("eno_token");
         if (eno_token.empty())
         {
-            Wt::log("error") << "[Public API Resource] org_token is empty";
+            Wt::log("error") << "[Public API Resource] grp_token is empty";
         }
     }
     else
@@ -421,7 +421,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                     
                     if (authentified)
                     {
-                        orgId = m_session.user()->organization.id();
+                        grpId = m_session.user()->group.id();
                     }
                 }
                 else
@@ -453,15 +453,15 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
 
             if (enginePtr)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::EngOrg> engOrgPtr = m_session.find<Echoes::Dbo::EngOrg>()
+                Wt::Dbo::ptr<Echoes::Dbo::EngGrp> engGrpPtr = m_session.find<Echoes::Dbo::EngGrp>()
                         .where(QUOTE(TRIGRAM_ENGINE ID SEP TRIGRAM_ENGINE ID) " = ?").bind(enginePtr.id())
-                        .where(QUOTE(TRIGRAM_ENG_ORG SEP "TOKEN") " = ?").bind(eno_token)
-                        .where(QUOTE(TRIGRAM_ENG_ORG SEP "DELETE") " IS NULL")
+                        .where(QUOTE(TRIGRAM_ENG_GRP SEP "TOKEN") " = ?").bind(eno_token)
+                        .where(QUOTE(TRIGRAM_ENG_GRP SEP "DELETE") " IS NULL")
                         .limit(1);
-                if (engOrgPtr)
+                if (engGrpPtr)
                 {
                     authentified = true;
-                    orgId = engOrgPtr->pk.organization.id();
+                    grpId = engGrpPtr->pk.group.id();
                 }
                 else
                 {
@@ -492,16 +492,16 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
         switch (retrieveCurrentHttpMethod(request.method()))
         {
             case Wt::Http::Get:
-                res = processGetRequest(request, orgId, responseMsg);
+                res = processGetRequest(request, grpId, responseMsg);
                 break;
             case Wt::Http::Post:
-                res = processPostRequest(request, orgId, responseMsg);
+                res = processPostRequest(request, grpId, responseMsg);
                 break;
             case Wt::Http::Put:
-                res = processPutRequest(request, orgId, responseMsg);
+                res = processPutRequest(request, grpId, responseMsg);
                 break;
             case Wt::Http::Delete:
-                res = processDeleteRequest(request, orgId, responseMsg);
+                res = processDeleteRequest(request, grpId, responseMsg);
                 break;
             default:
                 res = EReturnCode::METHOD_NOT_ALLOWED;

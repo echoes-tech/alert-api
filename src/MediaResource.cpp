@@ -23,17 +23,17 @@ MediaResource::~MediaResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const long long &medId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const long long &medId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectMedia(boost::lexical_cast<string>(medId), boost::lexical_cast<string>(orgId), session);
+    return selectMedia(boost::lexical_cast<string>(medId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectMedia(medId, boost::lexical_cast<string>(orgId), session);
+    return selectMedia(medId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, const std::string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId, const std::string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT med"
@@ -44,7 +44,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
-"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
@@ -55,7 +55,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
     return queryRes.resultValue();
 }
 
-EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -70,7 +70,7 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
 "       ("
 "         SELECT " QUOTE(TRIGRAM_USER ID)
 "           FROM " QUOTE("T_USER_USR")
-"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+"           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
 
@@ -100,7 +100,7 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
     return res;
 }
 
-EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -108,7 +108,7 @@ EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], grpId, m_session);
 
         res = serialize(medPtr, responseMsg);
 
@@ -122,7 +122,7 @@ EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements
     return res;
 }
 
-EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -137,7 +137,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getMediasList(parameters, orgId, responseMsg);
+        res = getMediasList(parameters, grpId, responseMsg);
     }
     else
     {
@@ -148,7 +148,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getMedia(pathElements, orgId, responseMsg);
+                res = getMedia(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -167,7 +167,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode MediaResource::postMedia(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode MediaResource::postMedia(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long mtyId;
@@ -222,7 +222,7 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
             Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                     .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(usrId)
                     .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                    .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
             if (!usrPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -254,7 +254,7 @@ EReturnCode MediaResource::postMedia(const string& sRequest, const long long &or
     return res;
 }
 
-EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -267,7 +267,7 @@ EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postMedia(sRequest, orgId, responseMsg);
+        res = postMedia(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -279,7 +279,7 @@ EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
+EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString token;
@@ -339,7 +339,7 @@ EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], grpId, m_session);
 
             if (medPtr)
             {
@@ -383,7 +383,7 @@ EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements
     return res;
 }
 
-EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -410,7 +410,7 @@ EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, c
 
             if (nextElement.empty())
             {
-                res = putMedia(pathElements, sRequest, orgId, responseMsg);
+                res = putMedia(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -429,7 +429,7 @@ EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathElements, const long long &orgId,  string &responseMsg)
+EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathElements, const long long &grpId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -437,7 +437,7 @@ EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathEleme
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = selectMedia(pathElements[1], grpId, m_session);
 
         if (medPtr)
         {
@@ -473,7 +473,7 @@ EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathEleme
     return res;
 }
 
-EReturnCode MediaResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode MediaResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -500,7 +500,7 @@ EReturnCode MediaResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteMedia(pathElements, orgId, responseMsg);
+                res = deleteMedia(pathElements, grpId, responseMsg);
             }
             else
             {

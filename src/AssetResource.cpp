@@ -23,25 +23,25 @@ AssetResource::~AssetResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const long long &astId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const long long &astId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectAsset(boost::lexical_cast<string>(astId), boost::lexical_cast<string>(orgId), session);
+    return selectAsset(boost::lexical_cast<string>(astId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectAsset(astId, boost::lexical_cast<string>(orgId), session);
+    return selectAsset(astId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId, const string &grpId, Echoes::Dbo::Session &session)
 {
     return session.find<Echoes::Dbo::Asset>()
             .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(astId)
             .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
-            .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+            .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 }
 
-EReturnCode AssetResource::getAssetsList(const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::getAssetsList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -50,7 +50,7 @@ EReturnCode AssetResource::getAssetsList(const long long &orgId, string &respons
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Asset>> astPtrCol = m_session.find<Echoes::Dbo::Asset>()
                 .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .orderBy(QUOTE(TRIGRAM_ASSET ID));
 
         res = serialize(astPtrCol, responseMsg);
@@ -65,14 +65,14 @@ EReturnCode AssetResource::getAssetsList(const long long &orgId, string &respons
     return res;
 }
 
-EReturnCode AssetResource::getAsset(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::getAsset(const vector<string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], grpId, m_session);
 
         res = serialize(astPtr, responseMsg);
 
@@ -86,7 +86,7 @@ EReturnCode AssetResource::getAsset(const vector<string> &pathElements, const lo
     return res;
 }
 
-EReturnCode AssetResource::getAliasForAsset(const vector<string> &pathElements, map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
+EReturnCode AssetResource::getAliasForAsset(const vector<string> &pathElements, map<string, long long> &parameters, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -105,7 +105,7 @@ EReturnCode AssetResource::getAliasForAsset(const vector<string> &pathElements, 
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
-                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
@@ -135,7 +135,7 @@ EReturnCode AssetResource::getAliasForAsset(const vector<string> &pathElements, 
     return res;
 }
 
-EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements, map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
+EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements, map<string, long long> &parameters, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -151,7 +151,7 @@ EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements
             " SELECT plg"
             "   FROM " QUOTE("T_PLUGIN_PLG") " plg"
             "   WHERE " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID) " = " + pathElements[1] +
-            "     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+            "     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
             "     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL";
 
             Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
@@ -181,7 +181,7 @@ EReturnCode AssetResource::getPluginsForAsset(const vector<string> &pathElements
     return res;
 }
 
-EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -197,7 +197,7 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getAssetsList(orgId, responseMsg);
+        res = getAssetsList(grpId, responseMsg);
     }
     else
     {
@@ -208,15 +208,15 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAsset(pathElements, orgId, responseMsg);
+                res = getAsset(pathElements, grpId, responseMsg);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForAsset(pathElements, parameters, orgId, responseMsg);
+                res = getAliasForAsset(pathElements, parameters, grpId, responseMsg);
             }
             else if (!nextElement.compare("plugins"))
             {
-                res = getPluginsForAsset(pathElements, parameters, orgId, responseMsg);
+                res = getPluginsForAsset(pathElements, parameters, grpId, responseMsg);
             }
             else
             {
@@ -235,7 +235,7 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AssetResource::postAsset(const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::postAsset(const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -288,20 +288,20 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
-                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
-            if (!orgPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::Group> grpPtr = m_session.find<Echoes::Dbo::Group>()
+                    .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId);
+            if (!grpPtr)
             {
                 res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, orgPtr);
+                responseMsg = httpCodeToJSON(res, grpPtr);
                 return res;
             }
 
             Echoes::Dbo::Asset *newAst = new Echoes::Dbo::Asset();
             newAst->name = name;
             newAst->assetIsHost = false;
-            newAst->organization = orgPtr;
+            newAst->group = grpPtr;
 
             if (!architecture.empty())
             {
@@ -365,7 +365,7 @@ EReturnCode AssetResource::postAsset(const string &sRequest, const long long &or
     return res;
 }
 
-EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -426,7 +426,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], grpId, m_session);
             if (astPtr)
             {
                 vector<Wt::Dbo::ptr<Echoes::Dbo::Asset>> astPtrVector;
@@ -435,7 +435,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                 vector<Wt::Dbo::ptr<Echoes::Dbo::Filter>> filPtrVector;
                 for (vector<IdaStruct>::const_iterator it = idaStructs.begin(); it < idaStructs.end(); ++it)
                 {
-                    Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(it->astId, orgId, m_session);
+                    Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(it->astId, grpId, m_session);
                     if (!astPtr)
                     {
                         res = EReturnCode::NOT_FOUND;
@@ -466,7 +466,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
                     }
                     inuPtrVector.push_back(inuPtr);
 
-                    Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = FilterResource::selectFilter(it->filId, orgId, m_session);
+                    Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = FilterResource::selectFilter(it->filId, grpId, m_session);
                     if (!filPtr)
                     {
                         res = EReturnCode::NOT_FOUND;
@@ -516,7 +516,7 @@ EReturnCode AssetResource::postPluginForAsset(const vector<string> &pathElements
     return res;
 }
 
-EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -529,7 +529,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postAsset(sRequest, orgId, responseMsg);
+        res = postAsset(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -540,7 +540,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.compare("plugins") == 0)
             {
-                res = postPluginForAsset(pathElements, sRequest, orgId, responseMsg);
+                res = postPluginForAsset(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -559,7 +559,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -615,7 +615,7 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], grpId, m_session);
             if (astPtr)
             {
                 if (!name.empty())
@@ -698,7 +698,7 @@ EReturnCode AssetResource::putAsset(const vector<string> &pathElements, const st
     return res;
 }
 
-EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -743,7 +743,7 @@ EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, 
             Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = m_session.find<Echoes::Dbo::Asset>()
                     .where(QUOTE(TRIGRAM_ASSET ID) " = ?").bind(pathElements[1])
                     .where(QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                    .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
             if (astPtr)
             {
@@ -803,7 +803,7 @@ EReturnCode AssetResource::putAliasForAsset(const vector<string> &pathElements, 
     return res;
 }
 
-EReturnCode AssetResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AssetResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -830,11 +830,11 @@ EReturnCode AssetResource::processPutRequest(const Wt::Http::Request &request, c
 
             if (nextElement.empty())
             {
-                res = putAsset(pathElements, sRequest, orgId, responseMsg);
+                res = putAsset(pathElements, sRequest, grpId, responseMsg);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = putAliasForAsset(pathElements, sRequest, orgId, responseMsg);
+                res = putAliasForAsset(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -853,7 +853,7 @@ EReturnCode AssetResource::processPutRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AssetResource::deleteAsset(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode AssetResource::deleteAsset(const vector<string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -861,7 +861,7 @@ EReturnCode AssetResource::deleteAsset(const vector<string> &pathElements, const
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Asset> astPtr = selectAsset(pathElements[1], grpId, m_session);
         if (astPtr)
         {
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::InformationData>> idaPtrCol = m_session.find<Echoes::Dbo::InformationData>()
@@ -896,7 +896,7 @@ EReturnCode AssetResource::deleteAsset(const vector<string> &pathElements, const
     return res;
 }
 
-EReturnCode AssetResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AssetResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -923,7 +923,7 @@ EReturnCode AssetResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteAsset(pathElements, orgId, responseMsg);
+                res = deleteAsset(pathElements, grpId, responseMsg);
             }
             else
             {

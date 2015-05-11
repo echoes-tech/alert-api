@@ -23,17 +23,17 @@ FilterResource::~FilterResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const long long &filId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const long long &filId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectFilter(boost::lexical_cast<string>(filId), boost::lexical_cast<string>(orgId), session);
+    return selectFilter(boost::lexical_cast<string>(filId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectFilter(filId, boost::lexical_cast<string>(orgId), session);
+    return selectFilter(filId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, const std::string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &filId, const std::string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT fil"
@@ -58,7 +58,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &fil
 "                                   SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                                     FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                       WHERE"
-"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "                                         AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                 )"
 "                         )"
@@ -75,7 +75,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Filter> FilterResource::selectFilter(const string &fil
     return queryRes.resultValue();
 }
 
-EReturnCode FilterResource::getFiltersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode FilterResource::getFiltersList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -105,7 +105,7 @@ EReturnCode FilterResource::getFiltersList(map<string, long long> &parameters, c
 "                                   SELECT " QUOTE(TRIGRAM_PLUGIN ID) "\n"
 "                                     FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) "\n"
 "                                       WHERE\n"
-"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +  "\n";
+"                                         " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +  "\n";
 
         if (parameters["plugin_id"] > 0)
         {
@@ -155,7 +155,7 @@ EReturnCode FilterResource::getFiltersList(map<string, long long> &parameters, c
     return res;
 }
 
-EReturnCode FilterResource::getFilter(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode FilterResource::getFilter(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -163,7 +163,7 @@ EReturnCode FilterResource::getFilter(const std::vector<std::string> &pathElemen
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], grpId, m_session);
 
         res = serialize(filPtr, responseMsg);
 
@@ -177,7 +177,7 @@ EReturnCode FilterResource::getFilter(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode FilterResource::getParametersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode FilterResource::getParametersList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -227,14 +227,14 @@ EReturnCode FilterResource::getParametersList(map<string, long long> &parameters
     return res;
 }
 
-EReturnCode FilterResource::getParametersListForFilter(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode FilterResource::getParametersListForFilter(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], grpId, m_session);
         
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::FilterParameterValue>> fpvPtrCol = m_session.find<Echoes::Dbo::FilterParameterValue>()
                 .where(QUOTE(TRIGRAM_FILTER_PARAMETER_VALUE SEP "DELETE") " IS NULL")
@@ -252,7 +252,7 @@ EReturnCode FilterResource::getParametersListForFilter(const std::vector<std::st
     return res;
 }
 
-EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -270,11 +270,11 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getFiltersList(parameters, orgId, responseMsg);
+        res = getFiltersList(parameters, grpId, responseMsg);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersList(parameters, orgId, responseMsg);
+        res = getParametersList(parameters, grpId, responseMsg);
     }
     else
     {
@@ -285,11 +285,11 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getFilter(pathElements, orgId, responseMsg);
+                res = getFilter(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForFilter(pathElements, orgId, responseMsg);
+                res = getParametersListForFilter(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -308,7 +308,7 @@ EReturnCode FilterResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode FilterResource::postFilter(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode FilterResource::postFilter(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long seaId;
@@ -362,7 +362,7 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = SearchResource::selectSearch(seaId, orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = SearchResource::selectSearch(seaId, grpId, m_session);
             if (!seaPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -424,7 +424,7 @@ EReturnCode FilterResource::postFilter(const string& sRequest, const long long &
     return res;
 }
 
-EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -437,7 +437,7 @@ EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postFilter(sRequest, orgId, responseMsg);
+        res = postFilter(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -448,7 +448,7 @@ EReturnCode FilterResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode FilterResource::putFilter(const std::vector<std::string> &pathElements, const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode FilterResource::putFilter(const std::vector<std::string> &pathElements, const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -477,7 +477,7 @@ EReturnCode FilterResource::putFilter(const std::vector<std::string> &pathElemen
             }
             
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >::const_iterator itPlugin = fltPtr.get()->search.get()->source.get()->plugins.begin();
-            if (itPlugin->get()->organization.id() != orgId)
+            if (itPlugin->get()->group.id() != grpId)
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, fltPtr);
@@ -538,7 +538,7 @@ EReturnCode FilterResource::putFilter(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -565,7 +565,7 @@ EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putFilter(pathElements, sRequest, orgId, responseMsg);
+                res = putFilter(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -584,7 +584,7 @@ EReturnCode FilterResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode FilterResource::deleteFilter(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode FilterResource::deleteFilter(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -592,7 +592,7 @@ EReturnCode FilterResource::deleteFilter(const std::vector<std::string> &pathEle
     {  
         Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Filter> filPtr = selectFilter(pathElements[1], grpId, m_session);
 
         if(filPtr)
         {
@@ -628,7 +628,7 @@ EReturnCode FilterResource::deleteFilter(const std::vector<std::string> &pathEle
     return res;
 }
 
-EReturnCode FilterResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode FilterResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -655,7 +655,7 @@ EReturnCode FilterResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deleteFilter(pathElements, orgId, responseMsg);
+                res = deleteFilter(pathElements, grpId, responseMsg);
             }
             else
             {
