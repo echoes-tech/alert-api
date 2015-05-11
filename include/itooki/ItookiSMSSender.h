@@ -36,7 +36,8 @@ class ItookiSMSSender
         Wt::WObject* getParent() const;
 
         int send(const std::string &number, const std::string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr);
-
+        std::string urlEncodeMessage(const std::string);
+        
     private:
         Wt::WObject *m_parent;
         Echoes::Dbo::Session& m_session;

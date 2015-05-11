@@ -45,7 +45,7 @@ int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::
                     "?email=" + Wt::Utils::urlEncode(conf.getSmsLogin()) +
                     "&pass=" + Wt::Utils::urlEncode(conf.getSmsPassword()) +
                     "&numero=" + Wt::Utils::urlEncode(number) +
-                    "&message=" + Wt::Utils::urlEncode(message) +
+                    "&message=testsaut" +//+ urlEncodeMessage(message) +
                     "&refaccus=o";
 
             Wt::log("info") << "[Itooki SMS Sender] Trying to send request to Itooki API";
@@ -158,3 +158,23 @@ Wt::WObject* ItookiSMSSender::getParent() const
     return m_parent;
 }
 
+std::string ItookiSMSSender::urlEncodeMessage(const std::string message)
+{
+    std::string retour = "";
+
+    for (unsigned int i = 0; i < message.length(); i++)
+    {
+        if(message[i] == '\n')
+        {
+            retour += '\r';
+            retour += '\n';
+        }
+        else
+        {
+            retour += Wt::Utils::urlEncode(string(1, message[i]));
+        }
+    }
+    
+    
+    return (retour);
+}
