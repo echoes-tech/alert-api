@@ -23,7 +23,7 @@ AddonResource::~AddonResource()
 {
 }
 
-EReturnCode AddonResource::getAddonsList(const long long &orgId, string& responseMsg)
+EReturnCode AddonResource::getAddonsList(const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try

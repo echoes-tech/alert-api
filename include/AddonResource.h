@@ -23,7 +23,7 @@ class AddonResource : public PublicApiResource
         virtual ~AddonResource();
 
     protected :
-        EReturnCode getAddonsList(const long long &orgId, std::string &responseMsg);
+        EReturnCode getAddonsList(const long long &grpId, std::string &responseMsg);
         EReturnCode getAddon(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode getSearchTypeForAddon(const std::vector<std::string> &pathElements, const long long &orgId, std::string& responseMsg);
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
