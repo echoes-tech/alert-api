@@ -289,7 +289,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Group> grpId = m_session.find<Echoes::Dbo::Group>()
+            Wt::Dbo::ptr<Echoes::Dbo::Group> grpPtr = m_session.find<Echoes::Dbo::Group>()
                     .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
                     .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId);
             if (!grpPtr)

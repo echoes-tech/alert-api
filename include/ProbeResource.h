@@ -69,7 +69,8 @@ class ProbeResource : public PublicApiResource
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
         EReturnCode putProbe(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
-grpId
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+        
         EReturnCode deleteProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
         virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
