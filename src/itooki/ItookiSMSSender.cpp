@@ -25,10 +25,10 @@ ItookiSMSSender::~ItookiSMSSender()
 {
 }
 
-int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr)
+int ItookiSMSSender::send(const string &number, const string &message, const long long alertID, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr)
 {
     int res = -1;
-
+    string ackRecv = "", ackSlvd = "", adresseGUI = "127.0.0:8080";
     try
     {
         if(atrPtr)
@@ -41,16 +41,27 @@ int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::
             {
                 url += "s";
             }
+            cout << alertID << endl;
+            ackRecv += "***click here : http://" + 
+                    adresseGUI + 
+                    "/alert/"+ to_string(alertID) + 
+                    "/received to confirm reception";
+            ackSlvd += "***click here : http://" + 
+                    adresseGUI + 
+                    "/alert/"+ to_string(alertID) + 
+                    "/solved when problem is solved";
             url += "://www.itooki.fr/http.php"
                     "?email=" + Wt::Utils::urlEncode(conf.getSmsLogin()) +
                     "&pass=" + Wt::Utils::urlEncode(conf.getSmsPassword()) +
                     "&numero=" + Wt::Utils::urlEncode(number) +
-                    "&message=" + Wt::Utils::urlEncode(message) +
+                    "&message=" + Wt::Utils::urlEncode(message) + 
+                    Wt::Utils::urlEncode(ackRecv) +
+                    Wt::Utils::urlEncode(ackSlvd) +
                     "&refaccus=o";
 
             Wt::log("info") << "[Itooki SMS Sender] Trying to send request to Itooki API";
             Wt::log("debug") << "[Itooki SMS Sender] Address : " << url;
-            if (client->get(url))
+            /*if (client->get(url))
             {
                 Wt::log("info") << "[Itooki SMS Sender] Message sent to Itooki API";
 
@@ -66,7 +77,7 @@ int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::
             else 
             {
                 Wt::log("error") << "[Itooki SMS Sender] Failed to send message to Itooki API";
-            }
+            }*/
         }
         else 
         {

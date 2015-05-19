@@ -672,11 +672,14 @@ EReturnCode MessageResource::sendSMS
         phoneNumber = msgPtr->media->value;
     }
     
+    long long alertID;
+    alertID = amsPtr->id;
+
     Wt::log("debug") << " [Alert Resource] New SMS for " << phoneNumber << " : " << sms;
 
     ItookiSMSSender itookiSMSSender(m_session, this);
 
-    if (!itookiSMSSender.send(phoneNumber.toUTF8(), sms, msgPtr))
+    if (!itookiSMSSender.send(phoneNumber.toUTF8(), sms, alertID, msgPtr))
     {
         if (amsPtr.isTransient() == 0)
         {
