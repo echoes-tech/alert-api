@@ -160,15 +160,15 @@ Wt::WObject* ItookiSMSSender::getParent() const
 
 std::string ItookiSMSSender::urlEncodeMessage(const std::string message)
 {
-    std::string retour = "";
+    std::string ret = "";
 
     //do the same work than Wt::Utils::urlEncode but transform
     //the caracter \n into *** wixh is the \n for itooki
     for (unsigned int i = 0; i < message.length(); i++)
     {
-        retour += (message[i] == '\n') ? "***" : Wt::Utils::urlEncode(string(1, message[i]));
+        ret += (message[i] == '\n') ? "***" : string(1, message[i]);
     }
+    ret = Wt::Utils::urlEncode(ret);
     
-    
-    return (retour);
+    return (ret);
 }
