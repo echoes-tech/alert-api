@@ -41,7 +41,18 @@ int ItookiSMSSender::send(const string &number, const string &message, const lon
             {
                 url += "s";
             }
-            cout << alertID << endl;
+            url += "://127.0.0.1:8082/send";
+            string json = "{";
+            json += "\"number\" : \"" + number + "\"";
+            json += "\"message\" : \"" + message + "\"";
+            json += "\"port\" : \"8080\"";
+            json += "}";
+            
+            Wt::Http::Message httpMessage;
+            httpMessage.addBodyText(json);
+            
+            client->post(url, httpMessage);   
+/*
             ackRecv += "***reply 1 to confirm reception";
             ackSlvd += "***reply 2 when the problem is solved";
             url += "://www.itooki.fr/http.php"
@@ -72,6 +83,7 @@ int ItookiSMSSender::send(const string &number, const string &message, const lon
             {
                 Wt::log("error") << "[Itooki SMS Sender] Failed to send message to Itooki API";
             }
+ */
         }
         else 
         {

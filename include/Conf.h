@@ -17,6 +17,8 @@
 #include <Wt/WServer>
 #include <Wt/WLogger>
 
+#include <unistd.h>
+
 class Conf {
     public:
         Conf();
