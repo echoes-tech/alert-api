@@ -22,6 +22,8 @@
 //#include <boost/property_tree/json_parser.hpp>
 
 #include <tools/Session.h>
+#include <tools/MainIncludeFile.h>
+#include <tools/Enums.h>
 
 #include <Wt/WResource>
 #include <Wt/Http/Response>
@@ -45,6 +47,7 @@ class ItookiAswReceiver : public Wt::WResource
         string processRequestParameters(const Wt::Http::Request &request, vector<string> &pathElements, map<string, long long> &parameters);
         string request2string(const Wt::Http::Request &request);
         EReturnCode processPostRequest(const Wt::Http::Request &request, std::string &responseMsg);
+        void operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> MsgTrEv);
         virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
 
         template<class C>

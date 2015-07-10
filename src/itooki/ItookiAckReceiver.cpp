@@ -109,7 +109,6 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
     bool    sended = false;
     Wt::WString  error = "missing";
     Wt::WString  refenvoi = "missing";
-    Wt::WString  oldRefenvoi = "missing";
     
     if (!sRequest.empty())
         {
@@ -118,10 +117,6 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
 
-                if (result.contains("oldRefenvoi"))
-                {
-                    oldRefenvoi = result.get("oldRefenvoi");
-                }
                 if (result.contains("refenvoi"))
                 {
                     refenvoi = result.get("refenvoi");
@@ -151,24 +146,37 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
             if(sended)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
-                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(oldRefenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoi)
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
-            Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-            newStateMsg->date = now;
-            newStateMsg->message = msgPtr;
-            Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
-                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::SENDED)
-                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
-            newStateMsg->statut = mstPtr;
+                newStateMsg->date = now;
+                newStateMsg->message = msgPtr;
+                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::RECEIVED)
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                newStateMsg->statut = mstPtr;
 
-            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
 
             }
             else
             {
+                Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
+                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+
+                newStateMsg->date = now;
+                newStateMsg->message = msgPtr;
+                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::ACKFAILED)
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                newStateMsg->statut = mstPtr;
+
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
             }
      }
      else

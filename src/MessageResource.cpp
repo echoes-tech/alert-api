@@ -517,8 +517,6 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 res = EReturnCode::SERVICE_UNAVAILABLE;
                 responseMsg = httpCodeToJSON(res, e);
             }
-
-
         } 
     }
     return res;
@@ -589,6 +587,27 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     }
     else
     {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
+            if (nextElement.empty())
+            {
+                //res = getMedia(pathElements, orgId, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::BAD_REQUEST;
+                const string err = "[Media Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(res, err);
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
         res = EReturnCode::BAD_REQUEST;
         const string err = "[Message Resource] bad nextElement";
         responseMsg = httpCodeToJSON(res, err);
