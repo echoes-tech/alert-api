@@ -23,7 +23,12 @@
 #include <Wt/WObject>
 #include <Wt/WLogger>
 
+#include <Wt/Json/Parser>
+#include <Wt/Json/Object>
+
 #include <tools/Session.h>
+#include <tools/MainIncludeFile.h>
+#include <tools/Enums.h>
 
 #include "Conf.h"
 

@@ -59,7 +59,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/UserResource.o \
 	${OBJECTDIR}/src/itooki/ItookiAckReceiver.o \
 	${OBJECTDIR}/src/itooki/ItookiAswReceiver.o \
-	${OBJECTDIR}/src/itooki/ItookiSMSSender.o
+	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
+	${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o
 
 # Test Directory
 TESTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tests
@@ -216,6 +217,11 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender.o: src/itooki/ItookiSMSSender.cpp
 	${MKDIR} -p ${OBJECTDIR}/src/itooki
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/itooki/ItookiSMSSender.o src/itooki/ItookiSMSSender.cpp
+
+${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o: src/itooki/ItookiSendedReiceiver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o src/itooki/ItookiSendedReiceiver.cpp
 
 # Subprojects
 .build-subprojects:
@@ -556,6 +562,19 @@ ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o: ${OBJECTDIR}/src/itooki/Itooki
 	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o src/itooki/ItookiSMSSender.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/itooki/ItookiSMSSender.o ${OBJECTDIR}/src/itooki/ItookiSMSSender_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/itooki/ItookiSendedReiceiver_nomain.o: ${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o src/itooki/ItookiSendedReiceiver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/itooki
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -Wall -Iinclude -I../dbo/include -I. -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/itooki/ItookiSendedReiceiver_nomain.o src/itooki/ItookiSendedReiceiver.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o ${OBJECTDIR}/src/itooki/ItookiSendedReiceiver_nomain.o;\
 	fi
 
 # Run Test Targets

@@ -263,13 +263,41 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                     const long long mtyID = amsPtr->media->mediaType.id();
                     Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
 
-                    newMsg->alert = alePtr;
-                    newMsg->media = amsPtr->media;
-                    // WARNING : SendDate must be set by the API when the alert was sent, not before
-                    newMsg->sendDate = *(new Wt::WDateTime());
+                    newMsg->refAck = "";
+                    string sms;
+                    sms = amsPtr->message.toUTF8();
+                    if (ivaPtrVector.size() > 0)
+                    {
+                        replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
+                    }
+                    newMsg->content = sms;
+                    newMsg->dest = amsPtr->media->value;
+                    newMsg->receiverSrv = conf.getRouteurHost(); 
+                    newMsg->receiverPort = boost::lexical_cast<std::string>(conf.getRouteurPort());
+                    
+                    char hostname[255];
+                    gethostname(hostname, 255);
+                    
+                    newMsg->senderSrv = hostname;
+                    newMsg->senderPort = boost::lexical_cast<std::string>(conf.getServerPort());
 
+                    newMsg->user = amsPtr->media->user;
+                    newMsg->alert = alePtr;
+                    
                     Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
                     newMsgPtr.flush();
+                    
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                    
+                    newStateMsg->date = now;
+                    newStateMsg->message = newMsgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::UNCREATED)
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+                    newStateMsg->text = "";
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
 
                     Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newMsgPtr.id();
 
@@ -384,15 +412,42 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 //message creation in DB
                 Wt::Dbo::Transaction transaction(m_session, true);
 
+                const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
+                
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
                 if (medPtr)
                 {
-                    Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
-                    newMsg->media = medPtr;
-                    newMsg->content = message;
+                                        Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
 
+                    newMsg->refAck = "";
+                    newMsg->content = message;
+                    newMsg->dest = medPtr->value;
+                    newMsg->receiverSrv = conf.getRouteurHost(); 
+                    newMsg->receiverPort = boost::lexical_cast<std::string>(conf.getRouteurPort());
+                    
+                    char hostname[255];
+                    gethostname(hostname, 255);
+                    
+                    newMsg->senderSrv = hostname;
+                    newMsg->senderPort = boost::lexical_cast<std::string>(conf.getServerPort());
+
+                    newMsg->user = medPtr->user;
+                    
                     Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
                     newMsgPtr.flush();
+                    
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                    
+                    newStateMsg->date = now;
+                    newStateMsg->message = newMsgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::UNCREATED)
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+                    newStateMsg->text = "";
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                    
                     res = serialize(newMsgPtr, responseMsg, EReturnCode::CREATED);
 
                     //message actual sending
@@ -582,11 +637,11 @@ EReturnCode MessageResource::sendMAIL
     {
         if (!overSMSQuota)
         {
-            mailRecipient = msgPtr->media->value;
+            mailRecipient = amsPtr->media->value;
         }
         else
         {
-            mailRecipient = msgPtr->media->user->eMail;
+            mailRecipient = amsPtr->media->user->eMail;
 
             mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
         } 
@@ -629,7 +684,8 @@ EReturnCode MessageResource::sendMAIL
         amsPtr.modify()->lastSend = now;
     }
 
-    msgPtr.modify()->sendDate = now;
+    //create new state of message
+    //msgPtr.modify()->sendDate = now;
     msgPtr.modify()->content = mailBody;
 
     res = EReturnCode::OK;
@@ -648,44 +704,21 @@ EReturnCode MessageResource::sendSMS
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-    string sms;
-    if (amsPtr.isTransient() == 0)
-    {
-        sms = amsPtr->message.toUTF8();
-        if (ivaPtrVector.size() > 0)
-        {
-            replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
-        }
-    }
-    else
-    {
-        sms = msgPtr->content.get().toUTF8();
-    }
-    
-    Wt::WString phoneNumber;
-    if (amsPtr.isTransient() == 0)
-    {
-        phoneNumber = msgPtr->media->value;
-    }
-    else
-    {
-        phoneNumber = msgPtr->media->value;
-    }
     
     long long alertID;
     alertID = amsPtr->id;
 
-    Wt::log("debug") << " [Alert Resource] New SMS for " << phoneNumber << " : " << sms;
+    Wt::log("debug") << " [Alert Resource] New SMS for " << msgPtr->dest << " : " << msgPtr->content;
 
     ItookiSMSSender itookiSMSSender(m_session, this);
 
-    if (!itookiSMSSender.send(phoneNumber.toUTF8(), sms, alertID, msgPtr))
+    if (!itookiSMSSender.send(msgPtr->dest.get().toUTF8(), msgPtr->content.get().toUTF8(), alertID, msgPtr))
     {
         if (amsPtr.isTransient() == 0)
         {
             amsPtr.modify()->lastSend = now;
         }
-        msgPtr.modify()->sendDate = now;
+        
         res = EReturnCode::OK;
     }
 
@@ -719,9 +752,10 @@ EReturnCode MessageResource::sendMobileApp
     else
     {
         mobileApp = msgPtr->content.get().toUTF8();
-        mobileName = msgPtr->media->value;
+        mobileName = amsPtr->media->value;
     }
-    msgPtr.modify()->sendDate = now;
+    //create new state of message
+    //msgPtr.modify()->sendDate = now;
     
     Wt::log("debug") << " [Alert Resource] New Alert for mobileApp : " << mobileName << " : " << mobileApp;
     

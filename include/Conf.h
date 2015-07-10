@@ -39,6 +39,9 @@ class Conf {
         bool isSmsHttps() const;
         std::string getSmsPassword() const;
         std::string getSmsLogin() const;
+        std::string getRouteurHost() const;
+        unsigned getRouteurPort() const;
+        unsigned getServerPort() const;
 
     protected:
         std::string m_sessConnectParams;
@@ -49,6 +52,9 @@ class Conf {
         std::string m_smsLogin;
         std::string m_smsPassword;
         bool m_smsHttps;
+        std::string m_routeurHost;
+        unsigned m_routeurPort;
+        unsigned m_serverPort;
 
         void setSessConnectParams
         (
@@ -65,6 +71,9 @@ class Conf {
         void setSmsHttps(bool smsHttps);
         void setSmsPassword(std::string smsPassword);
         void setSmsLogin(std::string smsLogin);
+        void setRouteurPort(unsigned routeurPort);
+        void setRouteurHost(std::string routeurHost);
+        void setServerPort(unsigned port);
 };
 
 extern Conf conf;

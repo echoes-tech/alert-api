@@ -1,18 +1,12 @@
 /* 
- * Header of Itooki SMS Acknowledgement Receiver
- * @author ECHOES Technologies (TSA)
- * @date 08/08/2012
- * 
- * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
- * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
- * COMPANY AUTHORIZATION.
- * 
- * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
- * 
+ * File:   ItookiSendedReceiver.h
+ * Author: cde
+ *
+ * Created on 10 juillet 2015, 10:35
  */
 
-#ifndef ACKRECEIVER_H
-#define	ACKRECEIVER_H
+#ifndef ITOOKISENDEDRECEIVER_H
+#define	ITOOKISENDEDRECEIVER_H
 
 #include <Wt/Json/Parser>
 #include <Wt/Json/Object>
@@ -30,11 +24,11 @@
 #include "Enums.h"
 
 
-class ItookiAckReceiver   : public Wt::WResource
+class ItookiSendedReceiver   : public Wt::WResource
 {
     public:
-        ItookiAckReceiver(Echoes::Dbo::Session& session);
-        virtual ~ItookiAckReceiver();
+        ItookiSendedReceiver(Echoes::Dbo::Session& session);
+        virtual ~ItookiSendedReceiver();
 
     protected:
         Echoes::Dbo::Session& m_session;
@@ -42,7 +36,7 @@ class ItookiAckReceiver   : public Wt::WResource
         std::string m_number;
         std::string m_message;
         
-        EReturnCode postAck(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg);
+        EReturnCode postSended(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg);
         string getNextElementFromPath(unsigned short &indexPathElement, vector<string> &pathElements);
         string processRequestParameters(const Wt::Http::Request &request, vector<string> &pathElements, map<string, long long> &parameters);
         string request2string(const Wt::Http::Request &request);
@@ -191,7 +185,5 @@ class ItookiAckReceiver   : public Wt::WResource
 
 };
 
-
-
-#endif	/* ACKRECEIVER_H */
+#endif	/* ITOOKISENDEDRECEIVER_H */
 

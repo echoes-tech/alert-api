@@ -1,7 +1,7 @@
 /* 
- * Itooki SMS Acknowledgement Receiver
+ * Itooki SMS sended Receiver
  * @author ECHOES Technologies (TSA)
- * @date 08/08/2012
+ * @date 10/07/2015
  * 
  * THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY TO ECHOES TECHNOLOGIES SAS
  * AND MAY NOT BE REPRODUCED, PUBLISHED OR DISCLOSED TO OTHERS WITHOUT
@@ -16,21 +16,21 @@
 #include <Wt/Dbo/SqlConnection>
 #include <Wt/Dbo/Session>
 
-#include "itooki/ItookiAckReceiver.h"
+#include "itooki/ItookiSendedReceiver.h"
 
 using namespace std;
 
-ItookiAckReceiver::ItookiAckReceiver(Echoes::Dbo::Session& session): Wt::WResource(),
+ItookiSendedReceiver::ItookiSendedReceiver(Echoes::Dbo::Session& session): Wt::WResource(),
 m_session(session)
 {
     
 }
 
-ItookiAckReceiver::~ItookiAckReceiver()
+ItookiSendedReceiver::~ItookiSendedReceiver()
 {
 }
 
-string ItookiAckReceiver::getNextElementFromPath(unsigned short &indexPathElement, vector<string> &pathElements)
+string ItookiSendedReceiver::getNextElementFromPath(unsigned short &indexPathElement, vector<string> &pathElements)
 {
     string res = "";
 
@@ -42,7 +42,7 @@ string ItookiAckReceiver::getNextElementFromPath(unsigned short &indexPathElemen
     return res;
 }
 
-string ItookiAckReceiver::request2string(const Wt::Http::Request &request)
+string ItookiSendedReceiver::request2string(const Wt::Http::Request &request)
 {
     char c;
     string s;
@@ -75,7 +75,7 @@ string ItookiAckReceiver::request2string(const Wt::Http::Request &request)
     return s;
 }
 
-string ItookiAckReceiver::processRequestParameters(const Wt::Http::Request &request, vector<string> &pathElements, map<string, long long> &parameters)
+string ItookiSendedReceiver::processRequestParameters(const Wt::Http::Request &request, vector<string> &pathElements, map<string, long long> &parameters)
 {
     const string path = request.pathInfo();
     boost::split(pathElements, path, boost::is_any_of("/"), boost::token_compress_on);
@@ -98,7 +98,7 @@ string ItookiAckReceiver::processRequestParameters(const Wt::Http::Request &requ
     return request2string(request);
 }
 
-EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg)
+EReturnCode ItookiSendedReceiver::postSended(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg)
 {
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
@@ -154,21 +154,36 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(oldRefenvoi)
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
-            Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                msgPtr.modify()->refAck = refenvoi;
+                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-            newStateMsg->date = now;
-            newStateMsg->message = msgPtr;
-            Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
-                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::SENDED)
-                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
-            newStateMsg->statut = mstPtr;
+                newStateMsg->date = now;
+                newStateMsg->message = msgPtr;
+                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::SENDED)
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                newStateMsg->statut = mstPtr;
 
-            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
 
             }
             else
             {
+                Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(oldRefenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
+                msgPtr.modify()->refAck = refenvoi;
+                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+
+                newStateMsg->date = now;
+                newStateMsg->message = msgPtr;
+                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::SENDFAILED)
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                newStateMsg->statut = mstPtr;
+                newStateMsg->text = error;
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
             }
      }
      else
@@ -180,7 +195,7 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
     return (res);
 }
 
-EReturnCode ItookiAckReceiver::processPostRequest(const Wt::Http::Request &request, std::string &responseMsg)
+EReturnCode ItookiSendedReceiver::processPostRequest(const Wt::Http::Request &request, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -194,7 +209,7 @@ EReturnCode ItookiAckReceiver::processPostRequest(const Wt::Http::Request &reque
 
     if (nextElement.empty())
     {
-        res = postAck(parameters, pathElements, sRequest, responseMsg);
+        res = postSended(parameters, pathElements, sRequest, responseMsg);
     }
     else
     {
@@ -205,7 +220,7 @@ EReturnCode ItookiAckReceiver::processPostRequest(const Wt::Http::Request &reque
     return res;
 }
 
-void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+void ItookiSendedReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
 {
         EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
         string responseMsg = "";

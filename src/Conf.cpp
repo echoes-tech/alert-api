@@ -25,7 +25,10 @@ m_alertMailSenderName("ECHOES Alert"),
 m_alertMailSenderAddress("noreply-alert@echoes-tech.com"),
 m_smsLogin(""),
 m_smsPassword(""),
-m_smsHttps(true)
+m_smsHttps(true),
+m_routeurHost(""),
+m_routeurPort(0),
+m_serverPort(0)
 {
 }
 
@@ -37,6 +40,8 @@ bool Conf::readProperties(Wt::WServer& server)
 {
     Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML;
 
+    setServerPort(server.httpPort());
+    
     bool res = false;
     struct Db
     {
@@ -64,6 +69,8 @@ bool Conf::readProperties(Wt::WServer& server)
         string login;
         string password;
         string https;
+        string host;
+        string port;
     };
     Sms sms;
 
@@ -129,6 +136,8 @@ bool Conf::readProperties(Wt::WServer& server)
                 server.readConfigurationProperty("sms-login", sms.login)
                 && server.readConfigurationProperty("sms-password", sms.password)
                 && server.readConfigurationProperty("sms-https", sms.https)
+                && server.readConfigurationProperty("sms-routeur-addr", sms.host)
+                && server.readConfigurationProperty("sms-routeur-port", sms.port)
             )
             {
                 setSmsLogin(sms.login);
@@ -144,6 +153,17 @@ bool Conf::readProperties(Wt::WServer& server)
                 else
                 {
                      Wt::log("error") << "[Conf] Property named 'sms-https' in " << WT_CONFIG_XML << " should be an boolean (true or false). By default: true";
+                }
+                
+                setRouteurHost(sms.host);
+                try
+                {
+                    setRouteurPort(boost::lexical_cast<unsigned>(sms.port));
+                }
+                catch (boost::bad_lexical_cast &)
+                {
+                     Wt::log("error") << "[Conf] Property named 'sms-routeur-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
+                     return res;
                 }
             }
             else
@@ -265,3 +285,35 @@ string Conf::getSmsLogin() const
     return m_smsLogin;
 }
 
+void Conf::setRouteurPort(unsigned routeurPort)
+{
+    m_routeurPort = routeurPort;
+    return;
+}
+
+unsigned Conf::getRouteurPort() const
+{
+    return m_routeurPort;
+}
+
+void Conf::setRouteurHost(std::string routeurHost)
+{
+    m_routeurHost = routeurHost;
+    return;
+}
+
+string Conf::getRouteurHost() const
+{
+    return m_routeurHost;
+}
+
+void Conf::setServerPort(unsigned port)
+{
+    m_serverPort = port;
+    return;
+}
+
+unsigned Conf::getServerPort() const
+{
+    return m_serverPort;
+}

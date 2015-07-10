@@ -9,6 +9,7 @@
           <itemPath>include/itooki/ItookiAckReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiAswReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
+          <itemPath>include/itooki/ItookiSendedReceiver.h</itemPath>
         </logicalFolder>
       </logicalFolder>
       <itemPath>include/AddonResource.h</itemPath>
@@ -50,6 +51,7 @@
           <itemPath>src/itooki/ItookiAckReceiver.cpp</itemPath>
           <itemPath>src/itooki/ItookiAswReceiver.cpp</itemPath>
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
+          <itemPath>src/itooki/ItookiSendedReiceiver.cpp</itemPath>
         </logicalFolder>
         <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
@@ -223,6 +225,11 @@
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/itooki/ItookiSendedReceiver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
@@ -272,6 +279,11 @@
       <item path="src/itooki/ItookiAswReceiver.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/itooki/ItookiSendedReiceiver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"
@@ -397,6 +409,11 @@
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/itooki/ItookiSendedReceiver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
@@ -446,6 +463,11 @@
       <item path="src/itooki/ItookiAswReceiver.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/itooki/ItookiSendedReiceiver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"
