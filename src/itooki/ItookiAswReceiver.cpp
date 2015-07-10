@@ -190,6 +190,7 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
         bool date_crea = (AlertEventList.begin()->get()->date < msgEvCreaPtr->date);
         bool pending = (AlertEventList.begin()->get()->statut->id == Echoes::Dbo::EAlertStatus::PENDING);
         bool supported = (AlertEventList.begin()->get()->statut->id == Echoes::Dbo::EAlertStatus::SUPPORTED);
+        bool sameSupport = (AlertEventList.begin()->get()->user == msgTrEv->message->user);
         if(date_crea && pending && msgTrEv->text == "1")
         {
             Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
@@ -200,14 +201,16 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
                 .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::SUPPORTED)
                 .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
             newStateAle->statut = alsPtr;
-
+            newStateAle->user = msgTrEv->message->user;
+            
             Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
 
         }
         //conditons pour la résolution :
         // - alert supported
+        // c'est le meme user qui est en charge
         // - message reçu = 2
-        else if(supported && msgTrEv->text == "2")
+        else if(supported && sameSupport && msgTrEv->text == "2")
         {
             Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
 

@@ -854,6 +854,39 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //    return res;
 //}
 
+EReturnCode AlertResource::startAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
+        
+        Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
+                    
+        newStateAle->date = Wt::WDateTime::currentDateTime();
+                    newStateAle->alert = alePtr;
+        Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> aleStPtr = m_session.find<Echoes::Dbo::AlertStatus>()
+                    .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
+                    .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+        newStateAle->statut = aleStPtr;
+                    
+        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+
+        res = EReturnCode::CREATED;
+        
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
 EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -873,9 +906,27 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     }
     else
     {
-        res = EReturnCode::BAD_REQUEST;
-        const string err = "[Alert Resource] bad nextElement";
-        responseMsg = httpCodeToJSON(res, err);
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
+            if (nextElement == "start")
+            {
+                res = startAlert(pathElements, orgId, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::BAD_REQUEST;
+                const string err = "[Media Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(res, err);
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
     }
 
     return res;
