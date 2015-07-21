@@ -40,6 +40,7 @@
 
 #include "itooki/ItookiAckReceiver.h"
 #include "itooki/ItookiAswReceiver.h"
+#include "itooki/ItookiSendedReceiver.h"
 
 #endif
 
@@ -89,6 +90,7 @@ int main(int argc, char **argv)
             RoleResource            roleResource(session);
             ItookiAckReceiver       itookiAckReceiver(session);
             ItookiAswReceiver       itookiAswReceiver(session);
+            ItookiSendedReceiver    itookiSendedReceiver(session);
 
             server.addResource(&addonResource,            "/addons");
             server.addResource(&alertResource,            "/alerts");
@@ -110,6 +112,7 @@ int main(int argc, char **argv)
             server.addResource(&userResource,             "/users");
             server.addResource(&itookiAckReceiver,        "/itooki/ack");
             server.addResource(&itookiAswReceiver,        "/itooki/asw");
+            server.addResource(&itookiSendedReceiver,        "/itooki/sended");
 
             Echoes::Dbo::Session::configureAuth();
             

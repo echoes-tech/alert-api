@@ -150,6 +150,140 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
     return res;
 }
 
+EReturnCode AlertResource::getAlertEvent(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent > atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP ID)" = ? ").bind(pathElements[3])
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL");
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode AlertResource::getAlertEvents(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " ASC")
+                .limit(20);
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;    
+}
+
+EReturnCode AlertResource::getAlertStatus(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " ASC")
+                .limit(20);
+
+        res = EReturnCode::OK;
+        responseMsg = "{ \"\": \"" + AlertStatusToString(atrPtrCol.begin()->get()->statut->id) + "\" }";
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;  
+}
+
+std::string AlertResource::AlertStatusToString(int AlertStatusId)
+{
+    string returnValue = "error";
+    
+    switch(AlertStatusId)
+    {
+        case Echoes::Dbo::EAlertStatus::PENDING :
+            returnValue = "pending";
+            break;
+        case Echoes::Dbo::EAlertStatus::SUPPORTED :
+            returnValue = "supported";
+            break;
+        case Echoes::Dbo::EAlertStatus::FORWARDING :
+            returnValue = "forwarding";
+            break;
+        case Echoes::Dbo::EAlertStatus::BACKTONORMAL :
+            returnValue = "back to normal";
+            break;
+        default:
+            returnValue = "error switch";
+            break;
+    }
+    return returnValue;
+}
+
+EReturnCode AlertResource::getAlertMessages(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::Message >> atrPtrCol = m_session.find<Echoes::Dbo::Message>()
+                .where(QUOTE(TRIGRAM_MESSAGE SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE SEP "DEST") " DESC")
+                .limit(20);
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;    
+}
+ 
+
 //EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
 //{
 //    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -204,10 +338,6 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
     {
         res = getAlertsList(parameters, orgId, responseMsg);
     }
-//    else if (nextElement.compare("trackings") == 0)
-//    {
-//        res = getTrackingsForAlertsList(parameters, orgId,responseMsg);
-//    }
     else
     {
         try
@@ -217,6 +347,37 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
             if (nextElement.empty())
             {
                 res = getAlert(pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("status") == 0)
+            {
+                res = getAlertStatus(parameters, pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("messages") == 0)
+            {
+                res = getAlertMessages(parameters, pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("events") == 0)
+            {
+                
+                if (nextElement.empty())
+                {
+                    res = getAlertEvents(parameters, pathElements, orgId, responseMsg);
+                }
+                else
+                {
+                    boost::lexical_cast<unsigned long long>(nextElement);
+                    nextElement = getNextElementFromPath(indexPathElement, pathElements);
+                    if (nextElement.empty())
+                    {
+                        res = getAlertEvent(parameters, pathElements, orgId, responseMsg);
+                    }
+                    else
+                    {
+                        res = EReturnCode::BAD_REQUEST;
+                        const string err = "[Alert Resource] bad nextElement";
+                        responseMsg = httpCodeToJSON(res, err);
+                    }
+                }
             }
             else
             {
@@ -911,7 +1072,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
             boost::lexical_cast<unsigned long long>(nextElement);
 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
-            if (nextElement == "start")
+            if (nextElement.compare("start") == 0)
             {
                 res = startAlert(pathElements, orgId, responseMsg);
             }

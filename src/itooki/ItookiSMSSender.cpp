@@ -115,7 +115,7 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
         if(isOk)
         {
             msgPtr.modify()->refAck = messageRetour;
-            Wt::log("error") << "[Itooki SMS Sender] routeur error: " << err.message();
+            Wt::log("error") << "[Itooki SMS Sender] routeur ok: " ;
             Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
             newStateMsg->date = now;

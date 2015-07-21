@@ -522,6 +522,124 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
     return res;
 }
 
+EReturnCode MessageResource::getMessageEvents(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " ASC")
+                .limit(20);
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;    
+}
+
+EReturnCode MessageResource::getMessageEvent(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent > atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP ID)" = ? ").bind(pathElements[3])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL");
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode MessageResource::getMessageStatus(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " ASC")
+                .limit(20);
+
+        res = EReturnCode::OK;
+        responseMsg = "{ \"\": \"" + MessageStatusToString(atrPtrCol.begin()->get()->statut->id) + "\" }";
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res; 
+}
+
+std::string MessageResource::MessageStatusToString(int MessageStatusId)
+{
+    string returnValue = "error";
+    
+    switch(MessageStatusId)
+    {
+        case Echoes::Dbo::EMessageStatus::UNCREATED:
+            returnValue = "uncreated";
+            break;
+        case Echoes::Dbo::EMessageStatus::CREATED:
+            returnValue = "created";
+            break;
+        case Echoes::Dbo::EMessageStatus::SENDFAILED:
+            returnValue = "send failed";
+            break;
+        case Echoes::Dbo::EMessageStatus::SENDREFUSED:
+            returnValue = "send refused";
+            break;
+        case Echoes::Dbo::EMessageStatus::SENDED:
+            returnValue = "sended";
+            break;
+        case Echoes::Dbo::EMessageStatus::ACKFAILED:
+            returnValue = "ack failed";
+            break;
+        case Echoes::Dbo::EMessageStatus::RECEIVED:
+            returnValue = "received";
+            break;
+        case Echoes::Dbo::EMessageStatus::ANSWERED:
+            returnValue = "answered";
+            break;
+        default:
+            returnValue = "error switch";
+            break;
+    }
+    return returnValue;
+}
+
 EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -550,6 +668,33 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
             if (nextElement.empty())
             {
                 res = getMessage(pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("status") == 0)
+            {
+                res = getMessageStatus(parameters, pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("events") == 0)
+            {
+                
+                if (nextElement.empty())
+                {
+                    res = getMessageEvents(parameters, pathElements, orgId, responseMsg);
+                }
+                else
+                {
+                    boost::lexical_cast<unsigned long long>(nextElement);
+                    nextElement = getNextElementFromPath(indexPathElement, pathElements);
+                    if (nextElement.empty())
+                    {
+                        res = getMessageEvent(parameters, pathElements, orgId, responseMsg);
+                    }
+                    else
+                    {
+                        res = EReturnCode::BAD_REQUEST;
+                        const string err = "[Alert Resource] bad nextElement";
+                        responseMsg = httpCodeToJSON(res, err);
+                    }
+                }
             }
             else
             {
