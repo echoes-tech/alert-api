@@ -109,7 +109,7 @@ EReturnCode ItookiSendedReceiver::postSended(map<string, long long> parameters, 
     bool    sended = false;
     Wt::WString  error = "missing";
     Wt::WString  refenvoi = "missing";
-    Wt::WString  oldRefenvoi = "missing";
+    Wt::WString  refenvoiToChange = "missing";
     
     if (!sRequest.empty())
         {
@@ -118,9 +118,9 @@ EReturnCode ItookiSendedReceiver::postSended(map<string, long long> parameters, 
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
 
-                if (result.contains("oldRefenvoi"))
+                if (result.contains("refenvoiToChange"))
                 {
-                    oldRefenvoi = result.get("oldRefenvoi");
+                    refenvoiToChange = result.get("refenvoiToChange");
                 }
                 if (result.contains("refenvoi"))
                 {
@@ -151,7 +151,7 @@ EReturnCode ItookiSendedReceiver::postSended(map<string, long long> parameters, 
             if(sended)
             {
                 Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
-                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(oldRefenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoiToChange)
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
                 msgPtr.modify()->refAck = refenvoi;
@@ -170,7 +170,7 @@ EReturnCode ItookiSendedReceiver::postSended(map<string, long long> parameters, 
             else
             {
                 Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
-                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(oldRefenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoiToChange)
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
                 msgPtr.modify()->refAck = refenvoi;
