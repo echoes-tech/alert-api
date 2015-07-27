@@ -11,19 +11,11 @@
  * 
  */
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/algorithm/string.hpp>
-#include <Wt/Dbo/SqlConnection>
-#include <Wt/Dbo/Session>
-
 #include "itooki/ItookiSMSSender.h"
 
 using namespace std;
 
-ItookiSMSSender::ItookiSMSSender(Echoes::Dbo::Session& session, Wt::WObject *parent) :
-m_parent(parent),
-m_session(session)
+ItookiSMSSender::ItookiSMSSender(Echoes::Dbo::Session& session) : PublicItookiResource::PublicItookiResource(session)
 {
 }
 

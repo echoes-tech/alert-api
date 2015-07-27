@@ -20,82 +20,13 @@
 
 using namespace std;
 
-ItookiSendedReceiver::ItookiSendedReceiver(Echoes::Dbo::Session& session): Wt::WResource(),
-m_session(session)
+ItookiSendedReceiver::ItookiSendedReceiver(Echoes::Dbo::Session& session): PublicItookiResource::PublicItookiResource(session)
 {
     
 }
 
 ItookiSendedReceiver::~ItookiSendedReceiver()
 {
-}
-
-string ItookiSendedReceiver::getNextElementFromPath(unsigned short &indexPathElement, vector<string> &pathElements)
-{
-    string res = "";
-
-    if (pathElements.size() > indexPathElement)
-    {
-        res = pathElements[indexPathElement++];
-    }
-
-    return res;
-}
-
-string ItookiSendedReceiver::request2string(const Wt::Http::Request &request)
-{
-    char c;
-    string s;
-
-    // Getting the input stream for the request char by char
-    c = request.in().get();
-    while (request.in())
-    {
-        s.append(1, c);
-        c = request.in().get();
-    }
-
-    // WHY: Dans l'appli mobile lorsqu'on fait un post les premiers caractères de la requête sont remplacés par des caractères spéciaux. 
-    // N'ayant pas su résoudre ce probléme, l'appli mobile envoie ses requêtes avec des caractères en trop au début du JSON. Il faut donc les supprimer.
-    // On supprime donc tous les caractére avant "[" ou "{" suivant les cas pour éviter les problèmes de parse.
-    const size_t pos1 = s.find("{", 0);
-    const size_t pos2 = s.find("[", 0);
-    if (pos1 != 0 || pos2 != 0)
-    {
-        if (pos2 != string::npos && pos2 < pos1)
-        {
-            s = s.erase(0, pos2);
-        }
-        else
-        {
-            s = s.erase(0, pos1);
-        }
-    }
-
-    return s;
-}
-
-string ItookiSendedReceiver::processRequestParameters(const Wt::Http::Request &request, vector<string> &pathElements, map<string, long long> &parameters)
-{
-    const string path = request.pathInfo();
-    boost::split(pathElements, path, boost::is_any_of("/"), boost::token_compress_on);
-
-    for (map<std::string, long long>::iterator it = parameters.begin(); it != parameters.end(); ++it)
-    {
-        if (request.getParameter(it->first) != 0)
-        {
-            try
-            {
-                it->second = boost::lexical_cast<unsigned long long>(*request.getParameter(it->first));
-            }
-            catch (boost::bad_lexical_cast const& e)
-            {
-                Wt::log("warning") << "[PUBLIC API] Bad URL parameter: " << e.what();
-            }
-        }
-    }
-    
-    return request2string(request);
 }
 
 EReturnCode ItookiSendedReceiver::postSended(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg)
@@ -218,22 +149,4 @@ EReturnCode ItookiSendedReceiver::processPostRequest(const Wt::Http::Request &re
     }
 
     return res;
-}
-
-void ItookiSendedReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
-{
-        EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-        string responseMsg = "";
-        if(!request.method().compare("POST"))
-        {
-            res = processPostRequest(request, responseMsg);
-        }
-        else
-        {
-                res = EReturnCode::METHOD_NOT_ALLOWED;
-                responseMsg = "{\n\t\"message\": \"Only POST method is allowed.\n\"}";
-        }
-
-        response.setStatus(res);
-        response.out() << responseMsg;
 }

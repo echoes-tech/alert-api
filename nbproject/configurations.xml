@@ -10,6 +10,7 @@
           <itemPath>include/itooki/ItookiAswReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
           <itemPath>include/itooki/ItookiSendedReceiver.h</itemPath>
+          <itemPath>include/PublicItookiResource.h</itemPath>
         </logicalFolder>
       </logicalFolder>
       <itemPath>include/AddonResource.h</itemPath>
@@ -52,6 +53,7 @@
           <itemPath>src/itooki/ItookiAswReceiver.cpp</itemPath>
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
           <itemPath>src/itooki/ItookiSendedReiceiver.cpp</itemPath>
+          <itemPath>src/PublicItookiResource.cpp</itemPath>
         </logicalFolder>
         <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
@@ -203,6 +205,8 @@
       </item>
       <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/PublicItookiResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SearchResource.h" ex="false" tool="3" flavor2="0">
@@ -263,6 +267,8 @@
       <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PublicItookiResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -387,6 +393,8 @@
       </item>
       <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/PublicItookiResource.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SearchResource.h" ex="false" tool="3" flavor2="0">
@@ -447,6 +455,8 @@
       <item path="src/ProbeResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PublicItookiResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>

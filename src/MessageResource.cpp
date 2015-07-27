@@ -853,7 +853,7 @@ EReturnCode MessageResource::sendSMS
 
     Wt::log("debug") << " [Alert Resource] New SMS for " << msgPtr->dest << " : " << msgPtr->content;
 
-    ItookiSMSSender itookiSMSSender(m_session, this);
+    ItookiSMSSender itookiSMSSender(m_session);
 
     if (!itookiSMSSender.send(msgPtr->dest.get().toUTF8(), msgPtr->content.get().toUTF8(), alertID, msgPtr))
     {

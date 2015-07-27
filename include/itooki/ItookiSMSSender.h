@@ -14,28 +14,12 @@
 #ifndef ITOOKISMSSENDER_H
 #define	ITOOKISMSSENDER_H
 
-#include <boost/algorithm/string.hpp>
+#include "PublicItookiResource.h"
 
-#include <Wt/Http/Client>
-#include <Wt/Http/Request>
-#include <Wt/Http/Response>
-#include <Wt/Utils>
-#include <Wt/WObject>
-#include <Wt/WLogger>
-
-#include <Wt/Json/Parser>
-#include <Wt/Json/Object>
-
-#include <tools/Session.h>
-#include <tools/MainIncludeFile.h>
-#include <tools/Enums.h>
-
-#include "Conf.h"
-
-class ItookiSMSSender
+class ItookiSMSSender : public PublicItookiResource
 {
     public:
-        ItookiSMSSender(Echoes::Dbo::Session& session, Wt::WObject *parent = NULL);
+        ItookiSMSSender(Echoes::Dbo::Session& session);
         virtual ~ItookiSMSSender();
 
         Wt::WObject* getParent() const;
@@ -44,7 +28,6 @@ class ItookiSMSSender
 
     private:
         Wt::WObject *m_parent;
-        Echoes::Dbo::Session& m_session;
 
         void setParent(Wt::WObject* parent);
 

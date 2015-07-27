@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/PluginResource.o \
 	${OBJECTDIR}/src/ProbeResource.o \
 	${OBJECTDIR}/src/PublicApiResource.o \
+	${OBJECTDIR}/src/PublicItookiResource.o \
 	${OBJECTDIR}/src/RoleResource.o \
 	${OBJECTDIR}/src/SearchResource.o \
 	${OBJECTDIR}/src/SourceResource.o \
@@ -177,6 +178,11 @@ ${OBJECTDIR}/src/PublicApiResource.o: src/PublicApiResource.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PublicApiResource.o src/PublicApiResource.cpp
+
+${OBJECTDIR}/src/PublicItookiResource.o: src/PublicItookiResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PublicItookiResource.o src/PublicItookiResource.cpp
 
 ${OBJECTDIR}/src/RoleResource.o: src/RoleResource.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -458,6 +464,19 @@ ${OBJECTDIR}/src/PublicApiResource_nomain.o: ${OBJECTDIR}/src/PublicApiResource.
 	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PublicApiResource_nomain.o src/PublicApiResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/PublicApiResource.o ${OBJECTDIR}/src/PublicApiResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/PublicItookiResource_nomain.o: ${OBJECTDIR}/src/PublicItookiResource.o src/PublicItookiResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/PublicItookiResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PublicItookiResource_nomain.o src/PublicItookiResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/PublicItookiResource.o ${OBJECTDIR}/src/PublicItookiResource_nomain.o;\
 	fi
 
 ${OBJECTDIR}/src/RoleResource_nomain.o: ${OBJECTDIR}/src/RoleResource.o src/RoleResource.cpp 

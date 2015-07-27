@@ -1025,20 +1025,32 @@ EReturnCode AlertResource::startAlert(const std::vector<std::string> &pathElemen
 
         Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
         
-        Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
-                    
-        newStateAle->date = Wt::WDateTime::currentDateTime();
-                    newStateAle->alert = alePtr;
-        Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> aleStPtr = m_session.find<Echoes::Dbo::AlertStatus>()
-                    .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
-                    .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
-        newStateAle->statut = aleStPtr;
-                    
-        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
-
-        res = EReturnCode::CREATED;
         
-        transaction.commit();
+
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)" = ? ").bind(alePtr->id)
+                .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " ASC")
+                .limit(20);
+
+        if((atrPtrCol.size() == 0) 
+                || (atrPtrCol.begin()->get()->statut->id == Echoes::Dbo::EAlertStatus::BACKTONORMAL))
+        {
+            Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
+
+            newStateAle->date = Wt::WDateTime::currentDateTime();
+                        newStateAle->alert = alePtr;
+            Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> aleStPtr = m_session.find<Echoes::Dbo::AlertStatus>()
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+            newStateAle->statut = aleStPtr;
+
+            Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+
+            res = EReturnCode::CREATED;
+
+            transaction.commit();
+        }
     }
     catch (Wt::Dbo::Exception const& e)
     {
