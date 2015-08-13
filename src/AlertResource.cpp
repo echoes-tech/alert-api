@@ -112,6 +112,7 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
 "       )"
 "     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_ALERT ID);
+        cout << queryStr << endl;
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Alert>> alePtrCol = queryRes.resultList();

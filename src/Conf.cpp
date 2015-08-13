@@ -38,9 +38,9 @@ Conf::~Conf()
 
 bool Conf::readProperties(Wt::WServer& server)
 {
-    Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML;
+    Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML ;
 
-    setServerPort(server.httpPort());
+    //setServerPort(server.httpPort());
     
     bool res = false;
     struct Db

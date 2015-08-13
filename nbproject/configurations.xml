@@ -9,8 +9,6 @@
           <itemPath>include/itooki/ItookiAckReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiAswReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
-          <itemPath>include/itooki/ItookiSendedReceiver.h</itemPath>
-          <itemPath>include/PublicItookiResource.h</itemPath>
         </logicalFolder>
       </logicalFolder>
       <itemPath>include/AddonResource.h</itemPath>
@@ -53,7 +51,7 @@
           <itemPath>src/itooki/ItookiAswReceiver.cpp</itemPath>
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
           <itemPath>src/itooki/ItookiSendedReiceiver.cpp</itemPath>
-          <itemPath>src/PublicItookiResource.cpp</itemPath>
+          <itemPath>src/itooki/PublicItookiResource.cpp</itemPath>
         </logicalFolder>
         <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
@@ -98,8 +96,26 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+      <logicalFolder name="f2"
+                     displayName="AddonResourceTest"
+                     projectFiles="true"
+                     kind="TEST">
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>src</Elem>
+    <Elem>include</Elem>
     <Elem>src</Elem>
     <Elem>include</Elem>
   </sourceRootList>
@@ -205,8 +221,6 @@
       </item>
       <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/PublicItookiResource.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SearchResource.h" ex="false" tool="3" flavor2="0">
@@ -228,11 +242,6 @@
       <item path="include/itooki/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/itooki/ItookiSendedReceiver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -268,8 +277,6 @@
       </item>
       <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/PublicItookiResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SearchResource.cpp" ex="false" tool="1" flavor2="0">
@@ -287,6 +294,11 @@
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSendedReiceiver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="src/itooki/PublicItookiResource.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -393,8 +405,6 @@
       </item>
       <item path="include/PublicApiResource.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/PublicItookiResource.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/RoleResource.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SearchResource.h" ex="false" tool="3" flavor2="0">
@@ -416,11 +426,6 @@
       <item path="include/itooki/ItookiAswReceiver.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/itooki/ItookiSendedReceiver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -456,8 +461,6 @@
       </item>
       <item path="src/PublicApiResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/PublicItookiResource.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/RoleResource.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SearchResource.cpp" ex="false" tool="1" flavor2="0">
@@ -475,6 +478,11 @@
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/itooki/ItookiSendedReiceiver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="src/itooki/PublicItookiResource.cpp"
             ex="false"
             tool="1"
             flavor2="0">

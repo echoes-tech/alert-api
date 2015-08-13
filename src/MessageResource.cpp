@@ -97,13 +97,7 @@ EReturnCode MessageResource::getMessages(map<string, long long> &parameters, con
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (parameters["media_id"] <= 0)
-    {
-        res = EReturnCode::BAD_REQUEST;
-        const string err = "[Message Resource] media is empty";
-        responseMsg = httpCodeToJSON(res, err);
-    }
-    else
+    if (parameters["media_id"] > 0)
     {
         try
         {
@@ -123,6 +117,38 @@ EReturnCode MessageResource::getMessages(map<string, long long> &parameters, con
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
         }
+    }
+    else if(parameters["alert_id"] > 0)
+    {
+            try
+            {
+                Wt::Dbo::Transaction transaction(m_session, true);
+                string queryStr =
+                        " SELECT msg"
+                        "   FROM " QUOTE("T_MESSAGE" SEP TRIGRAM_MESSAGE) " msg"
+                        "   WHERE"
+                        "     " QUOTE(TRIGRAM_MESSAGE SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = " + boost::lexical_cast<string>(parameters["alert_id"]) +
+                        "     AND " QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL";
+
+                Wt::Dbo::Query<Wt::Dbo::ptr < Echoes::Dbo::Message>> queryRes = m_session.query<Wt::Dbo::ptr < Echoes::Dbo::Message >> (queryStr);
+
+                Wt::Dbo::collection<Wt::Dbo::ptr < Echoes::Dbo::Message>> msgCol = queryRes.resultList();
+
+                res = serialize(msgCol, responseMsg);
+
+                transaction.commit();
+            }
+            catch (Wt::Dbo::Exception const& e)
+            {
+                res = EReturnCode::SERVICE_UNAVAILABLE;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Message Resource] media or alert is empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
     return res;
 }
@@ -530,11 +556,10 @@ EReturnCode MessageResource::getMessageEvents(map<string, long long> &parameters
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        //ToDo(FPO): Check rights
         Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " ASC")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC")
                 .limit(20);
 
         res = serialize(atrPtrCol, responseMsg);
@@ -560,7 +585,7 @@ EReturnCode MessageResource::getMessageEvent(map<string, long long> &parameters,
         //ToDo(FPO): Check rights
         Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent > atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP ID)" = ? ").bind(pathElements[3])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT ID)" = ? ").bind(pathElements[3])
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL");
 
         res = serialize(atrPtrCol, responseMsg);
@@ -584,14 +609,33 @@ EReturnCode MessageResource::getMessageStatus(map<string, long long> &parameters
         Wt::Dbo::Transaction transaction(m_session, true);
 
         //ToDo(FPO): Check rights
-        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " ASC")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC")
                 .limit(20);
-
-        res = EReturnCode::OK;
-        responseMsg = "{ \"\": \"" + MessageStatusToString(atrPtrCol.begin()->get()->statut->id) + "\" }";
+        Wt::Dbo::ptr < Echoes::Dbo::Message > msgPtr = m_session.find<Echoes::Dbo::Message>()
+                .where(QUOTE(TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+        if(atrPtrCol.size() > 0 && msgPtr)
+        {
+            Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >>::iterator ptrTrackEvent = atrPtrCol.begin();
+            res = EReturnCode::OK;
+            
+            responseMsg = "{";
+            responseMsg += "\"message_id\" : " + boost::lexical_cast<std::string>(msgPtr.id()) + ",";
+            responseMsg += "\"state\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->statut.id()) + ",";
+            responseMsg += "\"date\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->date.toString("dd/MM/yyyy hh:mm:ss")) + "\",";
+            responseMsg += "\"dest\" : \"" + boost::lexical_cast<std::string>(msgPtr.get()->user->firstName) + " "
+                            + boost::lexical_cast<std::string>(msgPtr.get()->user->lastName)
+                            + " (" + boost::lexical_cast<std::string>(msgPtr.get()->dest) + ")" + "\"";
+            responseMsg += "}";
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, "value not found");
+        }
 
         transaction.commit();
     }
@@ -601,43 +645,6 @@ EReturnCode MessageResource::getMessageStatus(map<string, long long> &parameters
         responseMsg = httpCodeToJSON(res, e);
     }
     return res; 
-}
-
-std::string MessageResource::MessageStatusToString(int MessageStatusId)
-{
-    string returnValue = "error";
-    
-    switch(MessageStatusId)
-    {
-        case Echoes::Dbo::EMessageStatus::UNCREATED:
-            returnValue = "uncreated";
-            break;
-        case Echoes::Dbo::EMessageStatus::CREATED:
-            returnValue = "created";
-            break;
-        case Echoes::Dbo::EMessageStatus::SENDFAILED:
-            returnValue = "send failed";
-            break;
-        case Echoes::Dbo::EMessageStatus::SENDREFUSED:
-            returnValue = "send refused";
-            break;
-        case Echoes::Dbo::EMessageStatus::SENDED:
-            returnValue = "sended";
-            break;
-        case Echoes::Dbo::EMessageStatus::ACKFAILED:
-            returnValue = "ack failed";
-            break;
-        case Echoes::Dbo::EMessageStatus::RECEIVED:
-            returnValue = "received";
-            break;
-        case Echoes::Dbo::EMessageStatus::ANSWERED:
-            returnValue = "answered";
-            break;
-        default:
-            returnValue = "error switch";
-            break;
-    }
-    return returnValue;
 }
 
 EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
@@ -650,6 +657,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
 
     parameters["media_type_id"] = 0;
     parameters["media_id"] = 0;
+    parameters["alert_id"] = 0;
     
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
@@ -675,7 +683,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
             }
             else if(nextElement.compare("events") == 0)
             {
-                
+                nextElement = getNextElementFromPath(indexPathElement, pathElements);
                 if (nextElement.empty())
                 {
                     res = getMessageEvents(parameters, pathElements, orgId, responseMsg);

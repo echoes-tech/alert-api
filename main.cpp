@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
         // On définit la configuration du serveur en lui passant les paramètres d'entrée et son fichier de configuration
         server.setServerConfiguration(argc, argv);
-
+        
         if (conf.readProperties(server))
         {
             Echoes::Dbo::Session session(conf.getSessConnectParams());
@@ -121,6 +121,8 @@ int main(int argc, char **argv)
             // démarrage du serveur en arrière plan
             if (server.start())
             {
+                //obligé de setter le port dans la conf à cet endroit car il faut que le server soit start
+                conf.setServerPort(server.httpPort());
                 // méthode qui bloque le thread courant en attendant le signal d'exctinction
                 int sig = Wt::WServer::waitForShutdown(argv[0]);
 

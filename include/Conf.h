@@ -42,7 +42,8 @@ class Conf {
         std::string getRouteurHost() const;
         unsigned getRouteurPort() const;
         unsigned getServerPort() const;
-
+        void setServerPort(unsigned port);
+        
     protected:
         std::string m_sessConnectParams;
         std::string m_smtpHost;
@@ -73,7 +74,7 @@ class Conf {
         void setSmsLogin(std::string smsLogin);
         void setRouteurPort(unsigned routeurPort);
         void setRouteurHost(std::string routeurHost);
-        void setServerPort(unsigned port);
+
 };
 
 extern Conf conf;
