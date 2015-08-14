@@ -234,7 +234,6 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                     return res;
                 }
 
-                cout << "AMS : " << mediaSpecializationId << endl;
                 Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
                 amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
                                 .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
@@ -559,8 +558,7 @@ EReturnCode MessageResource::getMessageEvents(map<string, long long> &parameters
         Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC")
-                .limit(20);
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC");
 
         res = serialize(atrPtrCol, responseMsg);
 
@@ -612,23 +610,19 @@ EReturnCode MessageResource::getMessageStatus(map<string, long long> &parameters
         Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC")
-                .limit(20);
-        Wt::Dbo::ptr < Echoes::Dbo::Message > msgPtr = m_session.find<Echoes::Dbo::Message>()
-                .where(QUOTE(TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
-        if(atrPtrCol.size() > 0 && msgPtr)
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC");
+        if(atrPtrCol.size() > 0)
         {
             Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >>::iterator ptrTrackEvent = atrPtrCol.begin();
             res = EReturnCode::OK;
             
             responseMsg = "{";
-            responseMsg += "\"message_id\" : " + boost::lexical_cast<std::string>(msgPtr.id()) + ",";
+            responseMsg += "\"message_id\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message.id()) + ",";
             responseMsg += "\"state\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->statut.id()) + ",";
             responseMsg += "\"date\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->date.toString("dd/MM/yyyy hh:mm:ss")) + "\",";
-            responseMsg += "\"dest\" : \"" + boost::lexical_cast<std::string>(msgPtr.get()->user->firstName) + " "
-                            + boost::lexical_cast<std::string>(msgPtr.get()->user->lastName)
-                            + " (" + boost::lexical_cast<std::string>(msgPtr.get()->dest) + ")" + "\"";
+            responseMsg += "\"dest\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message->user->firstName) + " "
+                            + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message->user->lastName)
+                            + " (" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message->dest) + ")" + "\"";
             responseMsg += "}";
         }
         else

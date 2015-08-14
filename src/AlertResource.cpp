@@ -112,7 +112,6 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
 "       )"
 "     AND " QUOTE(TRIGRAM_ALERT SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_ALERT ID);
-        cout << queryStr << endl;
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Alert>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Alert>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Alert>> alePtrCol = queryRes.resultList();
@@ -216,12 +215,29 @@ EReturnCode AlertResource::getAlertStatus(map<string, long long> &parameters, co
         Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
                 .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID)" = ? ").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
-                .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " ASC")
-                .limit(20);
-
-        res = EReturnCode::OK;
-        responseMsg = "{ \"\": \"" + AlertStatusToString(atrPtrCol.begin()->get()->statut->id) + "\" }";
-
+                .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+        
+        if(atrPtrCol.size() > 0)
+        {
+            Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::AlertTrackingEvent >>::iterator ptrTrackEvent = atrPtrCol.begin();
+            res = EReturnCode::OK;
+        
+            responseMsg = "{";
+            responseMsg += "\n\"id\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->alert.id()) + ",";
+            responseMsg += "\n\"state\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->statut.id()) + ",";
+            responseMsg += "\n\"name\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->alert->name) + "\"";
+            if(ptrTrackEvent->get()->user)
+            {
+                responseMsg += ",\n\"user\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->user->firstName) + " "
+                                + boost::lexical_cast<std::string>(ptrTrackEvent->get()->user->lastName) + "\"";
+            }
+            responseMsg += "\n}";
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, "value not found");
+        }
         transaction.commit();
     }
     catch (Wt::Dbo::Exception const& e)
@@ -1016,7 +1032,150 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //    return res;
 //}
 
-EReturnCode AlertResource::startAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    if (!sRequest.empty())
+    {
+        try
+        {
+            const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+            
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+            
+            Wt::Dbo::Transaction transaction(m_session);
+    
+            long long id = result.get("user");
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> atePtr = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+            
+            if(atePtr.size() > 0)
+            {
+                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>>::iterator itAtePtr = atePtr.begin();
+                if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::PENDING)
+                {
+                    Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
+
+                    newStateAle->date = now;
+                    newStateAle->alert = itAtePtr->get()->alert;
+                    
+                    newStateAle->statut = m_session.find<Echoes::Dbo::AlertStatus>()
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::SUPPORTED)
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+                    
+                    newStateAle->user = m_session.find<Echoes::Dbo::User>()
+                        .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(id)
+                        .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL");
+
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+                    res = EReturnCode::CREATED;
+                }
+                else
+                {
+                    res = EReturnCode::BAD_REQUEST;
+                    const string err = "[Alert Resource] Alert is not pending";
+                    responseMsg = httpCodeToJSON(res, err);
+                }
+            }
+            else
+            {
+                res = EReturnCode::BAD_REQUEST;
+                const string err = "[Alert Resource] Alert is not pending";
+                responseMsg = httpCodeToJSON(res, err);
+            }
+            transaction.commit();
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    
+    return res;
+}
+
+EReturnCode AlertResource::resolveAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    if (!sRequest.empty())
+    {
+        try
+        {
+            const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+            
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+            
+            Wt::Dbo::Transaction transaction(m_session);
+    
+            long long id = result.get("user");
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> atePtr = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+            
+            if(atePtr.size() > 0)
+            {
+                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>>::iterator itAtePtr = atePtr.begin();
+                if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED
+                        && itAtePtr->get()->user.id() == id)
+                {
+                    Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
+
+                    newStateAle->date = now;
+                    newStateAle->alert = itAtePtr->get()->alert;
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> alsPtr = m_session.find<Echoes::Dbo::AlertStatus>()
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::BACKTONORMAL)
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+                    newStateAle->statut = alsPtr;
+
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+                    res = EReturnCode::CREATED;
+                }
+                else
+                {
+                    res = EReturnCode::BAD_REQUEST;
+                    const string err = "[Alert Resource] Alert is not supported";
+                    responseMsg = httpCodeToJSON(res, err);
+                }
+            }
+            else
+            {
+                res = EReturnCode::BAD_REQUEST;
+                const string err = "[Alert Resource] Alert is not supported";
+                responseMsg = httpCodeToJSON(res, err);
+            }
+            transaction.commit();
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    
+    return res;
+}
+
+EReturnCode AlertResource::startAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -1040,7 +1199,7 @@ EReturnCode AlertResource::startAlert(const std::vector<std::string> &pathElemen
             Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
 
             newStateAle->date = Wt::WDateTime::currentDateTime();
-                        newStateAle->alert = alePtr;
+            newStateAle->alert = alePtr;
             Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> aleStPtr = m_session.find<Echoes::Dbo::AlertStatus>()
                         .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
                         .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
@@ -1080,6 +1239,32 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     }
     else
     {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Alert Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+
+    return res;
+}
+
+EReturnCode AlertResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
+    
+    
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
+    if (nextElement.empty())
+    {
+        //res = putAlert(sRequest,orgId, responseMsg);
+    }
+    else
+    {
         try
         {
             boost::lexical_cast<unsigned long long>(nextElement);
@@ -1087,12 +1272,20 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.compare("start") == 0)
             {
-                res = startAlert(pathElements, orgId, responseMsg);
+                res = startAlert(sRequest, pathElements, orgId, responseMsg);
+            }
+            else if (nextElement.compare("assign") == 0)
+            {
+                res = assignAlert(sRequest, pathElements, orgId, responseMsg);
+            }
+            else if (nextElement.compare("resolve") == 0)
+            {
+                res = resolveAlert(sRequest, pathElements, orgId, responseMsg);
             }
             else
             {
                 res = EReturnCode::BAD_REQUEST;
-                const string err = "[Media Resource] bad nextElement";
+                const string err = "[Alert Resource] bad nextElement";
                 responseMsg = httpCodeToJSON(res, err);
             }
         }
@@ -1105,6 +1298,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
 
     return res;
 }
+
 
 EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
 {

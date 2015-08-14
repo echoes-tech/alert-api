@@ -98,16 +98,18 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
     
     Wt::Dbo::Transaction transaction(m_session);
     
-    Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> query =
-            m_session.find<Echoes::Dbo::AlertTrackingEvent>().where("\"id\" = ?").bind(ptrAle->id).orderBy("date");
-    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> AlertEventList = query.resultList();
+    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> AlertEventList = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(ptrAle->id)
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+            
     
     Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> msgEvCreaPtr = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
             .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT ID) " = ?").bind(Echoes::Dbo::EMessageStatus::CREATED)
             .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE SEP ID) " = ?").bind(msgTrEv->message->id)
             .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL");
     
-    if(AlertEventList.size() != 0 && msgEvCreaPtr)
+    if(AlertEventList.size() > 0 && msgEvCreaPtr)
     {
         // conditions pour la prise en charge:
         // - alert pending
