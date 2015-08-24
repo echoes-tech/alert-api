@@ -80,16 +80,16 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
     if (!err && response.status() == 200)
     {
         const string responseBody = response.body();
-        Wt::WString messageRetour = "parse error";
+        Wt::WString ref = "parse error";
         bool isOk = false;
         
         try
         {
             Wt::Json::Object result;
             Wt::Json::parse(responseBody, result);	
-            if (result.contains("message"))
+            if (result.contains("ref"))
             {
-                messageRetour = result.get("message");
+                ref = result.get("ref");
             }
             if (result.contains("ok"))
             {
@@ -98,15 +98,15 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
         }
         catch (Wt::Json::ParseError const& e)
         {
-            
+            Wt::log("warning") << "JsonParseError reading back of send request";
         }
         catch (Wt::Json::TypeException const& e)	
         {
-            
+            Wt::log("warning") << "JsonTypeError reading back of send request";
         }
         if(isOk)
         {
-            msgPtr.modify()->refAck = messageRetour;
+            msgPtr.modify()->refAck = ref;
             Wt::log("error") << "[Itooki SMS Sender] routeur ok: " ;
             Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
@@ -151,7 +151,7 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                     
         Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
     }
-
+    cout << "ok back of send" << endl;
     delete client;
 }
 

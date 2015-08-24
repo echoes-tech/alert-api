@@ -233,7 +233,29 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                     responseMsg = httpCodeToJSON(res, alePtr);
                     return res;
                 }
+                else
+                {
+                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> AlertEventList = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(alePtr.id())
+                                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+                    if(AlertEventList.size() <= 0 ||
+                            AlertEventList.begin()->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
+                    {
+                        Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
 
+                        newStateAle->date = Wt::WDateTime::currentDateTime();
+                        newStateAle->alert = alePtr;
+                        Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> alsPtr = m_session.find<Echoes::Dbo::AlertStatus>()
+                            .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
+                            .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+                        newStateAle->statut = alsPtr;
+
+                        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+
+                    }
+
+                }
                 Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
                 amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
                                 .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
@@ -442,7 +464,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
                 if (medPtr)
                 {
-                                        Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
+                    Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
 
                     newMsg->refAck = "";
                     newMsg->content = message;

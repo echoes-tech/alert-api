@@ -75,17 +75,25 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoi)
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
-                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                if(msgPtr)
+                {
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-                newStateMsg->date = now;
-                newStateMsg->message = msgPtr;
-                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
-                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::RECEIVED)
-                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
-                newStateMsg->statut = mstPtr;
+                    newStateMsg->date = now;
+                    newStateMsg->message = msgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::RECEIVED)
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
 
-                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
-
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                }
+                else
+                {
+                    Wt::log("error") << "[Itooki ack Receiver] No Message " << refenvoi;
+                    res = EReturnCode::BAD_REQUEST;
+                    responseMsg = "no message";   
+                }
             }
             else
             {
@@ -93,16 +101,25 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoi)
                         .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
                 
-                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                if(msgPtr)
+                {
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-                newStateMsg->date = now;
-                newStateMsg->message = msgPtr;
-                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
-                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::ACKFAILED)
-                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
-                newStateMsg->statut = mstPtr;
+                    newStateMsg->date = now;
+                    newStateMsg->message = msgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::ACKFAILED)
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
 
-                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                }
+                else
+                {
+                    Wt::log("error") << "[Itooki Ack Receiver] No Message " << refenvoi ;
+                    res = EReturnCode::BAD_REQUEST;
+                    responseMsg = "no message";   
+                }
             }
      }
      else
