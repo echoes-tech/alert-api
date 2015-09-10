@@ -1032,6 +1032,82 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //    return res;
 //}
 
+EReturnCode AlertResource::forwardAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    if (!sRequest.empty())
+    {
+        try
+        {
+            const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+            
+            Wt::Json::Object result;
+            Wt::Json::parse(sRequest, result);
+            
+            Wt::Dbo::Transaction transaction(m_session);
+    
+            long long id = result.get("user");
+            long long idForward = result.get("userForward");
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> atePtr = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+            
+            if(atePtr.size() > 0)
+            {
+                Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>>::iterator itAtePtr = atePtr.begin();
+                if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::PENDING
+                        || (itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED
+                            && itAtePtr->get()->user.id() == id))
+                {
+                    Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
+
+                    newStateAle->date = now;
+                    newStateAle->alert = itAtePtr->get()->alert;
+                    
+                    newStateAle->statut = m_session.find<Echoes::Dbo::AlertStatus>()
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::FORWARDING)
+                        .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+                    
+                    newStateAle->user = m_session.find<Echoes::Dbo::User>()
+                        .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(idForward)
+                        .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL");
+
+                    Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+                    res = EReturnCode::CREATED;
+                }
+                else
+                {
+                    res = EReturnCode::BAD_REQUEST;
+                    const string err = "[Alert Resource] Alert is not pending or user is not in charge";
+                    responseMsg = httpCodeToJSON(res, err);
+                }
+            }
+            else
+            {
+                res = EReturnCode::BAD_REQUEST;
+                const string err = "[Alert Resource] Alert is not pending";
+                responseMsg = httpCodeToJSON(res, err);
+            }
+            transaction.commit();
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+        catch (Wt::Json::TypeException const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+    
+    return res;
+}
+
 EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
@@ -1057,7 +1133,9 @@ EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::v
             if(atePtr.size() > 0)
             {
                 Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>>::iterator itAtePtr = atePtr.begin();
-                if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::PENDING)
+                if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::PENDING
+                        || (itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::FORWARDING
+                            && itAtePtr->get()->user.id() == id))
                 {
                     Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
 
@@ -1078,7 +1156,7 @@ EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::v
                 else
                 {
                     res = EReturnCode::BAD_REQUEST;
-                    const string err = "[Alert Resource] Alert is not pending";
+                    const string err = "[Alert Resource] Alert is not pending or user is not forwarded";
                     responseMsg = httpCodeToJSON(res, err);
                 }
             }
@@ -1273,6 +1351,10 @@ EReturnCode AlertResource::processPutRequest(const Wt::Http::Request &request, c
             if (nextElement.compare("start") == 0)
             {
                 res = startAlert(sRequest, pathElements, orgId, responseMsg);
+            }
+            else if (nextElement.compare("forward") == 0)
+            {
+                res = forwardAlert(sRequest, pathElements, orgId, responseMsg);
             }
             else if (nextElement.compare("assign") == 0)
             {

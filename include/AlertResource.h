@@ -122,6 +122,7 @@ class AlertResource : public PublicApiResource
         EReturnCode startAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode assignAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         EReturnCode resolveAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
+        EReturnCode forwardAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
         virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
         EReturnCode deleteAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
