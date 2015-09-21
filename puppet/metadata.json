@@ -32,8 +32,8 @@
   ],
   "dependencies": [
     {"name":"puppetlabs/stdlib","version_requirement":">= 1.0.0"},
-    {"name":"echoes/echoes_alert_probe","version_requirement":">= 0.1.0"}
+    {"name":"echoes/echoes_alert_dbo","version_requirement":">= 0.1.0"},
+    {"name":"echoes/echoes_alert_probe","version_requirement":">= 0.1.0"},
     {"name":"echoes/monit","version_requirement":">= 1.0.0"}
-    {"name":"echoes/wt","version_requirement":">= 0.1.0"}
   ]
 }

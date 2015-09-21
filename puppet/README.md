@@ -47,7 +47,6 @@ class {'echoes_alert_api':
   version => 'latest',
 }
 ```
-
 ## Reference
 
 ### Classes
