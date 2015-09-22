@@ -42,8 +42,10 @@ class Conf {
         std::string getRouteurHost() const;
         unsigned getRouteurPort() const;
         unsigned getServerPort() const;
-        void setServerPort(unsigned port);
+        std::string getFQDN() const;
         
+        void setServerPort(unsigned port);
+   
     protected:
         std::string m_sessConnectParams;
         std::string m_smtpHost;
@@ -56,7 +58,8 @@ class Conf {
         std::string m_routeurHost;
         unsigned m_routeurPort;
         unsigned m_serverPort;
-
+        std::string m_fqdn;
+        
         void setSessConnectParams
         (
                 std::string dbHost,
@@ -74,6 +77,7 @@ class Conf {
         void setSmsLogin(std::string smsLogin);
         void setRouteurPort(unsigned routeurPort);
         void setRouteurHost(std::string routeurHost);
+        void setFQDN(std::string fqdn);
 
 };
 

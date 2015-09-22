@@ -16,6 +16,7 @@ using namespace std;
 
 MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    srand(time(NULL));
 }
 
 MessageResource::~MessageResource()
@@ -775,6 +776,8 @@ EReturnCode MessageResource::sendMAIL
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
+    Wt::Dbo::Transaction transaction(m_session, true);
+    
     Wt::WString mailRecipientName = "";
     Wt::WString mailRecipient;
     if (amsPtr.isTransient() == 0)
@@ -786,6 +789,8 @@ EReturnCode MessageResource::sendMAIL
     Wt::Mail::Message mailMessage;
     Wt::Mail::Client mailClient;
 
+    msgPtr.modify()->refAck = generateToken();
+    
     if (amsPtr.isTransient() == 0)
     {
         // Normal case
@@ -823,6 +828,31 @@ EReturnCode MessageResource::sendMAIL
         mailBody += msgPtr->content.get().toUTF8();
     }
     
+    string port = boost::lexical_cast<std::string>(conf.getServerPort());
+    mailBody += "<div style=\"display: inline-block; text-align: center; margin-left: 40px;\">"
+            "<p style=\"\">Pour vous assigner l'alerte cliquez <a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/assign?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8()  + "\">ici</a></p>";
+    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
+                .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(msgPtr->user->organization.id())
+                .orderBy(QUOTE(TRIGRAM_USER ID));
+    if(usrPtrCol.size() > 1)
+    {
+        mailBody += "<p style=\"font-weight: bold;\">Vous pouvez aussi la transmettre a une autre personne</p>";
+        for(Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>>::iterator it = usrPtrCol.begin();
+                it != usrPtrCol.end(); it++)
+        {
+            if((*it).id() != msgPtr->user.id())
+            {
+                mailBody += ("<p style=\"\">Pour l'assigner a <h7 style=\"font-weight: bold;\">" + it->get()->firstName.toUTF8() + " " + it->get()->lastName.toUTF8() + "</h7> cliquez "
+                            "<a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/forward"
+                            "?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8() + "&idForward=" + boost::lexical_cast<std::string>((*it).id()) + "\">ici</a></p>");
+            }
+        }
+    }
+    mailBody += "<p style=\"font-weight: bold;\">Une fois résolu, vous pouvez le signaler en cliquant ";
+    mailBody += "<a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/resolve?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8()  + "\">ici</a>";
+    mailBody += "</p></div>";
+    
     if (ivaPtrVector.size() > 0)
     {
         replaceVariablesInMessage(ivaPtrVector, alePtr, mailBody);
@@ -844,16 +874,26 @@ EReturnCode MessageResource::sendMAIL
     mailMessage.addHtmlBody(mailBody);
     mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
     mailClient.send(mailMessage);
+    
+    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
+    newStateMsg->date = now;
+    newStateMsg->message = msgPtr;
+    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr;
+    mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+            .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::SENDED)
+            .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+    newStateMsg->statut = mstPtr;
+    
+    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+    
     Wt::log("debug") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
     if (amsPtr.isTransient() == 0)
     {
         amsPtr.modify()->lastSend = now;
     }
-
-    //create new state of message
-    //msgPtr.modify()->sendDate = now;
-    msgPtr.modify()->content = mailBody;
+    
+    transaction.commit();
 
     res = EReturnCode::OK;
 
@@ -878,7 +918,7 @@ EReturnCode MessageResource::sendSMS
     Wt::log("debug") << " [Alert Resource] New SMS for " << msgPtr->dest << " : " << msgPtr->content;
 
     ItookiSMSSender itookiSMSSender(m_session);
-
+    
     if (!itookiSMSSender.send(msgPtr->dest.get().toUTF8(), msgPtr->content.get().toUTF8(), alertID, msgPtr))
     {
         if (amsPtr.isTransient() == 0)
@@ -955,3 +995,36 @@ void MessageResource::replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo:
     }
 }
 
+Wt::WString MessageResource::generateToken()
+{
+    Wt::Dbo::ptr<Echoes::Dbo::Message> dest;
+    bool notUnique = true;
+    string codeGenerated;
+    char caractere;
+    
+    while(notUnique)
+    {
+        for(int i = 0; i < 15; i++)
+        {
+            do
+            {
+                caractere = ((rand() % 90) + 34);
+            }while(!((caractere >= 48 && caractere <= 57)
+                    || (caractere >= 65 && caractere <= 90)
+                    || (caractere >=97  && caractere <= 122)));
+            codeGenerated += caractere;
+        }
+        dest = m_session.find<Echoes::Dbo::Message>()
+                    .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(codeGenerated)
+                    .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+        if(dest)
+        {
+            notUnique = true;
+        }
+        else
+        {
+            notUnique = false;
+        }
+    }
+    return (Wt::WString)(codeGenerated);
+}

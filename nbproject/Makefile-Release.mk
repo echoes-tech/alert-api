@@ -61,7 +61,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/itooki/ItookiAswReceiver.o \
 	${OBJECTDIR}/src/itooki/ItookiSMSSender.o \
 	${OBJECTDIR}/src/itooki/ItookiSendedReiceiver.o \
-	${OBJECTDIR}/src/itooki/PublicItookiResource.o
+	${OBJECTDIR}/src/itooki/PublicItookiResource.o \
+	${OBJECTDIR}/src/mail/PublicMailResource.o \
+	${OBJECTDIR}/src/mail/mailAssign.o \
+	${OBJECTDIR}/src/mail/mailForward.o \
+	${OBJECTDIR}/src/mail/mailResolve.o
 
 # Test Directory
 TESTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tests
@@ -228,6 +232,26 @@ ${OBJECTDIR}/src/itooki/PublicItookiResource.o: src/itooki/PublicItookiResource.
 	${MKDIR} -p ${OBJECTDIR}/src/itooki
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/itooki/PublicItookiResource.o src/itooki/PublicItookiResource.cpp
+
+${OBJECTDIR}/src/mail/PublicMailResource.o: src/mail/PublicMailResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/PublicMailResource.o src/mail/PublicMailResource.cpp
+
+${OBJECTDIR}/src/mail/mailAssign.o: src/mail/mailAssign.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/mailAssign.o src/mail/mailAssign.cpp
+
+${OBJECTDIR}/src/mail/mailForward.o: src/mail/mailForward.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/mailForward.o src/mail/mailForward.cpp
+
+${OBJECTDIR}/src/mail/mailResolve.o: src/mail/mailResolve.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/mailResolve.o src/mail/mailResolve.cpp
 
 # Subprojects
 .build-subprojects:
@@ -594,6 +618,58 @@ ${OBJECTDIR}/src/itooki/PublicItookiResource_nomain.o: ${OBJECTDIR}/src/itooki/P
 	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/itooki/PublicItookiResource_nomain.o src/itooki/PublicItookiResource.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/src/itooki/PublicItookiResource.o ${OBJECTDIR}/src/itooki/PublicItookiResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/mail/PublicMailResource_nomain.o: ${OBJECTDIR}/src/mail/PublicMailResource.o src/mail/PublicMailResource.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/mail/PublicMailResource.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/PublicMailResource_nomain.o src/mail/PublicMailResource.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/mail/PublicMailResource.o ${OBJECTDIR}/src/mail/PublicMailResource_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/mail/mailAssign_nomain.o: ${OBJECTDIR}/src/mail/mailAssign.o src/mail/mailAssign.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/mail/mailAssign.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/mailAssign_nomain.o src/mail/mailAssign.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/mail/mailAssign.o ${OBJECTDIR}/src/mail/mailAssign_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/mail/mailForward_nomain.o: ${OBJECTDIR}/src/mail/mailForward.o src/mail/mailForward.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/mail/mailForward.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/mailForward_nomain.o src/mail/mailForward.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/mail/mailForward.o ${OBJECTDIR}/src/mail/mailForward_nomain.o;\
+	fi
+
+${OBJECTDIR}/src/mail/mailResolve_nomain.o: ${OBJECTDIR}/src/mail/mailResolve.o src/mail/mailResolve.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src/mail
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/src/mail/mailResolve.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O3 -s -Iinclude -I../dbo/include -I/var/lib/jenkins/jobs/ea-dbo-${target}/workspace/include -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/mail/mailResolve_nomain.o src/mail/mailResolve.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/src/mail/mailResolve.o ${OBJECTDIR}/src/mail/mailResolve_nomain.o;\
 	fi
 
 # Run Test Targets

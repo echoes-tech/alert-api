@@ -28,7 +28,8 @@ m_smsPassword(""),
 m_smsHttps(true),
 m_routeurHost(""),
 m_routeurPort(0),
-m_serverPort(0)
+m_serverPort(0),
+m_fqdn("")
 {
 }
 
@@ -40,8 +41,6 @@ bool Conf::readProperties(Wt::WServer& server)
 {
     Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML ;
 
-    //setServerPort(server.httpPort());
-    
     bool res = false;
     struct Db
     {
@@ -164,6 +163,17 @@ bool Conf::readProperties(Wt::WServer& server)
                 {
                      Wt::log("error") << "[Conf] Property named 'sms-routeur-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
                      return res;
+                }
+                
+                std::string fqdn;
+                if(server.readConfigurationProperty("fqdn", fqdn))
+                {
+                    setFQDN(fqdn);
+                }
+                else
+                {
+                    setFQDN("127.0.0.1");
+                    Wt::log("warning") << "[Conf] no fqdn in " << WT_CONFIG_XML << "set to 127.0.0.1";
                 }
             }
             else
@@ -316,4 +326,15 @@ void Conf::setServerPort(unsigned port)
 unsigned Conf::getServerPort() const
 {
     return m_serverPort;
+}
+
+void Conf::setFQDN(std::string fqdn)
+{
+    m_fqdn = fqdn;
+    return;
+}
+
+std::string Conf::getFQDN() const
+{
+    return m_fqdn;
 }

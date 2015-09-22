@@ -74,6 +74,7 @@ class MessageResource : public PublicApiResource
         
     protected:
         
+        Wt::WString generateToken();
         
         EReturnCode getMessages(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
         EReturnCode getMessage(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg);

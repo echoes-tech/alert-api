@@ -9,6 +9,13 @@
           <itemPath>include/itooki/ItookiAckReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiAswReceiver.h</itemPath>
           <itemPath>include/itooki/ItookiSMSSender.h</itemPath>
+          <itemPath>include/itooki/PublicItookiResource.h</itemPath>
+        </logicalFolder>
+        <logicalFolder name="f1" displayName="mail" projectFiles="true">
+          <itemPath>include/mail/PublicMailResource.h</itemPath>
+          <itemPath>include/mail/mailAssign.h</itemPath>
+          <itemPath>include/mail/mailForward.h</itemPath>
+          <itemPath>include/mail/mailResolve.h</itemPath>
         </logicalFolder>
       </logicalFolder>
       <itemPath>include/AddonResource.h</itemPath>
@@ -52,6 +59,12 @@
           <itemPath>src/itooki/ItookiSMSSender.cpp</itemPath>
           <itemPath>src/itooki/ItookiSendedReiceiver.cpp</itemPath>
           <itemPath>src/itooki/PublicItookiResource.cpp</itemPath>
+        </logicalFolder>
+        <logicalFolder name="f1" displayName="mail" projectFiles="true">
+          <itemPath>src/mail/PublicMailResource.cpp</itemPath>
+          <itemPath>src/mail/mailAssign.cpp</itemPath>
+          <itemPath>src/mail/mailForward.cpp</itemPath>
+          <itemPath>src/mail/mailResolve.cpp</itemPath>
         </logicalFolder>
         <itemPath>src/AddonResource.cpp</itemPath>
         <itemPath>src/AlertResource.cpp</itemPath>
@@ -243,6 +256,19 @@
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/itooki/PublicItookiResource.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="include/mail/PublicMailResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/mail/mailAssign.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/mail/mailForward.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/mail/mailResolve.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
@@ -302,6 +328,14 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="src/mail/PublicMailResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mail/mailAssign.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mail/mailForward.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mail/mailResolve.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"
@@ -427,6 +461,19 @@
       </item>
       <item path="include/itooki/ItookiSMSSender.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/itooki/PublicItookiResource.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="include/mail/PublicMailResource.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/mail/mailAssign.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/mail/mailForward.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/mail/mailResolve.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AddonResource.cpp" ex="false" tool="1" flavor2="0">
@@ -486,6 +533,14 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="src/mail/PublicMailResource.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mail/mailAssign.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mail/mailForward.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mail/mailResolve.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"

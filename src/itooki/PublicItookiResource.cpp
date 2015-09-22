@@ -136,7 +136,7 @@ namespace boost
 
 #endif PUBLICAPIRESOURCE_H */
 
-#include "PublicItookiResource.h"
+#include "itooki/PublicItookiResource.h"
 
 using namespace std;
 
