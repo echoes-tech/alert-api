@@ -750,12 +750,9 @@ EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &or
                 {
                     newPrb->probePackageParameter = pppPtr;
                 } 
-
                 Wt::Dbo::ptr<Echoes::Dbo::Probe> newPrbPtr = m_session.add<Echoes::Dbo::Probe>(newPrb);
                 newPrbPtr.flush();
-
                 res = serialize(newPrbPtr, responseMsg, EReturnCode::CREATED);
-
                 transaction.commit();
             }
             else
