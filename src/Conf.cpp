@@ -33,9 +33,19 @@ Conf::~Conf()
 {
 }
 
+void Conf::initConfFileName(int argc, char ** argv)
+{
+    setConfFileName(WT_CONFIG_XML);
+    for(int i = 0; i < argc - 1; i++)
+    {
+        if(strcmp(argv[i], "-c") == 0)
+            setConfFileName(argv[i + 1]);
+    }
+}
+
 bool Conf::readProperties(Wt::WServer& server)
 {
-    Wt::log("debug") << "[Conf] Read properties from " << WT_CONFIG_XML;
+    Wt::log("debug") << "[Conf] Read properties from " << getConfFileName();
 
     bool res = false;
     struct Db
@@ -89,7 +99,7 @@ bool Conf::readProperties(Wt::WServer& server)
         }
         catch (boost::bad_lexical_cast &)
         {
-             Wt::log("error") << "[Conf] Property named 'db-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
+             Wt::log("error") << "[Conf] Property named 'db-port' in " << getConfFileName() << " should be an unsigned integer";
              return res;
         }
 
@@ -102,7 +112,7 @@ bool Conf::readProperties(Wt::WServer& server)
             }
             catch (boost::bad_lexical_cast &)
             {
-                 Wt::log("error") << "[Conf] Property named 'smtp-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
+                 Wt::log("error") << "[Conf] Property named 'smtp-port' in " << getConfFileName() << " should be an unsigned integer";
                  return res;
             }
             
@@ -112,7 +122,7 @@ bool Conf::readProperties(Wt::WServer& server)
             }
             else
             {
-                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-name' is set 'ECHOES Alert' because it is not set in " << WT_CONFIG_XML;
+                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-name' is set 'ECHOES Alert' because it is not set in " << getConfFileName();
             }
             
             if (server.readConfigurationProperty("alert-mail-sender-address", alertMailSender.address))
@@ -121,7 +131,7 @@ bool Conf::readProperties(Wt::WServer& server)
             }
             else
             {
-                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-address' is set 'noreply-alert@echoes-tech.com' because it is not set in " << WT_CONFIG_XML;
+                Wt::log("warning") << "[Conf] Property named 'alert-mail-sender-address' is set 'noreply-alert@echoes-tech.com' because it is not set in " << getConfFileName();
             }
 
             if
@@ -143,24 +153,24 @@ bool Conf::readProperties(Wt::WServer& server)
                 }
                 else
                 {
-                     Wt::log("error") << "[Conf] Property named 'sms-https' in " << WT_CONFIG_XML << " should be an boolean (true or false). By default: true";
+                     Wt::log("error") << "[Conf] Property named 'sms-https' in " << getConfFileName() << " should be an boolean (true or false). By default: true";
                 }
             }
             else
             {
-                Wt::log("warning") << "[Conf] Incomplete SMS properties in " << WT_CONFIG_XML;
+                Wt::log("warning") << "[Conf] Incomplete SMS properties in " << getConfFileName();
             }
 
             res = true;
         }
         else
         {
-            Wt::log("error") << "[Conf] Incomplete SMTP properties in " << WT_CONFIG_XML;
+            Wt::log("error") << "[Conf] Incomplete SMTP properties in " << getConfFileName();
         }
     }
     else
     {
-        Wt::log("error") << "[Conf] Incomplete DB properties in " << WT_CONFIG_XML;
+        Wt::log("error") << "[Conf] Incomplete DB properties in " << getConfFileName();
     }
     
     return res;
@@ -265,3 +275,13 @@ string Conf::getSmsLogin() const
     return m_smsLogin;
 }
 
+void Conf::setConfFileName(string fileName)
+{
+    m_configFileName = fileName;
+    return;
+}
+
+string Conf::getConfFileName() const
+{
+    return m_configFileName;
+}

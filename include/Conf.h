@@ -37,6 +37,9 @@ class Conf {
         bool isSmsHttps() const;
         std::string getSmsPassword() const;
         std::string getSmsLogin() const;
+        std::string getConfFileName() const;
+        
+        void initConfFileName(int argc, char ** argv);
 
     protected:
         std::string m_sessConnectParams;
@@ -47,6 +50,7 @@ class Conf {
         std::string m_smsLogin;
         std::string m_smsPassword;
         bool m_smsHttps;
+        std::string m_configFileName;
 
         void setSessConnectParams
         (
@@ -63,6 +67,7 @@ class Conf {
         void setSmsHttps(bool smsHttps);
         void setSmsPassword(std::string smsPassword);
         void setSmsLogin(std::string smsLogin);
+        void setConfFileName(std::string fileName);
 };
 
 extern Conf conf;

@@ -65,6 +65,7 @@ int main(int argc, char **argv)
         // On définit la configuration du serveur en lui passant les paramètres d'entrée et son fichier de configuration
         server.setServerConfiguration(argc, argv);
 
+        conf.initConfFileName(argc, argv);
         if (conf.readProperties(server))
         {
             Echoes::Dbo::Session session(conf.getSessConnectParams());
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            Wt::log("fatal") << "[Main] Every properties are not correctly set in " << WT_CONFIG_XML;
+            Wt::log("fatal") << "[Main] Every properties are not correctly set in " << conf.getConfFileName();
         }
     }
     catch (Wt::WServer::Exception& e)
