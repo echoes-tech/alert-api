@@ -665,7 +665,7 @@ EReturnCode InformationResource::deleteInformation(const vector<string> &pathEle
             }
             else
             {
-                res = EReturnCode::CONFLICT;
+                res = EReturnCode::LOCKED;
                 responseMsg = httpCodeToJSON(res, infPtr);
             }
         }

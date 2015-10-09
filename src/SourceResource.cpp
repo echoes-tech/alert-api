@@ -546,7 +546,7 @@ EReturnCode SourceResource::deleteSource(const std::vector<std::string> &pathEle
             }
             else
             {
-                res = EReturnCode::CONFLICT;
+                res = EReturnCode::LOCKED;
                 responseMsg = httpCodeToJSON(res, srcPtr);
             }
         }

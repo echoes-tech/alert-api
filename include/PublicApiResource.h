@@ -265,6 +265,9 @@ protected:
             case I_AM_A_TEAPOT:
                 message = "I'm a teapot (RFC 2324)";
                 break;
+            case LOCKED:
+                message = "Locked (existing relations)";
+                break;
             case UPGRADE_REQUIRED:
                 message = "Upgrade Required";
                 break;

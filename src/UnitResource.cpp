@@ -381,7 +381,7 @@ EReturnCode UnitResource::deleteUnit(const std::vector<std::string> &pathElement
             }
             else
             {
-                res = EReturnCode::CONFLICT;
+                res = EReturnCode::LOCKED;
                 responseMsg = httpCodeToJSON(res, inuPtr);
             } 
         }
