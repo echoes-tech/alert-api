@@ -113,8 +113,8 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
             
     
     Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> msgEvCreaPtr = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
-            .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT ID) " = ?").bind(Echoes::Dbo::EMessageStatus::CREATED)
-            .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE SEP ID) " = ?").bind(msgTrEv->message.id())
+            .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE_STATUS SEP TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::CREATED)
+            .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID) " = ?").bind(msgTrEv->message.id())
             .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL");
     
     if(AlertEventList.size() > 0 && msgEvCreaPtr)
@@ -123,10 +123,11 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
         // - alert pending
         // - date cration du pending < date etat created du message
         // - message reçu = 1
-        bool date_crea = (AlertEventList.begin()->get()->date < msgEvCreaPtr->date);
-        bool pending = (AlertEventList.begin()->get()->statut.id() == Echoes::Dbo::EAlertStatus::PENDING);
-        bool supported = (AlertEventList.begin()->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED);
-        bool sameSupport = (AlertEventList.begin()->get()->user == msgTrEv->message->user);
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>>::iterator AlertEventIt = AlertEventList.begin();
+        bool date_crea = (AlertEventIt->get()->date < msgEvCreaPtr->date);
+        bool pending = (AlertEventIt->get()->statut.id() == Echoes::Dbo::EAlertStatus::PENDING);
+        bool supported = (AlertEventIt->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED);
+        bool sameSupport = (AlertEventIt->get()->user == msgTrEv->message->user);
         if(date_crea && pending && msgTrEv->text == "1")
         {
             Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
@@ -180,7 +181,11 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
     }
     else
     {
-        Wt::log("error") << "[Itooki asw Receiver] error database" << msgTrEv->text; 
+        Wt::log("error") << "[Itooki asw Receiver] error database " << msgTrEv->text; 
+        if(AlertEventList.size() <= 0)
+            Wt::log("error") << "[Itooki asw Receiver] no alert event for id " << ptrAle.id();
+        else
+            Wt::log("error") << "[Itooki asw Receiver] message created event not found for id " << msgTrEv->message.id();
     }
 }
 

@@ -31,7 +31,7 @@ class ItookiSMSSender : public PublicItookiResource
 
         void setParent(Wt::WObject* parent);
 
-        void handleHttpResponse(Wt::Http::Client *client, boost::system::error_code err, const Wt::Http::Message& response, const long long atrId);
+        void handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response, const long long atrId);
 };
 
 #endif	/* ITOOKISMSSENDER_H */

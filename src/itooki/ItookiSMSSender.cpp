@@ -25,15 +25,21 @@ ItookiSMSSender::~ItookiSMSSender()
 
 int ItookiSMSSender::send(const string &number, const string &message, const long long alertID, Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr)
 {
+    Wt::log("debug") << " [Itooki Sms Sender Resource] starting ";
     int res = -1;
     string ackRecv = "", ackSlvd = "";
     try
     {
+        Wt::log("debug") << " [Itooki Sms Sender Resource] begin ";
         if(msgPtr)
         {
-            Wt::Http::Client *client = new Wt::Http::Client(m_parent);
-            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, client, _1, _2, msgPtr.id()));
+            Wt::log("debug") << " [Itooki Sms Sender Resource] ok msgPtr : " << msgPtr.id(); 
+            Wt::Http::Client *client = new Wt::Http::Client(this);
+            long long msgPtrId = msgPtr.id();
+            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, _1, _2, msgPtrId));
 
+            Wt::log("debug") << " [Itooki Sms Sender Resource] preparation to itooki ";
+            
             string url = "http";
             if (conf.isSmsHttps())
             {
@@ -41,13 +47,15 @@ int ItookiSMSSender::send(const string &number, const string &message, const lon
             }
             url += "://" + conf.getRouteurHost() +":" + boost::lexical_cast<std::string>(conf.getRouteurPort()) + "/send";
             string json = "{";
-            json += "\"number\" : \"" + number + "\"";
-            json += "\"message\" : \"" + message + "\"";
-            json += "\"port\" : \""+ boost::lexical_cast<std::string>(conf.getServerPort()) + "\"";
+            json += "\"number\" : \"" + number + "\",";
+            json += "\"message\" : \"" + message + "\",";
+            json += "\"port_back\" : " + boost::lexical_cast<std::string>(conf.getServerPort());
             json += "}";
             
             Wt::Http::Message httpMessage;
             httpMessage.addBodyText(json);
+            
+            Wt::log("debug") << " [Itooki Sms Sender Resource] preparation ok : " << url << " => " << json;
             
             client->post(url, httpMessage); 
             res = 0;
@@ -67,15 +75,24 @@ int ItookiSMSSender::send(const string &number, const string &message, const lon
     return res;
 }
 
-void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system::error_code err, const Wt::Http::Message& response, const long long msgId)
+void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response, const long long msgId)
 {
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
+    cout << "ok begin of return of sended" << endl;
+    
     Wt::Dbo::Transaction transaction(m_session);
     
-    Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
-                        .where(QUOTE(TRIGRAM_MESSAGE ID) " = ?").bind(msgId)
-                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+    const string queryStr =
+" SELECT msg"
+"   FROM " QUOTE("T_MESSAGE_MSG") " msg"
+"   WHERE"
+"     " QUOTE(TRIGRAM_MESSAGE ID) " = " + boost::lexical_cast<string>(msgId) +
+"   LIMIT 1";
+
+    Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Message>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Message>> (queryStr);
+
+    Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = queryRes.resultValue();
       
     if (!err && response.status() == 200)
     {
@@ -107,7 +124,7 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
         if(isOk)
         {
             msgPtr.modify()->refAck = ref;
-            Wt::log("error") << "[Itooki SMS Sender] routeur ok: " ;
+            Wt::log("debug") << "[Itooki SMS Sender] routeur ok " ;
             Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
             newStateMsg->date = now;
@@ -151,8 +168,10 @@ void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system
                     
         Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
     }
-    cout << "ok back of send" << endl;
-    delete client;
+    
+    transaction.commit();
+    
+    cout << "ok end of return of sended" << endl;
 }
 
 void ItookiSMSSender::setParent(Wt::WObject* parent)

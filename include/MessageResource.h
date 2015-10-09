@@ -139,8 +139,8 @@ class MessageResource : public PublicApiResource
 
         
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-
-
+    private:
+        ItookiSMSSender* m_itookiSMSSender;
 };
 #endif	/* MESSAGERESOURCE_H */
 

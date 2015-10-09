@@ -17,6 +17,7 @@ using namespace std;
 MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
     srand(time(NULL));
+    m_itookiSMSSender = new ItookiSMSSender(m_session);
 }
 
 MessageResource::~MessageResource()
@@ -776,20 +777,37 @@ EReturnCode MessageResource::sendMAIL
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    Wt::Dbo::Transaction transaction(m_session, true);
+    Wt::log("debug") << " [Message Resource] preparation du mail start";
+    
+    //Wt::Dbo::Transaction transaction(m_session, true);
+    
+    Wt::log("debug") << " [Message Resource] preparation du mail 0";
     
     Wt::WString mailRecipientName = "";
+    
+    Wt::log("debug") << " [Message Resource] preparation du mail 1";
+    
     Wt::WString mailRecipient;
     if (amsPtr.isTransient() == 0)
     {
         mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName;
     }
+    
+    Wt::log("debug") << " [Message Resource] preparation du mail 2";
+    
     string mailBody = "";
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+    
+    Wt::log("debug") << " [Message Resource] preparation du mail 3";
+    
     Wt::Mail::Message mailMessage;
     Wt::Mail::Client mailClient;
 
+    Wt::log("debug") << " [Message Resource] generation du token ";
+    
     msgPtr.modify()->refAck = generateToken();
+    
+    Wt::log("debug") << " [Message Resource] token généré :  " << msgPtr->refAck;
     
     if (amsPtr.isTransient() == 0)
     {
@@ -828,8 +846,10 @@ EReturnCode MessageResource::sendMAIL
         mailBody += msgPtr->content.get().toUTF8();
     }
     
+    Wt::log("debug") << " [Message Resource] ajout du supplément ";
+    
     string port = boost::lexical_cast<std::string>(conf.getServerPort());
-    mailBody += "<div style=\"display: inline-block; text-align: center; margin-left: 40px;\">"
+    mailBody += "<div style=\"text-align: center; margin-left: 40px;\">"
             "<p style=\"\">Pour vous assigner l'alerte cliquez <a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/assign?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8()  + "\">ici</a></p>";
     Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
@@ -871,6 +891,8 @@ EReturnCode MessageResource::sendMAIL
         mailMessage.setSubject("[Echoes Alert]");
     }
     
+    Wt::log("debug") << " [Message Resource] envoi ";
+    
     mailMessage.addHtmlBody(mailBody);
     mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
     mailClient.send(mailMessage);
@@ -887,13 +909,13 @@ EReturnCode MessageResource::sendMAIL
     
     Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
     
-    Wt::log("debug") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
+    Wt::log("debug") << " [Class:MessageSender] " << "insert date of last send in db : " << now.toString();
     if (amsPtr.isTransient() == 0)
     {
         amsPtr.modify()->lastSend = now;
     }
     
-    transaction.commit();
+    //transaction.commit();
 
     res = EReturnCode::OK;
 
@@ -915,12 +937,11 @@ EReturnCode MessageResource::sendSMS
     long long alertID;
     alertID = amsPtr->id;
 
-    Wt::log("debug") << " [Alert Resource] New SMS for " << msgPtr->dest << " : " << msgPtr->content;
-
-    ItookiSMSSender itookiSMSSender(m_session);
+    Wt::log("debug") << " [Message Resource] New SMS for " << msgPtr->dest << " : " << msgPtr->content;
     
-    if (!itookiSMSSender.send(msgPtr->dest.get().toUTF8(), msgPtr->content.get().toUTF8(), alertID, msgPtr))
+    if (!m_itookiSMSSender->send(msgPtr->dest.get().toUTF8(), msgPtr->content.get().toUTF8(), alertID, msgPtr))
     {
+        Wt::log("debug") << " [Message Resource] New SMS sended ";
         if (amsPtr.isTransient() == 0)
         {
             amsPtr.modify()->lastSend = now;
@@ -928,6 +949,8 @@ EReturnCode MessageResource::sendSMS
         
         res = EReturnCode::OK;
     }
+    
+    Wt::log("debug") << " [Message Resource] New SMS sended 2";
 
     return res;
     
@@ -1008,10 +1031,12 @@ Wt::WString MessageResource::generateToken()
         {
             do
             {
-                caractere = ((rand() % 90) + 34);
+                caractere = ((rand() % 74) + 48);
+                Wt::log("debug") << "caractere genere " << caractere;
             }while(!((caractere >= 48 && caractere <= 57)
                     || (caractere >= 65 && caractere <= 90)
                     || (caractere >=97  && caractere <= 122)));
+            Wt::log("debug") << "caractere accepte ";
             codeGenerated += caractere;
         }
         dest = m_session.find<Echoes::Dbo::Message>()
