@@ -28,7 +28,7 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
 {
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    Wt::Dbo::Transaction transaction(m_session);
+    Wt::Dbo::Transaction transaction(m_session, true);
     
     EReturnCode res = EReturnCode::OK;
     
@@ -128,6 +128,9 @@ EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const 
             const string err = "[Send Resource] sRequest is not empty";
             responseMsg = httpCodeToJSON(res, err);
         }
+    
+    transaction.commit();
+    
     return (res);
 }
 

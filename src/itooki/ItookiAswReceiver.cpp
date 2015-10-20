@@ -30,7 +30,7 @@ EReturnCode ItookiAswReceiver::postAsw(map<string, long long> parameters, const 
     
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    Wt::Dbo::Transaction transaction(m_session);
+    Wt::Dbo::Transaction transaction(m_session, true);
     
     Wt::WString  refenvoi = "missing";
     Wt::WString  message = "missing";
@@ -95,6 +95,7 @@ EReturnCode ItookiAswReceiver::postAsw(map<string, long long> parameters, const 
             const string err = "[Send Resource] sRequest is not empty";
             responseMsg = httpCodeToJSON(res, err);
         }
+    transaction.commit();
     return (res);
 }
 
@@ -104,7 +105,6 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
     
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    Wt::Dbo::Transaction transaction(m_session);
     
     Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> AlertEventList = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
                     .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(ptrAle.id())
@@ -187,6 +187,7 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
         else
             Wt::log("error") << "[Itooki asw Receiver] message created event not found for id " << msgTrEv->message.id();
     }
+    
 }
 
 EReturnCode ItookiAswReceiver::processPostRequest(const Wt::Http::Request &request, std::string &responseMsg)

@@ -91,7 +91,7 @@ EReturnCode MailForward::doMailForward(map<string, string> parameters, const vec
     
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    Wt::Dbo::Transaction transaction(m_session);
+    Wt::Dbo::Transaction transaction(m_session, true);
     
     bool informationReceived = false;
     Wt::WString  token = "missing";
@@ -205,16 +205,27 @@ EReturnCode MailForward::doMailForward(map<string, string> parameters, const vec
                     {
                         res = EReturnCode::BAD_REQUEST;
                         Wt::log("error") << "[Mail Forward Resource] Alert is not pending or user is not supporter";
-                        responseMsg = "Forward impossible. l'alerte n'attend pas d'assignation ou vous n'etes pas le supporteur";
+                        responseMsg = "Forward impossible. ";
+                        if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED)
+                        {
+                            responseMsg += "L'alerte a déjà été pourvue et vous n'êtes pas la personne responable.";
+                        }
+                        else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
+                        {
+                            responseMsg += "L'alerte a déjà été résolue.";
+                        }
+                        else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::FORWARDING)
+                        {
+                            responseMsg += "L'alerte a déjà été forwardée et vous n'êtes pas la personne forwardée.";
+                        }
                     }
                 }
                 else
                 {
                     res = EReturnCode::BAD_REQUEST;
                     Wt::log("error") << "[Mail Forward Resource] Alert is not pending";
-                    responseMsg = "Une erreur est survenue dans la demande. L'alerte n'existe pas";
+                    responseMsg = "Une erreur est survenue dans la demande. L'alerte existe mais elle n'a pas de statut";
                 }
-            transaction.commit();
         }
         else
         {
@@ -229,6 +240,8 @@ EReturnCode MailForward::doMailForward(map<string, string> parameters, const vec
         res = EReturnCode::BAD_REQUEST;
         responseMsg = "Une erreur est survenue dans la demande. Contactez le support applicatif. . Erreur : informations non reçues";
     }
+    
+    transaction.commit();
     
     return (res);
 }

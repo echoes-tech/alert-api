@@ -90,7 +90,7 @@ EReturnCode MailAssign::doMailAssign(map<string, string> parameters, const vecto
     
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    Wt::Dbo::Transaction transaction(m_session);
+    Wt::Dbo::Transaction transaction(m_session, true);
     
     bool informationReceived = false;
     Wt::WString  token = "missing";
@@ -195,22 +195,33 @@ EReturnCode MailAssign::doMailAssign(map<string, string> parameters, const vecto
                     {
                         res = EReturnCode::BAD_REQUEST;
                         Wt::log("error") << "[Mail Assign Resource] Alert is not pending or user is not forwarded";
-                        responseMsg = "Assignation impossible. l'alerte n'attend pas d'assignation.";
+                        responseMsg = "Assignation impossible. ";
+                        if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED)
+                        {
+                            responseMsg += "L'alerte a déjà été pourvue.";
+                        }
+                        else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
+                        {
+                            responseMsg += "L'alerte a déjà été résolue.";
+                        }
+                        else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::FORWARDING)
+                        {
+                            responseMsg += "L'alerte a déjà été forwardée et vous n'êtes pas la personne forwardée.";
+                        }
                     }
                 }
                 else
                 {
                     res = EReturnCode::BAD_REQUEST;
                     Wt::log("error") << "[Mail Assign Resource] Alert is not pending";
-                    responseMsg = "Une erreur est survenue dans la demande. Message invalide.";
+                    responseMsg = "Une erreur est survenue dans la demande. L'alerte existe mais elle n'a pas de statut";
                 }
-            transaction.commit();
         }
         else
         {
             Wt::log("error") << "[Mail Assign Resource] No Message " << id << " " << token;
             res = EReturnCode::BAD_REQUEST;
-            responseMsg = "Une erreur est survenue dans la demande. L'alerte est elle encore active?";  
+            responseMsg = "Une erreur est survenue dans la demande. Le message n'existe pas.";  
         }
     }
     else
@@ -219,6 +230,8 @@ EReturnCode MailAssign::doMailAssign(map<string, string> parameters, const vecto
         res = EReturnCode::BAD_REQUEST;
         responseMsg = "Une erreur est survenue dans la demande. Contactez le support applicatif. . Erreur : informations non reçues";
     }
+    
+    transaction.commit();
     
     return (res);
 }

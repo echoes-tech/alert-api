@@ -184,6 +184,9 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
     int mediaSpecializationId;
     long long alertId;
 
+    Wt::Dbo::Transaction transaction(m_session, true);
+    
+    
     if ((parameters["alert_media_specialization_id"]) > 0)
     {
     
@@ -226,7 +229,6 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
         {
             try
             {
-                Wt::Dbo::Transaction transaction(m_session, true);
 
                 Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, orgId, m_session);
                 if (!alePtr)
@@ -332,6 +334,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
 
                     newMsg->user = amsPtr->media->user;
                     newMsg->alert = alePtr;
+                    newMsg->refAck = "null";
                     
                     Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
                     newMsgPtr.flush();
@@ -406,14 +409,12 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 {
                     Wt::log("debug") << "[Alert Resource] "
                             << "Last time we send the alert : " << alePtr->name
-                            << "was : " << amsPtr->lastSend.toString()
+                            << " was : " << amsPtr->lastSend.toString()
                             << "the snooze for the media " << amsPtr->media->mediaType->name
                             << " is : " << amsPtr->snoozeDuration << "secs,  it's not the time to send the alert";
                 }
 
                 res = EReturnCode::CREATED;
-
-                transaction.commit();
             }
             catch (Wt::Dbo::Exception const& e)
             {
@@ -458,8 +459,6 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
         {
             try
             {
-                //message creation in DB
-                Wt::Dbo::Transaction transaction(m_session, true);
 
                 const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
                 
@@ -551,9 +550,6 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                             Wt::log("error") << "[Message Resource] Unknown ID Media: " << mtyId;
                             break;
                     }
-
-
-                    transaction.commit();
                 }
                 else
                 {
@@ -568,6 +564,9 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
             }
         } 
     }
+    
+    transaction.commit();
+    
     return res;
 }
 
@@ -776,34 +775,19 @@ EReturnCode MessageResource::sendMAIL
  )
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
-    Wt::log("debug") << " [Message Resource] preparation du mail start";
-    
-    //Wt::Dbo::Transaction transaction(m_session, true);
-    
-    Wt::log("debug") << " [Message Resource] preparation du mail 0";
     
     Wt::WString mailRecipientName = "";
-    
-    Wt::log("debug") << " [Message Resource] preparation du mail 1";
-    
     Wt::WString mailRecipient;
     if (amsPtr.isTransient() == 0)
     {
         mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName;
     }
     
-    Wt::log("debug") << " [Message Resource] preparation du mail 2";
-    
     string mailBody = "";
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    Wt::log("debug") << " [Message Resource] preparation du mail 3";
-    
     Wt::Mail::Message mailMessage;
     Wt::Mail::Client mailClient;
-
-    Wt::log("debug") << " [Message Resource] generation du token ";
     
     msgPtr.modify()->refAck = generateToken();
     
@@ -845,8 +829,6 @@ EReturnCode MessageResource::sendMAIL
     {
         mailBody += msgPtr->content.get().toUTF8();
     }
-    
-    Wt::log("debug") << " [Message Resource] ajout du supplément ";
     
     string port = boost::lexical_cast<std::string>(conf.getServerPort());
     mailBody += "<div style=\"text-align: center; margin-left: 40px;\">"
@@ -891,8 +873,6 @@ EReturnCode MessageResource::sendMAIL
         mailMessage.setSubject("[Echoes Alert]");
     }
     
-    Wt::log("debug") << " [Message Resource] envoi ";
-    
     mailMessage.addHtmlBody(mailBody);
     mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
     mailClient.send(mailMessage);
@@ -914,8 +894,6 @@ EReturnCode MessageResource::sendMAIL
     {
         amsPtr.modify()->lastSend = now;
     }
-    
-    //transaction.commit();
 
     res = EReturnCode::OK;
 
@@ -1032,11 +1010,9 @@ Wt::WString MessageResource::generateToken()
             do
             {
                 caractere = ((rand() % 74) + 48);
-                Wt::log("debug") << "caractere genere " << caractere;
             }while(!((caractere >= 48 && caractere <= 57)
                     || (caractere >= 65 && caractere <= 90)
                     || (caractere >=97  && caractere <= 122)));
-            Wt::log("debug") << "caractere accepte ";
             codeGenerated += caractere;
         }
         dest = m_session.find<Echoes::Dbo::Message>()

@@ -22,6 +22,9 @@ class ItookiSendedReceiver   : public PublicItookiResource
         std::string m_number;
         std::string m_message;
         
+        Wt::WTimer *timer;
+        
+        void endTimer(Wt::WString refenvoiToChange, Wt::WString refenvoi, Wt::WString error, bool sended);
         EReturnCode postSended(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, std::string &responseMsg);
 

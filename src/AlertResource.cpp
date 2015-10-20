@@ -1045,7 +1045,7 @@ EReturnCode AlertResource::forwardAlert(const std::string &sRequest, const std::
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
             
-            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
     
             long long id = result.get("user");
             long long idForward = result.get("userForward");
@@ -1121,7 +1121,7 @@ EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::v
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
             
-            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
     
             long long id = result.get("user");
             
@@ -1196,7 +1196,7 @@ EReturnCode AlertResource::resolveAlert(const std::string &sRequest, const std::
             Wt::Json::Object result;
             Wt::Json::parse(sRequest, result);
             
-            Wt::Dbo::Transaction transaction(m_session);
+            Wt::Dbo::Transaction transaction(m_session, true);
     
             long long id = result.get("user");
             
