@@ -874,7 +874,7 @@ EReturnCode AssetResource::deleteAsset(const vector<string> &pathElements, const
             }
             else
             {
-                res = EReturnCode::CONFLICT;
+                res = EReturnCode::LOCKED;
                 responseMsg = httpCodeToJSON(res, astPtr);
             } 
         }

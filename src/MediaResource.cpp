@@ -452,7 +452,7 @@ EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathEleme
             }
             else
             {
-                res = EReturnCode::CONFLICT;
+                res = EReturnCode::LOCKED;
                 responseMsg = httpCodeToJSON(res, medPtr);
             } 
         }

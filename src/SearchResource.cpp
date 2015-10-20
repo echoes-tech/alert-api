@@ -575,7 +575,7 @@ EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathEle
             }
             else
             {
-                res = EReturnCode::CONFLICT;
+                res = EReturnCode::LOCKED;
                 responseMsg = httpCodeToJSON(res, seaPtr);
             } 
         }
