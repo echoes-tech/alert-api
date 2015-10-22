@@ -23,6 +23,7 @@ RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     functionMap["getRole"] = boost::bind(&RoleResource::getRole, this, _1, _2, _3, _4, _5);
     functionMap["postRole"] = boost::bind(&RoleResource::postRole, this, _1, _2, _3, _4, _5);
     functionMap["putRole"] = boost::bind(&RoleResource::putRole, this, _1, _2, _3, _4, _5);
+    functionMap["deleteRole"] = boost::bind(&RoleResource::deleteRole, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
 }
@@ -335,7 +336,7 @@ EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode RoleResource::deleteRole(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode RoleResource::deleteRole(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -394,7 +395,7 @@ EReturnCode RoleResource::deleteRole(const std::vector<std::string> &pathElement
     return res;
 }
 
-EReturnCode RoleResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode RoleResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -421,7 +422,7 @@ EReturnCode RoleResource::processDeleteRequest(const Wt::Http::Request &request,
 
             if (nextElement.empty())
             {
-                res = deleteRole(pathElements, orgId, responseMsg);
+                res = deleteRole(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {

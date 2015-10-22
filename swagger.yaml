@@ -1005,6 +1005,19 @@ paths:
       responses:
         "200":
           description: successful operation
+    delete:
+      summary: sommaire
+      description: blabla
+      operationId: RoleResource::deleteRole
+      parameters:
+        - in: path
+          name: id
+          description: id of role ro delete
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
 # paths for SEARCH
   /searches:
     get:
