@@ -334,3 +334,108 @@ EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, co
 
     return res;
 }
+
+EReturnCode RoleResource::deleteRole(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+
+    try 
+    {  
+        Wt::Dbo::Transaction transaction(m_session, true);
+           
+        Wt::Dbo::ptr<Echoes::Dbo::UserRole> ustPtr = m_session.find<Echoes::Dbo::UserRole>()
+                .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");;
+
+        if(ustPtr)
+        {
+
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformationCriteria>> aicPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformationCriteria>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID)" = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION_CRITERIA SEP "DELETE") " IS NULL");
+
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasInformation>> aaiPtr = m_session.find<Echoes::Dbo::AlertMessageAliasInformation>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID)" = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_INFORMATION SEP "DELETE") " IS NULL");
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasAsset>> aaaPtr = m_session.find<Echoes::Dbo::AlertMessageAliasAsset>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID)" = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_ASSET SEP "DELETE") " IS NULL");
+            
+            Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertMessageAliasPlugin>> aapPtr = m_session.find<Echoes::Dbo::AlertMessageAliasPlugin>()
+                    .where(QUOTE(TRIGRAM_USER_ROLE ID SEP TRIGRAM_USER_ROLE ID)" = ?").bind(pathElements[1])
+                    .where(QUOTE(TRIGRAM_ALERT_MESSAGE_ALIAS_PLUGIN SEP "DELETE") " IS NULL");
+            
+            if (aicPtr.size() == 0 && aaiPtr.size() == 0 && aaaPtr.size() == 0 && aapPtr.size() == 0)
+            {
+                ustPtr.modify()->deleteTag = Wt::WDateTime::currentDateTime();
+                res = EReturnCode::NO_CONTENT;
+            }
+            else
+            {
+                res = EReturnCode::CONFLICT;
+                responseMsg = httpCodeToJSON(res, ustPtr);
+            } 
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, ustPtr);
+        }
+
+        transaction.commit();
+    }
+    catch (boost::bad_lexical_cast const& e)
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+
+    return res;
+}
+
+EReturnCode RoleResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
+
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
+    if (nextElement.empty())
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Role Resource] bad nextElement";
+        responseMsg = httpCodeToJSON(res, err);
+    }
+    else
+    {
+        try
+        {
+            boost::lexical_cast<unsigned long long>(nextElement);
+
+            nextElement = getNextElementFromPath(indexPathElement, pathElements);
+
+            if (nextElement.empty())
+            {
+                res = deleteRole(pathElements, orgId, responseMsg);
+            }
+            else
+            {
+                res = EReturnCode::BAD_REQUEST;
+                const string err = "[Role Resource] bad nextElement";
+                responseMsg = httpCodeToJSON(res, err);
+            }
+        }
+        catch (boost::bad_lexical_cast const& e)
+        {
+            res = EReturnCode::BAD_REQUEST;
+            responseMsg = httpCodeToJSON(res, e);
+        }
+    }
+
+    return res;
+}
