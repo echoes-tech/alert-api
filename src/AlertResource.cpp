@@ -24,55 +24,6 @@ AlertResource::AlertResource(Echoes::Dbo::Session& session) : PublicApiResource:
     functionMap["deleteAlert"] = boost::bind(&AlertResource::deleteAlert, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
-    
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.parameters.push_back("media_type");
-    structFillTmp.parameters.push_back("media_id");
-    structFillTmp.function = boost::bind(&AlertResource::getAlertsList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&AlertResource::getAlert, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&AlertResource::postAlert, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = ".+";
-    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&AlertResource::deleteAlert, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&AlertResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 AlertResource::~AlertResource()
@@ -126,7 +77,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId,
     return queryRes.resultValue();
 }
 
-EReturnCode AlertResource::getAlertsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AlertResource::getAlertsList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -185,7 +136,7 @@ EReturnCode AlertResource::getAlertsList(const long long &orgId, std::string &re
     return res;
 }
 
-EReturnCode AlertResource::getAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AlertResource::getAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -259,7 +210,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 
     if (nextElement.empty())
     {
-        res = getAlertsList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getAlertsList(grpId, responseMsg, pathElements, sRequest, parameters);
     }
 //    else if (nextElement.compare("trackings") == 0)
 //    {
@@ -273,7 +224,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAlert(orgId, responseMsg, pathElements);
+                res = getAlert(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -292,7 +243,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AlertResource::postAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AlertResource::postAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     // ALE attributs
@@ -926,7 +877,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postAlert(orgId, responseMsg, std::vector<std::basic_string<char>>(), sRequest);
+        res = postAlert(grpId, responseMsg, std::vector<std::basic_string<char>>(), sRequest);
     }
     else
     {
@@ -938,7 +889,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode AlertResource::deleteAlert(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AlertResource::deleteAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -997,7 +948,7 @@ EReturnCode AlertResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteAlert(orgId, responseMsg, pathElements);
+                res = deleteAlert(grpId, responseMsg, pathElements);
             }
             else
             {

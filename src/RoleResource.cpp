@@ -25,61 +25,13 @@ RoleResource::RoleResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     functionMap["putRole"] = boost::bind(&RoleResource::putRole, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
-    
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&RoleResource::getRolesList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&RoleResource::getRole, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    //structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&RoleResource::postRole, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = ".+";
-    //structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&RoleResource::putRole, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&RoleResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 RoleResource::~RoleResource()
 {
 }
 
-EReturnCode RoleResource::getRolesList(const long long &grpId, string &responseMsg)
-EReturnCode RoleResource::getRolesList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode RoleResource::getRolesList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -103,8 +55,7 @@ EReturnCode RoleResource::getRolesList(const long long &orgId, std::string &resp
     return res;
 }
 
-EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
-EReturnCode RoleResource::getRole(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode RoleResource::getRole(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -141,8 +92,7 @@ EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, co
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getRolesList(grpId, responseMsg);
-        res = getRolesList(orgId, responseMsg, pathElements);
+        res = getRolesList(grpId, responseMsg, pathElements);
     }
     else
     {
@@ -153,8 +103,7 @@ EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, co
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getRole(pathElements, grpId, responseMsg);
-                res = getRole(orgId, responseMsg, pathElements);
+                res = getRole(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -173,8 +122,7 @@ EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode RoleResource::postRole(const string &sRequest, const long long &grpId, string &responseMsg)
-EReturnCode RoleResource::postRole(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode RoleResource::postRole(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -256,8 +204,7 @@ EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postRole(sRequest, grpId, responseMsg);
-        res = postRole(orgId, responseMsg, pathElements, sRequest);
+        res = postRole(grpId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -269,8 +216,7 @@ EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
-EReturnCode RoleResource::putRole(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode RoleResource::putRole(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -370,8 +316,7 @@ EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, co
 
             if (nextElement.empty())
             {
-                res = putRole(pathElements, sRequest, grpId, responseMsg);
-                res = putRole(orgId, responseMsg, pathElements, sRequest);
+                res = putRole(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {

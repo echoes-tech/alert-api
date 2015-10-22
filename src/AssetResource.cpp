@@ -30,87 +30,6 @@ AssetResource::AssetResource(Echoes::Dbo::Session& session) : PublicApiResource:
     functionMap["deleteAsset"] = boost::bind(&AssetResource::deleteAsset, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
-    
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&AssetResource::getAssetsList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&AssetResource::getAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+/alias";
-    structFillTmp.parameters.push_back("media_type_id");
-    structFillTmp.parameters.push_back("user_role_id");
-    structFillTmp.function = boost::bind(&AssetResource::getAliasForAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+/plugins";
-    structFillTmp.parameters.push_back("media_type_id");
-    structFillTmp.parameters.push_back("user_role_id");
-    structFillTmp.function = boost::bind(&AssetResource::getPluginsForAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&AssetResource::postAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "/plugins";
-    structFillTmp.function = boost::bind(&AssetResource::postPluginsForAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = ".+";
-    structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&AssetResource::putAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/[0-9]+/alias";
-    structFillTmp.function = boost::bind(&AssetResource::putAliasForAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&AssetResource::deleteAsset, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&AssetResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 AssetResource::~AssetResource()
@@ -135,7 +54,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Asset> AssetResource::selectAsset(const string &astId,
             .where(QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 }
 
-EReturnCode AssetResource::getAssetsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::getAssetsList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -159,7 +78,7 @@ EReturnCode AssetResource::getAssetsList(const long long &orgId, std::string &re
     return res;
 }
 
-EReturnCode AssetResource::getAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::getAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -180,7 +99,7 @@ EReturnCode AssetResource::getAsset(const long long &orgId, std::string &respons
     return res;
 }
 
-EReturnCode AssetResource::getAliasForAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::getAliasForAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -229,7 +148,7 @@ EReturnCode AssetResource::getAliasForAsset(const long long &orgId, std::string 
     return res;
 }
 
-EReturnCode AssetResource::getPluginsForAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::getPluginsForAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -302,15 +221,15 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAsset(orgId, responseMsg, pathElements);
+                res = getAsset(grpId, responseMsg, pathElements);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForAsset(orgId, responseMsg, pathElements, sRequest, parameters);
+                res = getAliasForAsset(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (!nextElement.compare("plugins"))
             {
-                res = getPluginsForAsset( orgId, responseMsg, pathElements, sRequest, parameters);
+                res = getPluginsForAsset( grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else
             {
@@ -329,7 +248,7 @@ EReturnCode AssetResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AssetResource::postAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::postAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -458,7 +377,7 @@ EReturnCode AssetResource::postAsset(const long long &orgId, std::string &respon
     return res;
 }
 
-EReturnCode AssetResource::postPluginsForAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::postPluginsForAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -622,7 +541,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postAsset(orgId, responseMsg, pathElements, sRequest);
+        res = postAsset(grpId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -633,7 +552,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.compare("plugins") == 0)
             {
-                res = postPluginsForAsset(orgId, responseMsg, pathElements, sRequest);
+                res = postPluginsForAsset(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -652,7 +571,7 @@ EReturnCode AssetResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode AssetResource::putAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::putAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -791,7 +710,7 @@ EReturnCode AssetResource::putAsset(const long long &orgId, std::string &respons
     return res;
 }
 
-EReturnCode AssetResource::putAliasForAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::putAliasForAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -923,11 +842,11 @@ EReturnCode AssetResource::processPutRequest(const Wt::Http::Request &request, c
 
             if (nextElement.empty())
             {
-                res = putAsset(orgId, responseMsg,pathElements, sRequest);
+                res = putAsset(grpId, responseMsg,pathElements, sRequest);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = putAliasForAsset(orgId, responseMsg, pathElements, sRequest);
+                res = putAliasForAsset(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -946,7 +865,7 @@ EReturnCode AssetResource::processPutRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AssetResource::deleteAsset(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode AssetResource::deleteAsset(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -1016,7 +935,7 @@ EReturnCode AssetResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteAsset(orgId, responseMsg, pathElements);
+                res = deleteAsset(grpId, responseMsg, pathElements);
             }
             else
             {

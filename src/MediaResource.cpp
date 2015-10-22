@@ -64,8 +64,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
     return queryRes.resultValue();
 }
 
-EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
-EReturnCode MediaResource::getMediasList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MediaResource::getMediasList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -108,8 +107,7 @@ EReturnCode MediaResource::getMediasList(const long long &orgId, std::string &re
     return res;
 }
 
-EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
-EReturnCode MediaResource::getMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MediaResource::getMedia(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -146,8 +144,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getMediasList(parameters, grpId, responseMsg);
-        res = getMediasList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getMediasList(grpId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -158,8 +155,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getMedia(pathElements, grpId, responseMsg);
-                res = getMedia(orgId, responseMsg, pathElements);
+                res = getMedia(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -178,8 +174,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode MediaResource::postMedia(const string& sRequest, const long long &grpId, string& responseMsg)
-EReturnCode MediaResource::postMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MediaResource::postMedia(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long mtyId;
@@ -279,8 +274,7 @@ EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postMedia(sRequest, grpId, responseMsg);
-        res = postMedia(orgId, responseMsg, pathElements, sRequest);
+        res = postMedia(grpId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -292,8 +286,7 @@ EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId,  string &responseMsg)
-EReturnCode MediaResource::putMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MediaResource::putMedia(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString token;
@@ -424,8 +417,7 @@ EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, c
 
             if (nextElement.empty())
             {
-                res = putMedia(pathElements, sRequest, grpId, responseMsg);
-                res = putMedia(orgId, responseMsg, pathElements, sRequest);
+                res = putMedia(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -444,8 +436,7 @@ EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathElements, const long long &grpId,  string &responseMsg)
-EReturnCode MediaResource::deleteMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MediaResource::deleteMedia(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -516,8 +507,7 @@ EReturnCode MediaResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteMedia(pathElements, grpId, responseMsg);
-                res = deleteMedia(orgId, responseMsg, pathElements);
+                res = deleteMedia(grpId, responseMsg, pathElements);
             }
             else
             {

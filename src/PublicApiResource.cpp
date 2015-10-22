@@ -264,6 +264,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
                         pathTmp += ("/" + splitedPath[posPath]);
                     }
                   }
+                pathTmp += ("/?");
                 //std::cout << "path               : " << pathTmp << std::endl;
                 callTmp.path = pathTmp;
                     
@@ -444,7 +445,7 @@ EReturnCode PublicApiResource::processDeleteRequest(const Wt::Http::Request &req
     return res;
 }
 
-EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     vector<Call>::iterator it = calls.begin();
@@ -471,10 +472,11 @@ EReturnCode PublicApiResource::processRequest(const Wt::Http::Request &request, 
         }
         const string sRequest = processRequestParameters(request, pathElements, parameters);
       
-        res = it.base()->function(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = it.base()->function(grpId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
+        Wt::log("error") << "[PUBLIC API] error : method not found";
         res = EReturnCode::METHOD_NOT_ALLOWED;
         responseMsg = "{\n\t\"message\": \"Sorry, there is no corresponding method in the API.\n\"}";
     }
@@ -680,7 +682,7 @@ void PublicApiResource::handleRequest(const Wt::Http::Request &request, Wt::Http
                 responseMsg = "{\n\t\"message\": \"Only GET, POST, PUT and DELETE methods are allowed.\n\"}";
                 break;
         }*/
-        res = processRequest(request, orgId, responseMsg);
+        res = processRequest(request, grpId, responseMsg);
         response.setStatus(res);
         response.out() << responseMsg;
 

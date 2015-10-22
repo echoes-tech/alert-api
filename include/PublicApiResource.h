@@ -90,7 +90,7 @@ protected:
     std::string resourceClassName = "unsetClassName";
     static std::string file2base64(const std::string &path);
     
-    EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+    EReturnCode Error       (const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
     
     unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
     std::string getNextElementFromPath(unsigned short &indexPathElement, std::vector<std::string> &pathElements);
@@ -99,11 +99,11 @@ protected:
     std::vector<Call> FillCallsVector();
     
     std::string processRequestParameters(const Wt::Http::Request &request, std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters);
-    virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-    virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-    virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-    virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-    EReturnCode processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+    virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+    virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+    virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+    EReturnCode processRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
     
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
     

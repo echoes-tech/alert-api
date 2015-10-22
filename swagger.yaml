@@ -82,14 +82,14 @@ paths:
       responses:
         "200":
           description: successful operation
-    put:
+    delete:
       summary: sommaire
       description: blabla
-      operationId: AlertResource::putAlert
+      operationId: AlertResource::deleteAlert
       parameters:
         - in: path
           name: id
-          description: id of alert to modify
+          description: id of alert to delete
           required: true
           type: integer
       responses:
@@ -212,11 +212,16 @@ paths:
       responses:
         "200":
           description: successful operation
-  /assets/plugins:
     post:
       summary: sommaire
       description: blabla
       operationId: AssetResource::postPluginsForAsset
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted asset
+          required: true
+          type: integer
       responses:
         "200":
           description: successful operation

@@ -26,64 +26,13 @@ UserResource::UserResource(Echoes::Dbo::Session& session) : PublicApiResource::P
     
     calls = FillCallsVector();
     
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UserResource::getUsersList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&UserResource::getUser, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "/action";
-    structFillTmp.function = boost::bind(&UserResource::postActionForUser, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "/.*";
-    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&UserResource::putUser, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 UserResource::~UserResource()
 {
 }
 
-EReturnCode UserResource::getUsersList(const long long &grpId, string &responseMsg)
+EReturnCode UserResource::getUsersList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -107,7 +56,7 @@ EReturnCode UserResource::getUsersList(const long long &grpId, string &responseM
     return res;
 }
 
-EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode UserResource::getUser(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -155,7 +104,7 @@ EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, co
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getUser(pathElements, grpId, responseMsg);
+                res = getUser(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -174,7 +123,7 @@ EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode UserResource::postActionForUser(const string& sRequest, const long long &grpId, string& responseMsg)
+EReturnCode UserResource::postActionForUser(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -266,7 +215,7 @@ EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, c
     {
         if(nextElement.compare("action") == 0)
         {
-            res = postActionForUser(sRequest, grpId, responseMsg);
+            res = postActionForUser(grpId, responseMsg, pathElements, sRequest);
         }
         else
         {
@@ -279,7 +228,7 @@ EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
+EReturnCode UserResource::putUser(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString firstName;
@@ -425,8 +374,7 @@ EReturnCode UserResource::processPutRequest(const Wt::Http::Request &request, co
 
             if (nextElement.empty())
             {
-                res = putUser(pathElements, sRequest, grpId, responseMsg);
-                res = putUser(orgId, responseMsg, pathElements, sRequest);
+                res = putUser(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {

@@ -28,79 +28,6 @@ SearchResource::SearchResource(Echoes::Dbo::Session& session) : PublicApiResourc
     functionMap["deleteSearch"] = boost::bind(&SearchResource::deleteSearch, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
-    
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.parameters.push_back("type_id");
-    structFillTmp.parameters.push_back("source_id");
-    structFillTmp.parameters.push_back("plugin_id");
-    structFillTmp.function = boost::bind(&SearchResource::getSearchsList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/parameters";
-    structFillTmp.parameters.push_back("type_id");
-    structFillTmp.parameters.push_back("source_id");
-    structFillTmp.parameters.push_back("plugin_id");
-    structFillTmp.function = boost::bind(&SearchResource::getParametersList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&SearchResource::getSearch, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+/parameters";
-    structFillTmp.function = boost::bind(&SearchResource::getParametersListForSearch, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&SearchResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&SearchResource::postSearch, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = ".+";
-    structFillTmp.function = boost::bind(&SearchResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&SearchResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&SearchResource::putSearch, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&SearchResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&SearchResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&SearchResource::deleteSearch, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&SearchResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 SearchResource::~SearchResource()
@@ -152,8 +79,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
     return queryRes.resultValue();
 }
 
-EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
-EReturnCode SearchResource::getSearchsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::getSearchsList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -218,8 +144,7 @@ EReturnCode SearchResource::getSearchsList(const long long &orgId, std::string &
     return res;
 }
 
-EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
-EReturnCode SearchResource::getSearch(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::getSearch(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -241,8 +166,7 @@ EReturnCode SearchResource::getSearch(const long long &orgId, std::string &respo
     return res;
 }
 
-EReturnCode SearchResource::getParametersList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
-EReturnCode SearchResource::getParametersList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::getParametersList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -292,8 +216,7 @@ EReturnCode SearchResource::getParametersList(const long long &orgId, std::strin
     return res;
 }
 
-EReturnCode SearchResource::getParametersListForSearch(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
-EReturnCode SearchResource::getParametersListForSearch(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::getParametersListForSearch(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -335,13 +258,11 @@ EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getSearchsList(parameters, grpId, responseMsg);
-        res = getSearchsList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getSearchsList(grpId, responseMsg, pathElements, sRequest, parameters);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersList(parameters, grpId, responseMsg);
-        res = getParametersList(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getParametersList(grpId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -352,13 +273,11 @@ EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getSearch(pathElements, grpId, responseMsg);
-                res = getSearch(orgId, responseMsg, pathElements);
+                res = getSearch(grpId, responseMsg, pathElements);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForSearch(pathElements, grpId, responseMsg);
-                res = getParametersListForSearch(orgId, responseMsg, pathElements);
+                res = getParametersListForSearch(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -377,8 +296,7 @@ EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SearchResource::postSearch(const string& sRequest, const long long &grpId, string& responseMsg)
-EReturnCode SearchResource::postSearch(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::postSearch(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long srcId;
@@ -501,8 +419,7 @@ EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postSearch(sRequest, grpId, responseMsg);
-        res = postSearch(orgId, responseMsg, pathElements, sRequest);
+        res = postSearch(grpId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -514,8 +431,7 @@ EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode SearchResource::putSearch(const std::vector<std::string> &pathElements, const string& sRequest, const long long &grpId, string& responseMsg)
-EReturnCode SearchResource::putSearch(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::putSearch(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -628,8 +544,7 @@ EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putSearch(pathElements, sRequest, grpId, responseMsg);
-                res = putSearch(orgId, responseMsg, pathElements, sRequest);
+                res = putSearch(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -648,8 +563,7 @@ EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
-EReturnCode SearchResource::deleteSearch(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode SearchResource::deleteSearch(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -720,8 +634,7 @@ EReturnCode SearchResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deleteSearch(pathElements, grpId, responseMsg);
-                res = deleteSearch(orgId, responseMsg, pathElements);
+                res = deleteSearch(grpId, responseMsg, pathElements);
             }
             else
             {

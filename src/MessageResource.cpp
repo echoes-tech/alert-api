@@ -24,46 +24,6 @@ MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResou
     functionMap["postAlertMessage"] = boost::bind(&MessageResource::postAlertMessage, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
-    
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.parameters.push_back("media_type_id");
-    structFillTmp.parameters.push_back("media_id");
-    structFillTmp.function = boost::bind(&MessageResource::getMessages, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&MessageResource::getMessage, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&MessageResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = "";
-    structFillTmp.parameters.push_back("alert_media_specialization_id");   
-    structFillTmp.function = boost::bind(&MessageResource::postAlertMessage, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = ".+";
-    structFillTmp.function = boost::bind(&MessageResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&MessageResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&MessageResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 MessageResource::~MessageResource()
@@ -141,7 +101,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleI
     return queryRes.resultValue();
 }
 
-EReturnCode MessageResource::getMessages(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MessageResource::getMessages(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -175,7 +135,7 @@ EReturnCode MessageResource::getMessages(const long long &orgId, std::string &re
     return res;
 }
 
-EReturnCode MessageResource::getMessage(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MessageResource::getMessage(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -197,7 +157,7 @@ EReturnCode MessageResource::getMessage(const long long &orgId, std::string &res
     return res;
 }
 
-EReturnCode MessageResource::postSimpleMessage(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MessageResource::postSimpleMessage(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     vector<long long> ivaIds;
@@ -392,19 +352,11 @@ EReturnCode MessageResource::postSimpleMessage(const long long &orgId, std::stri
                 responseMsg = httpCodeToJSON(res, e);
             }
         }
-        catch (Wt::Dbo::Exception const& e)
-        {
-            res = EReturnCode::SERVICE_UNAVAILABLE;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-        
-        
     }
-
     return res;
 }
 
-EReturnCode MessageResource::postAlertMessage(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     vector<long long> ivaIds;
@@ -580,7 +532,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
 
     if (nextElement.empty())
     {
-        res = getMessages(orgId, responseMsg, pathElements, sRequest, parameters);
+        res = getMessages(grpId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -590,7 +542,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getMessage(orgId, responseMsg, pathElements);
+                res = getMessage(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -626,11 +578,11 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     {
         if (parameters["simple_message"] == 1)
         {
-            res = postSimpleMessage(orgId, responseMsg, pathElements, sRequest, parameters);
+            res = postSimpleMessage(grpId, responseMsg, pathElements, sRequest, parameters);
         }
         else
         {
-            res = postAlertMessage(orgId, responseMsg, pathElements, sRequest, parameters);
+            res = postAlertMessage(grpId, responseMsg, pathElements, sRequest, parameters);
         }
     }
     else

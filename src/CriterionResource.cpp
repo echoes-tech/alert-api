@@ -25,63 +25,13 @@ CriterionResource::CriterionResource(Echoes::Dbo::Session& session) : PublicApiR
     functionMap["putAliasForCriteria"] = boost::bind(&CriterionResource::putAliasForCriteria, this, _1, _2, _3, _4, _5);
     
     calls = FillCallsVector();
-    
-    /*Call structFillTmp;
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&CriterionResource::getCriteriaList, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+";
-    structFillTmp.function = boost::bind(&CriterionResource::getCriterion, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/[0-9]+/alias";
-    structFillTmp.parameters.push_back("media_type_id");
-    structFillTmp.parameters.push_back("user_role_id");
-    structFillTmp.parameters.push_back("information_id");
-    structFillTmp.function = boost::bind(&CriterionResource::getAliasForCriterion, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "GET";
-    structFillTmp.path = "/(\\D)*";
-    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "POST";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "";
-    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = "/[0-9]+/alias";
-    structFillTmp.function = boost::bind(&CriterionResource::putAliasForCriterion, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "PUT";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);
-    
-    structFillTmp.method = "DELETE";
-    structFillTmp.path = ".*";
-    structFillTmp.function = boost::bind(&CriterionResource::Error, this, _1, _2, _3, _4, _5);
-    calls.push_back(structFillTmp);*/
 }
 
 CriterionResource::~CriterionResource()
 {
 }
 
-EReturnCode CriterionResource::getCriteriaList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getCriteriaList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -104,7 +54,7 @@ EReturnCode CriterionResource::getCriteriaList(const long long &orgId, std::stri
     return res;
 }
 
-EReturnCode CriterionResource::getCriteria(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getCriteria(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -127,7 +77,7 @@ EReturnCode CriterionResource::getCriteria(const long long &orgId, std::string &
     return res;
 }
 
-EReturnCode CriterionResource::getAliasForCriteria(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::getAliasForCriteria(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -205,11 +155,11 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getCriteria(orgId, responseMsg, pathElements);
+                res = getCriteria(grpId, responseMsg, pathElements);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForCriteria(orgId, responseMsg, pathElements, sRequest, parameters);
+                res = getAliasForCriteria(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else
             {
@@ -228,7 +178,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     return res;
 }
 
-EReturnCode CriterionResource::putAliasForCriteria(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
+EReturnCode CriterionResource::putAliasForCriteria(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -373,7 +323,7 @@ EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &reques
 
             if (!nextElement.compare("alias"))
             {
-                res = putAliasForCriteria(orgId, responseMsg, pathElements, sRequest);
+                res = putAliasForCriteria(grpId, responseMsg, pathElements, sRequest);
             }
             else
             {
