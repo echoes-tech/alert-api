@@ -17,6 +17,98 @@ using namespace std;
 
 PluginResource::PluginResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "PluginResource";
+
+    functionMap["getPluginsList"] = boost::bind(&PluginResource::getPluginsList, this, _1, _2, _3, _4, _5);
+    functionMap["getPlugin"] = boost::bind(&PluginResource::getPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["getAliasForPlugin"] = boost::bind(&PluginResource::getAliasForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["getInformationsListForPlugin"] = boost::bind(&PluginResource::getInformationsListForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["getAssetForPlugin"] = boost::bind(&PluginResource::getAssetForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["postPlugin"] = boost::bind(&PluginResource::postPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["putPlugin"] = boost::bind(&PluginResource::putPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["putAliasForPlugin"] = boost::bind(&PluginResource::putAliasForPlugin, this, _1, _2, _3, _4, _5);
+    functionMap["deletePlugin"] = boost::bind(&PluginResource::deletePlugin, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
+    /*Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::getPluginsList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&PluginResource::getPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/alias";
+    structFillTmp.parameters.push_back("media_type_id");
+    structFillTmp.parameters.push_back("user_role_id");
+    structFillTmp.function = boost::bind(&PluginResource::getAliasForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/informations";
+    structFillTmp.function = boost::bind(&PluginResource::getInformationsListForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/assets";
+    structFillTmp.function = boost::bind(&PluginResource::getAssetForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::postPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".+";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&PluginResource::putPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+/alias";
+    structFillTmp.function = boost::bind(&PluginResource::putAliasForPlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&PluginResource::deletePlugin, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&PluginResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);*/
 }
 
 PluginResource::~PluginResource()
@@ -24,6 +116,7 @@ PluginResource::~PluginResource()
 }
 
 EReturnCode PluginResource::getPluginsList(const long long &grpId, string &responseMsg)
+EReturnCode PluginResource::getPluginsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -48,6 +141,7 @@ EReturnCode PluginResource::getPluginsList(const long long &grpId, string &respo
 }
 
 EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg)
+EReturnCode PluginResource::getPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -72,6 +166,7 @@ EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElemen
 }
 
 EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &grpId, string &responseMsg)
+EReturnCode PluginResource::getAliasForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -121,6 +216,7 @@ EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pa
 }
 
 EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode PluginResource::getInformationsListForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -238,6 +334,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 //}
 
 EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode PluginResource::getAssetForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -301,18 +398,22 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
             if (nextElement.empty())
             {
                 res = getPlugin(pathElements, grpId, responseMsg);
+                res = getPlugin(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("alias") == 0)
             {
                 res = getAliasForPlugin(pathElements, parameters, grpId, responseMsg);
+                res = getAliasForPlugin(orgId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (nextElement.compare("informations") == 0)
             {
                 res = getInformationsListForPlugin(pathElements, grpId, responseMsg);
+                res = getInformationsListForPlugin(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("assets") == 0)
             {
                 res = getAssetForPlugin(pathElements, grpId, responseMsg);
+                res = getAssetForPlugin(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -332,6 +433,7 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
 }
 
 EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &grpId, string& responseMsg)
+EReturnCode PluginResource::postPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -434,6 +536,7 @@ EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request,
     if (nextElement.empty())
     {
         res = postPlugin(sRequest, grpId, responseMsg);
+        res = postPlugin(orgId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -446,6 +549,7 @@ EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request,
 }
 
 EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
+EReturnCode PluginResource::putAliasForPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -550,6 +654,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
 }
 
 EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
+EReturnCode PluginResource::putPlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -675,10 +780,12 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
             if (nextElement.empty())
             {
                 res = putPlugin(pathElements, sRequest, grpId, responseMsg);
+                res = putPlugin(orgId, responseMsg, pathElements, sRequest);
             }
             else if (nextElement.compare("alias") == 0)
             {
                 res = putAliasForPlugin(pathElements, sRequest, grpId, responseMsg);
+                res = putAliasForPlugin(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -698,6 +805,7 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
 }
 
 EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
+EReturnCode PluginResource::deletePlugin(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -770,6 +878,7 @@ EReturnCode PluginResource::processDeleteRequest(const Wt::Http::Request &reques
             if (nextElement.empty())
             {
                 res = deletePlugin(pathElements, grpId, responseMsg);
+                res = deletePlugin(orgId, responseMsg, pathElements);
             }
             else
             {

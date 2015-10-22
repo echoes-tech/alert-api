@@ -17,6 +17,66 @@ using namespace std;
 
 UserResource::UserResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "UserResource";
+
+    functionMap["getUsersList"] = boost::bind(&UserResource::getUsersList, this, _1, _2, _3, _4, _5);
+    functionMap["getUser"] = boost::bind(&UserResource::getUser, this, _1, _2, _3, _4, _5);
+    functionMap["postActionForUser"] = boost::bind(&UserResource::postActionForUser, this, _1, _2, _3, _4, _5);
+    functionMap["putUser"] = boost::bind(&UserResource::putUser, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
+    /*Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&UserResource::getUsersList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&UserResource::getUser, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "/action";
+    structFillTmp.function = boost::bind(&UserResource::postActionForUser, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "/.*";
+    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&UserResource::putUser, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&UserResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);*/
 }
 
 UserResource::~UserResource()
@@ -366,6 +426,7 @@ EReturnCode UserResource::processPutRequest(const Wt::Http::Request &request, co
             if (nextElement.empty())
             {
                 res = putUser(pathElements, sRequest, grpId, responseMsg);
+                res = putUser(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {

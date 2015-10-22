@@ -21,6 +21,90 @@ int ProbeResource::m_defaultTimer = 61;
 
 ProbeResource::ProbeResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "ProbeResource";
+    
+    functionMap["getProbesList"]   = boost::bind(&ProbeResource::getProbesList, this, _1, _2, _3, _4, _5);
+    functionMap["getProbe"]        = boost::bind(&ProbeResource::getProbe, this, _1, _2, _3, _4, _5);
+    functionMap["getJsonForProbe"] = boost::bind(&ProbeResource::getJsonForProbe, this, _1, _2, _3, _4, _5);
+    functionMap["getAliveForProbe"]   = boost::bind(&ProbeResource::getAliveProbe, this, _1, _2, _3, _4, _5);
+    functionMap["getPackagesForProbe"] = boost::bind(&ProbeResource::getPackagesForProbe, this, _1, _2, _3, _4, _5);
+    functionMap["postProbe"]       = boost::bind(&ProbeResource::postProbe, this, _1, _2, _3, _4, _5);
+    functionMap["putProbe"]        = boost::bind(&ProbeResource::putProbe, this, _1, _2, _3, _4, _5);
+    functionMap["deleteProbe"]     = boost::bind(&ProbeResource::deleteProbe, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
+    /*Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&ProbeResource::getProbesList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&ProbeResource::getProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/json";
+    structFillTmp.function = boost::bind(&ProbeResource::getJsonForProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/alive";
+    structFillTmp.function = boost::bind(&ProbeResource::getAliveProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+/packages";
+    structFillTmp.function = boost::bind(&ProbeResource::getPackagesForProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&ProbeResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&ProbeResource::postProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".+";
+    structFillTmp.function = boost::bind(&ProbeResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&ProbeResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&ProbeResource::putProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&ProbeResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&ProbeResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&ProbeResource::deleteProbe, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&ProbeResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);*/
 }
 
 ProbeResource::~ProbeResource()
@@ -125,6 +209,7 @@ Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> ProbeResource::selectProbePacka
 }
 
 EReturnCode ProbeResource::getProbesList(const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::getProbesList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -162,6 +247,7 @@ EReturnCode ProbeResource::getProbesList(const long long &grpId, string &respons
 }
 
 EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::getProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -184,6 +270,7 @@ EReturnCode ProbeResource::getProbe(const std::vector<std::string> &pathElements
 }
 
 EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::getAliveProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -238,6 +325,7 @@ EReturnCode ProbeResource::getAliveProbe(const std::vector<std::string> &pathEle
 }
 
 EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::getJsonForProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -477,6 +565,7 @@ EReturnCode ProbeResource::getJsonForProbe(const std::vector<std::string> &pathE
 }
 
 EReturnCode ProbeResource::getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::getPackagesForProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -657,18 +746,22 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
             if (nextElement.empty())
             {
                 res = getProbe(pathElements, grpId, responseMsg);
+                res = getProbe(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("json") == 0)
             {
                 res = getJsonForProbe(pathElements, grpId, responseMsg);
+                res = getJsonForProbe(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("packages") == 0)
             {
                 res = getPackagesForProbe(pathElements, grpId, responseMsg);
+                res = getPackagesForProbe(orgId, responseMsg, pathElements);
             }
             else if (nextElement.compare("alive") == 0)
             {
                 res = getAliveProbe(pathElements, grpId, responseMsg);
+                res = getAliveProbe(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -688,6 +781,7 @@ EReturnCode ProbeResource::processGetRequest(const Wt::Http::Request &request, c
 }
 
 EReturnCode ProbeResource::postProbe(const string& sRequest, const long long &grpId, string& responseMsg)
+EReturnCode ProbeResource::postProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -785,6 +879,7 @@ EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, 
     if (nextElement.empty())
     {
         res = postProbe(sRequest, grpId, responseMsg);
+        res = postProbe(orgId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -797,6 +892,7 @@ EReturnCode ProbeResource::processPostRequest(const Wt::Http::Request &request, 
 }
 
 EReturnCode ProbeResource::putProbe(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::putProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -906,6 +1002,7 @@ EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, c
             if (nextElement.empty())
             {
                 res = putProbe(pathElements, sRequest, grpId, responseMsg);
+                res = putProbe(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -925,6 +1022,7 @@ EReturnCode ProbeResource::processPutRequest(const Wt::Http::Request &request, c
 }
 
 EReturnCode ProbeResource::deleteProbe(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode ProbeResource::deleteProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -984,6 +1082,7 @@ EReturnCode ProbeResource::processDeleteRequest(const Wt::Http::Request &request
             if (nextElement.empty())
             {
                 res = deleteProbe(pathElements, grpId, responseMsg);
+                res = deleteProbe(orgId, responseMsg, pathElements);
             }
             else
             {

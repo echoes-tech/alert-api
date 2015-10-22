@@ -82,7 +82,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../dbo/dist/Debug_SharedObject/GNU-Linux-x86 -ldbo -lwtdbo -lwtdbopostgres -lwt -lboost_system -lboost_signals -lstdc++ -lpthread -lboost_regex
+LDLIBSOPTIONS=-L../dbo/dist/Debug_SharedObject/GNU-Linux-x86 -lyaml-cpp -ldbo -lwtdbo -lwtdbopostgres -lwt -lboost_system -lboost_signals -lstdc++ -lpthread -lboost_regex
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

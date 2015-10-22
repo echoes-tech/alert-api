@@ -64,11 +64,19 @@ namespace boost
 #include <tools/Session.h>
 #include <tools/MainIncludeFile.h>
 #include <tools/Enums.h>
-
+#include <boost/regex.hpp>
+#include <yaml-cpp/yaml.h>
 #include "JsonSerializer.h"
 #include "Enums.h"
 #include "Conf.h"
 #include "Utils.h"
+
+struct Call {
+    std::string method;
+    boost::regex path;
+    std::vector<std::string> parameters;
+    boost::function<EReturnCode (const long long &, std::string &, const std::vector<std::string> &, const std::string &, map<string, long long>)> function;
+};
 
 class PublicApiResource : public Wt::WResource {
 public:
@@ -77,21 +85,28 @@ public:
     
 protected:
     Echoes::Dbo::Session& m_session;
-
+    std::vector<Call> calls;
+    std::map<std::string, boost::function<EReturnCode (const long long &, std::string &, const std::vector<std::string> &, const std::string &, map<string, long long>)>> functionMap;
+    std::string resourceClassName = "unsetClassName";
     static std::string file2base64(const std::string &path);
+    
+    EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
     
     unsigned short retrieveCurrentHttpMethod(const std::string &method) const;
     std::string getNextElementFromPath(unsigned short &indexPathElement, std::vector<std::string> &pathElements);
     std::string request2string(const Wt::Http::Request &request);
-
+    std::string upFirstLetter(std::string);
+    std::vector<Call> FillCallsVector();
+    
     std::string processRequestParameters(const Wt::Http::Request &request, std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters);
-    virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-    virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-    virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-    virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-
+    virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    EReturnCode processRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+    
     virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
-
+    
     // a priori, useless
     template<class C>
     EReturnCode serialize(C &obj, std::string &responseMsg, EReturnCode successRes = EReturnCode::INTERNAL_SERVER_ERROR)

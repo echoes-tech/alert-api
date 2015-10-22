@@ -58,21 +58,23 @@ class ProbeResource : public PublicApiResource
     protected:
         std::map<long long, int>        m_mapTimer;
         
-        EReturnCode getProbesList(const long long &grpId, std::string &responseMsg);
-        EReturnCode getProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
-        EReturnCode getAliveProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
-        EReturnCode getJsonForProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
-        EReturnCode getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-
-        EReturnCode postProbe(const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-
-        EReturnCode putProbe(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+        EReturnCode Error       (const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
         
-        EReturnCode deleteProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+        EReturnCode getProbesList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        EReturnCode getProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        EReturnCode getAliveProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        EReturnCode getJsonForProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        EReturnCode getPackagesForProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+
+        EReturnCode postProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+
+        EReturnCode putProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+
+        EReturnCode deleteProbe(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = std::map<string, long long>());
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 };
 
 #endif	/* PROBERESOURCE_H */

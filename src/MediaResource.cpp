@@ -17,6 +17,15 @@ using namespace std;
 
 MediaResource::MediaResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "MediaResource";
+
+    functionMap["getMediasList"] = boost::bind(&MediaResource::getMediasList, this, _1, _2, _3, _4, _5);
+    functionMap["getMedia"] = boost::bind(&MediaResource::getMedia, this, _1, _2, _3, _4, _5);
+    functionMap["postMedia"] = boost::bind(&MediaResource::postMedia, this, _1, _2, _3, _4, _5);
+    functionMap["putMedia"] = boost::bind(&MediaResource::putMedia, this, _1, _2, _3, _4, _5);
+    functionMap["deleteMedia"] = boost::bind(&MediaResource::deleteMedia, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
 }
 
 MediaResource::~MediaResource()
@@ -56,6 +65,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Media> MediaResource::selectMedia(const string &medId,
 }
 
 EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
+EReturnCode MediaResource::getMediasList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -73,7 +83,6 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
 "           WHERE " QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 "             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "       )";
-
         if (parameters["type_id"] > 0)
         {
             queryStr +=
@@ -83,7 +92,6 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
         queryStr +=
 "     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
 "   ORDER BY " QUOTE(TRIGRAM_MEDIA ID);
-
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Media>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Media>>(queryStr);
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrCol = queryRes.resultList();
@@ -101,6 +109,7 @@ EReturnCode MediaResource::getMediasList(map<string, long long> &parameters, con
 }
 
 EReturnCode MediaResource::getMedia(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode MediaResource::getMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -138,6 +147,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
     if (nextElement.empty())
     {
         res = getMediasList(parameters, grpId, responseMsg);
+        res = getMediasList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -149,6 +159,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
             if (nextElement.empty())
             {
                 res = getMedia(pathElements, grpId, responseMsg);
+                res = getMedia(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -168,6 +179,7 @@ EReturnCode MediaResource::processGetRequest(const Wt::Http::Request &request, c
 }
 
 EReturnCode MediaResource::postMedia(const string& sRequest, const long long &grpId, string& responseMsg)
+EReturnCode MediaResource::postMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long mtyId;
@@ -268,6 +280,7 @@ EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, 
     if (nextElement.empty())
     {
         res = postMedia(sRequest, grpId, responseMsg);
+        res = postMedia(orgId, responseMsg, pathElements, sRequest);
     }
     else
     {
@@ -280,6 +293,7 @@ EReturnCode MediaResource::processPostRequest(const Wt::Http::Request &request, 
 }
 
 EReturnCode MediaResource::putMedia(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId,  string &responseMsg)
+EReturnCode MediaResource::putMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString token;
@@ -411,6 +425,7 @@ EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, c
             if (nextElement.empty())
             {
                 res = putMedia(pathElements, sRequest, grpId, responseMsg);
+                res = putMedia(orgId, responseMsg, pathElements, sRequest);
             }
             else
             {
@@ -430,6 +445,7 @@ EReturnCode MediaResource::processPutRequest(const Wt::Http::Request &request, c
 }
 
 EReturnCode MediaResource::deleteMedia(const std::vector<std::string> &pathElements, const long long &grpId,  string &responseMsg)
+EReturnCode MediaResource::deleteMedia(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -501,6 +517,7 @@ EReturnCode MediaResource::processDeleteRequest(const Wt::Http::Request &request
             if (nextElement.empty())
             {
                 res = deleteMedia(pathElements, grpId, responseMsg);
+                res = deleteMedia(orgId, responseMsg, pathElements);
             }
             else
             {

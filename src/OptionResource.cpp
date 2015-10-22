@@ -17,13 +17,51 @@ using namespace std;
 
 OptionResource::OptionResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "OptionResource";
+
+    functionMap["getOptionsList"] = boost::bind(&OptionResource::getOptionsList, this, _1, _2, _3, _4, _5); 
+    functionMap["getOption"] = boost::bind(&OptionResource::getOption, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
+    /*Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&OptionResource::getOptionsList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&OptionResource::getOption, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&OptionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&OptionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&OptionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&OptionResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);*/
 }
 
 OptionResource::~OptionResource()
 {
 }
 
-EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &parameters, const long long &grpId, string &responseMsg)
+EReturnCode OptionResource::getOptionsList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -56,7 +94,7 @@ EReturnCode OptionResource::getOptionsList(std::map<std::string, long long> &par
     return res;
 }
 
-EReturnCode OptionResource::getOption(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode OptionResource::getOption(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -95,7 +133,7 @@ EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getOptionsList(parameters, grpId, responseMsg);
+        res = getOptionsList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -106,7 +144,7 @@ EReturnCode OptionResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getOption(pathElements, grpId, responseMsg);
+                res = getOption(orgId, responseMsg, pathElements);
             }
             else
             {

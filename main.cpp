@@ -90,7 +90,7 @@ int main(int argc, char **argv)
             RoleResource            roleResource(session);
             ItookiAckReceiver       itookiAckReceiver(session);
             ItookiAswReceiver       itookiAswReceiver(session);
-
+            
             server.addResource(&addonResource,            "/addons");
             server.addResource(&alertResource,            "/alerts");
             server.addResource(&messageResource,          "/messages");
@@ -116,6 +116,7 @@ int main(int argc, char **argv)
             
             Wt::WString::setDefaultEncoding(Wt::CharEncoding::UTF8);
 
+            
             // démarrage du serveur en arrière plan
             if (server.start())
             {

@@ -17,6 +17,59 @@ using namespace std;
 
 InformationDataResource::InformationDataResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    resourceClassName = "InformationDataResource";
+
+    functionMap["getInformationDataList"] = boost::bind(&InformationDataResource::getInformationDataList, this, _1, _2, _3, _4, _5); 
+    functionMap["getInformationData"] = boost::bind(&InformationDataResource::getInformationData, this, _1, _2, _3, _4, _5);
+    functionMap["deleteInformationData"] = boost::bind(&InformationDataResource::deleteInformationData, this, _1, _2, _3, _4, _5);
+    functionMap["putInformationData"] = boost::bind(&InformationDataResource::putInformationData, this, _1, _2, _3, _4, _5);
+    functionMap["postInformationData"] = boost::bind(&InformationDataResource::postInformationData, this, _1, _2, _3, _4, _5);
+    
+    calls = FillCallsVector();
+    
+    /*Call structFillTmp;
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "";
+    structFillTmp.parameters.push_back("filter_id");
+    structFillTmp.parameters.push_back("asset_id");
+    structFillTmp.function = boost::bind(&InformationDataResource::getInformationDataList, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&InformationDataResource::getInformationData, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "GET";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&InformationDataResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "POST";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&InformationDataResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+    
+    structFillTmp.method = "PUT";
+    structFillTmp.path = ".*";
+    structFillTmp.function = boost::bind(&InformationDataResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "";
+    structFillTmp.function = boost::bind(&InformationDataResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/[0-9]+";
+    structFillTmp.function = boost::bind(&InformationDataResource::deleteInformationData, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);
+
+    structFillTmp.method = "DELETE";
+    structFillTmp.path = "/(\\D)*";
+    structFillTmp.function = boost::bind(&InformationDataResource::Error, this, _1, _2, _3, _4, _5);
+    calls.push_back(structFillTmp);*/
 }
 
 InformationDataResource::~InformationDataResource()
@@ -55,7 +108,7 @@ Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInform
     return queryRes.resultValue();
 }
 
-EReturnCode InformationDataResource::getInformationDataList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
+EReturnCode InformationDataResource::getInformationDataList(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -104,7 +157,7 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
     return res;
 }
 
-EReturnCode InformationDataResource::getInformationData(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
+EReturnCode InformationDataResource::getInformationData(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -142,7 +195,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getInformationDataList(parameters, grpId, responseMsg);
+        res = getInformationDataList(orgId, responseMsg, pathElements, sRequest, parameters);
     }
     else
     {
@@ -153,7 +206,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getInformationData(pathElements, grpId, responseMsg);
+                res = getInformationData(orgId, responseMsg, pathElements);
             }
             else
             {
@@ -172,7 +225,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
     return res;
 }
 
-EReturnCode InformationDataResource::postInformationData(const string& sRequest, const long long &grpId, string& responseMsg)
+EReturnCode InformationDataResource::postInformationData(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -188,7 +241,7 @@ EReturnCode InformationDataResource::processPostRequest(const Wt::Http::Request 
     return res;
 }
 
-EReturnCode InformationDataResource::putInformationData(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId,  string &responseMsg)
+EReturnCode InformationDataResource::putInformationData(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -204,7 +257,7 @@ EReturnCode InformationDataResource::processPutRequest(const Wt::Http::Request &
     return res;
 }
 
-EReturnCode InformationDataResource::deleteInformationData(const std::vector<std::string> &pathElements, const long long &grpId,  string &responseMsg)
+EReturnCode InformationDataResource::deleteInformationData(const long long &orgId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -263,7 +316,7 @@ EReturnCode InformationDataResource::processDeleteRequest(const Wt::Http::Reques
 
             if (nextElement.empty())
             {
-                res = deleteInformationData(pathElements, grpId, responseMsg);
+                res = deleteInformationData(orgId, responseMsg, pathElements);
             }
             else
             {
