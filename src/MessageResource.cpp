@@ -22,17 +22,17 @@ MessageResource::~MessageResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const long long &msgId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const long long &msgId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectMessage(boost::lexical_cast<string>(msgId), boost::lexical_cast<string>(orgId), session);
+    return selectMessage(boost::lexical_cast<string>(msgId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const string &msgId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const string &msgId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectMessage(msgId, boost::lexical_cast<string>(orgId), session);
+    return selectMessage(msgId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const string &msgId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const string &msgId, const string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT msg"
@@ -46,17 +46,17 @@ Wt::Dbo::ptr<Echoes::Dbo::Message> MessageResource::selectMessage(const string &
     return queryRes.resultValue();
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const long long &aleId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const long long &aleId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectAlert(boost::lexical_cast<string>(aleId), boost::lexical_cast<string>(orgId), session);
+    return selectAlert(boost::lexical_cast<string>(aleId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectAlert(aleId, boost::lexical_cast<string>(orgId), session);
+    return selectAlert(aleId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleId, const string &grpId, Echoes::Dbo::Session &session)
 {
     string queryStr =
 " SELECT ale"
@@ -77,7 +77,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleI
 "                         SELECT " QUOTE(TRIGRAM_USER ID)
 "                           FROM " QUOTE("T_USER_USR")
 "                           WHERE"
-"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "                       )"
 "                     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
@@ -93,7 +93,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> MessageResource::selectAlert(const string &aleI
     return queryRes.resultValue();
 }
 
-EReturnCode MessageResource::getMessages(map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
+EReturnCode MessageResource::getMessages(map<string, long long> &parameters, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -127,7 +127,7 @@ EReturnCode MessageResource::getMessages(map<string, long long> &parameters, con
     return res;
 }
 
-EReturnCode MessageResource::getMessage(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode MessageResource::getMessage(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -135,7 +135,7 @@ EReturnCode MessageResource::getMessage(const std::vector<std::string> &pathElem
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = selectMessage(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = selectMessage(pathElements[1], grpId, m_session);
 
         res = serialize(msgPtr, responseMsg);
 
@@ -149,7 +149,7 @@ EReturnCode MessageResource::getMessage(const std::vector<std::string> &pathElem
     return res;
 }
 
-EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     vector<long long> ivaIds;
@@ -200,7 +200,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
             {
                 Wt::Dbo::Transaction transaction(m_session, true);
 
-                Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, orgId, m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, grpId, m_session);
                 if (!alePtr)
                 {
                     res = EReturnCode::NOT_FOUND;
@@ -284,7 +284,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                         // Verifying the quota of sms
                         Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                                 .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
-                                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                                .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                                 .limit(1);
 
                         try
@@ -384,7 +384,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                 //message creation in DB
                 Wt::Dbo::Transaction transaction(m_session, true);
 
-                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, grpId, m_session);
                 if (medPtr)
                 {
                     Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
@@ -407,7 +407,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
                             // Verifying the quota of sms
                             Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
                                     .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
-                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                                     .limit(1);
 
                             try
@@ -469,7 +469,7 @@ EReturnCode MessageResource::postAlertMessage(map<string, long long> parameters,
     return res;
 }
 
-EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -486,7 +486,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
 
     if (nextElement.empty())
     {
-        res = getMessages(parameters, orgId, responseMsg);
+        res = getMessages(parameters, grpId, responseMsg);
     }
     else
     {
@@ -496,7 +496,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getMessage(pathElements, orgId, responseMsg);
+                res = getMessage(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -515,7 +515,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -530,7 +530,7 @@ EReturnCode MessageResource::processPostRequest(const Wt::Http::Request &request
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postAlertMessage(parameters, pathElements, sRequest, orgId, responseMsg);
+        res = postAlertMessage(parameters, pathElements, sRequest, grpId, responseMsg);
     }
     else
     {

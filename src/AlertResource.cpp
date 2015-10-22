@@ -22,17 +22,17 @@ AlertResource::~AlertResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const long long &aleId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const long long &aleId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectAlert(boost::lexical_cast<string>(aleId), boost::lexical_cast<string>(orgId), session);
+    return selectAlert(boost::lexical_cast<string>(aleId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectAlert(aleId, boost::lexical_cast<string>(orgId), session);
+    return selectAlert(aleId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId, const string &grpId, Echoes::Dbo::Session &session)
 {
     string queryStr =
 " SELECT ale"
@@ -53,7 +53,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId,
 "                         SELECT " QUOTE(TRIGRAM_USER ID)
 "                           FROM " QUOTE("T_USER_USR")
 "                           WHERE"
-"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "                       )"
 "                     AND " QUOTE(TRIGRAM_MEDIA SEP "DELETE") " IS NULL"
@@ -69,7 +69,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Alert> AlertResource::selectAlert(const string &aleId,
     return queryRes.resultValue();
 }
 
-EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -95,7 +95,7 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
 "                         SELECT " QUOTE(TRIGRAM_USER ID)
 "                           FROM " QUOTE("T_USER_USR")
 "                           WHERE"
-"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+"                             " QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 "                             AND " QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL"
 "                       )";
 
@@ -128,7 +128,7 @@ EReturnCode AlertResource::getAlertsList(map<string, long long> &parameters, con
     return res;
 }
 
-EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -136,7 +136,7 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], grpId, m_session);
 
         res = serialize(alePtr, responseMsg);
 
@@ -150,7 +150,7 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
     return res;
 }
 
-//EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
+//EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &parameters, const long long &grpId, std::string &responseMsg)
 //{
 //    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //
@@ -184,7 +184,7 @@ EReturnCode AlertResource::getAlert(const vector<string> &pathElements, const lo
 //    return res;
 //}
 
-EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -202,11 +202,11 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
 
     if (nextElement.empty())
     {
-        res = getAlertsList(parameters, orgId, responseMsg);
+        res = getAlertsList(parameters, grpId, responseMsg);
     }
 //    else if (nextElement.compare("trackings") == 0)
 //    {
-//        res = getTrackingsForAlertsList(parameters, orgId,responseMsg);
+//        res = getTrackingsForAlertsList(parameters, grpId,responseMsg);
 //    }
     else
     {
@@ -216,7 +216,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAlert(pathElements, orgId, responseMsg);
+                res = getAlert(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -235,7 +235,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode AlertResource::postAlert(const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::postAlert(const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     // ALE attributs
@@ -399,7 +399,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 "                                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                                               WHERE"
-"                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+"                                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + boost::lexical_cast<string>(it->plgId) +
 "                                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                                         )"
@@ -468,7 +468,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
             vector<Wt::Dbo::ptr<Echoes::Dbo::Media>> medPtrVector;
             for (vector<AmsStruct>::const_iterator it = amsStructs.begin(); it < amsStructs.end(); ++it)
             {
-                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, orgId, m_session);
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(it->medId, grpId, m_session);
                 if (!medPtr)
                 {
                     res = EReturnCode::NOT_FOUND;
@@ -660,7 +660,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //    return res;
 //}
 
-//EReturnCode AlertResource::postAlertTracking(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+//EReturnCode AlertResource::postAlertTracking(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 //{
 //    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //    vector<long long> ivaIds;
@@ -707,7 +707,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //        {
 //            Wt::Dbo::Transaction transaction(m_session, true);
 //
-//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
+//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], grpId, m_session);
 //            if (!alePtr)
 //            {
 //                res = EReturnCode::NOT_FOUND;
@@ -790,7 +790,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //                    // Verifying the quota of sms
 //                    Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
 //                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
-//                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+//                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
 //                            .limit(1);
 //
 //                    try
@@ -854,7 +854,7 @@ EReturnCode AlertResource::postAlert(const string &sRequest, const long long &or
 //    return res;
 //}
 
-EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -869,7 +869,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postAlert(sRequest,orgId, responseMsg);
+        res = postAlert(sRequest,grpId, responseMsg);
     }
     else
     {
@@ -881,7 +881,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -889,7 +889,7 @@ EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], grpId, m_session);
 
         if (alePtr)
         {
@@ -913,7 +913,7 @@ EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const
     return res;
 }
 
-EReturnCode AlertResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -940,7 +940,7 @@ EReturnCode AlertResource::processDeleteRequest(const Wt::Http::Request &request
 
             if (nextElement.empty())
             {
-                res = deleteAlert(pathElements, orgId, responseMsg);
+                res = deleteAlert(pathElements, grpId, responseMsg);
             }
             else
             {

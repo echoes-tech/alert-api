@@ -23,13 +23,13 @@ class CriterionResource : public PublicApiResource
         virtual ~CriterionResource();
 
     protected :
-        EReturnCode getCriteriaList(const long long &orgId, std::string &responseMsg);
-        EReturnCode getCriterion(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAliasForCriterion(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string  &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getCriteriaList(const long long &grpId, std::string &responseMsg);
+        EReturnCode getCriterion(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getAliasForCriterion(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &grpId, std::string  &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode putAliasForCriterion(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putAliasForCriterion(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 #endif	/* CRITERIONRESOURCE_H */

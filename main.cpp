@@ -29,7 +29,7 @@
 #include "InformationDataResource.h"
 #include "MediaResource.h"
 #include "OptionResource.h"
-#include "OrganizationResource.h"
+#include "GroupResource.h"
 #include "PluginResource.h"
 #include "ProbeResource.h"
 #include "RoleResource.h"
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
             InformationDataResource informationDataRessource(session);
             MediaResource           mediaResource(session);
             OptionResource          optionRessource(session);
-            OrganizationResource    organizationRessource(session);
+            GroupResource           groupRessource(session);
             PluginResource          pluginResource(session);
             ProbeResource           probeResource(session);
             SearchResource          searchResource(session);
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
             server.addResource(&informationDataRessource, "/information_datas");
             server.addResource(&mediaResource,            "/medias");
             server.addResource(&optionRessource,          "/options");
-            server.addResource(&organizationRessource,    "/organizations");
+            server.addResource(&groupRessource,           "/groups");
             server.addResource(&pluginResource,           "/plugins");
             server.addResource(&probeResource,            "/probes");
             server.addResource(&roleResource,             "/roles");

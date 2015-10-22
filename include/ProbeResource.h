@@ -26,29 +26,29 @@ class ProbeResource : public PublicApiResource
         /**
          * Select a Probe
          * @param prbId Identifier of Probe
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Probe Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const long long &prbId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const long long &prbId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select an Probe with a string of identifier of Probe
          * @param prbId String of Identifier of Probe
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Probe Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select a Probe with a ID string
          * @param prbId String of Identifier of Probe
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Probe Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, const std::string &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Probe> selectProbe(const std::string &prbId, const std::string &grpId, Echoes::Dbo::Session &session);
 
         /**
          * Select a Probe Package Parameter
          * @param prbId Identifier of Probe
-         * @param orgId String of Identifier of Organization
+         * @param grpId String of Identifier of Group
          * @return Probe Wt Dbo Pointer
          */
         static Wt::Dbo::ptr<Echoes::Dbo::ProbePackageParameter> selectProbePackageParameter(const Wt::Dbo::ptr<Echoes::Dbo::Asset> &astPtr, Echoes::Dbo::Session &session);
@@ -58,21 +58,21 @@ class ProbeResource : public PublicApiResource
     protected:
         std::map<long long, int>        m_mapTimer;
         
-        EReturnCode getProbesList(const long long &orgId, std::string &responseMsg);
-        EReturnCode getProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAliveProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getJsonForProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getProbesList(const long long &grpId, std::string &responseMsg);
+        EReturnCode getProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getAliveProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getJsonForProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getPackagesForProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode postProbe(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode postProbe(const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode putProbe(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-
-        EReturnCode deleteProbe(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putProbe(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
+        
+        EReturnCode deleteProbe(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 #endif	/* PROBERESOURCE_H */

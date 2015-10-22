@@ -23,7 +23,7 @@ InformationResource::~InformationResource()
 {
 }
 
-EReturnCode InformationResource::getInformationsList(const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getInformationsList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -32,7 +32,7 @@ EReturnCode InformationResource::getInformationsList(const long long &orgId, str
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Information>> infPtrCol = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .orderBy(QUOTE(TRIGRAM_INFORMATION ID));
 
         res = serialize(infPtrCol, responseMsg);
@@ -47,7 +47,7 @@ EReturnCode InformationResource::getInformationsList(const long long &orgId, str
     return res;
 }
 
-EReturnCode InformationResource::getInformation(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getInformation(const vector<string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -57,7 +57,7 @@ EReturnCode InformationResource::getInformation(const vector<string> &pathElemen
         Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
         res = serialize(infPtr, responseMsg);
 
@@ -71,7 +71,7 @@ EReturnCode InformationResource::getInformation(const vector<string> &pathElemen
     return res;
 }
 
-EReturnCode InformationResource::getAliasForInformation(const vector<string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getAliasForInformation(const vector<string> &pathElements, map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -90,7 +90,7 @@ EReturnCode InformationResource::getAliasForInformation(const vector<string> &pa
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
-                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
@@ -120,7 +120,7 @@ EReturnCode InformationResource::getAliasForInformation(const vector<string> &pa
     return res;
 }
 
-EReturnCode InformationResource::getPluginsListForInformation(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::getPluginsListForInformation(const vector<string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -156,7 +156,7 @@ EReturnCode InformationResource::getPluginsListForInformation(const vector<strin
 "                                         SELECT " QUOTE(TRIGRAM_INFORMATION ID) "\n"
 "                                           FROM " QUOTE("T_INFORMATION" SEP TRIGRAM_INFORMATION) "\n"
 "                                           WHERE\n"
-"                                             " QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
+"                                             " QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) + "\n"
 "                                             AND " QUOTE(TRIGRAM_INFORMATION ID) " = " + pathElements[1] + "\n"
 "                                             AND " QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL\n"
 "                                       )\n"
@@ -167,7 +167,7 @@ EReturnCode InformationResource::getPluginsListForInformation(const vector<strin
 "                     AND " QUOTE(TRIGRAM_SEARCH SEP "DELETE") " IS NULL\n"
 "               )\n"
 "       )\n"
-"     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
+"     AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) + "\n"
 "     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n";        
         
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Plugin>>(queryStr);
@@ -186,7 +186,7 @@ EReturnCode InformationResource::getPluginsListForInformation(const vector<strin
     return res;
 }
 
-EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -202,7 +202,7 @@ EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &requ
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getInformationsList(orgId, responseMsg);
+        res = getInformationsList(grpId, responseMsg);
     }
     else
     {
@@ -213,15 +213,15 @@ EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &requ
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getInformation(pathElements, orgId, responseMsg);
+                res = getInformation(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("alias") == 0)
             {
-                res = getAliasForInformation(pathElements, parameters, orgId, responseMsg);
+                res = getAliasForInformation(pathElements, parameters, grpId, responseMsg);
             }
             else if (nextElement.compare("plugins") == 0)
             {
-                res = getPluginsListForInformation(pathElements, orgId, responseMsg);
+                res = getPluginsListForInformation(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -239,7 +239,7 @@ EReturnCode InformationResource::processGetRequest(const Wt::Http::Request &requ
     return res;
 }
 
-EReturnCode InformationResource::postInformation(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode InformationResource::postInformation(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -289,13 +289,13 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
-                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
-            if (!orgPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::Group> grpPtr = m_session.find<Echoes::Dbo::Group>()
+                    .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId);
+            if (!grpPtr)
             {
                 res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, orgPtr);
+                responseMsg = httpCodeToJSON(res, grpPtr);
                 return res;
             }
             
@@ -313,7 +313,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
                 }
                 newInf->desc = desc;
                 newInf->informationUnit = inuPtr;
-                newInf->organization = orgPtr;
+                newInf->group = grpPtr;
 
                 Wt::Dbo::ptr<Echoes::Dbo::Information> newInfPtr = m_session.add<Echoes::Dbo::Information>(newInf);
                 newInfPtr.flush();
@@ -338,7 +338,7 @@ EReturnCode InformationResource::postInformation(const string& sRequest, const l
     return res; 
 }
 
-EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -351,7 +351,7 @@ EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &req
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postInformation(sRequest, orgId, responseMsg);
+        res = postInformation(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -363,7 +363,7 @@ EReturnCode InformationResource::processPostRequest(const Wt::Http::Request &req
     return res;
 }
 
-EReturnCode InformationResource::putInformation(const vector<string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
+EReturnCode InformationResource::putInformation(const vector<string> &pathElements, const string &sRequest, const long long &grpId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -429,7 +429,7 @@ EReturnCode InformationResource::putInformation(const vector<string> &pathElemen
 
             Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
             if (infPtr)
@@ -485,7 +485,7 @@ EReturnCode InformationResource::putInformation(const vector<string> &pathElemen
     return res;
 }
 
-EReturnCode InformationResource::putAliasForInformation(const vector<string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::putAliasForInformation(const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -529,7 +529,7 @@ EReturnCode InformationResource::putAliasForInformation(const vector<string> &pa
 
             Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr =  m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
             if (infPtr)
             {
@@ -589,7 +589,7 @@ EReturnCode InformationResource::putAliasForInformation(const vector<string> &pa
     return res; 
 }
 
-EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -616,11 +616,11 @@ EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &requ
 
             if (nextElement.empty())
             {
-                res = putInformation(pathElements, sRequest, orgId, responseMsg);
+                res = putInformation(pathElements, sRequest, grpId, responseMsg);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = putAliasForInformation(pathElements, sRequest, orgId, responseMsg);
+                res = putAliasForInformation(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -639,7 +639,7 @@ EReturnCode InformationResource::processPutRequest(const Wt::Http::Request &requ
     return res;
 }
 
-EReturnCode InformationResource::deleteInformation(const vector<string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode InformationResource::deleteInformation(const vector<string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -649,7 +649,7 @@ EReturnCode InformationResource::deleteInformation(const vector<string> &pathEle
 
         Wt::Dbo::ptr<Echoes::Dbo::Information> infPtr = m_session.find<Echoes::Dbo::Information>()
                 .where(QUOTE(TRIGRAM_INFORMATION ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_INFORMATION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .where(QUOTE(TRIGRAM_INFORMATION SEP "DELETE") " IS NULL");
 
         if(infPtr)
@@ -686,7 +686,7 @@ EReturnCode InformationResource::deleteInformation(const vector<string> &pathEle
     return res;
 }
 
-EReturnCode InformationResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, string &responseMsg)
+EReturnCode InformationResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -713,7 +713,7 @@ EReturnCode InformationResource::processDeleteRequest(const Wt::Http::Request &r
 
             if (nextElement.empty())
             {
-                res = deleteInformation(pathElements, orgId, responseMsg);
+                res = deleteInformation(pathElements, grpId, responseMsg);
             }
             else
             {

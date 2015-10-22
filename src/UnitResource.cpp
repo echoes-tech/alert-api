@@ -23,7 +23,7 @@ UnitResource::~UnitResource()
 {
 }
 
-EReturnCode UnitResource::getUnitsList(const long long &orgId, string& responseMsg)
+EReturnCode UnitResource::getUnitsList(const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -46,7 +46,7 @@ EReturnCode UnitResource::getUnitsList(const long long &orgId, string& responseM
     return res;
 }
 
-EReturnCode UnitResource::getUnit(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode UnitResource::getUnit(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -69,7 +69,7 @@ EReturnCode UnitResource::getUnit(const std::vector<std::string> &pathElements, 
     return res;
 }
 
-EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -82,7 +82,7 @@ EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, co
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getUnitsList(orgId, responseMsg);
+        res = getUnitsList(grpId, responseMsg);
     }
     else
     {
@@ -93,7 +93,7 @@ EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, co
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getUnit(pathElements, orgId, responseMsg);
+                res = getUnit(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -112,7 +112,7 @@ EReturnCode UnitResource::processGetRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode UnitResource::postUnit(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode UnitResource::postUnit(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long iutId;
@@ -209,7 +209,7 @@ EReturnCode UnitResource::postUnit(const string& sRequest, const long long &orgI
     return res;
 }
 
-EReturnCode UnitResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UnitResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -222,7 +222,7 @@ EReturnCode UnitResource::processPostRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postUnit(sRequest, orgId, responseMsg);
+        res = postUnit(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -234,7 +234,7 @@ EReturnCode UnitResource::processPostRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode UnitResource::putUnit(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode UnitResource::putUnit(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -306,7 +306,7 @@ EReturnCode UnitResource::putUnit(const std::vector<std::string> &pathElements, 
     return res;
 }
 
-EReturnCode UnitResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UnitResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -333,7 +333,7 @@ EReturnCode UnitResource::processPutRequest(const Wt::Http::Request &request, co
 
             if (nextElement.empty())
             {
-                res = putUnit(pathElements, sRequest, orgId, responseMsg);
+                res = putUnit(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -352,7 +352,7 @@ EReturnCode UnitResource::processPutRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode UnitResource::deleteUnit(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode UnitResource::deleteUnit(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -402,7 +402,7 @@ EReturnCode UnitResource::deleteUnit(const std::vector<std::string> &pathElement
     return res;
 }
 
-EReturnCode UnitResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UnitResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -429,7 +429,7 @@ EReturnCode UnitResource::processDeleteRequest(const Wt::Http::Request &request,
 
             if (nextElement.empty())
             {
-                res = deleteUnit(pathElements, orgId, responseMsg);
+                res = deleteUnit(pathElements, grpId, responseMsg);
             }
             else
             {

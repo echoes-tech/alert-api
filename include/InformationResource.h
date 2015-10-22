@@ -23,21 +23,21 @@ class InformationResource : public PublicApiResource
         virtual ~InformationResource();
         
     protected :
-        EReturnCode getInformationsList(const long long &orgId, std::string &responseMsg);
-        EReturnCode getInformation(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAliasForInformation(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string  &responseMsg);
-        EReturnCode getPluginsListForInformation(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getInformationsList(const long long &grpId, std::string &responseMsg);
+        EReturnCode getInformation(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getAliasForInformation(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &grpId, std::string  &responseMsg);
+        EReturnCode getPluginsListForInformation(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode postInformation(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode postInformation(const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode putInformation(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
-        EReturnCode putAliasForInformation(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putInformation(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
+        EReturnCode putAliasForInformation(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode deleteInformation(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode deleteInformation(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 

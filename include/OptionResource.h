@@ -23,9 +23,9 @@ class OptionResource : public PublicApiResource
         virtual ~OptionResource();
 
     private:
-        EReturnCode getOptionsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getOption(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getOptionsList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        EReturnCode getOption(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 #endif	/* OPTIONRESOURCE_H */

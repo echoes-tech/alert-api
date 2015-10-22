@@ -23,7 +23,7 @@ UserResource::~UserResource()
 {
 }
 
-EReturnCode UserResource::getUsersList(const long long &orgId, string &responseMsg)
+EReturnCode UserResource::getUsersList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -32,7 +32,7 @@ EReturnCode UserResource::getUsersList(const long long &orgId, string &responseM
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .orderBy(QUOTE(TRIGRAM_USER ID));
 
         res = serialize(usrPtrCol, responseMsg);
@@ -47,7 +47,7 @@ EReturnCode UserResource::getUsersList(const long long &orgId, string &responseM
     return res;
 }
 
-EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -57,7 +57,7 @@ EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, 
         Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
         res = serialize(usrPtr, responseMsg);
 
@@ -71,7 +71,7 @@ EReturnCode UserResource::getUser(const std::vector<std::string> &pathElements, 
     return res;
 }
 
-EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -84,7 +84,7 @@ EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, co
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getUsersList(orgId, responseMsg);
+        res = getUsersList(grpId, responseMsg);
     }
     else
     {
@@ -95,7 +95,7 @@ EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, co
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getUser(pathElements, orgId, responseMsg);
+                res = getUser(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -114,7 +114,7 @@ EReturnCode UserResource::processGetRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode UserResource::postActionForUser(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode UserResource::postActionForUser(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -185,7 +185,7 @@ EReturnCode UserResource::postActionForUser(const string& sRequest, const long l
     return res;
 }
 
-EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -206,7 +206,7 @@ EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, c
     {
         if(nextElement.compare("action") == 0)
         {
-            res = postActionForUser(sRequest, orgId, responseMsg);
+            res = postActionForUser(sRequest, grpId, responseMsg);
         }
         else
         {
@@ -219,7 +219,7 @@ EReturnCode UserResource::processPostRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString firstName;
@@ -278,7 +278,7 @@ EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, 
             Wt::Dbo::ptr<Echoes::Dbo::User> usrPtr = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
             if (usrPtr)
             {
@@ -287,7 +287,7 @@ EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, 
                     Wt::Dbo::ptr<Echoes::Dbo::UserRole> usoPtr = m_session.find<Echoes::Dbo::UserRole>()
                         .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(uroId)
                         .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                        .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                        .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
                     if (usrPtr)
                     {
@@ -338,7 +338,7 @@ EReturnCode UserResource::putUser(const std::vector<std::string> &pathElements, 
     return res;
 }
 
-EReturnCode UserResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode UserResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -365,7 +365,7 @@ EReturnCode UserResource::processPutRequest(const Wt::Http::Request &request, co
 
             if (nextElement.empty())
             {
-                res = putUser(pathElements, sRequest, orgId, responseMsg);
+                res = putUser(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {

@@ -23,17 +23,17 @@ SearchResource::~SearchResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const long long &seaId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const long long &seaId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectSearch(boost::lexical_cast<string>(seaId), boost::lexical_cast<string>(orgId), session);
+    return selectSearch(boost::lexical_cast<string>(seaId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectSearch(seaId, boost::lexical_cast<string>(orgId), session);
+    return selectSearch(seaId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, const string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &seaId, const string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT sea"
@@ -53,7 +53,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                               WHERE"
-"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "                                 AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
 "                         )"
 "                 )"
@@ -68,7 +68,7 @@ Wt::Dbo::ptr<Echoes::Dbo::Search> SearchResource::selectSearch(const string &sea
     return queryRes.resultValue();
 }
 
-EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -93,7 +93,7 @@ EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, c
 "                           SELECT " QUOTE(TRIGRAM_PLUGIN ID)
 "                             FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN)
 "                               WHERE"
-"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId);
+"                                 " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId);
 
         if (parameters["plugin_id"] > 0)
         {
@@ -133,7 +133,7 @@ EReturnCode SearchResource::getSearchsList(map<string, long long> &parameters, c
     return res;
 }
 
-EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -141,7 +141,7 @@ EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElemen
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], grpId, m_session);
 
         res = serialize(seaPtr, responseMsg);
 
@@ -155,7 +155,7 @@ EReturnCode SearchResource::getSearch(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode SearchResource::getParametersList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode SearchResource::getParametersList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -205,14 +205,14 @@ EReturnCode SearchResource::getParametersList(map<string, long long> &parameters
     return res;
 }
 
-EReturnCode SearchResource::getParametersListForSearch(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode SearchResource::getParametersListForSearch(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], grpId, m_session);
         
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::SearchParameterValue>> sevPtrCol = m_session.find<Echoes::Dbo::SearchParameterValue>()
                 .where(QUOTE(TRIGRAM_SEARCH_PARAMETER_VALUE SEP "DELETE") " IS NULL")
@@ -230,7 +230,7 @@ EReturnCode SearchResource::getParametersListForSearch(const std::vector<std::st
     return res;
 }
 
-EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -247,11 +247,11 @@ EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getSearchsList(parameters, orgId, responseMsg);
+        res = getSearchsList(parameters, grpId, responseMsg);
     }
     else if (nextElement.compare("parameters") == 0)
     {
-        res = getParametersList(parameters, orgId, responseMsg);
+        res = getParametersList(parameters, grpId, responseMsg);
     }
     else
     {
@@ -262,11 +262,11 @@ EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getSearch(pathElements, orgId, responseMsg);
+                res = getSearch(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("parameters") == 0)
             {
-                res = getParametersListForSearch(pathElements, orgId, responseMsg);
+                res = getParametersListForSearch(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -285,7 +285,7 @@ EReturnCode SearchResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SearchResource::postSearch(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SearchResource::postSearch(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long srcId;
@@ -337,7 +337,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
                 return res;
             }
             
-            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, orgId, m_session);
+            Wt::Dbo::ptr<Echoes::Dbo::Source> srcPtr = SourceResource::selectSource(srcId, grpId, m_session);
             if (!srcPtr)
             {
                 res = EReturnCode::NOT_FOUND;
@@ -395,7 +395,7 @@ EReturnCode SearchResource::postSearch(const string& sRequest, const long long &
     return res;
 }
 
-EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -408,7 +408,7 @@ EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postSearch(sRequest, orgId, responseMsg);
+        res = postSearch(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -420,7 +420,7 @@ EReturnCode SearchResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode SearchResource::putSearch(const std::vector<std::string> &pathElements, const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode SearchResource::putSearch(const std::vector<std::string> &pathElements, const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -449,7 +449,7 @@ EReturnCode SearchResource::putSearch(const std::vector<std::string> &pathElemen
             }
             
             Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin> >::const_iterator itPlugin = seaPtr.get()->source.get()->plugins.begin();
-            if (itPlugin->get()->organization.id() != orgId)
+            if (itPlugin->get()->group.id() != grpId)
             {
                 res = EReturnCode::NOT_FOUND;
                 responseMsg = httpCodeToJSON(res, seaPtr);
@@ -506,7 +506,7 @@ EReturnCode SearchResource::putSearch(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -533,7 +533,7 @@ EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putSearch(pathElements, sRequest, orgId, responseMsg);
+                res = putSearch(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -552,7 +552,7 @@ EReturnCode SearchResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -560,7 +560,7 @@ EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathEle
     {  
         Wt::Dbo::Transaction transaction(m_session, true);
            
-        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Search> seaPtr = selectSearch(pathElements[1], grpId, m_session);
 
         if(seaPtr)
         {
@@ -596,7 +596,7 @@ EReturnCode SearchResource::deleteSearch(const std::vector<std::string> &pathEle
     return res;
 }
 
-EReturnCode SearchResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode SearchResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -623,7 +623,7 @@ EReturnCode SearchResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deleteSearch(pathElements, orgId, responseMsg);
+                res = deleteSearch(pathElements, grpId, responseMsg);
             }
             else
             {

@@ -23,7 +23,7 @@ RoleResource::~RoleResource()
 {
 }
 
-EReturnCode RoleResource::getRolesList(const long long &orgId, string &responseMsg)
+EReturnCode RoleResource::getRolesList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -32,7 +32,7 @@ EReturnCode RoleResource::getRolesList(const long long &orgId, string &responseM
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::UserRole>> uroPtrCol = m_session.find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .orderBy(QUOTE(TRIGRAM_USER_ROLE ID));
 
         res = serialize(uroPtrCol, responseMsg);
@@ -47,7 +47,7 @@ EReturnCode RoleResource::getRolesList(const long long &orgId, string &responseM
     return res;
 }
 
-EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -57,7 +57,7 @@ EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, 
         Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
         res = serialize(uroPtr, responseMsg);
 
@@ -71,7 +71,7 @@ EReturnCode RoleResource::getRole(const std::vector<std::string> &pathElements, 
     return res;
 }
 
-EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -84,7 +84,7 @@ EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, co
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getRolesList(orgId, responseMsg);
+        res = getRolesList(grpId, responseMsg);
     }
     else
     {
@@ -95,7 +95,7 @@ EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, co
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getRole(pathElements, orgId, responseMsg);
+                res = getRole(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -114,7 +114,7 @@ EReturnCode RoleResource::processGetRequest(const Wt::Http::Request &request, co
     return res;
 }
 
-EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode RoleResource::postRole(const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -152,19 +152,19 @@ EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgI
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
-                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
-            if (!orgPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::Group> grpPtr = m_session.find<Echoes::Dbo::Group>()
+                    .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId);
+            if (!grpPtr)
             {
                 res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, orgPtr);
+                responseMsg = httpCodeToJSON(res, grpPtr);
                 return res;
             }
 
             Echoes::Dbo::UserRole *newUro = new Echoes::Dbo::UserRole();
             newUro->name = name;
-            newUro->organization = orgPtr;
+            newUro->group = grpPtr;
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> newUroPtr = m_session.add<Echoes::Dbo::UserRole>(newUro);
             newUroPtr.flush();
@@ -183,7 +183,7 @@ EReturnCode RoleResource::postRole(const string &sRequest, const long long &orgI
     return res;
 }
 
-EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -196,7 +196,7 @@ EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, c
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postRole(sRequest, orgId, responseMsg);
+        res = postRole(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -208,7 +208,7 @@ EReturnCode RoleResource::processPostRequest(const Wt::Http::Request &request, c
     return res;
 }
 
-EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -252,7 +252,7 @@ EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                 .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(pathElements[1])
                 .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
             if (uroPtr)
             {
@@ -281,7 +281,7 @@ EReturnCode RoleResource::putRole(const std::vector<std::string> &pathElements, 
     return res;
 }
 
-EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -308,7 +308,7 @@ EReturnCode RoleResource::processPutRequest(const Wt::Http::Request &request, co
 
             if (nextElement.empty())
             {
-                res = putRole(pathElements, sRequest, orgId, responseMsg);
+                res = putRole(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {

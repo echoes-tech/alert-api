@@ -1,5 +1,5 @@
 /* 
- * API OrganizationResource
+ * API GroupResource
  * @author ECHOES Technologies (GDR)
  * @date 18/02/2013
  * 
@@ -11,31 +11,31 @@
  * 
  */
 
-#include "OrganizationResource.h"
+#include "GroupResource.h"
 
 using namespace std;
 
-OrganizationResource::OrganizationResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
+GroupResource::GroupResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
 }
 
-OrganizationResource::~OrganizationResource()
+GroupResource::~GroupResource()
 {
 }
 
-EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, string &responseMsg)
+EReturnCode GroupResource::getGroupsList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Organization>> orgPtrCol = m_session.find<Echoes::Dbo::Organization>()
-                .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
-                .orderBy(QUOTE(TRIGRAM_ORGANIZATION ID));
+        Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Group>> grpPtrCol = m_session.find<Echoes::Dbo::Group>()
+                .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId)
+                .orderBy(QUOTE(TRIGRAM_GROUP ID));
 
-        res = serialize(orgPtrCol, responseMsg);
+        res = serialize(grpPtrCol, responseMsg);
 
         transaction.commit();
     }
@@ -47,19 +47,19 @@ EReturnCode OrganizationResource::getOrganizationsList(const long long &orgId, s
     return res;
 }
 
-EReturnCode OrganizationResource::getOrganization(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode GroupResource::getGroup(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
-                .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+        Wt::Dbo::ptr<Echoes::Dbo::Group> grpPtr = m_session.find<Echoes::Dbo::Group>()
+                .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
-        res = serialize(orgPtr, responseMsg);
+        res = serialize(grpPtr, responseMsg);
 
         transaction.commit();
     }
@@ -71,7 +71,7 @@ EReturnCode OrganizationResource::getOrganization(const std::vector<std::string>
     return res;
 }
 
-EReturnCode OrganizationResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode GroupResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -84,7 +84,7 @@ EReturnCode OrganizationResource::processGetRequest(const Wt::Http::Request &req
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getOrganizationsList(orgId, responseMsg);
+        res = getGroupsList(grpId, responseMsg);
     }
     else
     {
@@ -95,12 +95,12 @@ EReturnCode OrganizationResource::processGetRequest(const Wt::Http::Request &req
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getOrganization(pathElements, orgId, responseMsg);
+                res = getGroup(pathElements, grpId, responseMsg);
             }
             else
             {
                 res = EReturnCode::BAD_REQUEST;
-                const string err = "[Organization Resource] bad nextElement";
+                const string err = "[Group Resource] bad nextElement";
                 responseMsg = httpCodeToJSON(res, err);
             }
         }

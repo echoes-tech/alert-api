@@ -23,17 +23,17 @@ InformationDataResource::~InformationDataResource()
 {
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInformationData(const long long &idaId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInformationData(const long long &idaId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectInformationData(boost::lexical_cast<string>(idaId), boost::lexical_cast<string>(orgId), session);
+    return selectInformationData(boost::lexical_cast<string>(idaId), boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInformationData(const string &idaId, const long long &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInformationData(const string &idaId, const long long &grpId, Echoes::Dbo::Session &session)
 {
-    return selectInformationData(idaId, boost::lexical_cast<string>(orgId), session);
+    return selectInformationData(idaId, boost::lexical_cast<string>(grpId), session);
 }
 
-Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInformationData(const string &idaId, const std::string &orgId, Echoes::Dbo::Session &session)
+Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInformationData(const string &idaId, const std::string &grpId, Echoes::Dbo::Session &session)
 {
     const string queryStr =
 " SELECT ida"
@@ -44,7 +44,7 @@ Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInform
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + orgId +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + grpId +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )"
 "     AND " QUOTE(TRIGRAM_INFORMATION_DATA SEP "DELETE") " IS NULL"
@@ -55,7 +55,7 @@ Wt::Dbo::ptr<Echoes::Dbo::InformationData> InformationDataResource::selectInform
     return queryRes.resultValue();
 }
 
-EReturnCode InformationDataResource::getInformationDataList(map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode InformationDataResource::getInformationDataList(map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -70,7 +70,7 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
 "       ("
 "         SELECT " QUOTE(TRIGRAM_ASSET ID)
 "           FROM " QUOTE("T_ASSET_AST")
-"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+"           WHERE " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 "             AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL"
 "       )";
 
@@ -104,7 +104,7 @@ EReturnCode InformationDataResource::getInformationDataList(map<string, long lon
     return res;
 }
 
-EReturnCode InformationDataResource::getInformationData(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode InformationDataResource::getInformationData(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -112,7 +112,7 @@ EReturnCode InformationDataResource::getInformationData(const std::vector<std::s
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], grpId, m_session);
 
         res = serialize(idaPtr, responseMsg);
 
@@ -126,7 +126,7 @@ EReturnCode InformationDataResource::getInformationData(const std::vector<std::s
     return res;
 }
 
-EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -142,7 +142,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getInformationDataList(parameters, orgId, responseMsg);
+        res = getInformationDataList(parameters, grpId, responseMsg);
     }
     else
     {
@@ -153,7 +153,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getInformationData(pathElements, orgId, responseMsg);
+                res = getInformationData(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -172,7 +172,7 @@ EReturnCode InformationDataResource::processGetRequest(const Wt::Http::Request &
     return res;
 }
 
-EReturnCode InformationDataResource::postInformationData(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode InformationDataResource::postInformationData(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -180,7 +180,7 @@ EReturnCode InformationDataResource::postInformationData(const string& sRequest,
     return res;
 }
 
-EReturnCode InformationDataResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationDataResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -188,7 +188,7 @@ EReturnCode InformationDataResource::processPostRequest(const Wt::Http::Request 
     return res;
 }
 
-EReturnCode InformationDataResource::putInformationData(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId,  string &responseMsg)
+EReturnCode InformationDataResource::putInformationData(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -196,7 +196,7 @@ EReturnCode InformationDataResource::putInformationData(const std::vector<std::s
     return res;
 }
 
-EReturnCode InformationDataResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationDataResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -204,7 +204,7 @@ EReturnCode InformationDataResource::processPutRequest(const Wt::Http::Request &
     return res;
 }
 
-EReturnCode InformationDataResource::deleteInformationData(const std::vector<std::string> &pathElements, const long long &orgId,  string &responseMsg)
+EReturnCode InformationDataResource::deleteInformationData(const std::vector<std::string> &pathElements, const long long &grpId,  string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -212,7 +212,7 @@ EReturnCode InformationDataResource::deleteInformationData(const std::vector<std
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::InformationData> idaPtr = selectInformationData(pathElements[1], grpId, m_session);
 
         if (idaPtr)
         {
@@ -236,7 +236,7 @@ EReturnCode InformationDataResource::deleteInformationData(const std::vector<std
     return res;
 }
 
-EReturnCode InformationDataResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode InformationDataResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -263,7 +263,7 @@ EReturnCode InformationDataResource::processDeleteRequest(const Wt::Http::Reques
 
             if (nextElement.empty())
             {
-                res = deleteInformationData(pathElements, orgId, responseMsg);
+                res = deleteInformationData(pathElements, grpId, responseMsg);
             }
             else
             {

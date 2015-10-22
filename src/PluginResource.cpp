@@ -23,7 +23,7 @@ PluginResource::~PluginResource()
 {
 }
 
-EReturnCode PluginResource::getPluginsList(const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getPluginsList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -32,7 +32,7 @@ EReturnCode PluginResource::getPluginsList(const long long &orgId, string &respo
 
         Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::Plugin>> plgPtrCol = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .orderBy(QUOTE(TRIGRAM_PLUGIN ID));
 
         res = serialize(plgPtrCol, responseMsg);
@@ -47,7 +47,7 @@ EReturnCode PluginResource::getPluginsList(const long long &orgId, string &respo
     return res;
 }
 
-EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -57,7 +57,7 @@ EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElemen
         Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
         res = serialize(plgPtr, responseMsg);
 
@@ -71,7 +71,7 @@ EReturnCode PluginResource::getPlugin(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -90,7 +90,7 @@ EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pa
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
-                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
@@ -120,7 +120,7 @@ EReturnCode PluginResource::getAliasForPlugin(const std::vector<std::string> &pa
     return res;
 }
 
-EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -161,7 +161,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 "                                                 SELECT " QUOTE(TRIGRAM_PLUGIN ID) "\n"
 "                                                   FROM " QUOTE("T_PLUGIN" SEP TRIGRAM_PLUGIN) "\n"
 "                                                   WHERE\n"
-"                                                     " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) + "\n"
+"                                                     " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) + "\n"
 "                                                     AND " QUOTE(TRIGRAM_PLUGIN ID) " = " + pathElements[1] + "\n"
 "                                                     AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL\n"
 "                                               )\n"
@@ -192,7 +192,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
     return res;
 }
 
-//EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+//EReturnCode PluginResource::getAssetsListForPlugin(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 //{
 //    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 //
@@ -209,7 +209,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 //            "           FROM " QUOTE("TJ_PLG_AST")
 //            "           WHERE " QUOTE("T_PLUGIN_PLG" SEP TRIGRAM_PLUGIN ID) " = " + pathElements[1] +
 //            "       )"
-//            "     AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+//            "     AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
 //            "     AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
 //
 //            Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
@@ -237,7 +237,7 @@ EReturnCode PluginResource::getInformationsListForPlugin(const std::vector<std::
 //    return res;
 //}
 
-EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -252,10 +252,10 @@ EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pa
             "      SELECT " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ASSET SEP TRIGRAM_ASSET ID)
             "        FROM " QUOTE("T_PLUGIN_PLG")
             "       WHERE " QUOTE(TRIGRAM_PLUGIN ID) " = " + pathElements[1] +
-            "         AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+            "         AND " QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
             "         AND " QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL"
             "   )"
-            "   AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = " + boost::lexical_cast<string>(orgId) +
+            "   AND " QUOTE(TRIGRAM_ASSET SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = " + boost::lexical_cast<string>(grpId) +
             "   AND " QUOTE(TRIGRAM_ASSET SEP "DELETE") " IS NULL";
 
         Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Asset>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Asset>>(queryStr);
@@ -273,7 +273,7 @@ EReturnCode PluginResource::getAssetForPlugin(const std::vector<std::string> &pa
     return res;
 }
 
-EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -289,7 +289,7 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getPluginsList(orgId, responseMsg);
+        res = getPluginsList(grpId, responseMsg);
     }
     else
     {
@@ -300,19 +300,19 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getPlugin(pathElements, orgId, responseMsg);
+                res = getPlugin(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("alias") == 0)
             {
-                res = getAliasForPlugin(pathElements, parameters, orgId, responseMsg);
+                res = getAliasForPlugin(pathElements, parameters, grpId, responseMsg);
             }
             else if (nextElement.compare("informations") == 0)
             {
-                res = getInformationsListForPlugin(pathElements, orgId, responseMsg);
+                res = getInformationsListForPlugin(pathElements, grpId, responseMsg);
             }
             else if (nextElement.compare("assets") == 0)
             {
-                res = getAssetForPlugin(pathElements, orgId, responseMsg);
+                res = getAssetForPlugin(pathElements, grpId, responseMsg);
             }
             else
             {
@@ -331,7 +331,7 @@ EReturnCode PluginResource::processGetRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &orgId, string& responseMsg)
+EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -373,13 +373,13 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
         {
             Wt::Dbo::Transaction transaction(m_session, true);
 
-            Wt::Dbo::ptr<Echoes::Dbo::Organization> orgPtr = m_session.find<Echoes::Dbo::Organization>()
-                    .where(QUOTE(TRIGRAM_ORGANIZATION SEP "DELETE") " IS NULL")
-                    .where(QUOTE(TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
-            if (!orgPtr)
+            Wt::Dbo::ptr<Echoes::Dbo::Group> grpPtr = m_session.find<Echoes::Dbo::Group>()
+                    .where(QUOTE(TRIGRAM_GROUP SEP "DELETE") " IS NULL")
+                    .where(QUOTE(TRIGRAM_GROUP ID) " = ?").bind(grpId);
+            if (!grpPtr)
             {
                 res = EReturnCode::NOT_FOUND;
-                responseMsg = httpCodeToJSON(res, orgPtr);
+                responseMsg = httpCodeToJSON(res, grpPtr);
                 return res;
             }
 
@@ -389,7 +389,7 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
             if (astPtr)
             {
                 Echoes::Dbo::Plugin *newPlg = new Echoes::Dbo::Plugin();
-                newPlg->organization = orgPtr;
+                newPlg->group = grpPtr;
 //                newPlg->pluginReference = prePtr;
 //                newPlg->versionRef = prePtr->version;
                 newPlg->versionRef = "1.0";
@@ -420,7 +420,7 @@ EReturnCode PluginResource::postPlugin(const string& sRequest, const long long &
     return res;
 }
 
-EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -433,7 +433,7 @@ EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request,
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = postPlugin(sRequest, orgId, responseMsg);
+        res = postPlugin(sRequest, grpId, responseMsg);
     }
     else
     {
@@ -445,7 +445,7 @@ EReturnCode PluginResource::processPostRequest(const Wt::Http::Request &request,
     return res;
 }
 
-EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -489,7 +489,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
 
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr =  m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL");
             if (plgPtr)
             {
@@ -549,7 +549,7 @@ EReturnCode PluginResource::putAliasForPlugin(const std::vector<std::string> &pa
     return res; 
 }
 
-EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     Wt::WString name;
@@ -603,7 +603,7 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
             Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
             if (plgPtr)
             {
@@ -647,7 +647,7 @@ EReturnCode PluginResource::putPlugin(const std::vector<std::string> &pathElemen
     return res;
 }
 
-EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -674,11 +674,11 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
 
             if (nextElement.empty())
             {
-                res = putPlugin(pathElements, sRequest, orgId, responseMsg);
+                res = putPlugin(pathElements, sRequest, grpId, responseMsg);
             }
             else if (nextElement.compare("alias") == 0)
             {
-                res = putAliasForPlugin(pathElements, sRequest, orgId, responseMsg);
+                res = putAliasForPlugin(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
@@ -697,7 +697,7 @@ EReturnCode PluginResource::processPutRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathElements, const long long &orgId, string& responseMsg)
+EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathElements, const long long &grpId, string& responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -708,7 +708,7 @@ EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathEle
         Wt::Dbo::ptr<Echoes::Dbo::Plugin> plgPtr = m_session.find<Echoes::Dbo::Plugin>()
                 .where(QUOTE(TRIGRAM_PLUGIN SEP "DELETE") " IS NULL")
                 .where(QUOTE(TRIGRAM_PLUGIN ID) " = ?").bind(pathElements[1])
-                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId);
+                .where(QUOTE(TRIGRAM_PLUGIN SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId);
 
         if(plgPtr)
         {
@@ -742,7 +742,7 @@ EReturnCode PluginResource::deletePlugin(const std::vector<std::string> &pathEle
     return res;
 }
 
-EReturnCode PluginResource::processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode PluginResource::processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -769,7 +769,7 @@ EReturnCode PluginResource::processDeleteRequest(const Wt::Http::Request &reques
 
             if (nextElement.empty())
             {
-                res = deletePlugin(pathElements, orgId, responseMsg);
+                res = deletePlugin(pathElements, grpId, responseMsg);
             }
             else
             {

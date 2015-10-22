@@ -27,42 +27,42 @@ class AssetResource : public PublicApiResource
         /**
          * Select a Asset
          * @param astId Identifier of Asset
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Asset Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const long long &astId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const long long &astId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select an Asset with a string of identifier of Asset
          * @param astId String of Identifier of Asset
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Asset Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select a Asset with a ID string
          * @param astId String of Identifier of Asset
-         * @param orgId String of Identifier of Organization
+         * @param grpId String of Identifier of Group
          * @return Asset Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, const std::string &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::Asset> selectAsset(const std::string &astId, const std::string &grpId, Echoes::Dbo::Session &session);
 
     protected:
-        EReturnCode getAssetsList(const long long &orgId, std::string &responseMsg);
-        EReturnCode getAsset(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAliasForAsset(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string  &responseMsg);
-        EReturnCode getPluginsForAsset(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getAssetsList(const long long &grpId, std::string &responseMsg);
+        EReturnCode getAsset(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getAliasForAsset(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &grpId, std::string  &responseMsg);
+        EReturnCode getPluginsForAsset(const std::vector<std::string> &pathElements, std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode postAsset(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        EReturnCode postPluginForAsset(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode postAsset(const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        EReturnCode postPluginForAsset(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
         
-        EReturnCode putAsset(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        EReturnCode putAliasForAsset(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putAsset(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        EReturnCode putAliasForAsset(const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode deleteAsset(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode deleteAsset(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 

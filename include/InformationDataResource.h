@@ -25,38 +25,38 @@ class InformationDataResource : public PublicApiResource
         /**
          * Select a Media
          * @param medId Identifier of Media
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Media Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::InformationData> selectInformationData(const long long &medId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::InformationData> selectInformationData(const long long &medId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select an Media with a string of identifier of Media
          * @param medId String of Identifier of Media
-         * @param orgId Identifier of Organization
+         * @param grpId Identifier of Group
          * @return Media Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::InformationData> selectInformationData(const std::string &medId, const long long &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::InformationData> selectInformationData(const std::string &medId, const long long &grpId, Echoes::Dbo::Session &session);
         /**
          * Select a Media with a ID string
          * @param medId String of Identifier of Media
-         * @param orgId String of Identifier of Organization
+         * @param grpId String of Identifier of Group
          * @return Media Wt Dbo Pointer
          */
-        static Wt::Dbo::ptr<Echoes::Dbo::InformationData> selectInformationData(const std::string &medId, const std::string &orgId, Echoes::Dbo::Session &session);
+        static Wt::Dbo::ptr<Echoes::Dbo::InformationData> selectInformationData(const std::string &medId, const std::string &grpId, Echoes::Dbo::Session &session);
 
     protected :
-        EReturnCode getInformationData(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getInformationDataList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode getInformationData(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        EReturnCode getInformationDataList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode postInformationData(const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode postInformationData(const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode putInformationData(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode putInformationData(const std::vector<std::string> &pathElements, const std::string &sRequest,  const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
-        EReturnCode deleteInformationData(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode deleteInformationData(const std::vector<std::string> &pathElements, const long long &grpId, std::string &responseMsg);
+        virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 };
 
 #endif	/* INFORMATIONDATARESOURCE_H */

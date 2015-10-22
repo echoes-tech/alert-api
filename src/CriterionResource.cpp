@@ -23,7 +23,7 @@ CriterionResource::~CriterionResource()
 {
 }
 
-EReturnCode CriterionResource::getCriteriaList(const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::getCriteriaList(const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -46,7 +46,7 @@ EReturnCode CriterionResource::getCriteriaList(const long long &orgId, string &r
     return res;
 }
 
-EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     try
@@ -69,7 +69,7 @@ EReturnCode CriterionResource::getCriterion(const vector<string> &pathElements, 
     return res;
 }
 
-EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::string> &pathElements, map<string, long long> &parameters, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -88,7 +88,7 @@ EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::strin
 
             Wt::Dbo::ptr<Echoes::Dbo::UserRole> uroPtr = m_session.find<Echoes::Dbo::UserRole>()
                     .where(QUOTE(TRIGRAM_USER_ROLE ID) " = ?").bind(parameters["user_role_id"])
-                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(orgId)
+                    .where(QUOTE(TRIGRAM_USER_ROLE SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
                     .where(QUOTE(TRIGRAM_USER_ROLE SEP "DELETE") " IS NULL");
             if (uroPtr)
             {
@@ -119,7 +119,7 @@ EReturnCode CriterionResource::getAliasForCriterion(const std::vector<std::strin
     return res;
 }
 
-EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -136,7 +136,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     nextElement = getNextElementFromPath(indexPathElement, pathElements);
     if (nextElement.empty())
     {
-        res = getCriteriaList(orgId, responseMsg);
+        res = getCriteriaList(grpId, responseMsg);
     }
     else
     {
@@ -147,11 +147,11 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getCriterion(pathElements, orgId, responseMsg);
+                res = getCriterion(pathElements, grpId, responseMsg);
             }
             else if (!nextElement.compare("alias"))
             {
-                res = getAliasForCriterion(pathElements, parameters, orgId, responseMsg);
+                res = getAliasForCriterion(pathElements, parameters, grpId, responseMsg);
             }
             else
             {
@@ -170,7 +170,7 @@ EReturnCode CriterionResource::processGetRequest(const Wt::Http::Request &reques
     return res;
 }
 
-EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::string> &pathElements, const string &sRequest, const long long &orgId, string &responseMsg)
+EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     long long uroId;
@@ -288,7 +288,7 @@ EReturnCode CriterionResource::putAliasForCriterion(const std::vector<std::strin
     return res; 
 }
 
-EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -315,7 +315,7 @@ EReturnCode CriterionResource::processPutRequest(const Wt::Http::Request &reques
 
             if (!nextElement.compare("alias"))
             {
-                res = putAliasForCriterion(pathElements, sRequest, orgId, responseMsg);
+                res = putAliasForCriterion(pathElements, sRequest, grpId, responseMsg);
             }
             else
             {
