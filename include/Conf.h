@@ -17,6 +17,8 @@
 #include <Wt/WServer>
 #include <Wt/WLogger>
 
+#include <unistd.h>
+
 class Conf {
     public:
         Conf();
@@ -41,6 +43,13 @@ class Conf {
         
         void initConfFileName(int argc, char ** argv);
 
+        std::string getRouteurHost() const;
+        unsigned getRouteurPort() const;
+        unsigned getServerPort() const;
+        std::string getFQDN() const;
+        
+        void setServerPort(unsigned port);
+   
     protected:
         std::string m_sessConnectParams;
         std::string m_smtpHost;
@@ -52,6 +61,11 @@ class Conf {
         bool m_smsHttps;
         std::string m_configFileName;
 
+        std::string m_routeurHost;
+        unsigned m_routeurPort;
+        unsigned m_serverPort;
+        std::string m_fqdn;
+        
         void setSessConnectParams
         (
                 std::string dbHost,
@@ -68,6 +82,10 @@ class Conf {
         void setSmsPassword(std::string smsPassword);
         void setSmsLogin(std::string smsLogin);
         void setConfFileName(std::string fileName);
+        void setRouteurPort(unsigned routeurPort);
+        void setRouteurHost(std::string routeurHost);
+        void setFQDN(std::string fqdn);
+
 };
 
 extern Conf conf;

@@ -10,112 +10,151 @@
  * COPYRIGHT 2012-2013 BY ECHOES TECHNOLGIES SAS
  * 
  */
-
 #include "itooki/ItookiAckReceiver.h"
 
 using namespace std;
 
-ItookiAckReceiver::ItookiAckReceiver(Echoes::Dbo::Session& session) : Wt::WResource(),
-m_session(session)
+ItookiAckReceiver::ItookiAckReceiver(Echoes::Dbo::Session& session): PublicItookiResource::PublicItookiResource(session)
 {
+    
 }
 
 ItookiAckReceiver::~ItookiAckReceiver()
 {
-    beingDeleted();
 }
 
-void ItookiAckReceiver::handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response)
+
+EReturnCode ItookiAckReceiver::postAck(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg)
 {
-    Wt::log("notice") << "[ACK] Query string : " << request.queryString();
-
-    if (!request.getParameterValues("erreur").empty())
-    {
-        m_errorCode = request.getParameterValues("erreur")[0];
-    }
-    else
-    {
-        Wt::log("error") << "[ACK ITOOKI]" << "no error code";
-    }
-
-    if (!request.getParameterValues("msgid").empty()) 
-    {
-        m_refSent = request.getParameterValues("msgid")[0];
-    }
-    else
-    {
-        Wt::log("error") << "[ACK ITOOKI]" << "no ref sent";
-    }
-
-
-    /** everything we need in the xml */
-    std::string gateway = "";
-    std::string messageId = "";
-    std::string messageStatus = "";
-    std::string eventReason = "";
-    std::string notificationDate = "";
-    std::string port = "";
-
-    /** try catch to handle a corrupted file */
-    try
-    {
-        gateway = "itooki.fr";
-        messageId = m_refSent;
-        messageStatus = m_errorCode;
-        eventReason = m_errorCode;
-//                notificationDate = ptree.get<std::string>("SR.P5");
-//                port = ptree.get<std::string>("SR.PORT");
-    }
-    catch(std::exception const& e)
-    {
-        Wt::log("error") << "[ACK ITOOKI]" << e.what();
-        //TODO : behaviour in error case
-        return;
-    }
-
-
-    Wt::log("notice") << "[SR] " << "gateway : " << gateway;
-    Wt::log("notice") << "[SR] " << "messageId : " << messageId;
-    Wt::log("notice") << "[SR] " << "messageStatus : " << messageStatus;
-    Wt::log("notice") << "[SR] " << "eventReason : " << eventReason;
-    Wt::log("notice") << "[SR] " << "notificationDate : " << notificationDate;
-    Wt::log("notice") << "[SR] " << "port : " << port;
-
-    // new transaction
-    {
-        try
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+    
+    Wt::Dbo::Transaction transaction(m_session, true);
+    
+    EReturnCode res = EReturnCode::OK;
+    
+    bool    sended = false;
+    Wt::WString  error = "missing";
+    Wt::WString  refenvoi = "missing";
+    
+    if (!sRequest.empty())
         {
-            Wt::Dbo::Transaction transaction(m_session, true);
-            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr = m_session.find<Echoes::Dbo::Message>().where("\"MSG_ACK_ID\" = ?").bind(messageId);
-            if (atrPtr)
+            try
             {
-                atrPtr.modify()->receiverSrv = gateway;
-                atrPtr.modify()->ackGw = gateway;
-//                        at.modify()->ackPort = port;
+                Wt::Json::Object result;
+                Wt::Json::parse(sRequest, result);
 
-                Echoes::Dbo::MessageTrackingEvent *mte = new Echoes::Dbo::MessageTrackingEvent();
-                mte->message = atrPtr;
-                mte->value = eventReason;
-                mte->date = Wt::WDateTime::currentDateTime();
+                if (result.contains("refenvoi"))
+                {
+                    refenvoi = result.get("refenvoi");
+                }
+                if (result.contains("error"))
+                {
+                    error = result.get("error");
+                }
+                if (result.contains("sended"))
+                {
+                    Wt::WString recu = result.get("sended");                 
+                    sended = (recu == "true");
+                }              
 
-                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> ptrAte = m_session.add(mte);
+
+            }
+            catch (Wt::Json::ParseError const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            catch (Wt::Json::TypeException const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            if(sended)
+            {
+                Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+                
+                if(msgPtr)
+                {
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+
+                    newStateMsg->date = now;
+                    newStateMsg->message = msgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::RECEIVED)
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                }
+                else
+                {
+                    Wt::log("error") << "[Itooki ack Receiver] No Message " << refenvoi;
+                    res = EReturnCode::BAD_REQUEST;
+                    responseMsg = "no message";   
+                }
             }
             else
             {
-                Wt::log("error") << "[ACK ITOOKI] Alert tracking not found, inserting event without the tracking reference";
-                Echoes::Dbo::MessageTrackingEvent *ate = new Echoes::Dbo::MessageTrackingEvent();
-                ate->value = eventReason;
-                ate->date = Wt::WDateTime::currentDateTime();
+                Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(refenvoi)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+                
+                if(msgPtr)
+                {
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> ptrAte = m_session.add(ate);
-                //TODO error behavior
+                    newStateMsg->date = now;
+                    newStateMsg->message = msgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo:: EMessageStatus::ACKFAILED)
+                                    .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                }
+                else
+                {
+                    Wt::log("error") << "[Itooki Ack Receiver] No Message " << refenvoi ;
+                    res = EReturnCode::BAD_REQUEST;
+                    responseMsg = "no message";   
+                }
             }
-        }
-        catch(Wt::Dbo::Exception const& e)
+     }
+     else
         {
-            Wt::log("error") << "[ACK ITOOKI]" << e.what();
-            //TODO : behaviour in error case
+            res = EReturnCode::BAD_REQUEST;
+            const string err = "[Send Resource] sRequest is not empty";
+            responseMsg = httpCodeToJSON(res, err);
         }
-    }
+    
+    transaction.commit();
+    
+    return (res);
 }
 
+EReturnCode ItookiAckReceiver::processPostRequest(const Wt::Http::Request &request, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    string nextElement = "";
+    unsigned short indexPathElement = 1;
+    vector<string> pathElements;
+    map<string, long long> parameters;
+    
+    const string sRequest = processRequestParameters(request, pathElements, parameters);
+
+    nextElement = getNextElementFromPath(indexPathElement, pathElements);
+
+    if (nextElement.empty())
+    {
+        res = postAck(parameters, pathElements, sRequest, responseMsg);
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        responseMsg = "chemin incorrect";
+    }
+
+    return res;
+}

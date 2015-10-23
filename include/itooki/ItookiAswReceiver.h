@@ -14,26 +14,25 @@
 #ifndef ASWRECEIVER_H
 #define	ASWRECEIVER_H
 
-#include <Wt/WResource>
+#include "PublicItookiResource.h"
 
-#include <tools/Session.h>
-
-#include "Conf.h"
-
-class ItookiAswReceiver : public Wt::WResource
+class ItookiAswReceiver : public PublicItookiResource
 {
     public:
         ItookiAswReceiver(Echoes::Dbo::Session& session);
         virtual ~ItookiAswReceiver();
 
     protected:
-        Echoes::Dbo::Session& m_session;
 
         std::string m_number;
         std::string m_message;
         
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        EReturnCode postAsw(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, std::string &responseMsg);
+        void operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> MsgTrEv);
+
 };
+
 
 #endif	/* ASWRECEIVER_H */
 

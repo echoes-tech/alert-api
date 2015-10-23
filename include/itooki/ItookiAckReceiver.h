@@ -14,26 +14,24 @@
 #ifndef ACKRECEIVER_H
 #define	ACKRECEIVER_H
 
-#include <Wt/WResource>
+#include "PublicItookiResource.h"
 
-#include <tools/Session.h>
-
-#include "Conf.h"
-
-class ItookiAckReceiver : public Wt::WResource
+class ItookiAckReceiver   : public PublicItookiResource
 {
     public:
         ItookiAckReceiver(Echoes::Dbo::Session& session);
         virtual ~ItookiAckReceiver();
 
     protected:
-        Echoes::Dbo::Session& m_session;
+
+        std::string m_number;
+        std::string m_message;
         
-        std::string m_errorCode;
-        std::string m_refSent;
-        
-        virtual void handleRequest(const Wt::Http::Request &request, Wt::Http::Response &response);
+        EReturnCode postAck(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, string &responseMsg);
+        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, std::string &responseMsg);
 };
+
+
 
 #endif	/* ACKRECEIVER_H */
 

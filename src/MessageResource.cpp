@@ -16,6 +16,8 @@ using namespace std;
 
 MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResource::PublicApiResource(session)
 {
+    srand(time(NULL));
+    m_itookiSMSSender = new ItookiSMSSender(m_session);
     resourceClassName = "MessageResource";
 
     functionMap["getMessages"] = boost::bind(&MessageResource::getMessages, this, _1, _2, _3, _4, _5);
@@ -105,13 +107,7 @@ EReturnCode MessageResource::getMessages(const long long &grpId, std::string &re
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
-    if (parameters["media_id"] <= 0)
-    {
-        res = EReturnCode::BAD_REQUEST;
-        const string err = "[Message Resource] media is empty";
-        responseMsg = httpCodeToJSON(res, err);
-    }
-    else
+    if (parameters["media_id"] > 0)
     {
         try
         {
@@ -131,6 +127,38 @@ EReturnCode MessageResource::getMessages(const long long &grpId, std::string &re
             res = EReturnCode::SERVICE_UNAVAILABLE;
             responseMsg = httpCodeToJSON(res, e);
         }
+    }
+    else if(parameters["alert_id"] > 0)
+    {
+            try
+            {
+                Wt::Dbo::Transaction transaction(m_session, true);
+                string queryStr =
+                        " SELECT msg"
+                        "   FROM " QUOTE("T_MESSAGE" SEP TRIGRAM_MESSAGE) " msg"
+                        "   WHERE"
+                        "     " QUOTE(TRIGRAM_MESSAGE SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = " + boost::lexical_cast<string>(parameters["alert_id"]) +
+                        "     AND " QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL";
+
+                Wt::Dbo::Query<Wt::Dbo::ptr < Echoes::Dbo::Message>> queryRes = m_session.query<Wt::Dbo::ptr < Echoes::Dbo::Message >> (queryStr);
+
+                Wt::Dbo::collection<Wt::Dbo::ptr < Echoes::Dbo::Message>> msgCol = queryRes.resultList();
+
+                res = serialize(msgCol, responseMsg);
+
+                transaction.commit();
+            }
+            catch (Wt::Dbo::Exception const& e)
+            {
+                res = EReturnCode::SERVICE_UNAVAILABLE;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+    }
+    else
+    {
+        res = EReturnCode::BAD_REQUEST;
+        const string err = "[Message Resource] media or alert is empty";
+        responseMsg = httpCodeToJSON(res, err);
     }
     return res;
 }
@@ -164,6 +192,9 @@ EReturnCode MessageResource::postSimpleMessage(const long long &grpId, std::stri
     int mediaSpecializationId;
     long long alertId;
 
+    Wt::Dbo::Transaction transaction(m_session, true);
+    
+    
     if ((parameters["alert_media_specialization_id"]) > 0)
     {
     
@@ -206,7 +237,6 @@ EReturnCode MessageResource::postSimpleMessage(const long long &grpId, std::stri
         {
             try
             {
-                Wt::Dbo::Transaction transaction(m_session, true);
 
                 Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, grpId, m_session);
                 if (!alePtr)
@@ -215,8 +245,29 @@ EReturnCode MessageResource::postSimpleMessage(const long long &grpId, std::stri
                     responseMsg = httpCodeToJSON(res, alePtr);
                     return res;
                 }
+                else
+                {
+                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> AlertEventList = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(alePtr.id())
+                                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+                    if(AlertEventList.size() <= 0 ||
+                            AlertEventList.begin()->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
+                    {
+                        Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
 
-                cout << "AMS : " << mediaSpecializationId << endl;
+                        newStateAle->date = Wt::WDateTime::currentDateTime();
+                        newStateAle->alert = alePtr;
+                        Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> alsPtr = m_session.find<Echoes::Dbo::AlertStatus>()
+                            .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
+                            .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+                        newStateAle->statut = alsPtr;
+
+                        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+
+                    }
+
+                }
                 Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
                 amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
                                 .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
@@ -271,13 +322,42 @@ EReturnCode MessageResource::postSimpleMessage(const long long &grpId, std::stri
                     const long long mtyID = amsPtr->media->mediaType.id();
                     Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
 
-                    newMsg->alert = alePtr;
-                    newMsg->media = amsPtr->media;
-                    // WARNING : SendDate must be set by the API when the alert was sent, not before
-                    newMsg->sendDate = *(new Wt::WDateTime());
+                    newMsg->refAck = "";
+                    string sms;
+                    sms = amsPtr->message.toUTF8();
+                    if (ivaPtrVector.size() > 0)
+                    {
+                        replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
+                    }
+                    newMsg->content = sms;
+                    newMsg->dest = amsPtr->media->value;
+                    newMsg->receiverSrv = conf.getRouteurHost(); 
+                    newMsg->receiverPort = boost::lexical_cast<std::string>(conf.getRouteurPort());
+                    
+                    char hostname[255];
+                    gethostname(hostname, 255);
+                    
+                    newMsg->senderSrv = hostname;
+                    newMsg->senderPort = boost::lexical_cast<std::string>(conf.getServerPort());
 
+                    newMsg->user = amsPtr->media->user;
+                    newMsg->alert = alePtr;
+                    newMsg->refAck = "null";
+                    
                     Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
                     newMsgPtr.flush();
+                    
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                    
+                    newStateMsg->date = now;
+                    newStateMsg->message = newMsgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::UNCREATED)
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+                    newStateMsg->text = "";
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
 
                     Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newMsgPtr.id();
 
@@ -337,14 +417,12 @@ EReturnCode MessageResource::postSimpleMessage(const long long &grpId, std::stri
                 {
                     Wt::log("debug") << "[Alert Resource] "
                             << "Last time we send the alert : " << alePtr->name
-                            << "was : " << amsPtr->lastSend.toString()
+                            << " was : " << amsPtr->lastSend.toString()
                             << "the snooze for the media " << amsPtr->media->mediaType->name
                             << " is : " << amsPtr->snoozeDuration << "secs,  it's not the time to send the alert";
                 }
 
                 res = EReturnCode::CREATED;
-
-                transaction.commit();
             }
             catch (Wt::Dbo::Exception const& e)
             {
@@ -427,18 +505,44 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
         {
             try
             {
-                //message creation in DB
-                Wt::Dbo::Transaction transaction(m_session, true);
 
+                const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
+                
+                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, grpId, m_session);
                 if (medPtr)
                 {
                     Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
-                    newMsg->media = medPtr;
-                    newMsg->content = message;
 
+                    newMsg->refAck = "";
+                    newMsg->content = message;
+                    newMsg->dest = medPtr->value;
+                    newMsg->receiverSrv = conf.getRouteurHost(); 
+                    newMsg->receiverPort = boost::lexical_cast<std::string>(conf.getRouteurPort());
+                    
+                    char hostname[255];
+                    gethostname(hostname, 255);
+                    
+                    newMsg->senderSrv = hostname;
+                    newMsg->senderPort = boost::lexical_cast<std::string>(conf.getServerPort());
+
+                    newMsg->user = medPtr->user;
+                    
                     Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
                     newMsgPtr.flush();
+                    
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                    
+                    newStateMsg->date = now;
+                    newStateMsg->message = newMsgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::UNCREATED)
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+                    newStateMsg->text = "";
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+                    
                     res = serialize(newMsgPtr, responseMsg, EReturnCode::CREATED);
 
                     //message actual sending
@@ -493,9 +597,6 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
                             Wt::log("error") << "[Message Resource] Unknown ID Media: " << mtyId;
                             break;
                     }
-
-
-                    transaction.commit();
                 }
                 else
                 {
@@ -508,11 +609,106 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
                 res = EReturnCode::SERVICE_UNAVAILABLE;
                 responseMsg = httpCodeToJSON(res, e);
             }
-
-
         } 
     }
+    
+    transaction.commit();
+    
     return res;
+}
+
+EReturnCode MessageResource::getMessageEvents(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC");
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;    
+}
+
+EReturnCode MessageResource::getMessageEvent(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent > atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT ID)" = ? ").bind(pathElements[3])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL");
+
+        res = serialize(atrPtrCol, responseMsg);
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res;
+}
+
+EReturnCode MessageResource::getMessageStatus(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+{
+    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
+    
+    try
+    {
+        Wt::Dbo::Transaction transaction(m_session, true);
+
+        //ToDo(FPO): Check rights
+        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >> atrPtrCol = m_session.find<Echoes::Dbo::MessageTrackingEvent>()
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP TRIGRAM_MESSAGE SEP TRIGRAM_MESSAGE ID)" = ? ").bind(pathElements[1])
+                .where(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                .orderBy(QUOTE(TRIGRAM_MESSAGE_TRACKING_EVENT SEP "DATE") " DESC");
+        if(atrPtrCol.size() > 0)
+        {
+            Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::MessageTrackingEvent >>::iterator ptrTrackEvent = atrPtrCol.begin();
+            res = EReturnCode::OK;
+            
+            responseMsg = "{";
+            responseMsg += "\"message_id\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message.id()) + ",";
+            responseMsg += "\"state\" : " + boost::lexical_cast<std::string>(ptrTrackEvent->get()->statut.id()) + ",";
+            responseMsg += "\"date\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->date.toString("dd/MM/yyyy hh:mm:ss")) + "\",";
+            responseMsg += "\"dest\" : \"" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message->user->firstName) + " "
+                            + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message->user->lastName)
+                            + " (" + boost::lexical_cast<std::string>(ptrTrackEvent->get()->message->dest) + ")" + "\"";
+            responseMsg += "}";
+        }
+        else
+        {
+            res = EReturnCode::NOT_FOUND;
+            responseMsg = httpCodeToJSON(res, "value not found");
+        }
+
+        transaction.commit();
+    }
+    catch (Wt::Dbo::Exception const& e)
+    {
+        res = EReturnCode::SERVICE_UNAVAILABLE;
+        responseMsg = httpCodeToJSON(res, e);
+    }
+    return res; 
 }
 
 EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
@@ -525,6 +721,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
 
     parameters["media_type_id"] = 0;
     parameters["media_id"] = 0;
+    parameters["alert_id"] = 0;
     
     const string sRequest = processRequestParameters(request, pathElements, parameters);
 
@@ -543,6 +740,34 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
             if (nextElement.empty())
             {
                 res = getMessage(grpId, responseMsg, pathElements);
+                res = getMessage(pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("status") == 0)
+            {
+                res = getMessageStatus(parameters, pathElements, orgId, responseMsg);
+            }
+            else if(nextElement.compare("events") == 0)
+            {
+                nextElement = getNextElementFromPath(indexPathElement, pathElements);
+                if (nextElement.empty())
+                {
+                    res = getMessageEvents(parameters, pathElements, orgId, responseMsg);
+                }
+                else
+                {
+                    boost::lexical_cast<unsigned long long>(nextElement);
+                    nextElement = getNextElementFromPath(indexPathElement, pathElements);
+                    if (nextElement.empty())
+                    {
+                        res = getMessageEvent(parameters, pathElements, orgId, responseMsg);
+                    }
+                    else
+                    {
+                        res = EReturnCode::BAD_REQUEST;
+                        const string err = "[Alert Resource] bad nextElement";
+                        responseMsg = httpCodeToJSON(res, err);
+                    }
+                }
             }
             else
             {
@@ -605,18 +830,24 @@ EReturnCode MessageResource::sendMAIL
  )
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-
+    
     Wt::WString mailRecipientName = "";
     Wt::WString mailRecipient;
     if (amsPtr.isTransient() == 0)
     {
         mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName;
     }
+    
     string mailBody = "";
-    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+    
     Wt::Mail::Message mailMessage;
     Wt::Mail::Client mailClient;
-
+    
+    msgPtr.modify()->refAck = generateToken();
+    
+    Wt::log("debug") << " [Message Resource] token généré :  " << msgPtr->refAck;
+    
     if (amsPtr.isTransient() == 0)
     {
         // Normal case
@@ -635,11 +866,11 @@ EReturnCode MessageResource::sendMAIL
     {
         if (!overSMSQuota)
         {
-            mailRecipient = msgPtr->media->value;
+            mailRecipient = amsPtr->media->value;
         }
         else
         {
-            mailRecipient = msgPtr->media->user->eMail;
+            mailRecipient = amsPtr->media->user->eMail;
 
             mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
         } 
@@ -653,6 +884,31 @@ EReturnCode MessageResource::sendMAIL
     {
         mailBody += msgPtr->content.get().toUTF8();
     }
+    
+    string port = boost::lexical_cast<std::string>(conf.getServerPort());
+    mailBody += "<div style=\"text-align: center; margin-left: 40px;\">"
+            "<p style=\"\">Pour vous assigner l'alerte cliquez <a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/assign?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8()  + "\">ici</a></p>";
+    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
+                .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(msgPtr->user->organization.id())
+                .orderBy(QUOTE(TRIGRAM_USER ID));
+    if(usrPtrCol.size() > 1)
+    {
+        mailBody += "<p style=\"font-weight: bold;\">Vous pouvez aussi la transmettre a une autre personne</p>";
+        for(Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>>::iterator it = usrPtrCol.begin();
+                it != usrPtrCol.end(); it++)
+        {
+            if((*it).id() != msgPtr->user.id())
+            {
+                mailBody += ("<p style=\"\">Pour l'assigner a <h7 style=\"font-weight: bold;\">" + it->get()->firstName.toUTF8() + " " + it->get()->lastName.toUTF8() + "</h7> cliquez "
+                            "<a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/forward"
+                            "?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8() + "&idForward=" + boost::lexical_cast<std::string>((*it).id()) + "\">ici</a></p>");
+            }
+        }
+    }
+    mailBody += "<p style=\"font-weight: bold;\">Une fois résolu, vous pouvez le signaler en cliquant ";
+    mailBody += "<a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/resolve?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8()  + "\">ici</a>";
+    mailBody += "</p></div>";
     
     if (ivaPtrVector.size() > 0)
     {
@@ -675,15 +931,24 @@ EReturnCode MessageResource::sendMAIL
     mailMessage.addHtmlBody(mailBody);
     mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
     mailClient.send(mailMessage);
+    
+    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-    Wt::log("debug") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
+    newStateMsg->date = now;
+    newStateMsg->message = msgPtr;
+    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr;
+    mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+            .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::SENDED)
+            .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+    newStateMsg->statut = mstPtr;
+    
+    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+    
+    Wt::log("debug") << " [Class:MessageSender] " << "insert date of last send in db : " << now.toString();
     if (amsPtr.isTransient() == 0)
     {
         amsPtr.modify()->lastSend = now;
     }
-
-    msgPtr.modify()->sendDate = now;
-    msgPtr.modify()->content = mailBody;
 
     res = EReturnCode::OK;
 
@@ -701,43 +966,24 @@ EReturnCode MessageResource::sendSMS
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
     const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-    string sms;
-    if (amsPtr.isTransient() == 0)
-    {
-        sms = amsPtr->message.toUTF8();
-        if (ivaPtrVector.size() > 0)
-        {
-            replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
-        }
-    }
-    else
-    {
-        sms = msgPtr->content.get().toUTF8();
-    }
     
-    Wt::WString phoneNumber;
-    if (amsPtr.isTransient() == 0)
-    {
-        phoneNumber = msgPtr->media->value;
-    }
-    else
-    {
-        phoneNumber = msgPtr->media->value;
-    }
+    long long alertID;
+    alertID = amsPtr->id;
+
+    Wt::log("debug") << " [Message Resource] New SMS for " << msgPtr->dest << " : " << msgPtr->content;
     
-    Wt::log("debug") << " [Alert Resource] New SMS for " << phoneNumber << " : " << sms;
-
-    ItookiSMSSender itookiSMSSender(m_session, this);
-
-    if (!itookiSMSSender.send(phoneNumber.toUTF8(), sms, msgPtr))
+    if (!m_itookiSMSSender->send(msgPtr->dest.get().toUTF8(), msgPtr->content.get().toUTF8(), alertID, msgPtr))
     {
+        Wt::log("debug") << " [Message Resource] New SMS sended ";
         if (amsPtr.isTransient() == 0)
         {
             amsPtr.modify()->lastSend = now;
         }
-        msgPtr.modify()->sendDate = now;
+        
         res = EReturnCode::OK;
     }
+    
+    Wt::log("debug") << " [Message Resource] New SMS sended 2";
 
     return res;
     
@@ -769,9 +1015,10 @@ EReturnCode MessageResource::sendMobileApp
     else
     {
         mobileApp = msgPtr->content.get().toUTF8();
-        mobileName = msgPtr->media->value;
+        mobileName = amsPtr->media->value;
     }
-    msgPtr.modify()->sendDate = now;
+    //create new state of message
+    //msgPtr.modify()->sendDate = now;
     
     Wt::log("debug") << " [Alert Resource] New Alert for mobileApp : " << mobileName << " : " << mobileApp;
     
@@ -804,3 +1051,36 @@ void MessageResource::replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo:
     }
 }
 
+Wt::WString MessageResource::generateToken()
+{
+    Wt::Dbo::ptr<Echoes::Dbo::Message> dest;
+    bool notUnique = true;
+    string codeGenerated;
+    char caractere;
+    
+    while(notUnique)
+    {
+        for(int i = 0; i < 15; i++)
+        {
+            do
+            {
+                caractere = ((rand() % 74) + 48);
+            }while(!((caractere >= 48 && caractere <= 57)
+                    || (caractere >= 65 && caractere <= 90)
+                    || (caractere >=97  && caractere <= 122)));
+            codeGenerated += caractere;
+        }
+        dest = m_session.find<Echoes::Dbo::Message>()
+                    .where(QUOTE(TRIGRAM_MESSAGE SEP "REF" SEP "ACK") " = ?").bind(codeGenerated)
+                    .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+        if(dest)
+        {
+            notUnique = true;
+        }
+        else
+        {
+            notUnique = false;
+        }
+    }
+    return (Wt::WString)(codeGenerated);
+}

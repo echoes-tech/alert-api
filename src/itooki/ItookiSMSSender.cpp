@@ -15,9 +15,7 @@
 
 using namespace std;
 
-ItookiSMSSender::ItookiSMSSender(Echoes::Dbo::Session& session, Wt::WObject *parent) :
-m_parent(parent),
-m_session(session)
+ItookiSMSSender::ItookiSMSSender(Echoes::Dbo::Session& session) : PublicItookiResource::PublicItookiResource(session)
 {
 }
 
@@ -25,48 +23,59 @@ ItookiSMSSender::~ItookiSMSSender()
 {
 }
 
-int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr)
+int ItookiSMSSender::send(const string &number, const string &message, const long long alertID, Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr)
 {
     int res = -1;
-
+    string ackRecv = "", ackSlvd = "";
+    
     try
     {
-        if(atrPtr)
+        if(msgPtr)
         {
-            Wt::Http::Client *client = new Wt::Http::Client(m_parent);
-//            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, client, _1, _2, atrPtr.id()));
-
+            Wt::Http::Client *client = new Wt::Http::Client(this);
+            long long msgPtrId = msgPtr.id();
+            client->done().connect(boost::bind(&ItookiSMSSender::handleHttpResponse, this, _1, _2, msgPtrId));
+            
             string url = "http";
             if (conf.isSmsHttps())
             {
                 url += "s";
             }
-            url += "://www.itooki.fr/http.php"
-                    "?email=" + Wt::Utils::urlEncode(conf.getSmsLogin()) +
-                    "&pass=" + Wt::Utils::urlEncode(conf.getSmsPassword()) +
-                    "&numero=" + Wt::Utils::urlEncode(number) +
-                    "&message=" + urlEncodeMessage(message) +
-                    "&refaccus=o";
-
-            Wt::log("info") << "[Itooki SMS Sender] Trying to send request to Itooki API";
-            Wt::log("debug") << "[Itooki SMS Sender] Address : " << url;
-            if (client->get(url))
+            url += "://" + conf.getRouteurHost() +":" + boost::lexical_cast<std::string>(conf.getRouteurPort()) + "/send";
+            string json = "{";
+            json += "\"number\" : \"" + number + "\",";
+            json += "\"message\" : \"" + message + "\",";
+            json += "\"port_back\" : " + boost::lexical_cast<std::string>(conf.getServerPort());
+            json += "}";
+            
+            Wt::Http::Message httpMessage;
+            httpMessage.addBodyText(json);
+            
+            Wt::log("debug") << " [Itooki Sms Sender Resource] preparation ok : " << url << " => " << json;
+            
+            if(client->post(url, httpMessage))
             {
-                Wt::log("info") << "[Itooki SMS Sender] Message sent to Itooki API";
+                const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
 
-                //TODO : hostname cpp way
-                char hostname[255];
-                gethostname(hostname, 255);
-                atrPtr.modify()->senderSrv = hostname;
-                atrPtr.modify()->content = Wt::WString::fromUTF8(message);
-                atrPtr.modify()->sendDate = Wt::WDateTime::currentDateTime();
+                Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = m_session.find<Echoes::Dbo::Message>()
+                        .where(QUOTE(TRIGRAM_MESSAGE ID) " = ?").bind(msgPtrId)
+                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
+                
+                Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
 
-                res = 0;
-            } 
-            else 
-            {
-                Wt::log("error") << "[Itooki SMS Sender] Failed to send message to Itooki API";
+                newStateMsg->date = now;
+                newStateMsg->message = msgPtr;
+                Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::LINKING)
+                                .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                newStateMsg->statut = mstPtr;
+                newStateMsg->text = "";
+
+                Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
             }
+            res = 0;
+            
+            Wt::log("debug") << "fin";
         }
         else 
         {
@@ -81,70 +90,101 @@ int ItookiSMSSender::send(const string &number, const string &message, Wt::Dbo::
     return res;
 }
 
-void ItookiSMSSender::handleHttpResponse(Wt::Http::Client *client, boost::system::error_code err, const Wt::Http::Message& response, const long long atrId)
+void ItookiSMSSender::handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response, const long long msgId)
 {
+    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
+    
+    Wt::Dbo::Transaction transaction(m_session, true);
+    
+    const string queryStr =
+" SELECT msg"
+"   FROM " QUOTE("T_MESSAGE_MSG") " msg"
+"   WHERE"
+"     " QUOTE(TRIGRAM_MESSAGE ID) " = " + boost::lexical_cast<string>(msgId) +
+"   LIMIT 1";
+
+    Wt::Dbo::Query<Wt::Dbo::ptr<Echoes::Dbo::Message>> queryRes = m_session.query<Wt::Dbo::ptr<Echoes::Dbo::Message>> (queryStr);
+
+    Wt::Dbo::ptr<Echoes::Dbo::Message> msgPtr = queryRes.resultValue();
+      
     if (!err && response.status() == 200)
     {
-        const string resultCode = response.body();
-
-        Wt::log("debug") << "[Itooki SMS Sender][ACK] result code : " << resultCode;
-        vector<string> splitResult;
-        boost::split(splitResult, resultCode, boost::is_any_of("-"), boost::token_compress_on);
-
-        switch (splitResult.size())
+        const string responseBody = response.body();
+        Wt::WString ref = "parse error";
+        bool isOk = false;
+        
+        try
         {
-            case 0:
-                Wt::log("error") << "[Itooki SMS Sender][ACK] Unexpected answer from itooki, no result code.";
-                break;
-            case 2:
+            Wt::Json::Object result;
+            Wt::Json::parse(responseBody, result);	
+            if (result.contains("ref"))
             {
-                try
-                {
-                    Wt::Dbo::Transaction transaction(m_session, true);
-
-                    Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr = m_session.find<Echoes::Dbo::Message>()
-                        .where(QUOTE(TRIGRAM_MESSAGE ID) " = ?").bind(atrId)
-                        .where(QUOTE(TRIGRAM_MESSAGE SEP "DELETE") " IS NULL");
-
-                    if (atrPtr)
-                    {
-                            atrPtr.modify()->ackId = splitResult[1];
-                            atrPtr.modify()->ackGw = "itooki.fr";
-                            atrPtr.modify()->receiveDate = Wt::WDateTime::currentDateTime();
-
-                            Echoes::Dbo::MessageTrackingEvent *newMte = new Echoes::Dbo::MessageTrackingEvent();
-                            newMte->message = atrPtr;
-                            newMte->date = Wt::WDateTime::currentDateTime();
-                            newMte->value = splitResult[0];
-
-                            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newAtePtr = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newMte);
-                            newAtePtr.flush();
-                    }
-                    else
-                    {
-                        Wt::log("error") << "[Itooki SMS Sender][ACK] Alert tracking not found";
-                        //TODO error behavior
-                    }
-                    transaction.commit();
-                }
-                catch (Wt::Dbo::Exception const& e)
-                {
-                    Wt::log("error") << "[Itooki SMS Sender][ACK] " << e.what();
-                    //TODO : behaviour in error case
-                }
-                break;
+                ref = result.get("ref");
             }
-            default:
-                Wt::log("error") << "[Itooki SMS Sender][ACK] Unexpected answer from itooki.";
-                break;
+            if (result.contains("ok"))
+            {
+                isOk = result.get("ok");
+            }
+        }
+        catch (Wt::Json::ParseError const& e)
+        {
+            Wt::log("warning") << "JsonParseError reading back of send request";
+        }
+        catch (Wt::Json::TypeException const& e)	
+        {
+            Wt::log("warning") << "JsonTypeError reading back of send request";
+        }
+        if(isOk)
+        {
+            msgPtr.modify()->refAck = ref;
+            Wt::log("debug") << "[Itooki SMS Sender] routeur ok " ;
+            Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+
+            newStateMsg->date = now;
+            newStateMsg->message = msgPtr;
+            Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::CREATED)
+                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+            newStateMsg->statut = mstPtr;
+            newStateMsg->text = response.body();
+
+            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+        }
+        else
+        {
+            msgPtr.modify()->refAck = "failed";
+            Wt::log("error") << "[Itooki SMS Sender] routeur error: " << err.message();
+            Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+
+            newStateMsg->date = now;
+            newStateMsg->message = msgPtr;
+            Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::SENDREFUSED)
+                            .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+            newStateMsg->statut = mstPtr;
+            newStateMsg->text = response.body();
+
+            Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
         }
     }
     else
     {
+        msgPtr.modify()->refAck = "failed";
         Wt::log("error") << "[Itooki SMS Sender][ACK] Http::Client error: " << err.message();
+        Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                    
+        newStateMsg->date = now;
+        newStateMsg->message = msgPtr;
+        Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::SENDREFUSED)
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+        newStateMsg->statut = mstPtr;
+        newStateMsg->text = response.body();
+                    
+        Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
     }
-
-    delete client;
+    
+    transaction.commit();
 }
 
 void ItookiSMSSender::setParent(Wt::WObject* parent)

@@ -14,37 +14,27 @@
 #ifndef ITOOKISMSSENDER_H
 #define	ITOOKISMSSENDER_H
 
-#include <boost/algorithm/string.hpp>
+#include "PublicItookiResource.h"
 
-#include <Wt/Http/Client>
-#include <Wt/Http/Request>
-#include <Wt/Http/Response>
-#include <Wt/Utils>
-#include <Wt/WObject>
-#include <Wt/WLogger>
-
-#include <tools/Session.h>
-
-#include "Conf.h"
-
-class ItookiSMSSender
+class ItookiSMSSender : public PublicItookiResource
 {
     public:
-        ItookiSMSSender(Echoes::Dbo::Session& session, Wt::WObject *parent = NULL);
+        ItookiSMSSender(Echoes::Dbo::Session& session);
         virtual ~ItookiSMSSender();
 
         Wt::WObject* getParent() const;
+
+        int send(const std::string &number, const std::string &message, const long long alertID, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr);
 
         int send(const std::string &number, const std::string &message, Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr);
         std::string urlEncodeMessage(const std::string);
         
     private:
         Wt::WObject *m_parent;
-        Echoes::Dbo::Session& m_session;
 
         void setParent(Wt::WObject* parent);
 
-        void handleHttpResponse(Wt::Http::Client *client, boost::system::error_code err, const Wt::Http::Message& response, const long long atrId);
+        void handleHttpResponse(boost::system::error_code err, const Wt::Http::Message& response, const long long atrId);
 };
 
 #endif	/* ITOOKISMSSENDER_H */

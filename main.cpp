@@ -40,6 +40,11 @@
 
 #include "itooki/ItookiAckReceiver.h"
 #include "itooki/ItookiAswReceiver.h"
+#include "itooki/ItookiSendedReceiver.h"
+
+#include "mail/mailAssign.h"
+#include "mail/mailForward.h"
+#include "mail/mailResolve.h"
 
 #endif
 
@@ -90,7 +95,11 @@ int main(int argc, char **argv)
             RoleResource            roleResource(session);
             ItookiAckReceiver       itookiAckReceiver(session);
             ItookiAswReceiver       itookiAswReceiver(session);
-            
+            ItookiSendedReceiver    itookiSendedReceiver(session);
+            MailAssign              mailAssign(session);
+            MailForward             mailForward(session);
+            MailResolve             mailResolve(session);
+
             server.addResource(&addonResource,            "/addons");
             server.addResource(&alertResource,            "/alerts");
             server.addResource(&messageResource,          "/messages");
@@ -111,6 +120,10 @@ int main(int argc, char **argv)
             server.addResource(&userResource,             "/users");
             server.addResource(&itookiAckReceiver,        "/itooki/ack");
             server.addResource(&itookiAswReceiver,        "/itooki/asw");
+            server.addResource(&itookiSendedReceiver,     "/itooki/sended");
+            server.addResource(&mailAssign,               "/mail/assign");
+            server.addResource(&mailForward,               "/mail/forward");
+            server.addResource(&mailResolve,               "/mail/resolve");
 
             Echoes::Dbo::Session::configureAuth();
             
@@ -120,6 +133,8 @@ int main(int argc, char **argv)
             // démarrage du serveur en arrière plan
             if (server.start())
             {
+                //obligé de setter le port dans la conf à cet endroit car il faut que le server soit start
+                conf.setServerPort(server.httpPort()); 
                 // méthode qui bloque le thread courant en attendant le signal d'exctinction
                 int sig = Wt::WServer::waitForShutdown(argv[0]);
 
