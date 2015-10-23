@@ -95,6 +95,123 @@ paths:
       responses:
         "200":
           description: successful operation
+  /alerts/{id}/status:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::getAlertStatus
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted alert
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /alerts/{id}/messages:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::getAlertMessages
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted alert
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation 
+  /alerts/{id}/events:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::getAlertEvents
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted alert
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /alerts/{id}/events/{idEvent}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::getAlertEvent
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted alert
+          required: true
+          type: integer
+        - in: path
+          name: idEvent
+          description: id of wanted Event
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation 
+  /alerts/{id}/start:
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::startAlert
+      parameters:
+        - in: path
+          name: id
+          description: id of alert to start
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /alerts/{id}/resolve:
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::resolveAlert
+      parameters:
+        - in: path
+          name: id
+          description: id of alert to set as resolved
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /alerts/{id}/forward:
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::forwardAlert
+      parameters:
+        - in: path
+          name: id
+          description: id of alert to forward
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /alerts/{id}/assign:
+    put:
+      summary: sommaire
+      description: blabla
+      operationId: AlertResource::assignAlert
+      parameters:
+        - in: path
+          name: id
+          description: id of alert to assign
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
 # paths for ASSET
   /assets:
     get:
@@ -667,6 +784,11 @@ paths:
           description: idk
           required: false
           type: integer
+        - in: query
+          name: alert_id
+          description: idk
+          required: false
+          type: integer
       responses:
         "200":
           description: successful operation
@@ -692,6 +814,53 @@ paths:
         - in: path
           name: id
           description: id of wanted message
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /messages/{id}/status:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: MessageResource::getMessageStatus
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted message
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /messages/{id}/events:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: MessageResource::getMessageEvents
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted message
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+  /messages/{id}/status/{idEvent}:
+    get:
+      summary: sommaire
+      description: blabla
+      operationId: MessageResource::getMessageEvent
+      parameters:
+        - in: path
+          name: id
+          description: id of wanted message
+          required: true
+          type: integer
+        - in: path
+          name: idEvent
+          description: id of wanted Event
           required: true
           type: integer
       responses:

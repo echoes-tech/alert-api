@@ -161,7 +161,7 @@ bool Conf::readProperties(Wt::WServer& server)
                 }
                 else
                 {
-                     Wt::log("error") << "[Conf] Property named 'sms-https' in " << WT_CONFIG_XML << " should be an boolean (true or false). By default: true";
+                     Wt::log("error") << "[Conf] Property named 'sms-https' in " << getConfFileName() << " should be an boolean (true or false). By default: true";
                 }
                 
                 setRouteurHost(sms.host);
@@ -171,7 +171,7 @@ bool Conf::readProperties(Wt::WServer& server)
                 }
                 catch (boost::bad_lexical_cast &)
                 {
-                     Wt::log("error") << "[Conf] Property named 'sms-routeur-port' in " << WT_CONFIG_XML << " should be an unsigned integer";
+                     Wt::log("error") << "[Conf] Property named 'sms-routeur-port' in " << getConfFileName() << " should be an unsigned integer";
                      return res;
                 }
                 
@@ -183,7 +183,7 @@ bool Conf::readProperties(Wt::WServer& server)
                 else
                 {
                     setFQDN("127.0.0.1");
-                    Wt::log("warning") << "[Conf] no fqdn in " << WT_CONFIG_XML << "set to 127.0.0.1";
+                    Wt::log("warning") << "[Conf] no fqdn in " << getConfFileName() << "set to 127.0.0.1";
                      Wt::log("error") << "[Conf] Property named 'sms-https' in " << getConfFileName() << " should be an boolean (true or false). By default: true";
                 }
             }

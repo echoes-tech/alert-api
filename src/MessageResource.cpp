@@ -20,6 +20,9 @@ MessageResource::MessageResource(Echoes::Dbo::Session& session) : PublicApiResou
     m_itookiSMSSender = new ItookiSMSSender(m_session);
     resourceClassName = "MessageResource";
 
+    functionMap["getMessageStatus"] = boost::bind(&MessageResource::getMessageStatus, this, _1, _2, _3, _4, _5);
+    functionMap["getMessageEvents"] = boost::bind(&MessageResource::getMessageEvents, this, _1, _2, _3, _4, _5);
+    functionMap["getMessageEvent"] = boost::bind(&MessageResource::getMessageEvent, this, _1, _2, _3, _4, _5);
     functionMap["getMessages"] = boost::bind(&MessageResource::getMessages, this, _1, _2, _3, _4, _5);
     functionMap["getMessage"] = boost::bind(&MessageResource::getMessage, this, _1, _2, _3, _4, _5);
     functionMap["postSimpleMessage"] = boost::bind(&MessageResource::postSimpleMessage, this, _1, _2, _3, _4, _5);
@@ -441,6 +444,8 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
     int mediaSpecializationId;
     long long alertId;
 
+    Wt::Dbo::Transaction transaction(m_session, true);
+    
     mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
     
     if (!sRequest.empty())
@@ -452,6 +457,11 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
 
             Wt::Json::Array array = result.get("information_value_ids");
             alertId = result.get("alert_id");
+            
+            if(alertId == mediaSpecializationId)
+            {
+                 Wt::log("info") << "You are a troll";
+            }
             
             for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
             {
@@ -508,7 +518,6 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
 
                 const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
                 
-                Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, orgId, m_session);
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, grpId, m_session);
                 if (medPtr)
                 {
@@ -617,7 +626,7 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
     return res;
 }
 
-EReturnCode MessageResource::getMessageEvents(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode MessageResource::getMessageEvents(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -642,7 +651,7 @@ EReturnCode MessageResource::getMessageEvents(map<string, long long> &parameters
     return res;    
 }
 
-EReturnCode MessageResource::getMessageEvent(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode MessageResource::getMessageEvent(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -668,7 +677,7 @@ EReturnCode MessageResource::getMessageEvent(map<string, long long> &parameters,
     return res;
 }
 
-EReturnCode MessageResource::getMessageStatus(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode MessageResource::getMessageStatus(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -740,18 +749,17 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
             if (nextElement.empty())
             {
                 res = getMessage(grpId, responseMsg, pathElements);
-                res = getMessage(pathElements, orgId, responseMsg);
             }
             else if(nextElement.compare("status") == 0)
             {
-                res = getMessageStatus(parameters, pathElements, orgId, responseMsg);
+                res = getMessageStatus(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if(nextElement.compare("events") == 0)
             {
                 nextElement = getNextElementFromPath(indexPathElement, pathElements);
                 if (nextElement.empty())
                 {
-                    res = getMessageEvents(parameters, pathElements, orgId, responseMsg);
+                    res = getMessageEvents(grpId, responseMsg, pathElements, sRequest, parameters);
                 }
                 else
                 {
@@ -759,7 +767,7 @@ EReturnCode MessageResource::processGetRequest(const Wt::Http::Request &request,
                     nextElement = getNextElementFromPath(indexPathElement, pathElements);
                     if (nextElement.empty())
                     {
-                        res = getMessageEvent(parameters, pathElements, orgId, responseMsg);
+                        res = getMessageEvent(grpId, responseMsg, pathElements, sRequest, parameters);
                     }
                     else
                     {
@@ -890,7 +898,7 @@ EReturnCode MessageResource::sendMAIL
             "<p style=\"\">Pour vous assigner l'alerte cliquez <a href=\"http://" + conf.getFQDN() + ":" + port + "/mail/assign?id=" + boost::lexical_cast<std::string>(msgPtr.id()) + "&token=" + msgPtr->refAck.get().toUTF8()  + "\">ici</a></p>";
     Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::User>> usrPtrCol = m_session.find<Echoes::Dbo::User>()
                 .where(QUOTE(TRIGRAM_USER SEP "DELETE") " IS NULL")
-                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_ORGANIZATION SEP TRIGRAM_ORGANIZATION ID) " = ?").bind(msgPtr->user->organization.id())
+                .where(QUOTE(TRIGRAM_USER SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(msgPtr->user->group.id())
                 .orderBy(QUOTE(TRIGRAM_USER ID));
     if(usrPtrCol.size() > 1)
     {

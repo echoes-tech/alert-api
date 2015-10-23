@@ -18,6 +18,14 @@ AlertResource::AlertResource(Echoes::Dbo::Session& session) : PublicApiResource:
 {
     resourceClassName = "AlertResource";
     
+    functionMap["getAlertStatus"] = boost::bind(&AlertResource::getAlertStatus, this, _1, _2, _3, _4, _5);
+    functionMap["getAlertMessages"] = boost::bind(&AlertResource::getAlertMessages, this, _1, _2, _3, _4, _5);
+    functionMap["getAlertEvents"] = boost::bind(&AlertResource::getAlertEvents, this, _1, _2, _3, _4, _5);
+    functionMap["getAlertEvent"] = boost::bind(&AlertResource::getAlertEvent, this, _1, _2, _3, _4, _5);
+    functionMap["startAlert"] = boost::bind(&AlertResource::startAlert, this, _1, _2, _3, _4, _5);
+    functionMap["forwardAlert"] = boost::bind(&AlertResource::forwardAlert, this, _1, _2, _3, _4, _5);
+    functionMap["assignAlert"] = boost::bind(&AlertResource::assignAlert, this, _1, _2, _3, _4, _5);
+    functionMap["resolveAlert"] = boost::bind(&AlertResource::resolveAlert, this, _1, _2, _3, _4, _5);
     functionMap["getAlertsList"] = boost::bind(&AlertResource::getAlertsList, this, _1, _2, _3, _4, _5);
     functionMap["getAlert"] = boost::bind(&AlertResource::getAlert, this, _1, _2, _3, _4, _5);
     functionMap["postAlert"] = boost::bind(&AlertResource::postAlert, this, _1, _2, _3, _4, _5);
@@ -158,7 +166,7 @@ EReturnCode AlertResource::getAlert(const long long &grpId, std::string &respons
     return res;
 }
 
-EReturnCode AlertResource::getAlertEvent(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::getAlertEvent(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
      EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -184,7 +192,7 @@ EReturnCode AlertResource::getAlertEvent(map<string, long long> &parameters, con
     return res;
 }
 
-EReturnCode AlertResource::getAlertEvents(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::getAlertEvents(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -211,7 +219,7 @@ EReturnCode AlertResource::getAlertEvents(map<string, long long> &parameters, co
     return res;    
 }
 
-EReturnCode AlertResource::getAlertStatus(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::getAlertStatus(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -281,7 +289,7 @@ std::string AlertResource::AlertStatusToString(int AlertStatusId)
     return returnValue;
 }
 
-EReturnCode AlertResource::getAlertMessages(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::getAlertMessages(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -307,41 +315,6 @@ EReturnCode AlertResource::getAlertMessages(map<string, long long> &parameters, 
     }
     return res;    
 }
- 
-
-//EReturnCode AlertResource::getTrackingsForAlertsList(map<string, long long> &parameters, const long long &orgId, std::string &responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//
-//    if (parameters["media_id"] <= 0)
-//    {
-//        res = EReturnCode::BAD_REQUEST;
-//        const string err = "[Alert Resource] media is empty";
-//        responseMsg = httpCodeToJSON(res, err);
-//    }
-//
-//    try
-//    {
-//        Wt::Dbo::Transaction transaction(m_session, true);
-//
-//        //ToDo(FPO): Check rights
-//        Wt::Dbo::collection < Wt::Dbo::ptr < Echoes::Dbo::Message >> atrPtrCol = m_session.find<Echoes::Dbo::Message>()
-//                .where(QUOTE(TRIGRAM_MESSAGE SEP TRIGRAM_MEDIA SEP TRIGRAM_MEDIA ID)" = ? ").bind(parameters["media_id"])
-//                .where(QUOTE(TRIGRAM_MESSAGE SEP "SEND_DATE") " IS NOT NULL")
-//                .orderBy(QUOTE(TRIGRAM_MESSAGE SEP "SEND_DATE") " DESC")
-//                .limit(20);
-//
-//        res = serialize(atrPtrCol, responseMsg);
-//
-//        transaction.commit();
-//    }
-//    catch (Wt::Dbo::Exception const& e)
-//    {
-//        res = EReturnCode::SERVICE_UNAVAILABLE;
-//        responseMsg = httpCodeToJSON(res, e);
-//    }
-//    return res;
-//}
 
 EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
@@ -371,22 +344,22 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.empty())
             {
-                res = getAlert(pathElements, orgId, responseMsg);
+                res = getAlert(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if(nextElement.compare("status") == 0)
             {
-                res = getAlertStatus(parameters, pathElements, orgId, responseMsg);
+                res = getAlertStatus(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if(nextElement.compare("messages") == 0)
             {
-                res = getAlertMessages(parameters, pathElements, orgId, responseMsg);
+                res = getAlertMessages(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if(nextElement.compare("events") == 0)
             {
                 
                 if (nextElement.empty())
                 {
-                    res = getAlertEvents(parameters, pathElements, orgId, responseMsg);
+                    res = getAlertEvents(grpId, responseMsg, pathElements, sRequest, parameters);
                 }
                 else
                 {
@@ -394,7 +367,7 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
                     nextElement = getNextElementFromPath(indexPathElement, pathElements);
                     if (nextElement.empty())
                     {
-                        res = getAlertEvent(parameters, pathElements, orgId, responseMsg);
+                        res = getAlertEvent(grpId, responseMsg, pathElements, sRequest, parameters);
                     }
                     else
                     {
@@ -403,7 +376,6 @@ EReturnCode AlertResource::processGetRequest(const Wt::Http::Request &request, c
                         responseMsg = httpCodeToJSON(res, err);
                     }
                 }
-                res = getAlert(grpId, responseMsg, pathElements);
             }
             else
             {
@@ -715,333 +687,7 @@ EReturnCode AlertResource::postAlert(const long long &grpId, std::string &respon
     return res;
 }
 
-//void AlertResource::replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector, Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr, string &message)
-//{
-//    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-//    
-//    Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
-//    int cpt = 0;
-//    while (asePtr)
-//    {
-//        for (vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue> >::const_iterator it = ivaPtrVector.begin(); it != ivaPtrVector.end(); ++it)
-//        {
-//            if (it->get()->informationData == asePtr->alertValue->informationData)
-//            {
-//                boost::replace_all(message, "%value" + boost::lexical_cast<string> (cpt) + "%", it->get()->value.toUTF8());
-//                boost::replace_all(message, "%threshold" + boost::lexical_cast<string> (cpt) + "%", asePtr->alertValue->value.toUTF8());
-//                boost::replace_all(message, "%detection-time" + boost::lexical_cast<string> (cpt) + "%", it->get()->creationDate.toString().toUTF8());
-//                boost::replace_all(message, "%alerting-time" + boost::lexical_cast<string> (cpt) + "%", now.toString().toUTF8());
-//                boost::replace_all(message, "%unit" + boost::lexical_cast<string> (cpt) + "%", it->get()->informationData->informationUnit->name.toUTF8());
-//            }
-//        }
-//        asePtr = asePtr->alertSequence;
-//        cpt++;
-//    }
-//}
-
-//EReturnCode AlertResource::sendMAIL
-//(
-// vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-// Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-// Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-// Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
-// bool overSMSQuota
-// )
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//
-//    Wt::WString mailRecipient;
-//    const Wt::WString mailRecipientName = amsPtr->media->user->firstName + " " + amsPtr->media->user->lastName;
-//    string mailBody = "";
-//    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
-//    Wt::Mail::Message mailMessage;
-//    Wt::Mail::Client mailClient;
-//
-//    // Normal case
-//    if (overSMSQuota == 0)
-//    {
-//        mailRecipient = amsPtr->media->value;
-//    }
-//    else if (overSMSQuota == 1)
-//    {
-//        mailRecipient = amsPtr->media->user->eMail;
-//
-//        mailBody += "MAIL sent instead of SMS (quota = 0) <br />";
-//    }
-//
-//    mailBody += amsPtr->message.toUTF8();
-//
-//    replaceVariablesInMessage(ivaPtrVector, alePtr, mailBody);
-//    
-//    Wt::log("debug") << " [Alert Resource] " << mailBody;
-//
-//    mailMessage.setFrom(Wt::Mail::Mailbox(conf.getAlertMailSenderAddress(), conf.getAlertMailSenderName()));
-//    mailMessage.addRecipient(Wt::Mail::To, Wt::Mail::Mailbox(mailRecipient.toUTF8(), mailRecipientName));
-//    mailMessage.setSubject("[Echoes Alert] " + alePtr->name);
-//    mailMessage.addHtmlBody(mailBody);
-//    mailClient.connect(conf.getSMTPHost(), conf.getSMTPPort());
-//    mailClient.send(mailMessage);
-//
-//    Wt::log("debug") << " [Class:AlertSender] " << "insert date of last send in db : " << now.toString();
-//    amsPtr.modify()->lastSend = now;
-//
-//    atrPtr.modify()->sendDate = now;
-//    atrPtr.modify()->content = mailBody;
-//
-//    res = EReturnCode::OK;
-//
-//    return res;
-//}
-//
-//EReturnCode AlertResource::sendSMS
-//(
-// vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-// Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-// Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-// Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
-// )
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//
-//    const Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-//    string sms = amsPtr->message.toUTF8();
-//
-//    replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
-//    
-//    Wt::log("debug") << " [Alert Resource] New SMS for " << amsPtr->media->value << " : " << sms;
-//
-//    ItookiSMSSender itookiSMSSender(m_session, this);
-//
-//    if (!itookiSMSSender.send(amsPtr->media->value.toUTF8(), sms, atrPtr))
-//    {
-//        amsPtr.modify()->lastSend = now;
-//        res = EReturnCode::OK;
-//    }
-//
-//    return res;
-//}
-//
-//EReturnCode AlertResource::sendMobileApp
-//(
-// vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
-// Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-// Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-// Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
-// )
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//
-//    const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); //for setting the send date of the alert
-//    string mobileApp = amsPtr->message.toUTF8();
-//
-//    replaceVariablesInMessage(ivaPtrVector, alePtr, mobileApp);
-//    
-//    Wt::log("debug") << " [Alert Resource] New Alert for mobileApp : " << amsPtr->media->value << " : " << mobileApp;
-//
-//    atrPtr.modify()->content = mobileApp;
-//    atrPtr.modify()->sendDate = now;
-//
-//    amsPtr.modify()->lastSend = now;
-//    res = EReturnCode::OK;
-//
-//    return res;
-//}
-
-//EReturnCode AlertResource::postAlertTracking(map<string, long long> parameters, const vector<string> &pathElements, const string &sRequest, const long long &grpId, string &responseMsg)
-//{
-//    EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
-//    vector<long long> ivaIds;
-//    int mediaSpecializationId;
-//
-//    mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
-//    
-//    if (!sRequest.empty())
-//    {
-//        try
-//        {
-//            Wt::Json::Object result;
-//            Wt::Json::parse(sRequest, result);
-//
-//            Wt::Json::Array array = result.get("information_value_ids");
-//            
-//            
-//            for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
-//            {
-//                ivaIds.push_back(it->toNumber());
-//            }
-//        }
-//        catch (Wt::Json::ParseError const& e)
-//        {
-//            res = EReturnCode::BAD_REQUEST;
-//            responseMsg = httpCodeToJSON(res, e);
-//        }
-//        catch (Wt::Json::TypeException const& e)
-//        {
-//            res = EReturnCode::BAD_REQUEST;
-//            responseMsg = httpCodeToJSON(res, e);
-//        }
-//    }
-//    else
-//    {
-//        res = EReturnCode::BAD_REQUEST;
-//        const string err = "[Alert Resource] sRequest is not empty";
-//        responseMsg = httpCodeToJSON(res, err);
-//    }
-//
-//    if (responseMsg.empty())
-//    {
-//        try
-//        {
-//            Wt::Dbo::Transaction transaction(m_session, true);
-//
-//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], grpId, m_session);
-//            if (!alePtr)
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = httpCodeToJSON(res, alePtr);
-//                return res;
-//            }
-//            
-//            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
-//            amsPtr = alePtr->alertMediaSpecializations.find()
-//                            .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?")
-//                            .bind(mediaSpecializationId);
-//            
-//            if (!amsPtr)
-//            {
-//                res = EReturnCode::NOT_FOUND;
-//                responseMsg = httpCodeToJSON(res, amsPtr);
-//                return res;
-//            }
-//
-//            vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
-//            for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
-//            {
-//                Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session.find<Echoes::Dbo::InformationValue>()
-//                        .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
-//                        .where(QUOTE(TRIGRAM_INFORMATION_VALUE SEP "DELETE") " IS NULL");
-//                if (!ivaPtr)
-//                {
-//                    res = EReturnCode::NOT_FOUND;
-//                    responseMsg = httpCodeToJSON(res, ivaPtr);
-//                    return res;
-//                }
-//                ivaPtrVector.push_back(ivaPtr);
-//            }
-//                    
-//            Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
-//            size_t cpt = 0;
-//            while(asePtr)
-//            {
-//                if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
-//                        (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
-//                {
-//                    res = EReturnCode::BAD_REQUEST;
-//                    const string err = "[Alert Resource] bad size or content of ivaPtrVector";
-//                    responseMsg = httpCodeToJSON(res, err);
-//                    return res;
-//                }                
-//                asePtr = asePtr->alertSequence;
-//                cpt++;
-//            }
-//
-//            Wt::WDateTime now = Wt::WDateTime::currentDateTime();
-//
-//            alePtr.modify()->lastAttempt = now;
-//
-//            // it is the first time we send the alert there is no last send date filled
-//            // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
-//            if (!amsPtr->lastSend.isValid() || amsPtr->lastSend.secsTo(now) >= amsPtr->snoozeDuration)
-//            {
-//                const long long mtyID = amsPtr->media->mediaType.id();
-//                Echoes::Dbo::Message *newAtr = new Echoes::Dbo::Message();
-//
-//                newAtr->alert = alePtr;
-//                newAtr->media = amsPtr->media;
-//                // WARNING : SendDate must be set by the API when the alert was sent, not before
-//                newAtr->sendDate = *(new Wt::WDateTime());
-//
-//                Wt::Dbo::ptr<Echoes::Dbo::Message> newAtrPtr = m_session.add<Echoes::Dbo::Message>(newAtr);
-//                newAtrPtr.flush();
-//
-//                Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newAtrPtr.id();
-//
-//                Wt::log("debug") << " [Alert Ressource] " << "snooze = " << amsPtr->snoozeDuration;
-//
-//                switch (mtyID)
-//                {
-//                case Echoes::Dbo::EMediaType::SMS:
-//                {
-//                    Wt::log("debug") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
-//
-//                    // Verifying the quota of sms
-//                    Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
-//                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
-//                            .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
-//                            .limit(1);
-//
-//                    try
-//                    {
-//                        const int smsQuota = boost::lexical_cast<int>(optPtr->value);
-//                        if (smsQuota == 0)
-//                        {
-//                            Wt::log("debug") << " [Alert Ressource] " << "SMS quota 0 for alert : " << alePtr->name;
-//                            Wt::log("debug") << " [Alert Ressource] " << "Sending e-mail instead.";
-//
-//                            sendMAIL(ivaPtrVector, alePtr, newAtrPtr, amsPtr, true);
-//                        }
-//                        else
-//                        {
-//                            Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : " << smsQuota;
-//                            optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
-//                            optPtr.flush();
-//                            sendSMS(ivaPtrVector, alePtr, newAtrPtr, amsPtr);
-//                        }
-//                    }
-//                    catch (boost::bad_lexical_cast const& e)
-//                    {
-//                        res = EReturnCode::SERVICE_UNAVAILABLE;
-//                        responseMsg = httpCodeToJSON(res, e);
-//                    }
-//                    break;
-//                }
-//                case Echoes::Dbo::EMediaType::MAIL:
-//                    Wt::log("debug") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
-//                    sendMAIL(ivaPtrVector, alePtr, newAtrPtr, amsPtr);
-//                    break;
-//                case Echoes::Dbo::EMediaType::MOBILE_APP:
-//                    Wt::log("debug") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
-//                    sendMobileApp(ivaPtrVector, alePtr, newAtrPtr, amsPtr);
-//                    break;
-//                default:
-//                    Wt::log("error") << "[Alert Resource] Unknown ID Media: " << mtyID;
-//                    break;
-//                }
-//            }
-//            else
-//            {
-//                Wt::log("debug") << "[Alert Resource] "
-//                        << "Last time we send the alert : " << alePtr->name
-//                        << "was : " << amsPtr->lastSend.toString()
-//                        << "the snooze for the media " << amsPtr->media->mediaType->name
-//                        << " is : " << amsPtr->snoozeDuration << "secs,  it's not the time to send the alert";
-//            }
-//
-//            res = EReturnCode::CREATED;
-//
-//            transaction.commit();
-//        }
-//        catch (Wt::Dbo::Exception const& e)
-//        {
-//            res = EReturnCode::SERVICE_UNAVAILABLE;
-//            responseMsg = httpCodeToJSON(res, e);
-//        }
-//    }
-//
-//    return res;
-//}
-
-EReturnCode AlertResource::forwardAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::forwardAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -1117,7 +763,7 @@ EReturnCode AlertResource::forwardAlert(const std::string &sRequest, const std::
     return res;
 }
 
-EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::assignAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -1192,7 +838,7 @@ EReturnCode AlertResource::assignAlert(const std::string &sRequest, const std::v
     return res;
 }
 
-EReturnCode AlertResource::resolveAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::resolveAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     
@@ -1262,7 +908,7 @@ EReturnCode AlertResource::resolveAlert(const std::string &sRequest, const std::
     return res;
 }
 
-EReturnCode AlertResource::startAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::startAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 
@@ -1270,7 +916,7 @@ EReturnCode AlertResource::startAlert(const std::string &sRequest, const std::ve
     {
         Wt::Dbo::Transaction transaction(m_session, true);
 
-        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], orgId, m_session);
+        Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(pathElements[1], grpId, m_session);
         
         
 
@@ -1307,7 +953,7 @@ EReturnCode AlertResource::startAlert(const std::string &sRequest, const std::ve
     return res;
 }
 
-EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -1334,7 +980,7 @@ EReturnCode AlertResource::processPostRequest(const Wt::Http::Request &request, 
     return res;
 }
 
-EReturnCode AlertResource::processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg)
+EReturnCode AlertResource::processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
     string nextElement = "";
@@ -1359,19 +1005,19 @@ EReturnCode AlertResource::processPutRequest(const Wt::Http::Request &request, c
             nextElement = getNextElementFromPath(indexPathElement, pathElements);
             if (nextElement.compare("start") == 0)
             {
-                res = startAlert(sRequest, pathElements, orgId, responseMsg);
+                res = startAlert(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (nextElement.compare("forward") == 0)
             {
-                res = forwardAlert(sRequest, pathElements, orgId, responseMsg);
+                res = forwardAlert(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (nextElement.compare("assign") == 0)
             {
-                res = assignAlert(sRequest, pathElements, orgId, responseMsg);
+                res = assignAlert(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else if (nextElement.compare("resolve") == 0)
             {
-                res = resolveAlert(sRequest, pathElements, orgId, responseMsg);
+                res = resolveAlert(grpId, responseMsg, pathElements, sRequest, parameters);
             }
             else
             {
@@ -1391,7 +1037,7 @@ EReturnCode AlertResource::processPutRequest(const Wt::Http::Request &request, c
 }
 
 
-EReturnCode AlertResource::deleteAlert(const vector<string> &pathElements, const long long &orgId, string &responseMsg)
+EReturnCode AlertResource::deleteAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements, const std::string &sRequest, std::map<string, long long> parameters)
 {
     EReturnCode res = EReturnCode::INTERNAL_SERVER_ERROR;
 

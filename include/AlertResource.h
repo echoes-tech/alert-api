@@ -51,88 +51,24 @@ class AlertResource : public PublicApiResource
         static Wt::Dbo::ptr<Echoes::Dbo::Alert> selectAlert(const std::string &aleId, const std::string &grpId, Echoes::Dbo::Session &session);
 
     protected:
-//        EReturnCode getRecipientsForAlert(const long long &orgId, std::string &responseMsg);       
-//        EReturnCode getTrackingsForAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-//        EReturnCode getTrackingAlertList(const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlertsList(std::map<std::string, long long> &parameters, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlert(const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlertEvents(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlertEvent(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlertStatus(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode getAlertMessages(map<string, long long> &parameters, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
-//        EReturnCode getRecipientsForAlert(const long long &grpId, std::string &responseMsg);       
-//        EReturnCode getTrackingsForAlertsList(std::map<std::string, long long> &parameters, const long long &grpId, std::string &responseMsg);
-//        EReturnCode getTrackingAlertList(const long long &grpId, std::string &responseMsg);
         EReturnCode getAlertsList(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
         EReturnCode getAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode getAlertEvents(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode getAlertEvent(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode getAlertStatus(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode getAlertMessages(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
         virtual EReturnCode processGetRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
         
         std::string AlertStatusToString(int AlertStatusId);
-//        void replaceVariablesInMessage(vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector, Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr, std::string &message);
-//
-//        /**
-//         * method to send a MAIL 
-//         * @param collection of informations values that matches the alert
-//         * @param the alert
-//         * @param the alert tracking required and concerned by the sms
-//         * @param the media value concern by the alert
-//         * @param if the user as use all his sms, the value here is 1 if not it's 0
-//         * @return HTTP Code
-//         */
-//        EReturnCode sendMAIL
-//        (
-//            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-//            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-//            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr,
-//            bool overSMSQuota = false
-//        );
-//
-//        /**
-//         * method to send an SMS with the call of the API
-//         * @param collection of informations values that matches the alert
-//         * @param the alert
-//         * @param the alert tracking required and concerned by the sms
-//         * @param the media value concern by the alert
-//         * @return HTTP Code
-//         */
-//        EReturnCode sendSMS
-//        (
-//            std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector,
-//            Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-//            Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-//            Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
-//        );
-//
-//        /**
-//         * method to put a date and content in Alertetracking table 
-//         * @param collection of informations values that matches the alert
-//         * @param the alert
-//         * @param the alert tracking required and concerned by the sms
-//         * @param the media value concern by the alert
-//         * @return HTTP Code
-//         */
-//        EReturnCode sendMobileApp
-//        (
-//         std::vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue >> ivaPtrVector,
-//         Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr,
-//         Wt::Dbo::ptr<Echoes::Dbo::Message> atrPtr,
-//         Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr
-//        );
         
         EReturnCode postAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
-//        EReturnCode postAlertTracking(map<string, long long> parameters, const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &grpId, std::string &responseMsg);
         virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
-        EReturnCode postAlert(const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        //        EReturnCode postAlertTracking(map<string, long long> parameters, const std::vector<std::string> &pathElements, const std::string &sRequest, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPostRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
 
-        EReturnCode startAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode assignAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode resolveAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        EReturnCode forwardAlert(const std::string &sRequest, const std::vector<std::string> &pathElements, const long long &orgId, std::string &responseMsg);
-        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &orgId, std::string &responseMsg);
+        EReturnCode startAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode assignAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode resolveAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        EReturnCode forwardAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
+        virtual EReturnCode processPutRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
 
         EReturnCode deleteAlert(const long long &grpId, std::string &responseMsg, const std::vector<std::string> &pathElements = std::vector<std::string>(), const std::string &sRequest = "", std::map<string, long long> parameters = map<string, long long>());
         virtual EReturnCode processDeleteRequest(const Wt::Http::Request &request, const long long &grpId, std::string &responseMsg);
