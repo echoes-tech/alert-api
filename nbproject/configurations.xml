@@ -391,6 +391,8 @@
             <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
             <linkerLibLibItem>boost_signals</linkerLibLibItem>
             <linkerLibLibItem>boost_system</linkerLibLibItem>
+            <linkerLibLibItem>yaml-cpp</linkerLibLibItem>
+            <linkerLibLibItem>boost_regex</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -528,8 +530,6 @@
       </item>
       <item path="src/itooki/ItookiSMSSender.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="swagger.yaml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="src/itooki/ItookiSendedReiceiver.cpp"
             ex="false"
             tool="1"
@@ -547,6 +547,8 @@
       <item path="src/mail/mailForward.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/mail/mailResolve.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="swagger.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tests/AddonResourceTest/AddonResourceTest.cpp"
             ex="false"
