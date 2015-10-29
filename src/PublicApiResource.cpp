@@ -189,7 +189,7 @@ std::vector<Call> PublicApiResource::FillCallsVector()
 {
     std::vector<Call> retour;
     //load yaml file
-    YAML::Node contenu = YAML::LoadFile("swagger.yaml");
+    YAML::Node contenu = YAML::LoadFile(conf.getSwaggerFile());
     //get differents paths
     YAML::Node pathsNodes = contenu["paths"];
     

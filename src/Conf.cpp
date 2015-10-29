@@ -29,7 +29,8 @@ m_smsHttps(true),
 m_routeurHost(""),
 m_routeurPort(0),
 m_serverPort(0),
-m_fqdn("")
+m_fqdn(""),
+m_swaggerFile("")
 {
 }
 
@@ -184,7 +185,17 @@ bool Conf::readProperties(Wt::WServer& server)
                 {
                     setFQDN("127.0.0.1");
                     Wt::log("warning") << "[Conf] no fqdn in " << getConfFileName() << "set to 127.0.0.1";
-                     Wt::log("error") << "[Conf] Property named 'sms-https' in " << getConfFileName() << " should be an boolean (true or false). By default: true";
+                }
+                
+                std::string swaggerFile;
+                if(server.readConfigurationProperty("swagger-file", swaggerFile))
+                {
+                    setSwaggerFile(swaggerFile);
+                }
+                else
+                {
+                    setSwaggerFile("/opt/echoes-alert/api/conf/swagger.yaml");
+                    Wt::log("warning") << "[Conf] no swagger file specified in " << getConfFileName() << "set to /opt/echoes-alert/api/conf/swagger.yaml";
                 }
             }
             else
@@ -349,6 +360,7 @@ std::string Conf::getFQDN() const
 {
     return m_fqdn;
 }
+
 void Conf::setConfFileName(string fileName)
 {
     m_configFileName = fileName;
@@ -358,4 +370,15 @@ void Conf::setConfFileName(string fileName)
 string Conf::getConfFileName() const
 {
     return m_configFileName;
+}
+
+void Conf::setSwaggerFile(string swaggerFile)
+{
+    m_swaggerFile = swaggerFile;
+    return;
+}
+
+string Conf::getSwaggerFile() const
+{
+    return m_swaggerFile;
 }

@@ -47,6 +47,7 @@ class Conf {
         unsigned getRouteurPort() const;
         unsigned getServerPort() const;
         std::string getFQDN() const;
+        std::string getSwaggerFile() const;
         
         void setServerPort(unsigned port);
    
@@ -65,6 +66,7 @@ class Conf {
         unsigned m_routeurPort;
         unsigned m_serverPort;
         std::string m_fqdn;
+        std::string m_swaggerFile;
         
         void setSessConnectParams
         (
@@ -85,6 +87,7 @@ class Conf {
         void setRouteurPort(unsigned routeurPort);
         void setRouteurHost(std::string routeurHost);
         void setFQDN(std::string fqdn);
+        void setSwaggerFile(std::string swaggerFile);
 
 };
 
