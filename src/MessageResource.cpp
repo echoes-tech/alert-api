@@ -445,53 +445,26 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
     long long alertId;
 
     Wt::Dbo::Transaction transaction(m_session, true);
+    Wt::WDateTime now = Wt::WDateTime::currentDateTime();
     
-    mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
+    if ((parameters["alert_media_specialization_id"]) > 0)	
+    {
+        mediaSpecializationId = boost::lexical_cast<int>(parameters["alert_media_specialization_id"]);
     
-    if (!sRequest.empty())
-    {
-        try
-        {
-            Wt::Json::Object result;
-            Wt::Json::parse(sRequest, result);
-
-            Wt::Json::Array array = result.get("information_value_ids");
-            alertId = result.get("alert_id");
-            
-            if(alertId == mediaSpecializationId)
-            {
-                 Wt::log("info") << "You are a troll";
-            }
-            
-            for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
-            {
-                ivaIds.push_back(it->toNumber());
-            }
-        }
-        catch (Wt::Json::ParseError const& e)
-        {
-            res = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-        catch (Wt::Json::TypeException const& e)
-        {
-            res = EReturnCode::BAD_REQUEST;
-            responseMsg = httpCodeToJSON(res, e);
-        }
-    }
-    else
-    {
-        long long medId;
-        Wt::WString message;
-
         if (!sRequest.empty())
         {
             try
             {
                 Wt::Json::Object result;
                 Wt::Json::parse(sRequest, result);
-                medId = result.get("media_id");
-                message = result.get("message");
+
+                Wt::Json::Array array = result.get("information_value_ids");
+                alertId = result.get("alert_id");
+
+                for (Wt::Json::Array::const_iterator it = array.begin(); it != array.end(); ++it)
+                {
+                    ivaIds.push_back(it->toNumber());
+                }
             }
             catch (Wt::Json::ParseError const& e)
             {
@@ -516,8 +489,233 @@ EReturnCode MessageResource::postAlertMessage(const long long &grpId, std::strin
             try
             {
 
-                const Wt::WDateTime now = Wt::WDateTime::currentDateTime(); 
-                
+                Wt::Dbo::ptr<Echoes::Dbo::Alert> alePtr = selectAlert(alertId, grpId, m_session);
+                if (!alePtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, alePtr);
+                    return res;
+                }
+                else
+                {
+                    Wt::Dbo::collection<Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent>> AlertEventList = m_session.find<Echoes::Dbo::AlertTrackingEvent>()
+                                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP TRIGRAM_ALERT SEP TRIGRAM_ALERT ID) " = ?").bind(alePtr.id())
+                                    .where(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DELETE") " IS NULL")
+                                    .orderBy(QUOTE(TRIGRAM_ALERT_TRACKING_EVENT SEP "DATE") " DESC");
+                    if(AlertEventList.size() <= 0 ||
+                            AlertEventList.begin()->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
+                    {
+                        Echoes::Dbo::AlertTrackingEvent *newStateAle = new Echoes::Dbo::AlertTrackingEvent();
+
+                        newStateAle->date = Wt::WDateTime::currentDateTime();
+                        newStateAle->alert = alePtr;
+                        Wt::Dbo::ptr<Echoes::Dbo::AlertStatus> alsPtr = m_session.find<Echoes::Dbo::AlertStatus>()
+                            .where(QUOTE(TRIGRAM_ALERT_STATUS ID) " = ?").bind(Echoes::Dbo::EAlertStatus::PENDING)
+                            .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
+                        newStateAle->statut = alsPtr;
+
+                        Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
+
+                    }
+
+                }
+                Wt::Dbo::ptr<Echoes::Dbo::AlertMediaSpecialization> amsPtr;
+                amsPtr = m_session.find<Echoes::Dbo::AlertMediaSpecialization>()
+                                .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION ID) " = ?").bind(mediaSpecializationId)
+                                .where(QUOTE(TRIGRAM_ALERT_MEDIA_SPECIALIZATION SEP "DELETE") " IS NULL");
+
+                if (!amsPtr)
+                {
+                    res = EReturnCode::NOT_FOUND;
+                    responseMsg = httpCodeToJSON(res, amsPtr);
+                    return res;
+                }
+
+                vector<Wt::Dbo::ptr<Echoes::Dbo::InformationValue>> ivaPtrVector;
+                for (vector<long long>::const_iterator it = ivaIds.begin(); it < ivaIds.end(); ++it)
+                {
+                    Wt::Dbo::ptr<Echoes::Dbo::InformationValue> ivaPtr = m_session.find<Echoes::Dbo::InformationValue>()
+                            .where(QUOTE(TRIGRAM_INFORMATION_VALUE ID) " = ?").bind(*it)
+                            .where(QUOTE(TRIGRAM_INFORMATION_VALUE SEP "DELETE") " IS NULL");
+                    if (!ivaPtr)
+                    {
+                        res = EReturnCode::NOT_FOUND;
+                        responseMsg = httpCodeToJSON(res, ivaPtr);
+                        return res;
+                    }
+                    ivaPtrVector.push_back(ivaPtr);
+                }
+
+                Wt::Dbo::ptr<Echoes::Dbo::AlertSequence> asePtr = alePtr->alertSequence;
+                size_t cpt = 0;
+                while(asePtr)
+                {
+                    if (ivaPtrVector.size() <= cpt || ivaPtrVector[cpt]->informationData != asePtr->alertValue->informationData ||
+                            (!asePtr->alertSequence && ivaPtrVector.size() != cpt+1))
+                    {
+                        res = EReturnCode::BAD_REQUEST;
+                        const string err = "[Alert Resource] bad size or content of ivaPtrVector";
+                        responseMsg = httpCodeToJSON(res, err);
+                        return res;
+                    }                
+                    asePtr = asePtr->alertSequence;
+                    cpt++;
+                }
+
+                alePtr.modify()->lastAttempt = now;
+
+                // it is the first time we send the alert there is no last send date filled
+                // or date.now() - last_send = nb_secs then, if nb_secs >= snooze of the media, we send the alert
+                if (!amsPtr->lastSend.isValid() || amsPtr->lastSend.secsTo(now) >= amsPtr->snoozeDuration)
+                {
+                    const long long mtyID = amsPtr->media->mediaType.id();
+                    Echoes::Dbo::Message *newMsg = new Echoes::Dbo::Message();
+
+                    newMsg->refAck = "";
+                    string sms;
+                    sms = amsPtr->message.toUTF8();
+                    if (ivaPtrVector.size() > 0)
+                    {
+                        replaceVariablesInMessage(ivaPtrVector, alePtr, sms);
+                    }
+                    newMsg->content = sms;
+                    newMsg->dest = amsPtr->media->value;
+                    newMsg->receiverSrv = conf.getRouteurHost(); 
+                    newMsg->receiverPort = boost::lexical_cast<std::string>(conf.getRouteurPort());
+                    
+                    char hostname[255];
+                    gethostname(hostname, 255);
+                    
+                    newMsg->senderSrv = hostname;
+                    newMsg->senderPort = boost::lexical_cast<std::string>(conf.getServerPort());
+
+                    newMsg->user = amsPtr->media->user;
+                    newMsg->alert = alePtr;
+                    newMsg->refAck = "null";
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::Message> newMsgPtr = m_session.add<Echoes::Dbo::Message>(newMsg);
+                    newMsgPtr.flush();
+                    
+                    Echoes::Dbo::MessageTrackingEvent *newStateMsg = new Echoes::Dbo::MessageTrackingEvent();
+                    
+                    newStateMsg->date = now;
+                    newStateMsg->message = newMsgPtr;
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageStatus> mstPtr = m_session.find<Echoes::Dbo::MessageStatus>()
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS ID) " = ?").bind(Echoes::Dbo::EMessageStatus::UNCREATED)
+                        .where(QUOTE(TRIGRAM_MESSAGE_STATUS SEP "DELETE") " IS NULL");
+                    newStateMsg->statut = mstPtr;
+                    newStateMsg->text = "";
+                    
+                    Wt::Dbo::ptr<Echoes::Dbo::MessageTrackingEvent> newMsgTrEv = m_session.add<Echoes::Dbo::MessageTrackingEvent>(newStateMsg);
+
+                    Wt::log("debug") << " [Alert Ressource] " << "Alert tracking number creation : " << newMsgPtr.id();
+
+                    Wt::log("debug") << " [Alert Ressource] " << "snooze = " << amsPtr->snoozeDuration;
+
+                    switch (mtyID)
+                    {
+                        case Echoes::Dbo::EMediaType::SMS:
+                        {
+                            Wt::log("debug") << " [Alert Ressource] " << "Media value SMS choosed for the alert : " << alePtr->name;
+
+                            // Verifying the quota of sms
+                            Wt::Dbo::ptr<Echoes::Dbo::Option> optPtr = m_session.find<Echoes::Dbo::Option>()
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_OPTION_TYPE SEP TRIGRAM_OPTION_TYPE ID) " = ?").bind(Echoes::Dbo::EOptionType::QUOTA_SMS)
+                                    .where(QUOTE(TRIGRAM_OPTION SEP TRIGRAM_GROUP SEP TRIGRAM_GROUP ID) " = ?").bind(grpId)
+                                    .limit(1);
+
+                            try
+                            {
+                                const int smsQuota = boost::lexical_cast<int>(optPtr->value);
+                                if (smsQuota == 0)
+                                {
+                                    Wt::log("debug") << " [Alert Ressource] " << "SMS quota 0 for alert : " << alePtr->name;
+                                    Wt::log("debug") << " [Alert Ressource] " << "Sending e-mail instead.";
+
+                                    sendMAIL(newMsgPtr, true, ivaPtrVector, alePtr, amsPtr);
+                                }
+                                else
+                                {
+                                    Wt::log("debug") << " [Alert Ressource] " << "We send a SMS, quota : " << smsQuota;
+                                    optPtr.modify()->value = boost::lexical_cast<string>(smsQuota - 1);
+                                    optPtr.flush();
+                                    sendSMS(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
+                                }
+                            }
+                            catch (boost::bad_lexical_cast const& e)
+                            {
+                                res = EReturnCode::SERVICE_UNAVAILABLE;
+                                responseMsg = httpCodeToJSON(res, e);
+                            }
+                            break;
+                        }
+                        case Echoes::Dbo::EMediaType::MAIL:
+                            Wt::log("debug") << " [Alert Ressource] " << "Media value MAIL choosed for the alert : " << alePtr->name;
+                            sendMAIL(newMsgPtr, false, ivaPtrVector, alePtr, amsPtr);
+                            break;
+                        case Echoes::Dbo::EMediaType::MOBILE_APP:
+                            Wt::log("debug") << " [Alert Ressource] " << "Media value MOBILEAPP choosed for the alert : " << alePtr->name;
+                            sendMobileApp(newMsgPtr, ivaPtrVector, alePtr, amsPtr);
+                            break;
+                        default:
+                            Wt::log("error") << "[Alert Resource] Unknown ID Media: " << mtyID;
+                            break;
+                        }
+                }
+                else
+                {
+                    Wt::log("debug") << "[Alert Resource] "
+                            << "Last time we send the alert : " << alePtr->name
+                            << " was : " << amsPtr->lastSend.toString()
+                            << "the snooze for the media " << amsPtr->media->mediaType->name
+                            << " is : " << amsPtr->snoozeDuration << "secs,  it's not the time to send the alert";
+                }
+
+                res = EReturnCode::CREATED;
+            }
+            catch (Wt::Dbo::Exception const& e)
+            {
+                res = EReturnCode::SERVICE_UNAVAILABLE;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+        }
+    }
+    else
+    {
+        long long medId;
+        Wt::WString message;
+        
+        if (!sRequest.empty())
+        {
+            try
+            {
+                Wt::Json::Object result;
+                Wt::Json::parse(sRequest, result);
+
+                medId = result.get("media_id");
+                message = result.get("message");
+            }
+            catch (Wt::Json::ParseError const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+            catch (Wt::Json::TypeException const& e)
+            {
+                res = EReturnCode::BAD_REQUEST;
+                responseMsg = httpCodeToJSON(res, e);
+            }
+        }
+        else
+        {
+            res = EReturnCode::BAD_REQUEST;
+            const string err = "[Message Resource] sRequest is not empty";
+            responseMsg = httpCodeToJSON(res, err);
+        }
+        if (responseMsg.empty())
+        {
+            try
+            {
                 Wt::Dbo::ptr<Echoes::Dbo::Media> medPtr = MediaResource::selectMedia(medId, grpId, m_session);
                 if (medPtr)
                 {
