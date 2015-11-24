@@ -45,8 +45,8 @@ int ItookiSMSSender::send(const string &number, const string &message, const lon
             string json = "{";
             json += "\"number\" : \"" + number + "\",";
             json += "\"message\" : \"" + message + "\",";
-            json += "\"port_back\" : " + boost::lexical_cast<std::string>(conf.getServerPort()) + "\",";
-            json += "\"FQDN_back\" : " + boost::lexical_cast<std::string>(conf.getFQDN());
+            json += "\"port_back\" : " + boost::lexical_cast<std::string>(conf.getServerPort()) + ",";
+            json += "\"FQDN_back\" : \"" + boost::lexical_cast<std::string>(conf.getFQDN()) + "\"";
             json += "}";
             
             Wt::Http::Message httpMessage;
