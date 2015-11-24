@@ -46,7 +46,7 @@ EReturnCode MailResolve::PostResolve(map<string, string> parameters, const vecto
     if(!answered)
     {
         res = EReturnCode::OK;
-        responseMsg = "<br/> La demande a bien été envoyée et sera traitée dans les plus brefs délais.</br><br/> Consultez votre interface, pour voir son avancement.";
+        responseMsg = "<br/> La demande a bien ete envoyee et sera traitee dans les plus brefs delais.<br/><br/> Consultez votre interface, pour voir son avancement.";
     }
     
     return res;
@@ -203,15 +203,15 @@ EReturnCode MailResolve::doMailResolve(map<string, string> parameters, const vec
                         responseMsg = "Resolve impossible. . ";
                         if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED)
                         {
-                            responseMsg += "Vous n'êtes pas le responsable.";
+                            responseMsg += "Vous n'etes pas le responsable.";
                         }
                         else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
                         {
-                            responseMsg += "L'alerte a déjà été résolue.";
+                            responseMsg += "L'alerte a deja ete resolue.";
                         }
                         else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::FORWARDING)
                         {
-                            responseMsg += "L'alerte est forwardée et vous n'êtes pas la personne forwardée.";
+                            responseMsg += "L'alerte est forwardee et vous n'etes pas la personne forwardee.";
                         }
                     }
                 }

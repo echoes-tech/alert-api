@@ -47,7 +47,7 @@ EReturnCode MailAssign::PostAssign(map<string, string> parameters, const vector<
     if(!answered)
     {
         res = EReturnCode::OK;
-        responseMsg = "<br/> La demande a bien été envoyée et sera traitée dans les plus brefs délais.<br/><br/> Consultez votre interface, pour voir son avancement.";
+        responseMsg = "<br/> La demande a bien ete envoyee et sera traitee dans les plus brefs delais.<br/><br/> Consultez votre interface, pour voir son avancement.";
     }
     return res;
 }
@@ -201,15 +201,15 @@ EReturnCode MailAssign::doMailAssign(map<string, string> parameters, const vecto
                         responseMsg = "Assignation impossible. ";
                         if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::SUPPORTED)
                         {
-                            responseMsg += "L'alerte a déjà été pourvue.";
+                            responseMsg += "L'alerte a deja ete pourvue.";
                         }
                         else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::BACKTONORMAL)
                         {
-                            responseMsg += "L'alerte a déjà été résolue.";
+                            responseMsg += "L'alerte a deja ete resolue.";
                         }
                         else if(itAtePtr->get()->statut.id() == Echoes::Dbo::EAlertStatus::FORWARDING)
                         {
-                            responseMsg += "L'alerte a déjà été forwardée et vous n'êtes pas la personne forwardée.";
+                            responseMsg += "L'alerte a deja ete forwardee et vous n'etes pas la personne forwardee.";
                         }
                     }
                 }
