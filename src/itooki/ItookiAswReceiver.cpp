@@ -158,6 +158,8 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
                 .where(QUOTE(TRIGRAM_ALERT_STATUS SEP "DELETE") " IS NULL");
             newStateAle->statut = alsPtr;
 
+            newStateAle->user = msgTrEv->message->user;
+            
             Wt::Dbo::ptr<Echoes::Dbo::AlertTrackingEvent> newAleTrEv = m_session.add<Echoes::Dbo::AlertTrackingEvent>(newStateAle);
             
             Wt::Http::Client *client = new Wt::Http::Client(this);
