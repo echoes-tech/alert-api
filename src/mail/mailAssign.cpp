@@ -47,7 +47,7 @@ EReturnCode MailAssign::PostAssign(map<string, string> parameters, const vector<
     if(!answered)
     {
         res = EReturnCode::OK;
-        responseMsg = "<\br> La demande a bien été envoyée et sera traitée dans les plus brefs délais.<\br><\br> Consultez votre interface, pour voir son avancement.";
+        responseMsg = "<br/> La demande a bien été envoyée et sera traitée dans les plus brefs délais.<br/><br/> Consultez votre interface, pour voir son avancement.";
     }
     return res;
 }
