@@ -44,8 +44,11 @@ EReturnCode MailAssign::PostAssign(map<string, string> parameters, const vector<
     httpMessage.addHeader("content-type","application/json");
             
     client->post(url, httpMessage);
-    while(!answered){}
-    
+    if(!answered)
+    {
+        res = EReturnCode::OK;
+        responseMsg = "<\br> La demande a bien été envoyée et sera traitée dans les plus brefs délais.<\br><\br> Consultez votre interface, pour voir son avancement.";
+    }
     return res;
 }
 
