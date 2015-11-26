@@ -169,6 +169,7 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
             {
                 url += "s";
             }
+            Wt::log("info") << "[Itooki asw Receiver] ref ack to send : " << msgTrEv->message->refAck;
             url += "://" + conf.getRouteurHost() +":" + boost::lexical_cast<std::string>(conf.getRouteurPort()) + "/send/" + boost::lexical_cast<std::string>(msgTrEv->message->refAck);
             Wt::Http::Message httpMessage;
             
