@@ -169,8 +169,7 @@ void ItookiAswReceiver::operationOnAsw(Wt::Dbo::ptr<Echoes::Dbo::MessageTracking
             {
                 url += "s";
             }
-            url += "://" + conf.getRouteurHost() +":" + boost::lexical_cast<std::string>(conf.getRouteurPort()) + "/send/";
-            url += boost::lexical_cast<std::string>(msgTrEv->message->refAck);
+            url += "://" + conf.getRouteurHost() +":" + boost::lexical_cast<std::string>(conf.getRouteurPort()) + "/send/" + boost::lexical_cast<std::string>(msgTrEv->message->refAck);
             Wt::Http::Message httpMessage;
             
             client->deleteRequest(url, httpMessage); 
