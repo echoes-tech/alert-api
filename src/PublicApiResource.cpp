@@ -213,7 +213,8 @@ std::vector<Call> PublicApiResource::FillCallsVector()
         for (YAML::const_iterator methodNode = methodsNodes.begin(); methodNode != methodsNodes.end(); methodNode++)
           {
             std::vector<std::string> infoMethode;
-            boost::split(infoMethode, methodNode->second["operationId"].as<std::string>(), boost::is_any_of("::"), boost::token_compress_on);            
+            std::string operationId = methodNode->second["operationId"].as<std::string>();
+            boost::split(infoMethode, operationId, boost::is_any_of("::"), boost::token_compress_on);            
             
             if (infoMethode.size() == 2 && infoMethode[0] == resourceClassName)
             {
